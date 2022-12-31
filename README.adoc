@@ -26,9 +26,15 @@ XTDB is a good fit for Site, since many of its features (such as document ids an
 
 == When would you use Site?
 
-If you are writing an application and want to potentially share data with other applications, in a secure manner.
+Site might be a good choice if one or more of the following apply:
+
+* you are developing an application and want to centralise common data such that it can be shared securely with other applications.
+* you have strong requirements for security and access-control over your data.
+* you want to access your data over web protocols, such as OpenAPI and/or GraphQL.
 
 == Features
+
+Current development is still focussed on the technical feature set, as required to conform to the relevant standards and provide good interoperability.
 
 === Resource Server
 
