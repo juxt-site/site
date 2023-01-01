@@ -7,7 +7,7 @@
   ;; associated with the GET method.
   "https://example.org/permissions/openid/exchange-code-for-id-token"]
  :install
- {:juxt.site/subject-id "https://core.example.org/subjects/system"
+ {:juxt.site/subject-id "https://core.example.org/_site/subjects/system"
   :juxt.site/action-id "https://example.org/actions/install-openid-callback-endpoint"
   :juxt.site/input
   {:xt/id "{{$id}}"

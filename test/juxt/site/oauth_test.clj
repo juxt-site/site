@@ -26,7 +26,7 @@
     (testing "Register client with generated client-id"
       (let [result
             (install-resource-with-action!
-             {:juxt.site/subject-id "https://auth.example.test/subjects/system"
+             {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
               :juxt.site/action-id "https://auth.example.test/actions/register-client"
               :juxt.site/input
               {:juxt.site/client-type "public"
@@ -39,7 +39,7 @@
     (testing "Register client with generated client-id and client-secret"
       (let [result
             (install-resource-with-action!
-             {:juxt.site/subject-id "https://auth.example.test/subjects/system"
+             {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
               :juxt.site/action-id "https://auth.example.test/actions/register-client"
               :juxt.site/input
               {:juxt.site/client-type "confidential"
@@ -50,7 +50,7 @@
         (is (:juxt.site/client-secret doc))))
 
     (testing "Re-registering the same client-id will fail"
-      (let [input {:juxt.site/subject-id "https://auth.example.test/subjects/system"
+      (let [input {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
                    :juxt.site/action-id "https://auth.example.test/actions/register-client"
                    :juxt.site/input
                    {:juxt.site/client-id "test-app"
@@ -93,7 +93,7 @@
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
   (install-resource-with-action!
-   {:juxt.site/subject-id "https://auth.example.test/subjects/system"
+   {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
     :juxt.site/action-id "https://auth.example.test/actions/register-client"
     :juxt.site/input
     {:juxt.site/client-id "test-app"

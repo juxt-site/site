@@ -1,7 +1,7 @@
 ;; Warning, this is an overly broad action! TODO: Narrow this action.
 ;; It permits grantees access to ALL measurements!!
 {:install
- {:juxt.site/subject-id "https://core.example.org/subjects/system"
+ {:juxt.site/subject-id "https://core.example.org/_site/subjects/system"
   :juxt.site/action-id "https://core.example.org/actions/create-action"
   :juxt.site/input
   {:xt/id "{{$id}}"

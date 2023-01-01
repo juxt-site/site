@@ -1,7 +1,7 @@
 ;; Install an action to register an application
 ;; See https://www.rfc-editor.org/rfc/rfc6749#section-2
 {:install
- {:juxt.site/subject-id "https://core.example.org/subjects/system"
+ {:juxt.site/subject-id "https://core.example.org/_site/subjects/system"
   :juxt.site/action-id "https://core.example.org/actions/create-action"
   :juxt.site/input
   {:xt/id "{{$id}}"

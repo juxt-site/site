@@ -340,7 +340,7 @@
          :sad-message "Authentication resources not installed. "
          :fix "Enter (put-auth-resources!) to fix this."}
 
-      {:complete? (xt/entity db (str base-uri "/subjects/system"))
+      {:complete? (xt/entity db (str base-uri "/_site/subjects/system"))
        :happy-message "System subject exists."
        :sad-message "System subject does not exist."
        :fix "Enter (init/install-system-subject!) to fix this."}

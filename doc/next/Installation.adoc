@@ -321,7 +321,7 @@ This will look similar to:
  "https://site.test/permissions/get-not-found"
  "https://site.test/permissions/system/bootstrap"
  "https://site.test/permissions/system/install-not-found"
- "https://site.test/subjects/system")
+ "https://site.test/_site/subjects/system")
 ----
 --
 

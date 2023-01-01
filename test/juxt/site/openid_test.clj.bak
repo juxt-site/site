@@ -52,7 +52,7 @@
               (eval
                (init/substitute-actual-base-uri
                 `(init/do-action
-                  "https://example.org/subjects/system"
+                  "https://example.org/_site/subjects/system"
                   "https://example.org/actions/put-session-scope"
                   {:xt/id ~id
                    :juxt.site/cookie-name "sid"
@@ -205,7 +205,7 @@
         (do-prepare
          {::site/xt-node xt-node
           ::site/db db
-          ::site/subject (xt/entity db "https://site.test/subjects/system")
+          ::site/subject (xt/entity db "https://site.test/_site/subjects/system")
           ::site/action "https://site.test/actions/openid/exchange-code-for-id-token"
           ::site/base-uri (init/base-uri)
           :ring.request/query "code=RyMRjiijG_zjlhKdFiLOHNkcsn1i1gDMRPQNGtteQ5Fx9&state=9e7d5227c7c818bc"}

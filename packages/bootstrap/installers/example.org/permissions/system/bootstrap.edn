@@ -6,7 +6,7 @@
    :juxt.site/action #{"https://example.org/actions/create-action"
                        "https://example.org/actions/grant-permission"}
    :juxt.site/purpose nil
-   :juxt.site/subject "https://example.org/subjects/system"
+   :juxt.site/subject "https://example.org/_site/subjects/system"
    }
   ;; end::install-system-permissions![]
   }}

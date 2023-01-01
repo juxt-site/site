@@ -42,7 +42,7 @@
 
      (let [client-id (get *args* "client-id")]
        (install-resource-with-action!
-        {:juxt.site/subject-id "https://core.example.org/subjects/system"
+        {:juxt.site/subject-id "https://core.example.org/_site/subjects/system"
          :juxt.site/action-id "https://example.org/actions/register-client"
          :juxt.site/input
          (cond-> {:juxt.site/client-type (get *args* "client-type")

@@ -12,7 +12,7 @@ Now that we have our system subject, and our `create-action` action, we can call
 
 `do-action` is a function that takes the following arguments:
 
-* the subject identifier (in this case, `+https://site.test/subjects/system+`),
+* the subject identifier (in this case, `+https://site.test/_site/subjects/system+`),
 * the action identifier (in this case, `+https://site.test/actions/create-action+`),
 * a document
 

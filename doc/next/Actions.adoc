@@ -87,7 +87,7 @@ A copy of the transaction metadata record is returned as a result of the `do-act
 ----
 {:xt/id "https://example.org/_site/event-log/134"
  :xtdb.api/tx-id 134
- :juxt.pass.alpha/subject "https://example.org/subjects/system"
+ :juxt.pass.alpha/subject "https://example.org/_site/subjects/system"
  :juxt.pass.alpha/action "https://example.org/actions/create-action"
  :juxt.pass.alpha/purpose nil
  :juxt.pass.alpha/puts ["https://example.org/actions/grant-permission"]

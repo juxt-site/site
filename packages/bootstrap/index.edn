@@ -7,7 +7,7 @@
  ;; These are always added on package installation
  :resources
  ["https://example.org/_site/do-action"
-  "https://example.org/subjects/system"
+  "https://example.org/_site/subjects/system"
   "https://example.org/actions/create-action"
   "https://example.org/actions/grant-permission"
   "https://example.org/permissions/system/bootstrap"

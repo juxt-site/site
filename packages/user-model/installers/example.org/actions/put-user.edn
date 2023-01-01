@@ -1,6 +1,6 @@
 {:deps [#_"https://example.org/actions/get-user"]
  :install
- {:juxt.site/subject-id "https://core.example.org/subjects/system"
+ {:juxt.site/subject-id "https://core.example.org/_site/subjects/system"
   :juxt.site/action-id "https://core.example.org/actions/create-action"
   :juxt.site/input
   {:xt/id "{{$id}}"

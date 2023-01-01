@@ -43,7 +43,7 @@
     (quote
      ;; tag::create-action-put-immutable-public-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/put-immutable-public-resource"
 
@@ -85,10 +85,10 @@
     (quote
      ;; tag::grant-permission-to-invoke-action-put-immutable-public-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/system/put-immutable-public-resource"
-       :juxt.site.alpha/subject "https://example.org/subjects/system"
+       :juxt.site.alpha/subject "https://example.org/_site/subjects/system"
        :juxt.site.alpha/action "https://example.org/actions/put-immutable-public-resource"
        :juxt.site.alpha/purpose nil})
      ;; end::grant-permission-to-invoke-action-put-immutable-public-resource![]
@@ -100,7 +100,7 @@
     (quote
      ;; tag::create-action-get-public-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/get-public-resource"
 
@@ -118,7 +118,7 @@
     (quote
      ;; tag::grant-permission-to-invoke-get-public-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/public-resources-to-all"
        :juxt.site.alpha/action "https://example.org/actions/get-public-resource"
@@ -132,7 +132,7 @@
     (quote
      ;; tag::create-hello-world-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-immutable-public-resource"
       {:xt/id "https://example.org/hello"
        :juxt.http.alpha/content-type "text/plain"
@@ -148,7 +148,7 @@
     (quote
      ;; tag::create-hello-world-html-representation![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-immutable-public-resource"
       {:xt/id "https://example.org/hello.html"                 ; <1>
        :juxt.http.alpha/content-type "text/html;charset=utf-8" ; <2>
@@ -164,7 +164,7 @@
     (quote
      ;; tag::grant-permission-to-invoke-action-put-template![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/alice/put-template"
        :juxt.site.alpha/user "https://example.org/users/alice"
@@ -179,7 +179,7 @@
     (quote
      ;; tag::create-hello-world-html-template![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-template"
       {:xt/id "https://example.org/templates/hello.html"
        :juxt.http.alpha/content-type "text/html;charset=utf-8"
@@ -193,7 +193,7 @@
     (quote
      ;; tag::create-hello-world-with-html-template![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-immutable-public-resource"
       {:xt/id "https://example.org/hello-with-template.html"
        :juxt.site.alpha/template "https://example.org/templates/hello.html"
@@ -209,7 +209,7 @@
     (quote
      ;; tag::create-action-put-immutable-protected-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/put-immutable-protected-resource"
 
@@ -252,10 +252,10 @@
     (quote
      ;; tag::grant-permission-to-put-immutable-protected-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/system/put-immutable-protected-resource"
-       :juxt.site.alpha/subject "https://example.org/subjects/system"
+       :juxt.site.alpha/subject "https://example.org/_site/subjects/system"
        :juxt.site.alpha/action "https://example.org/actions/put-immutable-protected-resource"
        :juxt.site.alpha/purpose nil})
      ;; end::grant-permission-to-put-immutable-protected-resource![]
@@ -267,7 +267,7 @@
     (quote
      ;; tag::create-action-get-protected-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/get-protected-resource"
 
@@ -290,7 +290,7 @@
     (quote
      ;; tag::create-resource-protected-by-basic-auth![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-immutable-protected-resource"
       {:xt/id "https://example.org/protected-by-basic-auth/document.html"
        :juxt.http.alpha/content-type "text/html;charset=utf-8"
@@ -307,7 +307,7 @@
     (quote
      ;; tag::grant-permission-to-resource-protected-by-basic-auth![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/alice/protected-by-basic-auth/document.html"
        :juxt.site.alpha/action "https://example.org/actions/get-protected-resource"
@@ -326,7 +326,7 @@
     (quote
      ;; tag::create-resource-protected-by-bearer-auth![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-immutable-protected-resource"
       {:xt/id "https://example.org/protected-by-bearer-auth/document.html"
        :juxt.http.alpha/content-type "text/html;charset=utf-8"
@@ -341,7 +341,7 @@
     (quote
      ;; tag::grant-permission-to-resource-protected-by-bearer-auth![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/alice/protected-by-bearer-auth/document.html"
        :juxt.site.alpha/action "https://example.org/actions/get-protected-resource"
@@ -357,7 +357,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-protection-space"
       {:xt/id "https://example.org/protection-spaces/bearer/wonderland"
 
@@ -374,7 +374,7 @@
     (quote
      ;; tag::create-resource-protected-by-session-scope![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-immutable-protected-resource"
       {:xt/id "https://example.org/protected-by-session-scope/document.html"
        :juxt.http.alpha/content-type "text/html;charset=utf-8"
@@ -389,7 +389,7 @@
     (quote
      ;; tag::grant-permission-to-resource-protected-by-session-scope![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/alice/protected-by-session-scope/document.html"
        :juxt.site.alpha/action "https://example.org/actions/get-protected-resource"
@@ -405,7 +405,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-immutable-protected-resource"
       {:xt/id "https://example.org/private/internal.html"
        :juxt.http.alpha/content-type "text/plain"
@@ -416,7 +416,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/alice/private/internal.html"
        :juxt.site.alpha/action "https://example.org/actions/get-protected-resource"
@@ -433,7 +433,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/install-graphql-endpoint"
 
@@ -578,7 +578,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       ;; TODO: We need a specialist grant-permission for this because we want to documnent/validate the :juxt.site.alpha/resource-pattern
       {:xt/id "https://example.org/permissions/alice/install-graphql-endpoint"
@@ -594,7 +594,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/put-graphql-schema"
 
@@ -688,7 +688,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       ;; TODO: We need a specialist grant-permission for this because we want to
       ;; documnent/validate the :juxt.site.alpha/resource
@@ -703,7 +703,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       ;; TODO: We need a specialist grant-permission for this because we want to
       ;; documnent/validate the :juxt.site.alpha/resource
@@ -718,7 +718,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/get-graphql-schema"
        :juxt.site.alpha/scope "https://example.org/oauth/scope/graphql/develop"
@@ -743,7 +743,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/graphql-request"
        :juxt.site.alpha/transact
@@ -759,7 +759,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/graphql-access-to-known-subjects"
        :juxt.site.alpha/action "https://example.org/actions/graphql-request"
@@ -773,7 +773,7 @@
     (quote
      ;; tag::grant-permission-to-put-error-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/alice/put-error-resource"
        :juxt.site.alpha/user "https://example.org/users/alice"
@@ -788,7 +788,7 @@
     (quote
      ;; tag::put-unauthorized-error-resource![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-error-resource"
       {:xt/id "https://example.org/_site/errors/unauthorized"
        :juxt.site.alpha/type "ErrorResource"
@@ -802,7 +802,7 @@
     (quote
      ;; tag::put-unauthorized-error-representation-for-html![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-immutable-public-resource"
       {:xt/id "https://example.org/_site/errors/unauthorized.html"
        :juxt.site.alpha/variant-of "https://example.org/_site/errors/unauthorized"
@@ -817,7 +817,7 @@
     (quote
      ;; tag::put-unauthorized-error-representation-for-html-with-login-link![]
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-immutable-public-resource"
       {:xt/id "https://example.org/_site/errors/unauthorized.html"
        :juxt.site.alpha/variant-of "https://example.org/_site/errors/unauthorized"
@@ -830,7 +830,7 @@
   (eval
    (substitute-actual-base-uri
     `(init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/put-protection-space"
       {:xt/id "https://example.org/protection-spaces/bearer"
 
@@ -926,7 +926,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/create-oauth-scope"
 
@@ -953,10 +953,10 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id "https://example.org/permissions/system/create-oauth-scope"
-       :juxt.site.alpha/subject "https://example.org/subjects/system"
+       :juxt.site.alpha/subject "https://example.org/_site/subjects/system"
        :juxt.site.alpha/action "https://example.org/actions/create-oauth-scope"
        :juxt.site.alpha/purpose nil})))))
 
@@ -964,7 +964,7 @@
   (eval
    (substitute-actual-base-uri
     `(init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-oauth-scope"
       {:xt/id ~scope}))))
 
@@ -973,7 +973,7 @@
    (substitute-actual-base-uri
     (quote
      (juxt.site.alpha.init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/create-action"
       {:xt/id "https://example.org/actions/put-user-owned-content"
        :juxt.site.alpha/rules
@@ -988,7 +988,7 @@
   (eval
    (substitute-actual-base-uri
     `(init/do-action
-      "https://example.org/subjects/system"
+      "https://example.org/_site/subjects/system"
       "https://example.org/actions/grant-permission"
       {:xt/id ~(format "https://example.org/permissions/%s/put-user-owned-content" username)
        :juxt.site.alpha/action "https://example.org/actions/put-user-owned-content"
@@ -1050,7 +1050,7 @@
    "https://example.org/private/internal.html"
    {:deps #{::init/system
             "https://example.org/_site/do-action"
-            "https://example.org/subjects/system"
+            "https://example.org/_site/subjects/system"
             "https://example.org/actions/put-immutable-protected-resource"
             "https://example.org/permissions/system/put-immutable-protected-resource"
             "https://example.org/actions/get-protected-resource"}
@@ -1058,7 +1058,7 @@
 
    "https://example.org/permissions/alice/private/internal.html"
    {:deps #{::init/system
-            "https://example.org/subjects/system"
+            "https://example.org/_site/subjects/system"
             "https://example.org/actions/grant-permission"
             "https://example.org/actions/get-protected-resource"}
     :create #'grant-alice-permission-to-internal-resource!}
@@ -1066,7 +1066,7 @@
    "https://example.org/protection-spaces/bearer"
    {:deps #{::init/system
             "https://example.org/_site/do-action"
-            "https://example.org/subjects/system"
+            "https://example.org/_site/subjects/system"
             "https://example.org/actions/put-protection-space"
             "https://example.org/permissions/system/put-protection-space"}
     :create #'create-bearer-protection-space}

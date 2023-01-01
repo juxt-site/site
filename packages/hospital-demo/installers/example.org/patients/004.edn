@@ -2,7 +2,7 @@
  ["https://auth.example.org/actions/register-patient"
   "https://auth.example.org/permissions/system/register-patient"]
  :install
- {:juxt.site/subject-id "https://core.example.org/subjects/system"
+ {:juxt.site/subject-id "https://core.example.org/_site/subjects/system"
   :juxt.site/action-id "https://auth.example.org/actions/register-patient"
   :juxt.site/input
   {:xt/id "{{$id}}"

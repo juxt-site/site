@@ -43,7 +43,7 @@
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-resource-with-action!
-   {:juxt.site/subject-id "https://auth.hospital.com/subjects/system"
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/action-id "https://auth.hospital.com/actions/register-client"
     :juxt.site/input
     {:juxt.site/client-id "local-terminal"
@@ -76,7 +76,7 @@
 (deftest eql-with-acl-test
   ;; Create some measurements
   (install-resource-with-action!
-   {:juxt.site/subject-id "https://auth.hospital.com/subjects/system"
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/action-id "https://auth.hospital.com/actions/register-patient-measurement"
     :juxt.site/input
     {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
@@ -85,7 +85,7 @@
                "bloodPressure" "137/80"}}})
 
   (install-resource-with-action!
-   {:juxt.site/subject-id "https://auth.hospital.com/subjects/system"
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/action-id "https://auth.hospital.com/actions/register-patient-measurement"
     :juxt.site/input
     {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
@@ -94,7 +94,7 @@
                "bloodPressure" "198/160"}}})
 
   (install-resource-with-action!
-   {:juxt.site/subject-id "https://auth.hospital.com/subjects/system"
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/action-id "https://auth.hospital.com/actions/register-patient-measurement"
     :juxt.site/input
     {:xt/id "https://hospital.com/measurements/eeda3b49-2e96-42fc-9e6a-e89e2eb68c24"
@@ -103,7 +103,7 @@
                "bloodPressure" "120/80"}}})
 
   (install-resource-with-action!
-   {:juxt.site/subject-id "https://auth.hospital.com/subjects/system"
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/action-id "https://auth.hospital.com/actions/register-patient-measurement"
     :juxt.site/input
     {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1d"
