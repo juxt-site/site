@@ -29,7 +29,6 @@
           :juxt.site/type "https://meta.juxt.site/types/user"
           :juxt.site/methods
           {:get {:juxt.site/actions #{"https://example.org/actions/get-user"}}
-           :head {:juxt.site/actions #{"https://example.org/actions/get-user"}}
            :options {}}))))}
 
    :juxt.site/transact

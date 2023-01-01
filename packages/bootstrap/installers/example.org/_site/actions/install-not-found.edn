@@ -32,8 +32,7 @@
          (assoc
           :juxt.site/type "https://meta.juxt.site/types/not-found"
           :juxt.site/methods
-          {:get {:juxt.site/actions #{"https://example.org/_site/actions/get-not-found"}}
-           :head {:juxt.site/actions #{"https://example.org/_site/actions/get-not-found"}}}))))}
+          {:get {:juxt.site/actions #{"https://example.org/_site/actions/get-not-found"}}}))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

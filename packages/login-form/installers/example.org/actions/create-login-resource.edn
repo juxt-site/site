@@ -31,7 +31,6 @@
          (assoc
           :juxt.site/methods
           {:get {:juxt.site/actions #{"https://example.org/actions/get-public-resource"}}
-           :head {:juxt.site/actions #{"https://example.org/actions/get-public-resource"}}
            :post {:juxt.site/actions #{"https://example.org/actions/login"}}
            :options {:juxt.site/actions #{"https://example.org/actions/get-options"}}}
 

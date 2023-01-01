@@ -31,7 +31,6 @@
                 :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
                 :juxt.site/methods
                 {:get {:juxt.site/actions #{"https://auth.example.org/actions/get-patient"}}
-                 :head {:juxt.site/actions #{"https://auth.example.org/actions/get-patient"}}
                  :options {}}))]
           (assoc input
                  :juxt.http/content-type "application/json"
