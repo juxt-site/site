@@ -337,8 +337,10 @@
   (perform-unsafe-method req))
 
 (defn OPTIONS [{:juxt.site/keys [resource allowed-methods] :as req}]
+
   ;; TODO: Implement *
-  (let [{:juxt.site/keys [access-control-allow-origins]} resource
+  (let [resource (cond-> resource (:juxt.site/variant-of resource) (:juxt.site/variant-of resource))
+        {:juxt.site/keys [access-control-allow-origins]} resource
         request-origin (get-in req [:ring.request/headers "origin"])
 
         [resource-origin allow-origin]
@@ -445,7 +447,10 @@
                       {:resource resource
                        :juxt.site/request-context req})))
     (if resource
-      (let [allowed-methods (set (keys (:juxt.site/methods resource)))]
+      (let [allowed-methods (set (keys (:juxt.site/methods resource)))
+            allowed-methods (cond-> allowed-methods
+                              (contains? allowed-methods :get)
+                              (conj :head))]
         (when-not (contains? allowed-methods method)
           (throw
            (ex-info

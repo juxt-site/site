@@ -743,7 +743,8 @@
     (assert (or (nil? subject) (map? subject)))
     (assert (or (nil? resource) (map? resource)))
 
-    (let [actions (get-in resource [:juxt.site/methods method :juxt.site/actions])
+    (let [method (if (= method :head) :get method)
+          actions (get-in resource [:juxt.site/methods method :juxt.site/actions])
 
           _ (assert actions (format "No actions for method %s" method))
 
