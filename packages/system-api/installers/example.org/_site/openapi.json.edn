@@ -4,7 +4,10 @@
  {:juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/actions #{"https://auth.example.org/actions/get-openapi-document"}}}
+   {:get {:juxt.site/actions #{"https://auth.example.org/actions/get-openapi-document"}
+          :ring.response/headers
+          {"Access-Control-Allow-Origin" "*"
+           "Access-Control-Allow-Methods" "GET, HEAD, PUT, POST, PATCH, DELETE"}}}
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
@@ -65,7 +68,4 @@
           (assoc :ring.response/body content)
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
 
-   :ring.response/headers
-   {"Access-Control-Allow-Origin" "*"
-    "Access-Control-Allow-Methods" "GET, HEAD, PUT, POST, PATCH, DELETE"}
    :juxt.http/content-type "application/json"}}}

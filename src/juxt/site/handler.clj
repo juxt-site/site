@@ -490,76 +490,88 @@
         ;; Don't allow Google to track your site visitors. Disable FLoC.
         true (assoc-in [:ring.response/headers "Permissions-Policy"] "interest-cohort=()")))))
 
-(defn- titlecase-response-headers [headers]
+(defn titlecase-response-headers [headers]
   (reduce-kv
    (fn [acc k v]
      (assoc acc (str/replace k #"(?<=^|-)[a-z]" str/upper-case) v))
    {}
    headers))
 
-(defn add-headers [acc resource body]
-  (cond-> acc
-    (:juxt.http/content-length resource)
-    (assoc "content-length" (or
-                             (some-> resource :juxt.http/content-length str)
-                             (when (counted? body) (some-> body count str))))
+(defn lowercase-response-headers [headers]
+  (reduce-kv
+   (fn [acc k v]
+     (assoc acc (str/lower-case k) v))
+   {}
+   headers))
 
-    ;; Some of these are marked as deprecated.  Entries in
-    ;; ring.response/headers must be fully processed strings and
-    ;; cannot support collections to be automatically comma separated
-    ;; by Site. (e.g. access-control-allow-methods). So we'll keep
-    ;; some of them, but anything that can be included in
-    ;; ring.response/headers should be deprecated/removed.
+(defn add-headers [headers
+                   {:ring.request/keys [method]
+                    :juxt.site/keys [resource]}
+                   body]
+  (let [method (if (= method :head) :get method)]
+    (cond-> headers
+      (:juxt.http/content-length resource)
+      (assoc "content-length" (or
+                               (some-> resource :juxt.http/content-length str)
+                               (when (counted? body) (some-> body count str))))
 
-    ;; Deprecated
-    (:juxt.http/content-type resource)
-    (assoc "content-type" (:juxt.http/content-type resource))
+      ;; Some of these are marked as deprecated.  Entries in
+      ;; ring.response/headers must be fully processed strings and
+      ;; cannot support collections to be automatically comma separated
+      ;; by Site. (e.g. access-control-allow-methods). So we'll keep
+      ;; some of them, but anything that can be included in
+      ;; ring.response/headers should be deprecated/removed.
 
-    ;; Deprecated
-    (:juxt.http/content-encoding resource)
-    (assoc "content-encoding" (:juxt.http/content-encoding resource))
+      ;; Deprecated
+      (:juxt.http/content-type resource)
+      (assoc "content-type" (:juxt.http/content-type resource))
 
-    ;; Deprecated
-    (:juxt.http/content-language resource)
-    (assoc "content-language" (:juxt.http/content-language resource))
+      ;; Deprecated
+      (:juxt.http/content-encoding resource)
+      (assoc "content-encoding" (:juxt.http/content-encoding resource))
 
-    ;; Deprecated
-    (:juxt.http/content-location resource)
-    (assoc "content-location" (:juxt.http/content-location resource))
+      ;; Deprecated
+      (:juxt.http/content-language resource)
+      (assoc "content-language" (:juxt.http/content-language resource))
 
-    ;; Deprecated
-    (:juxt.http/last-modified resource)
-    (assoc "last-modified" (:juxt.http/last-modified resource))
+      ;; Deprecated
+      (:juxt.http/content-location resource)
+      (assoc "content-location" (:juxt.http/content-location resource))
 
-    ;; Deprecated
-    (:juxt.http/etag resource)
-    (assoc "etag" (:juxt.http/etag resource))
+      ;; Deprecated
+      (:juxt.http/last-modified resource)
+      (assoc "last-modified" (:juxt.http/last-modified resource))
 
-    ;; Deprecated
-    (:juxt.http/vary resource)
-    (assoc "vary" (:juxt.http/vary resource))
+      ;; Deprecated
+      (:juxt.http/etag resource)
+      (assoc "etag" (:juxt.http/etag resource))
 
-    ;; Deprecated
-    (:juxt.http/content-range resource)
-    (assoc "content-range" (:juxt.http/content-range resource))
+      ;; Deprecated
+      (:juxt.http/vary resource)
+      (assoc "vary" (:juxt.http/vary resource))
 
-    ;; Deprecated
-    (:juxt.http/trailer resource)
-    (assoc "trailer" (:juxt.http/trailer resource))
+      ;; Deprecated
+      (:juxt.http/content-range resource)
+      (assoc "content-range" (:juxt.http/content-range resource))
 
-    ;; Deprecated
-    (:juxt.http/transfer-encoding resource)
-    (assoc "transfer-encoding" (:juxt.http/transfer-encoding resource))
+      ;; Deprecated
+      (:juxt.http/trailer resource)
+      (assoc "trailer" (:juxt.http/trailer resource))
 
-    ;; Keep
-    (:ring.response/headers resource)
-    (merge (titlecase-response-headers (:ring.response/headers resource)))))
+      ;; Deprecated
+      (:juxt.http/transfer-encoding resource)
+      (assoc "transfer-encoding" (:juxt.http/transfer-encoding resource))
+
+      ;; Keep
+      (get-in resource [:juxt.site/methods method :ring.response/headers])
+      (merge (lowercase-response-headers (get-in resource [:juxt.site/methods method :ring.response/headers]))))))
 
 (defn redact [req]
   (-> req
       (update :ring.request/headers
               (fn [headers]
                 (cond-> headers
+                  ;; TODO: Add cookies to this
                   (contains? headers "authorization")
                   (assoc "authorization" "(redacted)"))))))
 
@@ -615,7 +627,7 @@
         (update :ring.response/headers assoc "Site-Request-Id" request-id)
 
         resource
-        (update :ring.response/headers add-headers resource body)
+        (update :ring.response/headers add-headers req body)
 
         (= method :head) (dissoc :ring.response/body))))
 

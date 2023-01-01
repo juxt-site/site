@@ -9,7 +9,4 @@
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}}
 
-  :ring.response/headers
-   {"Access-Control-Allow-Origin" "*"
-    "Access-Control-Allow-Methods" "GET, HEAD, PUT, POST, PATCH, DELETE, OPTIONS"
-    }}}
+  }}
