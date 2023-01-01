@@ -15,5 +15,9 @@
   "https://auth.example.org/actions/get-openapi-document"
   "https://auth.example.org/permissions/get-openapi-document"
 
+  ;; API resources
   "https://example.org/_site/actions"
+  "https://example.org/_site/actions.html"
+  "https://auth.example.org/permissions/system-api/get-actions"
+
   ]}
