@@ -339,8 +339,7 @@
 (defn OPTIONS [{:juxt.site/keys [resource allowed-methods] :as req}]
 
   ;; TODO: Implement *
-  (let [resource (cond-> resource (:juxt.site/variant-of resource) (:juxt.site/variant-of resource))
-        {:juxt.site/keys [access-control-allow-origins]} resource
+  (let [{:juxt.site/keys [access-control-allow-origins]} resource
         request-origin (get-in req [:ring.request/headers "origin"])
 
         [resource-origin allow-origin]
@@ -356,8 +355,6 @@
         (get resource-origin :juxt.site/access-control-allow-headers)
         access-control-allow-credentials
         (get resource-origin :juxt.site/access-control-allow-credentials)]
-
-    (log/debug "In OPTIONS")
 
     (cond-> (into req {:ring.response/status 200})
 
@@ -442,15 +439,15 @@
 
 (defn wrap-method-not-allowed? [h]
   (fn [{:juxt.site/keys [resource] :ring.request/keys [method] :as req}]
-    (when-not (map? (:juxt.site/methods resource))
-      (throw (ex-info "Resource :juxt.site/methods must be a map"
-                      {:resource resource
-                       :juxt.site/request-context req})))
+
     (if resource
       (let [allowed-methods (set (keys (:juxt.site/methods resource)))
+            ;; allowed-methods will be an empty set if
+            ;; no :juxt.site/methods on the resource.
             allowed-methods (cond-> allowed-methods
                               (contains? allowed-methods :get)
-                              (conj :head))]
+                              (conj :head)
+                              true (conj :options))]
         (when-not (contains? allowed-methods method)
           (throw
            (ex-info

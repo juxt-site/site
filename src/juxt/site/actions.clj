@@ -746,8 +746,6 @@
     (let [method (if (= method :head) :get method)
           actions (get-in resource [:juxt.site/methods method :juxt.site/actions])
 
-          _ (assert actions (format "No actions for method %s" method))
-
           _ (doseq [action actions]
               (when-not (xt/entity db action)
                 (throw (ex-info (format "No such action: %s" action) {:juxt.site/request-context req
@@ -756,35 +754,32 @@
           _ (log/tracef "actions are %s" (pr-str {:actions actions}))
 
           permitted-actions
-          (check-permissions
-           db
-           actions
-           ;; TODO: Isn't this now superfluous - can't we pass through the req?
-           (cond-> {}
-             ;; When the resource is in the database, we can add it to the
-             ;; permission checking in case there's a specific permission for
-             ;; this resource.
-             subject (assoc :juxt.site/subject subject)
-             resource (assoc :juxt.site/resource resource)))]
+          (when actions
+            (check-permissions
+             db
+             actions
+             ;; TODO: Isn't this now superfluous - can't we pass through the req?
+             (cond-> {}
+               ;; When the resource is in the database, we can add it to the
+               ;; permission checking in case there's a specific permission for
+               ;; this resource.
+               subject (assoc :juxt.site/subject subject)
+               resource (assoc :juxt.site/resource resource))))]
 
       #_(log/debugf "Permitted actions: %s" (pr-str permitted-actions))
       (log/tracef "Subject is %s" (pr-str subject))
 
-      (if (seq permitted-actions)
+      (cond
+        (seq permitted-actions)
         (h (assoc req :juxt.site/permitted-actions permitted-actions))
 
-        (if subject
-          (throw
-           (ex-info
-            (format "No permission for actions: %s" (pr-str actions))
-            {:ring.response/status 403
-             :juxt.site/request-context req}))
+        (= method :options) (h req)
 
-          ;; No subject?
-          (if-let [protection-spaces (:juxt.site/protection-space resource)]
+        :else
+        (if-let [protection-spaces (:juxt.site/protection-space resource)]
             ;; We are in a protection space, so this is HTTP Authentication (401
             ;; + WWW-Authenticate header)
-            (throw
+          (throw
              (ex-info
               (format "No anonymous permission for actions (try authenticating!): %s" (pr-str actions))
               {:ring.response/status 401
@@ -816,7 +811,7 @@
                                  (not (str/blank? (:ring.request/query req)))
                                  (str "?" (:ring.request/query req)))))]
                 ;; If we are in a session-scope that contains a login-uri, let's redirect to that
-;;                (def req req)
+                ;;                (def req req)
                 (throw
                  (ex-info
                   (format "No anonymous permission for actions (try logging in!): %s" (pr-str actions))
@@ -827,7 +822,7 @@
                (ex-info
                 (format "No anonymous permission for actions: %s" (pr-str actions))
                 {:ring.response/status 403
-                 :juxt.site/request-context req})))))))))
+                 :juxt.site/request-context req}))))))))
 
 (comment
   (sci/eval-string
