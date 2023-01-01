@@ -1,4 +1,4 @@
-{:xt/id "https://example.org/packages/login-form"
+{:xt/id "https://example.org/_site/packages/login-form"
  :description "Login form"
 
  :uri-map
@@ -6,7 +6,7 @@
   ["https://core.example.org" {:description "Host of the Site core actions"}]]
 
  :dependencies
- ["https://example.org/packages/sessions"]
+ ["https://example.org/_site/packages/sessions"]
 
  :resources
  ["https://example.org/actions/login"

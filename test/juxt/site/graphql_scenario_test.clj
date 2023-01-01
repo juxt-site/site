@@ -14,7 +14,7 @@
    {:create
     (fn [{:keys [id]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/actions/create-action"
+       :juxt.site/action-id "https://example.org/_site/actions/create-action"
        :juxt.site/input
        {:xt/id id
         ;; TODO: Do a view
@@ -31,7 +31,7 @@
     :create
     (fn [{:keys [id params]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/actions/grant-permission"
+       :juxt.site/action-id "https://example.org/_site/actions/grant-permission"
        :juxt.site/input
        {:xt/id id
         :juxt.site/action "https://example.org/actions/get-graphql-type"
@@ -42,7 +42,7 @@
    {:create
     (fn [{:keys [id]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/actions/create-action"
+       :juxt.site/action-id "https://example.org/_site/actions/create-action"
        :juxt.site/input
        {:xt/id id
         ;; TODO: The reason we want a transact here is so we can recompile the
@@ -100,7 +100,7 @@
     :create
     (fn [{:keys [id params]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/actions/grant-permission"
+       :juxt.site/action-id "https://example.org/_site/actions/grant-permission"
        :juxt.site/input
        {:xt/id id
         :juxt.site/action "https://example.org/actions/delete-graphql-type"
@@ -111,7 +111,7 @@
    {:create
     (fn [{:keys [id]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/actions/create-action"
+       :juxt.site/action-id "https://example.org/_site/actions/create-action"
        :juxt.site/input
        {:xt/id id
 
@@ -174,7 +174,7 @@
     :create
     (fn [{:keys [id params]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/actions/grant-permission"
+       :juxt.site/action-id "https://example.org/_site/actions/grant-permission"
        :juxt.site/input
        {:xt/id id
         :juxt.site/action "https://example.org/actions/install-graphql-type"

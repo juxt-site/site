@@ -1,4 +1,4 @@
-{:xt/id "https://example.org/packages/sessions"
+{:xt/id "https://example.org/_site/packages/sessions"
  :description "Sessions"
 
  :uri-map
@@ -6,7 +6,7 @@
   ["https://core.example.org" {:description "Host of the Site core actions"}]]
 
  :dependencies
- ["https://core.example.org/packages/bootstrap"]
+ ["https://core.example.org/_site/packages/bootstrap"]
 
  :resources
  ["https://example.org/actions/put-session-scope"

@@ -1,4 +1,4 @@
-{:xt/id "https://example.org/packages/example-users"
+{:xt/id "https://example.org/_site/packages/example-users"
  :description "Example users"
 
  :uri-map
@@ -8,11 +8,11 @@
    {:description "Host of the Site core actions"}]]
 
  :dependencies
- ["https://core.example.org/packages/bootstrap"
-  "https://example.org/packages/user-model"
-  "https://example.org/packages/password-based-user-identity"
+ ["https://core.example.org/_site/packages/bootstrap"
+  "https://example.org/_site/packages/user-model"
+  "https://example.org/_site/packages/password-based-user-identity"
   ;; Provides the 'can-authorize' permission installer
-  "https://example.org/packages/oauth-authorization-server"]
+  "https://example.org/_site/packages/oauth-authorization-server"]
 
  :resources
  ["https://example.org/users/alice"

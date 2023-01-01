@@ -1,4 +1,4 @@
-{:xt/id "https://auth.example.org/packages/hospital-demo"
+{:xt/id "https://auth.example.org/_site/packages/hospital-demo"
 
  :description "Hospital demo resources"
 
@@ -11,10 +11,10 @@
    {:description "Host of the patient data"}]]
 
  :dependencies
- ["https://auth.example.org/packages/example-users"
-  "https://auth.example.org/packages/login-form"
-  "https://auth.example.org/packages/oauth-authorization-server"
-  "https://auth.example.org/packages/protection-spaces"]
+ ["https://auth.example.org/_site/packages/example-users"
+  "https://auth.example.org/_site/packages/login-form"
+  "https://auth.example.org/_site/packages/oauth-authorization-server"
+  "https://auth.example.org/_site/packages/protection-spaces"]
 
  :resources
  #{

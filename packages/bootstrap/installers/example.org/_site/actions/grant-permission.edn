@@ -1,11 +1,11 @@
 {:deps
  ["https://example.org/_site/do-action"
   "https://example.org/_site/subjects/system"
-  "https://example.org/actions/create-action"
-  "https://example.org/permissions/system/bootstrap"]
+  "https://example.org/_site/actions/create-action"
+  "https://example.org/_site/permissions/system/bootstrap"]
  :install
  {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-  :juxt.site/action-id "https://example.org/actions/create-action"
+  :juxt.site/action-id "https://example.org/_site/actions/create-action"
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/type "https://meta.juxt.site/types/action"

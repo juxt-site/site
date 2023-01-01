@@ -1,4 +1,4 @@
-{:xt/id "https://example.org/packages/bootstrap"
+{:xt/id "https://example.org/_site/packages/bootstrap"
  :description "Bootstrap resources"
 
  :uri-map
@@ -8,13 +8,13 @@
  :resources
  ["https://example.org/_site/do-action"
   "https://example.org/_site/subjects/system"
-  "https://example.org/actions/create-action"
-  "https://example.org/actions/grant-permission"
-  "https://example.org/permissions/system/bootstrap"
+  "https://example.org/_site/actions/create-action"
+  "https://example.org/_site/actions/grant-permission"
+  "https://example.org/_site/permissions/system/bootstrap"
 
-  "https://example.org/actions/install-not-found"
-  "https://example.org/permissions/system/install-not-found"
+  "https://example.org/_site/actions/install-not-found"
+  "https://example.org/_site/permissions/system/install-not-found"
   "https://example.org/_site/not-found"
-  "https://example.org/actions/get-not-found"
-  "https://example.org/permissions/get-not-found"
+  "https://example.org/_site/actions/get-not-found"
+  "https://example.org/_site/permissions/get-not-found"
   ]}

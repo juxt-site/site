@@ -84,7 +84,7 @@ attribute must be nil.
 
 <5> In this case, the Permission references the `Administrator` role. All Users
 with this `Administrator` role will be able to call the
-`+https://site.test/actions/create-action+` action.
+`+https://site.test/_site/actions/create-action+` action.
 
 ====
 

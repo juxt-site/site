@@ -98,7 +98,7 @@
         :owner (format "https://site.test/users/%s" user)
         ::site/uri-template true
         ::site/methods
-        {:get {::pass/actions #{"https://site.test/actions/get-not-found"}}
+        {:get {::pass/actions #{"https://site.test/_site/actions/get-not-found"}}
          :put {::pass/actions #{"https://site.test/actions/put-user-owned-content"}}}}))
 
     (testing "404 on GET, doesn't exist yet"

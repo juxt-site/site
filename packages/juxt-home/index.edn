@@ -1,4 +1,4 @@
-{:xt/id "https://example.org/packages/juxt-home"
+{:xt/id "https://example.org/_site/packages/juxt-home"
  :description "JUXT Home"
 
  :uri-map

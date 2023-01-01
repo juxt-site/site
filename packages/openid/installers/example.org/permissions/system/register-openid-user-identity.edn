@@ -2,7 +2,7 @@
  ["https://example.org/actions/register-openid-user-identity"]
  :install
  {:juxt.site/subject-id "https://core.example.org/_site/subjects/system"
-  :juxt.site/action-id "https://core.example.org/actions/grant-permission"
+  :juxt.site/action-id "https://core.example.org/_site/actions/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/subject "https://core.example.org/_site/subjects/system"

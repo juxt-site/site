@@ -1,4 +1,4 @@
-{:xt/id "https://example.org/packages/oauth-authorization-server"
+{:xt/id "https://example.org/_site/packages/oauth-authorization-server"
  :description "OAuth2 Authorization Server"
 
  :uri-map
@@ -9,7 +9,7 @@
  [
   ;; Must have sessions support on this host, see
   ;; https://example.org/oauth/authorize
-  "https://example.org/packages/sessions"]
+  "https://example.org/_site/packages/sessions"]
 
  :resources
  [

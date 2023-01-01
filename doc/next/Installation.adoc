@@ -314,13 +314,13 @@ This will look similar to:
  "https://site.test/_site/events/9"
  "https://site.test/_site/do-action"
  "https://site.test/_site/not-found"
- "https://site.test/actions/create-action"
- "https://site.test/actions/get-not-found"
- "https://site.test/actions/grant-permission"
- "https://site.test/actions/install-not-found"
- "https://site.test/permissions/get-not-found"
- "https://site.test/permissions/system/bootstrap"
- "https://site.test/permissions/system/install-not-found"
+ "https://site.test/_site/actions/create-action"
+ "https://site.test/_site/actions/get-not-found"
+ "https://site.test/_site/actions/grant-permission"
+ "https://site.test/_site/actions/install-not-found"
+ "https://site.test/_site/permissions/get-not-found"
+ "https://site.test/_site/permissions/system/bootstrap"
+ "https://site.test/_site/permissions/system/install-not-found"
  "https://site.test/_site/subjects/system")
 ----
 --

@@ -1,4 +1,4 @@
-{:xt/id "https://example.org/packages/openid"
+{:xt/id "https://example.org/_site/packages/openid"
  :description "OpenID Connect"
 
  :uri-map
@@ -6,7 +6,7 @@
   ["https://core.example.org" {:description "Host of the Site core actions"}]]
 
  :dependencies
- ["https://example.org/packages/user-model"]
+ ["https://example.org/_site/packages/user-model"]
 
  :resources
  ["https://example.org/actions/openid/exchange-code-for-id-token"

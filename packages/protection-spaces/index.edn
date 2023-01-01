@@ -1,4 +1,4 @@
-{:xt/id "https://auth.example.org/packages/protection-spaces"
+{:xt/id "https://auth.example.org/_site/packages/protection-spaces"
  :description "Core resources"
 
  :uri-map
@@ -8,7 +8,7 @@
    {:description "Core Site actions"}]]
 
  :dependencies
- ["https://core.example.org/packages/bootstrap"]
+ ["https://core.example.org/_site/packages/bootstrap"]
 
  :resources
  ["https://auth.example.org/actions/put-protection-space"]}
