@@ -1,0 +1,25 @@
+{:deps
+ ["https://example.org/_site/actions"
+  "https://auth.example.org/actions/system-api/get-actions"]
+ :install
+ {:juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/methods
+   {:get {:juxt.site/actions #{"https://auth.example.org/actions/system-api/get-actions"}}}
+   :juxt.site/variant-of "https://example.org/_site/actions"
+   :juxt.http/content-type "application/json"
+
+
+   :juxt.site/respond
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content (jsonista.core/write-value-as-string {:message "TODO: Add *state*"}#_*state*)]
+      (-> *ctx*
+          (assoc :ring.response/body content)
+          (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+
+   :ring.response/headers
+   {"Access-Control-Allow-Origin" "*"
+    "Access-Control-Allow-Methods" "GET, HEAD, PUT, POST, PATCH, DELETE, OPTIONS"
+    }}}}

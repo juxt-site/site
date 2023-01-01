@@ -18,6 +18,7 @@
   ;; API resources
   "https://example.org/_site/actions"
   "https://example.org/_site/actions.html"
+  "https://example.org/_site/actions.json"
   "https://auth.example.org/permissions/system-api/get-actions"
 
   ]}
