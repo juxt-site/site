@@ -230,80 +230,78 @@
            (:ring.request/body req) (dissoc :ring.request/body))))
 
       (-> resource :juxt.site/respond :juxt.site.sci/program)
-      (do
-        (log/infof "Resource is respondable: %s" resource)
-        (let [state
-              (when-let [program (-> permitted-action :juxt.site/state :juxt.site.sci/program)]
-                (sci/eval-string
-                 program
-                 {:namespaces
-                  (merge
-                   {'user {'*action* permitted-action
+      (let [state
+            (when-let [program (-> permitted-action :juxt.site/state :juxt.site.sci/program)]
+              (sci/eval-string
+               program
+               {:namespaces
+                (merge
+                 {'user {'*action* permitted-action
+                         '*resource* (:juxt.site/resource req)
+                         '*ctx* (dissoc req :juxt.site/xt-node)
+                         'logf (fn [& args] (eval `(log/debugf ~@args)))
+                         'log (fn [& args] (eval `(log/debug ~@args)))}
+                  'xt
+                  {'entity
+                   (fn [id] (xt/entity (:juxt.site/db req) id))
+                   'pull
+                   (fn [query eid]
+                     (xt/pull (:juxt.site/db req) query eid))
+                   }
+
+                  'juxt.site
+                  {'pull-allowed-resources
+                   (fn [m]
+                     (actions/pull-allowed-resources
+                      (:juxt.site/db req)
+                      m
+                      {:juxt.site/subject subject
+                       ;; TODO: Don't forget purpose
+                       }))}})
+
+                :classes
+                {'java.util.Date java.util.Date
+                 'java.time.Instant java.time.Instant
+                 'java.time.Duration java.time.Duration}}))
+
+            respond-program
+            (-> resource :juxt.site/respond :juxt.site.sci/program)
+
+            response
+            (sci/eval-string
+             respond-program
+             {:namespaces
+              (merge
+               {'user (cond->
+                          {'*action* permitted-action
                            '*resource* (:juxt.site/resource req)
                            '*ctx* (dissoc req :juxt.site/xt-node)
                            'logf (fn [& args] (eval `(log/debugf ~@args)))
                            'log (fn [& args] (eval `(log/debug ~@args)))}
-                    'xt
-                    {'entity
-                     (fn [id] (xt/entity (:juxt.site/db req) id))
-                     'pull
-                     (fn [query eid]
-                       (xt/pull (:juxt.site/db req) query eid))
-                     }
+                        state (assoc '*state* state))
 
-                    'juxt.site
-                    {'pull-allowed-resources
-                     (fn [m]
-                       (actions/pull-allowed-resources
-                        (:juxt.site/db req)
-                        m
-                        {:juxt.site/subject subject
-                         ;; TODO: Don't forget purpose
-                         }))}})
+                'jsonista.core
+                {'write-value-as-string json/write-value-as-string
+                 'read-value json/read-value}
 
-                  :classes
-                  {'java.util.Date java.util.Date
-                   'java.time.Instant java.time.Instant
-                   'java.time.Duration java.time.Duration}}))
+                'ring.util.codec
+                {'form-encode codec/form-encode
+                 'form-decode codec/form-decode
+                 'url-encode codec/url-encode
+                 'url-decode codec/url-decode}
 
-              respond-program
-              (-> resource :juxt.site/respond :juxt.site.sci/program)
+                'xt
+                { ;; Unsafe due to violation of strict serializability, hence marked as
+                 ;; entity*
+                 'entity*
+                 (fn [id] (xt/entity (:juxt.site/db req) id))}})})
 
-              response
-              (sci/eval-string
-               respond-program
-               {:namespaces
-                (merge
-                 {'user (cond->
-                            {'*action* permitted-action
-                             '*resource* (:juxt.site/resource req)
-                             '*ctx* (dissoc req :juxt.site/xt-node)
-                             'logf (fn [& args] (eval `(log/debugf ~@args)))
-                             'log (fn [& args] (eval `(log/debug ~@args)))}
-                            state (assoc '*state* state))
+            _ (assert
+               (:juxt.site/start-date response)
+               "Representation response script must return a request context")]
 
-                  'jsonista.core
-                  {'write-value-as-string json/write-value-as-string
-                   'read-value json/read-value}
-
-                  'ring.util.codec
-                  {'form-encode codec/form-encode
-                   'form-decode codec/form-decode
-                   'url-encode codec/url-encode
-                   'url-decode codec/url-decode}
-
-                  'xt
-                  { ;; Unsafe due to violation of strict serializability, hence marked as
-                   ;; entity*
-                   'entity*
-                   (fn [id] (xt/entity (:juxt.site/db req) id))}})})
-
-              _ (assert
-                 (:juxt.site/start-date response)
-                 "Representation response script must return a request context")]
-
-          (log/infof "Response is: %s" (pr-str (select-keys response [:ring.response/status :ring.response/headers :ring.response/body])))
-          response))
+        (log/infof "Response is: %s" (pr-str (select-keys response [:ring.response/status :ring.response/headers :ring.response/body])))
+        response)
 
       :else
       (cond-> req

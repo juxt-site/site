@@ -467,6 +467,15 @@
 
     [:quit ^{:doc "Disconnect"} (fn [] nil)]
 
+    [:system-api ^{:doc "Install System API"}
+     (fn []
+       (install-package!
+        "packages/system-api"
+        {"https://example.org" "https://data.site.test"
+         "https://auth.example.org" "https://auth.site.test"
+         "https://core.example.org" "https://auth.site.test"}))
+     ]
+
     [:test ^{:doc "Run test script"}
      (fn []
        (try
@@ -513,10 +522,15 @@
            "iss" "https://juxt.eu.auth0.com"
            "sub" "github|163131"})
 
-         ;; Swagger UI
+         ;; System API
 
          (install-package!
-          "packages/swagger-ui"
+          "packages/protection-spaces"
+          {"https://auth.example.org" "https://auth.site.test"
+           "https://core.example.org" "https://auth.site.test"})
+
+         (install-package!
+          "packages/system-api"
           {"https://example.org" "https://data.site.test"
            "https://auth.example.org" "https://auth.site.test"
            "https://core.example.org" "https://auth.site.test"})

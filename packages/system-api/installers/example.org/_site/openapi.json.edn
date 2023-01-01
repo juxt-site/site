@@ -4,12 +4,69 @@
    :juxt.site/methods
    {:head {:juxt.site/actions #{"https://auth.example.org/actions/get-openapi-document"}}
     :get {:juxt.site/actions #{"https://auth.example.org/actions/get-openapi-document"}}}
+   :juxt.site/respond
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content
+          (jsonista.core/write-value-as-string
+           {"openapi" "3.0.2"
+
+            "info"
+            {"title" "Site API"
+
+             "description"
+             "This is the OpenAPI 3.0 description of the Site System API. \n\nSome useful links:\n- [Site at Github](https://github.com/juxt/site)"
+
+             "termsOfService" "http://swagger.io/terms/"
+
+             "contact" {"email" "info@juxt.pro"}
+
+             "license"
+             {"url" "http://www.apache.org/licenses/LICENSE-2.0.html"
+              "name" "Apache 2.0"}
+
+             "version" "1.0.0"}
+
+            "servers" [{"url" "/_site"}]
+
+            "paths"
+            {"/actions"
+             {"get"
+              {"operationId" "getActions"
+               "security" [{"oauth" ["read:actions"]}]
+               "responses"
+               {"200"
+                {"content"
+                 {"application/json"
+                  {}}
+                 "description" "Successful operation"}}
+               "tags" ["actions"]
+               "description" "Get all actions in the system"}}}
+
+            "components"
+            {"securitySchemes"
+             {"oauth"
+              {"type" "oauth2"
+               "flows"
+               {"implicit"
+                {"scopes"
+                 {"read:actions" "Read actions"}
+                 "authorizationUrl"
+                 "https://auth.site.test/oauth/authorize"}}}}
+             "schemas" {}
+             "requestBodies" {}}
+            "tags" []
+            "externalDocs" {}})
+          content (str content "\r\n")]
+      (-> *ctx*
+          (assoc :ring.response/body content)
+          (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
+
    :ring.response/headers
-   {"x-site" "foobar"
-    "Access-Control-Allow-Origin" "*"
+   {"Access-Control-Allow-Origin" "*"
     "Access-Control-Allow-Methods" "GET, HEAD, PUT, POST, PATCH, DELETE"}
    :juxt.http/content-type "application/json"
-   :juxt.http/content
+   #_#_:juxt.http/content
    #juxt.json
    {"openapi" "3.0.2"
 
