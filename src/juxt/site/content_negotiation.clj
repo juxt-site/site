@@ -52,11 +52,10 @@
     selected-representation))
 
 (defn find-variants [{:juxt.site/keys [resource uri db]}]
-
   (let [variants (xt/q db '{:find [(pull v [*])]
-                           :where [[v :juxt.site/variant-of uri]]
-                           :in [uri]}
-                      uri)]
+                            :where [[v :juxt.site/variant-of uri]]
+                            :in [uri]}
+                       uri)]
     (when (pos? (count variants))
       (cond-> (for [[v] variants]
                 (assoc v :juxt.http/content-location (:xt/id v)))
