@@ -776,7 +776,7 @@
         (= method :options) (h req)
 
         :else
-        (if-let [protection-spaces (:juxt.site/protection-space resource)]
+        (if-let [protection-spaces (:juxt.site/protection-spaces resource)]
             ;; We are in a protection space, so this is HTTP Authentication (401
             ;; + WWW-Authenticate header)
           (throw
