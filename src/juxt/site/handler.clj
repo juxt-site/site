@@ -655,10 +655,6 @@
           (when request-origin
             (access-control-match-origin access-control-allow-origins request-origin))]
 
-      (log/infof "XXX all headers: %s" (get req :ring.request/headers))
-      (log/infof "XXX request-origin: %s" request-origin)
-      (log/infof "XXX Access control: %s" access-control)
-
       (cond-> req
         access-control
         (assoc-in [:ring.response/headers "access-control-allow-origin"] request-origin)
