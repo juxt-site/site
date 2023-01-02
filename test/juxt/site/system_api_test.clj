@@ -95,7 +95,7 @@
            :role "https://auth.example.test/roles/SystemReadonly"
            :juxt.site/user "https://auth.example.test/users/alice"})
 
-    (testing "Access achieved with with correct permissions and role assignment"
+    (testing "Access achieved with correct permissions and role assignment"
       (with-bearer-token access-token
         (let [response
               (*handler*
