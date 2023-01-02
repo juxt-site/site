@@ -777,10 +777,9 @@
             er
             (assoc er
                    :juxt.site/access-control-allow-origins
-                   {"http://localhost:8000"
-                    {:juxt.site/access-control-allow-methods #{:get :put :post :delete}
-                     :juxt.site/access-control-allow-headers #{"authorization" "content-type"}
-                     :juxt.site/access-control-allow-credentials true}})
+                   [[".*" {:juxt.site/access-control-allow-origin "*"
+                           :juxt.site/access-control-allow-methods [:get :put :post :delete]
+                           :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]])
 
             er
             (-> er
@@ -859,7 +858,8 @@
             (let [content (str (status-message status) "\r\n")]
               {:juxt.http/content-type "text/plain;charset=utf-8"
                :juxt.http/content-length (count content)
-               :juxt.http/content content})])
+               :juxt.http/content content
+               })])
 
           ;; This is an error, it won't be cached, it isn't negotiable 'content'
           ;; so the Vary header isn't deemed applicable. Let's not set it.
@@ -869,7 +869,11 @@
          (let [content (.getBytes (str (status-message status) "\r\n") "US-ASCII")]
            {:juxt.http/content-type "text/plain;charset=us-ascii"
             :juxt.http/content-length (count content)
-            :juxt.http/content content}))
+            :juxt.http/content content
+            :juxt.site/access-control-allow-origins
+            [[".*" {:juxt.site/access-control-allow-origin "*"
+                    :juxt.site/access-control-allow-methods [:get :put :post :delete]
+                    :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]]}))
 
         original-resource (:juxt.site/resource req)
 
@@ -877,10 +881,17 @@
                         {:ring.response/status 500
                          :juxt.site/errors (errors-with-causes e)}
                         (dissoc req :juxt.site/request-context)
+
+                        ;; Add CORS
+                        #_{:juxt.site/access-control-allow-origins
+                           [[".*" {:juxt.site/access-control-allow-origin "*"
+                                   :juxt.site/access-control-allow-methods [:get :put :post :delete]
+                                   :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]]}
+
                         ;; For the error itself
                         (cond->
                             {:juxt.site/resource representation}
-                          original-resource (assoc :juxt.site/original-resource original-resource)))
+                            original-resource (assoc :juxt.site/original-resource original-resource)))
 
         error-resource (assoc
                         error-resource
@@ -1160,13 +1171,14 @@
    wrap-store-request
    wrap-store-request-in-request-cache
 
+   ;; Security. This comes after error-handling so we can set the
+   ;; correct CORS and security headers on error responses too.
+   wrap-cors-headers
+   wrap-security-headers
+
    ;; Error handling
    wrap-check-error-handling
    wrap-error-handling
-
-   ;; Security
-   wrap-cors-headers
-   wrap-security-headers
 
    ;; 501
    wrap-method-not-implemented?
@@ -1196,15 +1208,3 @@
 
 (defn make-handler [opts]
   ((apply comp (make-pipeline opts)) identity))
-
-
-
-#_(selmer/render
- "<body><h1>Actions</h1>
-{% for a in actions %}
-<p>{{a}}</p>\n
-{% endfor %}
-</body>\n"
- {"actions" ["1" "2" "3"]}
- ;;*state*
- )
