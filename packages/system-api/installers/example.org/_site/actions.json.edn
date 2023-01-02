@@ -9,7 +9,6 @@
    :juxt.site/variant-of "https://example.org/_site/actions"
    :juxt.http/content-type "application/json"
 
-
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
@@ -17,9 +16,6 @@
       (-> *ctx*
           (assoc :ring.response/body content)
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
-   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 
-   :ring.response/headers
-   {"Access-Control-Allow-Origin" "*"
-    "Access-Control-Allow-Methods" "GET, HEAD, PUT, POST, PATCH, DELETE, OPTIONS"
-    }}}}
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+   }}}

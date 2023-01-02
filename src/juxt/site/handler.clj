@@ -336,46 +336,17 @@
 (defn DELETE [req]
   (perform-unsafe-method req))
 
-(defn OPTIONS [{:juxt.site/keys [resource allowed-methods] :as req}]
-
-  ;; TODO: Implement *
-  (let [{:juxt.site/keys [access-control-allow-origins]} resource
-        request-origin (get-in req [:ring.request/headers "origin"])
-
-        [resource-origin allow-origin]
-        (or
-         (when-let [ro (get access-control-allow-origins request-origin)]
-           [ro request-origin])
-         (when-let [ro (get access-control-allow-origins "*")]
-           [ro "*"]))
-
-        access-control-allow-methods
-        (get resource-origin :juxt.site/access-control-allow-methods)
-        access-control-allow-headers
-        (get resource-origin :juxt.site/access-control-allow-headers)
-        access-control-allow-credentials
-        (get resource-origin :juxt.site/access-control-allow-credentials)]
-
-    (cond-> (into req {:ring.response/status 200})
-
-      true (update :ring.response/headers
-                   merge
-                   (:juxt.http/options resource)
-                   {"allow" (join-keywords allowed-methods true)
-                    ;; TODO: Shouldn't this be a situation (a missing body) detected
-                    ;; by middleware, which can set the content-length header
-                    ;; accordingly?
-                    "content-length" "0"})
-
-      access-control-allow-methods
-      (update
-       :ring.response/headers
-       (fn [headers]
-         (cond-> headers
-           allow-origin (assoc "access-control-allow-origin" allow-origin)
-           access-control-allow-methods (assoc "access-control-allow-methods" (join-keywords access-control-allow-methods true))
-           access-control-allow-headers (assoc "access-control-allow-headers" (join-keywords access-control-allow-headers false))
-           access-control-allow-credentials (assoc "access-control-allow-credentials" access-control-allow-credentials)))))))
+(defn OPTIONS [{:juxt.site/keys [allowed-methods] :as req}]
+  (-> req
+      (assoc :ring.response/status 200)
+      (update :ring.response/headers
+              merge
+              ;;                   (:juxt.http/options resource)
+              {"allow" (join-keywords allowed-methods true)
+               ;; TODO: Shouldn't this be a situation (a missing body) detected
+               ;; by middleware, which can set the content-length header
+               ;; accordingly?
+               "content-length" "0"})))
 
 (defn wrap-method-not-implemented? [h]
   (fn [{:ring.request/keys [method] :as req}]
@@ -426,10 +397,19 @@
         :as req}]
     (let [new-resource (when (seq cur-reps)
                          (conneg/negotiate-representation req cur-reps))
-          new-resource (when new-resource
-                         (cond-> new-resource
-                           (not= new-resource original-resource)
-                           (assoc :juxt.site/variant-of original-resource)))]
+          new-resource
+          (when new-resource
+            ;; TODO: Why is this necessary? Won't the new-resource
+            ;; already have the :juxt.site/variant-of entry? If so, we
+            ;; don't need this logic here. However, we do want to
+            ;; distinguish between times when the resource is being
+            ;; served as a variant of another (where the URI targets
+            ;; the varying resource, e.g. for CORS
+            ;; determination). (Update: this juxt.site/variant-of is
+            ;; now a map, not a reference)
+            (cond-> new-resource
+              (not= new-resource original-resource)
+              (assoc :juxt.site/variant-of original-resource)))]
       (h (cond-> req
            new-resource (assoc :juxt.site/resource new-resource))))))
 
@@ -646,8 +626,13 @@
 
 (defn wrap-cors-headers [h]
   (fn [req]
-    (let [{:juxt.site/keys [resource] :as req}
-          (h req)
+    (let [{:juxt.site/keys [resource db] :as req} (h req)
+
+          _ (log/infof "(cors) resource is %s" (pr-str resource))
+
+          ;; The access-control declarations will be on the main
+          ;; resource, not the variant.
+          resource (or (:juxt.site/variant-of resource) resource)
 
           request-origin (get-in req [:ring.request/headers "origin"])
           {:juxt.site/keys [access-control-allow-origins]} resource
@@ -655,6 +640,10 @@
           access-control
           (when request-origin
             (access-control-match-origin access-control-allow-origins request-origin))]
+
+      (log/infof "XXX all headers: %s" (get req :ring.request/headers))
+      (log/infof "XXX request-origin: %s" request-origin)
+      (log/infof "XXX Access control: %s" access-control)
 
       (cond-> req
         access-control
@@ -1157,13 +1146,13 @@
    wrap-store-request
    wrap-store-request-in-request-cache
 
-   ;; Security
-   wrap-cors-headers
-   wrap-security-headers
-
    ;; Error handling
    wrap-check-error-handling
    wrap-error-handling
+
+   ;; Security
+   wrap-cors-headers
+   wrap-security-headers
 
    ;; 501
    wrap-method-not-implemented?

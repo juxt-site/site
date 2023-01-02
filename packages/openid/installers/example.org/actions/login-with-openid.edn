@@ -110,7 +110,11 @@
             "redirect_uri" redirect-uri
             "state" state
             "nonce" nonce
-            "connection" "github"})
+            ;; Use this to automate selection of github. This can
+            ;; result in a zero-click logins, but with the downside of
+            ;; making the login step less visible.
+            ;;"connection" "github"
+            })
 
           location (str authorization-endpoint "?" query-string)
 

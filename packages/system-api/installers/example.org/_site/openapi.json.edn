@@ -4,10 +4,12 @@
  {:juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/actions #{"https://auth.example.org/actions/get-openapi-document"}
-          :ring.response/headers
-          {"Access-Control-Allow-Origin" "*"
-           "Access-Control-Allow-Methods" "GET, HEAD, PUT, POST, PATCH, DELETE"}}}
+   {:get {:juxt.site/actions #{"https://auth.example.org/actions/get-openapi-document"}}}
+
+   :juxt.site/access-control-allow-origins
+   [[".*" {:juxt.site/access-control-allow-origin "*"
+           :juxt.site/access-control-allow-methods [:get]}]]
+
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
