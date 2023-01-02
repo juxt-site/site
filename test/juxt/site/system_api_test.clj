@@ -12,9 +12,7 @@
     :refer [with-system-xt
             with-session-token with-bearer-token
             with-fixtures *handler* with-handler
-            install-packages!
-            install-resource-with-action!
-            put!]]))
+            install-packages! install-resource-with-action! put!]]))
 
 (use-fixtures :each with-system-xt with-handler)
 
@@ -30,8 +28,7 @@
   (install-packages! ["bootstrap"] AUTH_SERVER)
   (install-packages! ["protection-spaces" "system-api"] RESOURCE_SERVER)
 
-  ;; Test to ensure we can't access https://data.example.test/_site/actions.json
-  (with-logging
+  (testing "Actions API endpoint cannot be accessed anonymously"
     (let [response
           (*handler*
            {:juxt.site/uri "https://data.example.test/_site/actions.json"
@@ -69,16 +66,17 @@
            "https://auth.example.test/oauth/authorize"
            {"client_id" "test-app"}))]
 
-    (with-bearer-token access-token
-      (let [response
-            (*handler*
-             {:juxt.site/uri "https://data.example.test/_site/actions"
-              :ring.request/method :get
-              :ring.request/headers
-              {"accept" "application/json"}})]
+    (testing "Permissions are required for access"
+      (with-bearer-token access-token
+        (let [response
+              (*handler*
+               {:juxt.site/uri "https://data.example.test/_site/actions"
+                :ring.request/method :get
+                :ring.request/headers
+                {"accept" "application/json"}})]
 
-        ;; This access token is not sufficient
-        (is (= 403 (:ring.response/status response)))))
+          ;; This access token is not sufficient
+          (is (= 403 (:ring.response/status response))))))
 
     ;; Grant permission to the SystemReadonly role to call the 'get-actions' action
     (install-resource-with-action!
@@ -97,17 +95,18 @@
            :role "https://auth.example.test/roles/SystemReadonly"
            :juxt.site/user "https://auth.example.test/users/alice"})
 
-    (with-bearer-token access-token
-      (let [response
-            (*handler*
-             {:juxt.site/uri "https://data.example.test/_site/actions"
-              :ring.request/method :get
-              :ring.request/headers
-              {"accept" "application/json"}})]
+    (testing "Access achieved with with correct permissions and role assignment"
+      (with-bearer-token access-token
+        (let [response
+              (*handler*
+               {:juxt.site/uri "https://data.example.test/_site/actions"
+                :ring.request/method :get
+                :ring.request/headers
+                {"accept" "application/json"}})]
 
-        (is (= "application/json" (get-in response [:ring.response/headers "content-type"])))
-        (is (= 200 (:ring.response/status response)))
+          (is (= "application/json" (get-in response [:ring.response/headers "content-type"])))
+          (is (= 200 (:ring.response/status response)))
 
-        (let [json (some-> response :ring.response/body json/read-value)]
-          (is json)
-          (is (<= 10 (count (get json "actions")) 30)))))))
+          (let [json (some-> response :ring.response/body json/read-value)]
+            (is json)
+            (is (<= 10 (count (get json "actions")) 30))))))))
