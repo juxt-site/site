@@ -141,5 +141,13 @@
    *xt-node*
    uri-map))
 
+(defn install-packages! [names uri-map]
+  (doall
+   (for [n names]
+     (pkg/install-package-from-filesystem!
+      (str "packages/" n)
+      *xt-node*
+      uri-map))))
+
 (defn install-resource-with-action! [init-data]
   (pkg/call-action-with-init-data! *xt-node* init-data))
