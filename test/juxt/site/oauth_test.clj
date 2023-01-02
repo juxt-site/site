@@ -26,11 +26,10 @@
     (testing "Register client with generated client-id"
       (let [result
             (install-resource-with-action!
-             {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-              :juxt.site/action-id "https://auth.example.test/actions/register-client"
-              :juxt.site/input
-              {:juxt.site/client-type "public"
-               :juxt.site/redirect-uri "https://test-app.example.test/callback"}})
+             "https://auth.example.test/_site/subjects/system"
+             "https://auth.example.test/actions/register-client"
+             {:juxt.site/client-type "public"
+              :juxt.site/redirect-uri "https://test-app.example.test/callback"})
             doc-id (some-> result :juxt.site/puts first)
             doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
         (is doc)
@@ -39,24 +38,23 @@
     (testing "Register client with generated client-id and client-secret"
       (let [result
             (install-resource-with-action!
-             {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-              :juxt.site/action-id "https://auth.example.test/actions/register-client"
-              :juxt.site/input
-              {:juxt.site/client-type "confidential"
-               :juxt.site/redirect-uri "https://test-app.example.test/callback"}})
+             "https://auth.example.test/_site/subjects/system"
+             "https://auth.example.test/actions/register-client"
+             {:juxt.site/client-type "confidential"
+              :juxt.site/redirect-uri "https://test-app.example.test/callback"})
             doc-id (some-> result :juxt.site/puts first)
             doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
         (is doc)
         (is (:juxt.site/client-secret doc))))
 
     (testing "Re-registering the same client-id will fail"
-      (let [input {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-                   :juxt.site/action-id "https://auth.example.test/actions/register-client"
-                   :juxt.site/input
-                   {:juxt.site/client-id "test-app"
-                    :juxt.site/client-type "public"
-                    :juxt.site/redirect-uri "https://test-app.example.test/callback"}}]
-        (install-resource-with-action! input)
+      (let [input {:juxt.site/client-id "test-app"
+                   :juxt.site/client-type "public"
+                   :juxt.site/redirect-uri "https://test-app.example.test/callback"}]
+        (install-resource-with-action!
+         "https://auth.example.test/_site/subjects/system"
+         "https://auth.example.test/actions/register-client"
+         input)
 
         (is
          (=
@@ -70,7 +68,10 @@
         (is
          (thrown?
           clojure.lang.ExceptionInfo
-          (install-resource-with-action! input)))))))
+          (install-resource-with-action!
+           "https://auth.example.test/_site/subjects/system"
+           "https://auth.example.test/actions/register-client"
+           input)))))))
 
 (deftest get-subject-test
 
@@ -93,12 +94,11 @@
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
   (install-resource-with-action!
-   {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-    :juxt.site/action-id "https://auth.example.test/actions/register-client"
-    :juxt.site/input
-    {:juxt.site/client-id "test-app"
-     :juxt.site/client-type "confidential"
-     :juxt.site/redirect-uri "https://test-app.example.test/callback"}})
+   "https://auth.example.test/_site/subjects/system"
+   "https://auth.example.test/actions/register-client"
+   {:juxt.site/client-id "test-app"
+    :juxt.site/client-type "confidential"
+    :juxt.site/redirect-uri "https://test-app.example.test/callback"})
 
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.

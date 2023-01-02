@@ -149,8 +149,12 @@
       *xt-node*
       uri-map))))
 
-(defn install-resource-with-action! [init-data]
-  (pkg/call-action-with-init-data! *xt-node* init-data))
+(defn install-resource-with-action! [subject action document]
+  (pkg/call-action-with-init-data!
+   *xt-node*
+   {:juxt.site/subject-id subject
+    :juxt.site/action-id action
+    :juxt.site/input document}))
 
 (defn put! [& args]
   (apply pkg/put! *xt-node* args))

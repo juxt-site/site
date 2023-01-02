@@ -42,12 +42,11 @@
    AUTH_SERVER)
 
   (install-resource-with-action!
-   {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-    :juxt.site/action-id "https://auth.example.test/actions/register-client"
-    :juxt.site/input
-    {:juxt.site/client-id "test-app"
-     :juxt.site/client-type "confidential"
-     :juxt.site/redirect-uri "https://test-app.example.test/callback"}})
+   "https://auth.example.test/_site/subjects/system"
+   "https://auth.example.test/actions/register-client"
+   {:juxt.site/client-id "test-app"
+    :juxt.site/client-type "confidential"
+    :juxt.site/redirect-uri "https://test-app.example.test/callback"})
 
   (let [login-result
         (login/login-with-form!
@@ -80,13 +79,12 @@
 
     ;; Grant permission to the SystemReadonly role to call the 'get-actions' action
     (install-resource-with-action!
-     {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-      :juxt.site/action-id "https://auth.example.test/_site/actions/grant-permission"
-      :juxt.site/input
-      {:xt/id "https://auth.example.test/permissions/by-role/SystemReadonly/system-api/get-actions"
-       :juxt.site/action "https://auth.example.test/actions/system-api/get-actions"
-       :juxt.site/purpose nil
-       :role "https://auth.example.test/roles/SystemReadonly"}})
+     "https://auth.example.test/_site/subjects/system"
+     "https://auth.example.test/_site/actions/grant-permission"
+     {:xt/id "https://auth.example.test/permissions/by-role/SystemReadonly/system-api/get-actions"
+      :juxt.site/action "https://auth.example.test/actions/system-api/get-actions"
+      :juxt.site/purpose nil
+      :role "https://auth.example.test/roles/SystemReadonly"})
 
     ;; Assign the role to alice - TODO: Let's have a role package with
     ;; actions that can do this properly
