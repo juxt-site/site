@@ -13,7 +13,8 @@
             with-session-token with-bearer-token
             with-fixtures *handler* with-handler
             install-packages!
-            install-resource-with-action!]]))
+            install-resource-with-action!
+            put!]]))
 
 (use-fixtures :each with-system-xt with-handler)
 
@@ -82,11 +83,36 @@
               {"accept" "application/json"}})]
 
         ;; This access token is not sufficient
-        (is (= 403 (:ring.response/status response)))
+        (is (= 403 (:ring.response/status response)))))
 
-        #_(cond-> response
-          true (select-keys [:ring.response/status
-                             :ring.response/headers
-                             :ring.response/body])
-          (= "application/json" (get-in response [:ring.response/headers "content-type"]))
-          (update :ring.response/body json/read-value))))))
+    ;; Grant permission to the SystemReadonly role to call the 'get-actions' action
+    (install-resource-with-action!
+     {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
+      :juxt.site/action-id "https://auth.example.test/_site/actions/grant-permission"
+      :juxt.site/input
+      {:xt/id "https://auth.example.test/permissions/by-role/SystemReadonly/system-api/get-actions"
+       :juxt.site/action "https://auth.example.test/actions/system-api/get-actions"
+       :juxt.site/purpose nil
+       :role "https://auth.example.test/roles/SystemReadonly"}})
+
+    ;; Assign the role to alice - TODO: Let's have a role package
+    (put! {:xt/id "https://auth.example.test/role-assignments/alice"
+           :juxt.site/type "https://auth.example.test/types/role-membership"
+           :role "https://auth.example.test/roles/SystemReadonly"
+           :juxt.site/user "https://auth.example.test/users/alice"})
+
+    (with-bearer-token access-token
+      (let [response
+            (*handler*
+             {:juxt.site/uri "https://data.example.test/_site/actions"
+              :ring.request/method :get
+              :ring.request/headers
+              {"accept" "application/json"}})]
+
+        (is (= "application/json" (get-in response [:ring.response/headers "content-type"])))
+
+        (is (= 200 (:ring.response/status response)))
+
+        (let [json (some-> response :ring.response/body json/read-value)]
+          (is json)
+          (is (<= 10 (count (get json "actions")) 30)))))))
