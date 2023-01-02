@@ -151,3 +151,6 @@
 
 (defn install-resource-with-action! [init-data]
   (pkg/call-action-with-init-data! *xt-node* init-data))
+
+(defn put! [& args]
+  (apply pkg/put! *xt-node* args))
