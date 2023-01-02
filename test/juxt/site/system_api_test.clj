@@ -18,18 +18,17 @@
 
 (use-fixtures :each with-system-xt with-handler)
 
+(def AUTH_SERVER
+  {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
+
+(def RESOURCE_SERVER
+  {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.test"
+   "https://example.org" "https://data.example.test"})
+
 (deftest system-api-test
 
-  ;; Build authorization server
-  (install-packages!
-   ["bootstrap"]
-   {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
-
-  ;; Build resource server
-  (install-packages!
-   ["protection-spaces" "system-api"]
-   {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.test"
-    "https://example.org" "https://data.example.test"})
+  (install-packages! ["bootstrap"] AUTH_SERVER)
+  (install-packages! ["protection-spaces" "system-api"] RESOURCE_SERVER)
 
   ;; Test to ensure we can't access https://data.example.test/_site/actions.json
   (with-logging
@@ -41,13 +40,9 @@
       (is (= "Bearer" (get-in response [:ring.response/headers "www-authenticate"])))))
 
   (install-packages!
-   ["sessions"
-    "oauth-authorization-server"
-    "login-form"
-    "user-model"
-    "password-based-user-identity"
-    "example-users"]
-   {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
+   ["sessions" "oauth-authorization-server" "login-form"
+    "user-model" "password-based-user-identity" "example-users"]
+   AUTH_SERVER)
 
   (install-resource-with-action!
    {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
@@ -95,7 +90,8 @@
        :juxt.site/purpose nil
        :role "https://auth.example.test/roles/SystemReadonly"}})
 
-    ;; Assign the role to alice - TODO: Let's have a role package
+    ;; Assign the role to alice - TODO: Let's have a role package with
+    ;; actions that can do this properly
     (put! {:xt/id "https://auth.example.test/role-assignments/alice"
            :juxt.site/type "https://auth.example.test/types/role-membership"
            :role "https://auth.example.test/roles/SystemReadonly"
@@ -110,7 +106,6 @@
               {"accept" "application/json"}})]
 
         (is (= "application/json" (get-in response [:ring.response/headers "content-type"])))
-
         (is (= 200 (:ring.response/status response)))
 
         (let [json (some-> response :ring.response/body json/read-value)]
