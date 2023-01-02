@@ -3,6 +3,17 @@
   :juxt.site/action-id "https://core.example.org/_site/actions/create-action"
   :juxt.site/input
   {:xt/id "{{$id}}"
+
+   :juxt.site/state
+   {:juxt.site.sci/program
+    #juxt.pprint
+    {:actions
+     (->> (xt/q
+           '{:find [(pull e [:xt/id :juxt.site/description])]
+             :where [[e :juxt.site/type "https://meta.juxt.site/types/action"]]})
+          (map first)
+          (sort-by :xt/id))}}
+
    :juxt.site/rules
    [
     ;; Anyone

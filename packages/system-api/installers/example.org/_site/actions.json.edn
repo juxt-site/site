@@ -12,7 +12,7 @@
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [content (jsonista.core/write-value-as-string {:message "TODO: Add *state*"}#_*state*)]
+    (let [content (jsonista.core/write-value-as-string *state*)]
       (-> *ctx*
           (assoc :ring.response/body content)
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}

@@ -23,6 +23,7 @@
    [juxt.site.session-scope :as session-scope]
    [juxt.site.util :as util]
    [ring.util.codec :as codec]
+   [selmer.parser :as selmer]
    [sci.core :as sci]
    [xtdb.api :as xt])
   (:import (java.net URI)))
@@ -206,7 +207,10 @@
 (defn GET [{:juxt.site/keys [resource subject]
             :as req}]
 
+  ;; TODO: Is a HEAD cacheable?
+
   (conditional/evaluate-preconditions! req)
+
   (let [req (assoc req :ring.response/status 200)
         ;; This use of 'first' is worrisome. Perhaps we should be merging the
         ;; results of every permitted action? TODO: resolve this
@@ -247,6 +251,9 @@
                    'pull
                    (fn [query eid]
                      (xt/pull (:juxt.site/db req) query eid))
+                   'q
+                   (fn [query & args]
+                     (apply xt/q (:juxt.site/db req) query args))
                    }
 
                   'juxt.site
@@ -290,6 +297,9 @@
                  'url-encode codec/url-encode
                  'url-decode codec/url-decode}
 
+                'selmer
+                {'render (fn [s context-map] (selmer/render s context-map))}
+
                 'xt
                 { ;; Unsafe due to violation of strict serializability, hence marked as
                  ;; entity*
@@ -299,6 +309,10 @@
             _ (assert
                (:juxt.site/start-date response)
                "Representation response script must return a request context")]
+
+        ;; TODO: Don't add the response if a HEAD.  A HEAD does still
+        ;; need to call the response program, because it may set
+        ;; various other response headers.
 
         (log/infof "Response is: %s" (pr-str (select-keys response [:ring.response/status :ring.response/headers :ring.response/body])))
         response)
@@ -1182,3 +1196,15 @@
 
 (defn make-handler [opts]
   ((apply comp (make-pipeline opts)) identity))
+
+
+
+#_(selmer/render
+ "<body><h1>Actions</h1>
+{% for a in actions %}
+<p>{{a}}</p>\n
+{% endfor %}
+</body>\n"
+ {"actions" ["1" "2" "3"]}
+ ;;*state*
+ )

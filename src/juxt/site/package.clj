@@ -13,7 +13,7 @@
    [clojure.set :as set]
    [clojure.tools.logging :as log]
    [clojure.pprint :refer [pprint]]
-   [clojure.walk :refer [postwalk]]
+   [clojure.walk :refer [prewalk postwalk]]
    [jsonista.core :as json]
    [xtdb.api :as xt]))
 
@@ -25,8 +25,6 @@
       (let [vt (:xtdb.api/valid-time m)]
         [:xtdb.api/put (dissoc m :xtdb.api/valid-time) vt])))
    (xt/await-tx xt-node)))
-
-
 
 (defn lookup [id graph]
   (or
@@ -41,10 +39,39 @@
                      (map codec/url-decode (next matches))))))
          graph)))
 
+;; In the render-form-templates function below, we want to protect
+;; anything that may contain a Selmer template from being rendered
+;; now. There must be a better way, but for now, wrapping the program
+;; in a type will do.
+
+(defprotocol Unwrap
+  (unwrap [_]))
+
+(deftype DoNotRender [s]
+  Unwrap
+  (unwrap [_] s))
+
+(defn wrap-as-template [[k v]]
+  [k (->DoNotRender v)])
+
 (defn render-form-templates [form params]
-  (postwalk (fn [x]
-              (cond-> x
-                (string? x) (selmer/render params))) form))
+  (->> form
+       (prewalk
+        (fn [x]
+          (cond-> x
+            (and (vector? x) (= (first x) :juxt.site.sci/program)) wrap-as-template
+            (string? x) (selmer/render params))))
+       ;; Unwrap the templates
+       (postwalk
+          (fn [x]
+            (cond-> x
+              (instance? DoNotRender x) unwrap)))))
+
+#_(render-form-templates
+ (edn/read-string
+  {:readers READERS}
+  (slurp "packages/system-api/installers/example.org/_site/actions.html.edn"))
+ {})
 
 (defn- node-dependencies
   "Return the dependency ids for the given node, with any parameters expanded
@@ -182,8 +209,9 @@
                 )))))))
 
 
-(def READERS {'juxt.pprint (fn [x] (with-out-str (pprint x)))
-              'juxt.json (fn [x] (json/write-value-as-string x))})
+(def READERS
+  {'juxt.pprint (fn [x] (with-out-str (pprint x)))
+   'juxt.json (fn [x] (json/write-value-as-string x))})
 
 (defn- normalize-uri-map [uri-map]
   (->> uri-map

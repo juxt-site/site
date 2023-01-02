@@ -72,7 +72,8 @@
         ;; EQL is used for creating trees from resource state
         edn-query-language/eql {:mvn/version "1.0.0"}
 
-        ;; Some resource loading uses templating
+        ;; Some resource installers use templating, and Selmer is also
+        ;; available for :juxt.site/respond programs.
         selmer/selmer {:mvn/version "1.12.55"}
 
         clj-commons/clj-yaml {:mvn/version "1.0.26"}

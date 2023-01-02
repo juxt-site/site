@@ -11,7 +11,20 @@
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [content (format "<body><h1>Actions</h1></body>\n")]
+    (let [content
+          (selmer/render
+           "<body><h1>Actions</h1>
+<table>
+{% for a in actions %}
+<tr>
+<td>{{a.xt/id}}</td>\n
+<td>{{a.juxt..site/description}}</td>\n
+</tr>
+{% endfor %}
+</table>
+</body>\n"
+           *state*
+           )]
       (-> *ctx*
           (assoc :ring.response/body content)
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
