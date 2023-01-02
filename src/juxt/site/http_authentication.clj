@@ -7,7 +7,8 @@
    [crypto.password.bcrypt :as password]
    [juxt.reap.alpha.decoders :as reap]
    [juxt.reap.alpha.rfc7235 :as rfc7235]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [clojure.string :as str]))
 
 (defn authenticate-with-bearer-auth [req db token68 protection-spaces]
   (log/tracef "Protection-spaces are %s" (pr-str protection-spaces))
@@ -75,16 +76,17 @@
   "Create the WWW-Authenticate header value"
   [db protection-spaces]
   (log/tracef "protection-spaces: %s" protection-spaces)
-  (www-authenticate
-   (for [ps-id protection-spaces
-         :let [ps (xt/entity db ps-id)
-               realm (:juxt.site/realm ps)]]
-     {:juxt.reap.rfc7235/auth-scheme (:juxt.site/auth-scheme ps)
-      :juxt.reap.rfc7235/auth-params
-      (cond-> []
-        realm (conj
-               {:juxt.reap.rfc7235/auth-param-name "realm"
-                :juxt.reap.rfc7235/auth-param-value realm}))})))
+  (str/trim
+   (www-authenticate
+    (for [ps-id protection-spaces
+          :let [ps (xt/entity db ps-id)
+                realm (:juxt.site/realm ps)]]
+      {:juxt.reap.alpha.rfc7235/auth-scheme (:juxt.site/auth-scheme ps)
+       :juxt.reap.alpha.rfc7235/auth-params
+       (cond-> []
+         realm (conj
+                {:juxt.reap.alpha.rfc7235/auth-param-name "realm"
+                 :juxt.reap.alpha.rfc7235/auth-param-value realm}))}))))
 
 (defn authenticate-with-authorization-header
   [{:juxt.site/keys [db] :as req}
