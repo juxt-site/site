@@ -513,22 +513,6 @@
           {"https://example.org" "https://auth.site.test"
            "https://core.example.org" "https://auth.site.test"})
 
-         (call-command!
-          :openid/register-client
-          ;; Register an application with an OpenID provider and amend
-          ;; the details here:
-          {"iss" "https://juxt.eu.auth0.com"
-           "client-id" "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
-           "client-secret" "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
-
-         (call-command!
-          :openid/register-user
-          ;; Replace with your matching details below:
-          {"username" "mal"
-           "fullname" "Malcolm Sparks"
-           "iss" "https://juxt.eu.auth0.com"
-           "sub" "github|163131"})
-
          ;; System API
 
          (install-package!
@@ -552,6 +536,25 @@
           {"client-id" "swagger-ui"
            "client-type" #_"public" "confidential"
            "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"})
+
+         ;; For OpenID authentication, configure the authorization
+         ;; server with OpenID client details.
+
+         (call-command!
+          :openid/register-client
+          ;; Register an application with an OpenID provider and amend
+          ;; the details here:
+          {"iss" "https://juxt.eu.auth0.com"
+           "client-id" "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
+           "client-secret" "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
+
+         (call-command!
+          :openid/register-user
+          ;; Replace with your matching details below:
+          {"username" "mal"
+           "fullname" "Malcolm Sparks"
+           "iss" "https://juxt.eu.auth0.com"
+           "sub" "github|163131"})
 
          ;; Assign mal access to SystemReadonly
          (install-resource-with-action!
