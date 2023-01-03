@@ -59,7 +59,7 @@
 
   (install-package!
    "protection-spaces"
-   {#{"https://core.example.org" "https://auth.example.org"} "https://auth.hospital.com"})
+   {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-package!
    "hospital-demo"

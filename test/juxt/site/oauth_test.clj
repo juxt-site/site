@@ -13,83 +13,75 @@
     :refer [with-system-xt
             with-session-token with-bearer-token
             with-fixtures *handler* *xt-node* with-handler
-            install-package! install-resource-with-action!]]))
+            install-package! install-packages!
+            install-resource-with-action!]]))
 
 (use-fixtures :each with-system-xt with-handler)
 
+(def AUTH_SERVER
+  {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
+
+(def RESOURCE_SERVER
+  {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.test"
+   "https://example.org" "https://data.example.test"})
+
 (deftest register-client-test
-  (let [uri-map {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"}]
-    (install-package! "bootstrap" uri-map)
-    (install-package! "sessions" uri-map)
-    (install-package! "oauth-authorization-server" uri-map)
+  (install-packages! ["bootstrap" "sessions" "oauth-authorization-server"] AUTH_SERVER)
 
-    (testing "Register client with generated client-id"
-      (let [result
-            (install-resource-with-action!
-             "https://auth.example.test/_site/subjects/system"
-             "https://auth.example.test/actions/register-client"
-             {:juxt.site/client-type "public"
-              :juxt.site/redirect-uri "https://test-app.example.test/callback"})
-            doc-id (some-> result :juxt.site/puts first)
-            doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
-        (is doc)
-        (is (nil? (:juxt.site/client-secret doc)))))
-
-    (testing "Register client with generated client-id and client-secret"
-      (let [result
-            (install-resource-with-action!
-             "https://auth.example.test/_site/subjects/system"
-             "https://auth.example.test/actions/register-client"
-             {:juxt.site/client-type "confidential"
-              :juxt.site/redirect-uri "https://test-app.example.test/callback"})
-            doc-id (some-> result :juxt.site/puts first)
-            doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
-        (is doc)
-        (is (:juxt.site/client-secret doc))))
-
-    (testing "Re-registering the same client-id will fail"
-      (let [input {:juxt.site/client-id "test-app"
-                   :juxt.site/client-type "public"
-                   :juxt.site/redirect-uri "https://test-app.example.test/callback"}]
-        (install-resource-with-action!
-         "https://auth.example.test/_site/subjects/system"
-         "https://auth.example.test/actions/register-client"
-         input)
-
-        (is
-         (=
-          {:juxt.site/type "https://meta.juxt.site/types/client"
-           :juxt.site/client-id "test-app"
-           :juxt.site/client-type "public"
-           :juxt.site/redirect-uri "https://test-app.example.test/callback"
-           :xt/id "https://auth.example.test/clients/test-app"}
-          (xt/entity (xt/db *xt-node*) "https://auth.example.test/clients/test-app")))
-
-        (is
-         (thrown?
-          clojure.lang.ExceptionInfo
+  (testing "Register client with generated client-id"
+    (let [result
           (install-resource-with-action!
            "https://auth.example.test/_site/subjects/system"
            "https://auth.example.test/actions/register-client"
-           input)))))))
+           {:juxt.site/client-type "public"
+            :juxt.site/redirect-uri "https://test-app.example.test/callback"})
+          doc-id (some-> result :juxt.site/puts first)
+          doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
+      (is doc)
+      (is (nil? (:juxt.site/client-secret doc)))))
+
+  (testing "Register client with generated client-id and client-secret"
+    (let [result
+          (install-resource-with-action!
+           "https://auth.example.test/_site/subjects/system"
+           "https://auth.example.test/actions/register-client"
+           {:juxt.site/client-type "confidential"
+            :juxt.site/redirect-uri "https://test-app.example.test/callback"})
+          doc-id (some-> result :juxt.site/puts first)
+          doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
+      (is doc)
+      (is (:juxt.site/client-secret doc))))
+
+  (testing "Re-registering the same client-id will fail"
+    (let [input {:juxt.site/client-id "test-app"
+                 :juxt.site/client-type "public"
+                 :juxt.site/redirect-uri "https://test-app.example.test/callback"}]
+      (install-resource-with-action!
+       "https://auth.example.test/_site/subjects/system"
+       "https://auth.example.test/actions/register-client"
+       input)
+
+      (is
+       (=
+        {:juxt.site/type "https://meta.juxt.site/types/client"
+         :juxt.site/client-id "test-app"
+         :juxt.site/client-type "public"
+         :juxt.site/redirect-uri "https://test-app.example.test/callback"
+         :xt/id "https://auth.example.test/clients/test-app"}
+        (xt/entity (xt/db *xt-node*) "https://auth.example.test/clients/test-app")))
+
+      (is
+       (thrown?
+        clojure.lang.ExceptionInfo
+        (install-resource-with-action!
+         "https://auth.example.test/_site/subjects/system"
+         "https://auth.example.test/actions/register-client"
+         input))))))
 
 (deftest get-subject-test
 
   ;; Build the authorization server (https://auth.example.test)
-  (install-package!
-   "bootstrap"
-   {"https://example.org" "https://auth.example.test"})
-
-  ;; TODO: Question: shouldn't the system subject be installed on
-  ;; auth.example.test, and therefore the whole bootstrap?
-
-  (install-package!
-   "sessions"
-   {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
-
-  (install-package!
-   "oauth-authorization-server"
-   {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
+  (install-packages! ["bootstrap" "sessions" "oauth-authorization-server"] AUTH_SERVER)
 
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
@@ -103,30 +95,12 @@
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
 
-  (install-package!
-   "login-form"
-   {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
+  (install-packages!
+   ["login-form" "user-model" "password-based-user-identity"
+    "example-users" "protection-spaces"]
+   AUTH_SERVER)
 
-  (install-package!
-   "user-model"
-   {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
-
-  (install-package!
-   "password-based-user-identity"
-   {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
-
-  (install-package!
-   "example-users"
-   {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
-
-  (install-package!
-   "protection-spaces"
-   {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.test"})
-
-  (install-package!
-   "whoami"
-   {"https://example.org" "https://example.test"
-    #{"https://auth.example.org" "https://core.example.org"} "https://auth.example.test"})
+  (install-package! "whoami" RESOURCE_SERVER)
 
   (let [login-result
         (login/login-with-form!
@@ -148,7 +122,7 @@
     (with-bearer-token access-token
       (let [{:ring.response/keys [headers body]}
             (*handler*
-             {:juxt.site/uri "https://example.test/whoami"
+             {:juxt.site/uri "https://data.example.test/whoami"
               :ring.request/method :get
               :ring.request/headers
               {"accept" "application/json"}})]
@@ -162,11 +136,11 @@
                             "name"
                             ]))))
         (is (= "application/json" (get headers "content-type")))
-        (is (= "https://example.test/whoami.json" (get headers "content-location"))))
+        (is (= "https://data.example.test/whoami.json" (get headers "content-location"))))
 
       (let [{:ring.response/keys [status headers]}
             (*handler*
-             {:juxt.site/uri "https://example.test/whoami.html"
+             {:juxt.site/uri "https://data.example.test/whoami.html"
               :ring.request/method :get
               :ring.request/headers
               {"authorization" (format "Bearer %s" access-token)

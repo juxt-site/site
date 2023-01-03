@@ -4,5 +4,5 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/subject "https://core.example.org/_site/subjects/system"
-   :juxt.site/action "https://auth.example.org/actions/put-protection-space"
+   :juxt.site/action "https://example.org/actions/put-protection-space"
    :juxt.site/purpose nil}}}

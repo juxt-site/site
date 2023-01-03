@@ -1,8 +1,8 @@
-{:xt/id "https://auth.example.org/_site/packages/protection-spaces"
+{:xt/id "https://example.org/_site/packages/protection-spaces"
  :description "Core resources"
 
  :uri-map
- [["https://auth.example.org"
+ [["https://example.org"
    {:description "Host where protection spaces are saved"}]
   ["https://core.example.org"
    {:description "Core Site actions"}]]
@@ -11,4 +11,4 @@
  ["https://core.example.org/_site/packages/bootstrap"]
 
  :resources
- ["https://auth.example.org/actions/put-protection-space"]}
+ ["https://example.org/actions/put-protection-space"]}

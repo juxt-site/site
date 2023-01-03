@@ -6,7 +6,7 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:xt/id [:re "https://auth.example.org/protection-spaces/(.+)"]]
+    [:xt/id [:re "https://example.org/protection-spaces/(.+)"]]
     [:juxt.site/auth-scheme [:enum "Basic" "Bearer"]]
     [:juxt.site/realm {:optional true} [:string {:min 1}]]
     [:juxt.site/canonical-root-uri {:optional true} [:re "https?://[^/]*"]]]

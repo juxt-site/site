@@ -25,8 +25,8 @@
 
 (deftest system-api-test
 
-  (install-packages! ["bootstrap"] AUTH_SERVER)
-  (install-packages! ["protection-spaces" "system-api"] RESOURCE_SERVER)
+  (install-packages! ["bootstrap" "roles" "protection-spaces"] AUTH_SERVER)
+  (install-packages! ["system-api"] RESOURCE_SERVER)
 
   (testing "Actions API endpoint cannot be accessed anonymously"
     (let [response
@@ -38,7 +38,7 @@
 
   (install-packages!
    ["sessions" "oauth-authorization-server" "login-form"
-    "user-model" "roles" "password-based-user-identity" "example-users"]
+    "user-model" "password-based-user-identity" "example-users"]
    AUTH_SERVER)
 
   (install-resource-with-action!
@@ -77,22 +77,18 @@
           ;; This access token is not sufficient
           (is (= 403 (:ring.response/status response))))))
 
-    ;; Create the role
-    ;; TODO: Could we do this via an installer?
-    (install-resource-with-action!
-     "https://auth.example.test/_site/subjects/system"
-     "https://auth.example.test/actions/put-role"
-     {:xt/id "https://auth.example.test/roles/SystemReadonly"
-      :juxt.site/type "https://auth.example.test/_site/types/role"})
-
     ;; Grant permission for the SystemReadonly role to call get-actions
-    (install-resource-with-action!
-     "https://auth.example.test/_site/subjects/system"
-     "https://auth.example.test/_site/actions/grant-permission"
-     {:xt/id "https://auth.example.test/permissions/by-role/SystemReadonly/system-api/get-actions"
-      :juxt.site/action "https://auth.example.test/actions/system-api/get-actions"
-      :juxt.site/purpose nil
-      :juxt.site/role "https://auth.example.test/roles/SystemReadonly"})
+    #_(install-resource-with-action!
+       "https://auth.example.test/_site/subjects/system"
+       "https://auth.example.test/_site/actions/grant-permission"
+       {:xt/id "https://auth.example.test/permissions/by-role/SystemReadonly/system-api/get-actions"
+        :juxt.site/action "https://auth.example.test/actions/system-api/get-actions"
+        :juxt.site/purpose nil
+        :juxt.site/role "https://auth.example.test/roles/SystemReadonly"})
+
+    ;;(repl/ls)
+
+    ;;   (repl/e "https://auth.example.test/permissions/by-role/SystemReadonly/system-api/get-actions")
 
     ;; Assign Alice to the SystemReadonly role
     (install-resource-with-action!
@@ -102,17 +98,17 @@
       :juxt.site/role "https://auth.example.test/roles/SystemReadonly"})
 
     (testing "Access achieved with correct permissions and role assignment"
-      (with-bearer-token access-token
-        (let [response
-              (*handler*
-               {:juxt.site/uri "https://data.example.test/_site/actions"
-                :ring.request/method :get
-                :ring.request/headers
-                {"accept" "application/json"}})]
+        (with-bearer-token access-token
+          (let [response
+                (*handler*
+                 {:juxt.site/uri "https://data.example.test/_site/actions"
+                  :ring.request/method :get
+                  :ring.request/headers
+                  {"accept" "application/json"}})]
 
-          (is (= "application/json" (get-in response [:ring.response/headers "content-type"])))
-          (is (= 200 (:ring.response/status response)))
+            (is (= "application/json" (get-in response [:ring.response/headers "content-type"])))
+            (is (= 200 (:ring.response/status response)))
 
-          (let [json (some-> response :ring.response/body json/read-value)]
-            (is json)
-            (is (<= 10 (count (get json "actions")) 30))))))))
+            (let [json (some-> response :ring.response/body json/read-value)]
+              (is json)
+              (is (<= 10 (count (get json "actions")) 30))))))))

@@ -7,26 +7,27 @@
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
    [juxt.test.util
-    :refer [*handler* with-fixtures with-system-xt with-handler install-package!]]))
+    :refer [*handler* with-fixtures with-system-xt with-handler install-packages!]]))
 
 (use-fixtures :each with-system-xt with-handler)
 
+(def AUTH_SERVER
+  {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
+
 (deftest login-with-form-test
-  (let [common-uri-map
-        {"https://example.org" "https://example.test"
-         "https://core.example.org" "https://example.test"}]
+  (install-packages!
+   ["bootstrap"
+    "sessions"
+    "login-form"
+    "user-model"
+    "password-based-user-identity"
+    "oauth-authorization-server"
+    "example-users"]
+   AUTH_SERVER)
 
-    (install-package! "bootstrap" common-uri-map)
-    (install-package! "sessions" common-uri-map)
-    (install-package! "login-form" common-uri-map)
-    (install-package! "user-model" common-uri-map)
-    (install-package! "password-based-user-identity" common-uri-map)
-    (install-package! "oauth-authorization-server" common-uri-map)
-    (install-package! "example-users" common-uri-map)
-
-    (let [result (login/login-with-form!
-                  *handler*
-                  :juxt.site/uri "https://example.test/login"
-                  "username" "ALICE"
-                  "password" "garden")]
-      (is (malli/validate [:map [:juxt.site/session-token :string]] result)))))
+  (let [result (login/login-with-form!
+                *handler*
+                :juxt.site/uri "https://auth.example.test/login"
+                "username" "ALICE"
+                "password" "garden")]
+    (is (malli/validate [:map [:juxt.site/session-token :string]] result))))
