@@ -441,6 +441,14 @@
   (pkg/install-package-from-filesystem! dir (xt-node) uri-map)
   :ok)
 
+(defn install-packages!
+  "Install local package from filesystem"
+  [dirs uri-map]
+  (doseq [dir dirs]
+    (printf "Installing package %s\n" dir)
+    (pkg/install-package-from-filesystem! dir (xt-node) uri-map))
+  :ok)
+
 (defn install-resource-with-action! [subject action document]
   (printf "Calling action: %s\n" action)
   (pkg/call-action-with-init-data!
@@ -474,6 +482,13 @@
    :ok)
   ([command-k] (call-command! command-k {})))
 
+(def AUTH_SERVER
+  {#{"https://example.org" "https://core.example.org"} "https://auth.site.test"})
+
+(def RESOURCE_SERVER
+  {#{"https://auth.example.org" "https://core.example.org"} "https://auth.site.test"
+   "https://example.org" "https://data.site.test"})
+
 (defn keyword-commands []
   (concat
    [[:help
@@ -489,47 +504,19 @@
        (try
          (factory-reset!)
 
-         (install-package!
-          "packages/bootstrap"
-          {"https://example.org" "https://auth.site.test"})
+         (install-packages!
+          ["packages/bootstrap"
+           "packages/sessions"
+           "packages/oauth-authorization-server"
+           "packages/user-model"
+           "packages/openid"
+           "packages/roles"
+           "packages/protection-spaces"]
+          AUTH_SERVER)
 
-         (install-package!
-          "packages/sessions"
-          {"https://example.org" "https://auth.site.test"
-           "https://core.example.org" "https://auth.site.test"})
-
-         (install-package!
-          "packages/oauth-authorization-server"
-          {"https://example.org" "https://auth.site.test"
-           "https://core.example.org" "https://auth.site.test"})
-
-         (install-package!
-          "packages/user-model"
-          {"https://example.org" "https://auth.site.test"
-           "https://core.example.org" "https://auth.site.test"})
-
-         (install-package!
-          "packages/openid"
-          {"https://example.org" "https://auth.site.test"
-           "https://core.example.org" "https://auth.site.test"})
-
-         ;; System API
-
-         (install-package!
-          "packages/roles"
-          {"https://example.org" "https://auth.site.test"
-           "https://core.example.org" "https://auth.site.test"})
-
-         (install-package!
-          "packages/protection-spaces"
-          {"https://example.org" "https://auth.site.test"
-           "https://core.example.org" "https://auth.site.test"})
-
-         (install-package!
-          "packages/system-api"
-          {"https://example.org" "https://data.site.test"
-           "https://auth.example.org" "https://auth.site.test"
-           "https://core.example.org" "https://auth.site.test"})
+         (install-packages!
+          ["packages/system-api"]
+          RESOURCE_SERVER)
 
          (call-command!
           :oauth/register-client
