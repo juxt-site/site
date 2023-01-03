@@ -388,6 +388,7 @@
   (actions/check-permissions (db) actions options))
 
 (defn factory-reset! []
+  (printf "Resetting system\n")
   (apply evict! (->> (q '{:find [(pull e [:xt/id :juxt.site/type])]
                           :where [[e :xt/id]]})
                      (map first)
@@ -398,6 +399,14 @@
         (q '{:find [(pull e [* {:juxt.site/session [* {:juxt.site/subject [* {:juxt.site/user-identity [* {:juxt.site/user [*]}]}]}]}])]
              :where [[e :xt/id]
                      [e :juxt.site/type "https://meta.juxt.site/types/session-token"]]})))
+
+(defn access-token [tok]
+  (mapv first
+        (q '{:find [(pull e [* {:juxt.site/subject [* {:juxt.site/user-identity [* {:juxt.site/user [*]}]}]}])]
+             :where [[e :xt/id]
+                     [e :juxt.site/type "https://meta.juxt.site/types/access-token"]
+                     [e :juxt.site/token tok]]
+             :in [tok]} tok)))
 
 (defn evict-all-sessions! []
   (let [db (db)]
@@ -431,6 +440,14 @@
   (printf "Installing package %s\n" dir)
   (pkg/install-package-from-filesystem! dir (xt-node) uri-map)
   :ok)
+
+(defn install-resource-with-action! [subject action document]
+  (printf "Calling action: %s\n" action)
+  (pkg/call-action-with-init-data!
+   (xt-node)
+   {:juxt.site/subject-id subject
+    :juxt.site/action-id action
+    :juxt.site/input document}))
 
 (defn keyword-commands-from-packages []
   (for [[k vs]
@@ -469,12 +486,38 @@
 
     [:system-api ^{:doc "Install System API"}
      (fn []
+
+       (install-package!
+        "packages/roles"
+        {"https://example.org" "https://auth.site.test"
+         "https://core.example.org" "https://auth.site.test"})
+
        (install-package!
         "packages/system-api"
         {"https://example.org" "https://data.site.test"
          "https://auth.example.org" "https://auth.site.test"
-         "https://core.example.org" "https://auth.site.test"}))
-     ]
+         "https://core.example.org" "https://auth.site.test"})
+
+       (install-resource-with-action!
+        "https://auth.site.test/_site/subjects/system"
+        "https://auth.site.test/actions/put-role"
+        {:xt/id "https://auth.site.test/roles/SystemReadonly"
+         :juxt.site/type "https://auth.site.test/_site/types/role"})
+
+       (install-resource-with-action!
+        "https://auth.site.test/_site/subjects/system"
+        "https://auth.site.test/_site/actions/grant-permission"
+        {:xt/id "https://auth.site.test/permissions/by-role/SystemReadonly/system-api/get-actions"
+         :juxt.site/action "https://auth.site.test/actions/system-api/get-actions"
+         :juxt.site/purpose nil
+         :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
+
+       ;; Assign mal access to SystemReadonly
+       (install-resource-with-action!
+        "https://auth.site.test/_site/subjects/system"
+        "https://auth.site.test/actions/assign-role"
+        {:juxt.site/user "https://auth.site.test/users/mal"
+         :juxt.site/role "https://auth.site.test/roles/SystemReadonly"}))]
 
     [:test ^{:doc "Run test script"}
      (fn []
