@@ -237,8 +237,9 @@
            subject (assoc :juxt.site/subject (:xt/id subject))
            (:juxt.site/return-to session) (dissoc :juxt.site/return-to))]
 
-        ;; Escalate session (as recommended by OWASP as this session has
-        ;; been promoted)
+        ;; Escalate session (as recommended by OWASP as this session
+        ;; has been promoted, see
+        ;; https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#renew-the-session-id-after-any-privilege-level-change)
         [:xtdb.api/put new-session-token-doc]
 
         (when-let [old-session-token (:juxt.site/session-token-id! *ctx*)]
