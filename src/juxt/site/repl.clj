@@ -548,10 +548,6 @@
           {"https://example.org" "https://auth.site.test"
            "https://core.example.org" "https://auth.site.test"})
 
-         (install-package!
-          "packages/bootstrap"
-          {"https://example.org" "https://data.site.test"})
-
          (call-command!
           :openid/register-client
           {"iss" "https://juxt.eu.auth0.com"
