@@ -3,10 +3,10 @@
 Site is an open-source
 https://blog.boot.dev/backend/backend-as-a-service/[Backend-as-a-Service] offering:
 
-* Database storage
-* Authentication (including OpenID)
-* Flexible access-control (RBAC, ABAC and policy-based)
-* Support for OpenAPI and GraphQL APIs
+* Data storage
+* User authentication (including https://openid.net/[OpenID])
+* Flexible access-control (https://en.wikipedia.org/wiki/Role-based_access_control[RBAC], https://en.wikipedia.org/wiki/Attribute-based_access_control[ABAC] and policy-based)
+* Support for https://www.openapis.org/[OpenAPI] and https://graphql.org/[GraphQL] APIs
 * Excellent conformance with standards (HTTP, OAuth2, OpenID) to maximise interoperability
 
 On top of these features, Site has strong support for data governance.
