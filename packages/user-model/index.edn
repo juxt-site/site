@@ -9,4 +9,5 @@
  ["https://core.example.org/_site/packages/bootstrap"]
 
  :resources
- ["https://example.org/permissions/system/put-user"]}
+ ["https://example.org/actions/put-user"
+  "https://example.org/permissions/system/put-user"]}

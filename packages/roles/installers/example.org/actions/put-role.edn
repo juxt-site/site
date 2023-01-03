@@ -1,4 +1,4 @@
-{:deps [#_"https://example.org/actions/get-user"]
+{:deps [#_"https://example.org/actions/get-role"]
  :install
  {:juxt.site/subject-id "https://core.example.org/_site/subjects/system"
   :juxt.site/action-id "https://core.example.org/_site/actions/create-action"
@@ -26,10 +26,9 @@
          clojure.edn/read-string
          juxt.site.malli/validate-input
          (assoc
-          :juxt.site/type "https://meta.juxt.site/types/user"
+          :juxt.site/type "https://example.org/_site/types/role"
           :juxt.site/methods
-          {:get {:juxt.site/actions #{"https://example.org/actions/get-user"}}
-           :options {}}))))}
+          {:get {:juxt.site/actions #{"https://example.org/actions/get-role"}}}))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
@@ -39,10 +38,4 @@
    :juxt.site/rules
    [
     [(allowed? subject resource permission)
-     [permission :juxt.site/subject subject]]
-
-    #_[(allowed? subject resource permission)
-     [subject :juxt.site/user-identity id]
-     [id :juxt.site/user user]
-     [user :role role]
-     [permission :role role]]]}}}
+     [permission :juxt.site/subject subject]]]}}}

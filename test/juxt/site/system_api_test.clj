@@ -38,7 +38,7 @@
 
   (install-packages!
    ["sessions" "oauth-authorization-server" "login-form"
-    "user-model" "password-based-user-identity" "example-users"]
+    "user-model" "roles" "password-based-user-identity" "example-users"]
    AUTH_SERVER)
 
   (install-resource-with-action!
@@ -77,21 +77,29 @@
           ;; This access token is not sufficient
           (is (= 403 (:ring.response/status response))))))
 
-    ;; Grant permission to the SystemReadonly role to call the 'get-actions' action
+    ;; Create the role
+    ;; TODO: Could we do this via an installer?
+    (install-resource-with-action!
+     "https://auth.example.test/_site/subjects/system"
+     "https://auth.example.test/actions/put-role"
+     {:xt/id "https://auth.example.test/roles/SystemReadonly"
+      :juxt.site/type "https://auth.example.test/_site/types/role"})
+
+    ;; Grant permission for the SystemReadonly role to call get-actions
     (install-resource-with-action!
      "https://auth.example.test/_site/subjects/system"
      "https://auth.example.test/_site/actions/grant-permission"
      {:xt/id "https://auth.example.test/permissions/by-role/SystemReadonly/system-api/get-actions"
       :juxt.site/action "https://auth.example.test/actions/system-api/get-actions"
       :juxt.site/purpose nil
-      :role "https://auth.example.test/roles/SystemReadonly"})
+      :juxt.site/role "https://auth.example.test/roles/SystemReadonly"})
 
-    ;; Assign the role to alice - TODO: Let's have a role package with
-    ;; actions that can do this properly
-    (put! {:xt/id "https://auth.example.test/role-assignments/alice"
-           :juxt.site/type "https://auth.example.test/types/role-membership"
-           :role "https://auth.example.test/roles/SystemReadonly"
-           :juxt.site/user "https://auth.example.test/users/alice"})
+    ;; Assign Alice to the SystemReadonly role
+    (install-resource-with-action!
+     "https://auth.example.test/_site/subjects/system"
+     "https://auth.example.test/actions/assign-role"
+     {:juxt.site/user "https://auth.example.test/users/alice"
+      :juxt.site/role "https://auth.example.test/roles/SystemReadonly"})
 
     (testing "Access achieved with correct permissions and role assignment"
       (with-bearer-token access-token

@@ -67,12 +67,6 @@
             (cond-> x
               (instance? DoNotRender x) unwrap)))))
 
-#_(render-form-templates
- (edn/read-string
-  {:readers READERS}
-  (slurp "packages/system-api/installers/example.org/_site/actions.html.edn"))
- {})
-
 (defn- node-dependencies
   "Return the dependency ids for the given node, with any parameters expanded
   out."
