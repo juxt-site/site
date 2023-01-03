@@ -484,41 +484,6 @@
 
     [:quit ^{:doc "Disconnect"} (fn [] nil)]
 
-    [:system-api ^{:doc "Install System API"}
-     (fn []
-
-       (install-package!
-        "packages/roles"
-        {"https://example.org" "https://auth.site.test"
-         "https://core.example.org" "https://auth.site.test"})
-
-       (install-package!
-        "packages/system-api"
-        {"https://example.org" "https://data.site.test"
-         "https://auth.example.org" "https://auth.site.test"
-         "https://core.example.org" "https://auth.site.test"})
-
-       (install-resource-with-action!
-        "https://auth.site.test/_site/subjects/system"
-        "https://auth.site.test/actions/put-role"
-        {:xt/id "https://auth.site.test/roles/SystemReadonly"
-         :juxt.site/type "https://auth.site.test/_site/types/role"})
-
-       (install-resource-with-action!
-        "https://auth.site.test/_site/subjects/system"
-        "https://auth.site.test/_site/actions/grant-permission"
-        {:xt/id "https://auth.site.test/permissions/by-role/SystemReadonly/system-api/get-actions"
-         :juxt.site/action "https://auth.site.test/actions/system-api/get-actions"
-         :juxt.site/purpose nil
-         :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
-
-       ;; Assign mal access to SystemReadonly
-       (install-resource-with-action!
-        "https://auth.site.test/_site/subjects/system"
-        "https://auth.site.test/actions/assign-role"
-        {:juxt.site/user "https://auth.site.test/users/mal"
-         :juxt.site/role "https://auth.site.test/roles/SystemReadonly"}))]
-
     [:test ^{:doc "Run test script"}
      (fn []
        (try
@@ -564,6 +529,11 @@
          ;; System API
 
          (install-package!
+          "packages/roles"
+          {"https://example.org" "https://auth.site.test"
+           "https://core.example.org" "https://auth.site.test"})
+
+         (install-package!
           "packages/protection-spaces"
           {"https://auth.example.org" "https://auth.site.test"
            "https://core.example.org" "https://auth.site.test"})
@@ -579,6 +549,29 @@
           {"client-id" "swagger-ui"
            "client-type" #_"public" "confidential"
            "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"})
+
+         (install-resource-with-action!
+          "https://auth.site.test/_site/subjects/system"
+          "https://auth.site.test/actions/put-role"
+          {:xt/id "https://auth.site.test/roles/SystemReadonly"
+           :juxt.site/type "https://auth.site.test/_site/types/role"})
+
+         (install-resource-with-action!
+          "https://auth.site.test/_site/subjects/system"
+          "https://auth.site.test/_site/actions/grant-permission"
+          {:xt/id "https://auth.site.test/permissions/by-role/SystemReadonly/system-api/get-actions"
+           :juxt.site/action "https://auth.site.test/actions/system-api/get-actions"
+           :juxt.site/purpose nil
+           :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
+
+         ;; Assign mal access to SystemReadonly
+         (install-resource-with-action!
+          "https://auth.site.test/_site/subjects/system"
+          "https://auth.site.test/actions/assign-role"
+          {:juxt.site/user "https://auth.site.test/users/mal"
+           :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
+
+         :ok
 
          (catch Exception exception
            (pprint exception))))]
