@@ -1,5 +1,33 @@
 = Site (2.0)
 
+Site is an open-source
+https://blog.boot.dev/backend/backend-as-a-service/[Backend-as-a-Service] offering:
+
+* Database storage
+* Authentication (including OpenID)
+* Powerful access-control (RBAC, ABAC and policy-based)
+* OpenAPI and GraphQL APIs
+* Excellent conformance with standards (HTTP, OAuth2, OpenID) to maximise interoperability
+
+On top of these features, Site has strong support for data governance.
+Every state of the database is accessible at any point in time.
+Every change to the database is auditable, so you can find out who made which change to the data, and when.
+
+Many BaaS products are great for simple CRUD applications but don't work well for more sophisticated use-cases.
+Site is intended to handle the more complex projects which many BaaS products can't.
+
+== When would you use Site?
+
+Site might be a good choice if one or more of the following apply:
+
+* you are developing a browser-based web application but don't have time to develop the backend.
+* you are developing an application and want to centralise common data such that it can be shared securely with other applications.
+* you have strong requirements for security and access-control over your data.
+* you want to access your data over web APIs, such as OpenAPI and/or GraphQL.
+* you want to interatively prototype a web API.
+
+== Technical Description
+
 Site is a standards-compliant web server, fulfilling the roles of an https://www.rfc-editor.org/rfc/rfc6749[OAuth2] resource server and authorization server.
 
 [quote,https://www.rfc-editor.org/rfc/rfc6749#section-1.1]
@@ -23,14 +51,6 @@ authorization.
 
 Currently, the only supported database is JUXT's immutable https://xtdb.com[XTDB] database.
 XTDB is a good fit for Site, since many of its features (such as document ids and references) map cleanly onto web concepts (such as URIs and links).
-
-== When would you use Site?
-
-Site might be a good choice if one or more of the following apply:
-
-* you are developing an application and want to centralise common data such that it can be shared securely with other applications.
-* you have strong requirements for security and access-control over your data.
-* you want to access your data over web protocols, such as OpenAPI and/or GraphQL.
 
 == Features
 
@@ -65,6 +85,10 @@ This 2.0 generation is in development. Please do not use until further notice.
 == Consulting
 
 Contact info@juxt.pro if you would like help, we can provide professional consulting services for Site and/or XTDB.
+
+== References
+
+- https://acropolium.com/blog/first-look-at-backend-as-a-service/
 
 == License
 
