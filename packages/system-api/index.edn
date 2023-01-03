@@ -8,17 +8,33 @@
   ["https://core.example.org" {:description "Host of the Site core actions"}]]
 
  :dependencies
- ["https://auth.example.org/_site/packages/protection-spaces"]
+ ["https://auth.example.org/_site/packages/protection-spaces"
+  "https://auth.example.org/_site/packages/roles"]
 
  :resources
- ["https://example.org/_site/openapi.json"
+ [
+  ;; API resources
+  "https://example.org/_site/openapi.json"
   "https://auth.example.org/actions/get-openapi-document"
   "https://auth.example.org/permissions/get-openapi-document"
 
-  ;; API resources
+  ;; /actions
+  "https://auth.example.org/actions/system-api/get-actions"
+  "https://auth.example.org/permissions/system-api/get-actions"
   "https://example.org/_site/actions"
   "https://example.org/_site/actions.html"
   "https://example.org/_site/actions.json"
-  "https://auth.example.org/permissions/system-api/get-actions"
+
+  ;; /users
+  "https://auth.example.org/actions/system-api/get-users"
+  "https://auth.example.org/permissions/system-api/get-users"
+  "https://example.org/_site/users"
+  "https://example.org/_site/users.html"
+  "https://example.org/_site/users.json"
+
+  ;; Roles
+  "https://auth.example.org/roles/SystemReadonly"
+  "https://auth.example.org/permissions/by-role/SystemReadonly/system-api/get-actions"
+  "https://auth.example.org/permissions/by-role/SystemReadonly/system-api/get-users"
 
   ]}

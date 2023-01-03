@@ -1,4 +1,4 @@
-{:dpes
+{:deps
  ["https://auth.example.org/actions/get-openapi-document"]
  :install
  {:juxt.site/input
@@ -49,7 +49,22 @@
                   {}}
                  "description" "Successful operation"}}
                "tags" ["actions"]
-               "description" "Get all actions in the system"}}}
+               "description" "Get all actions in the system"}}
+
+             "/users"
+             {"get"
+              {"operationId" "getUsers"
+               "security" [{"oauth" ["read:users"]}]
+               "responses"
+               {"200"
+                {"content"
+                 {"application/json"
+                  {}
+                  "text/html"
+                  {}}
+                 "description" "Successful operation"}}
+               "tags" ["actions"]
+               "description" "Get all users in the system"}}}
 
             "components"
             {"securitySchemes"
@@ -58,7 +73,8 @@
                "flows"
                {"implicit"
                 {"scopes"
-                 {"read:actions" "Read actions"}
+                 {"read:actions" "Read actions"
+                  "read:users" "Read users"}
                  "authorizationUrl"
                  "https://auth.site.test/oauth/authorize"}}}}
              "schemas" {}
