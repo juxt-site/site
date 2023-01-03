@@ -27,7 +27,7 @@
          clojure.edn/read-string
          juxt.site.malli/validate-input
          (assoc
-          :xt/id (juxt.site.util/make-nonce 8)
+          :xt/id (format "https://example.org/role-assignments/%s" (juxt.site.util/make-nonce 8))
           :juxt.site/type "https://example.org/_site/types/role-assignment"
           :juxt.site/methods
           {:get {:juxt.site/actions #{"https://example.org/actions/get-role-assignment"}}}))))}
