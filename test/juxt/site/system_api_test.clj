@@ -77,19 +77,6 @@
           ;; This access token is not sufficient
           (is (= 403 (:ring.response/status response))))))
 
-    ;; Grant permission for the SystemReadonly role to call get-actions
-    #_(install-resource-with-action!
-       "https://auth.example.test/_site/subjects/system"
-       "https://auth.example.test/_site/actions/grant-permission"
-       {:xt/id "https://auth.example.test/permissions/by-role/SystemReadonly/system-api/get-actions"
-        :juxt.site/action "https://auth.example.test/actions/system-api/get-actions"
-        :juxt.site/purpose nil
-        :juxt.site/role "https://auth.example.test/roles/SystemReadonly"})
-
-    ;;(repl/ls)
-
-    ;;   (repl/e "https://auth.example.test/permissions/by-role/SystemReadonly/system-api/get-actions")
-
     ;; Assign Alice to the SystemReadonly role
     (install-resource-with-action!
      "https://auth.example.test/_site/subjects/system"
