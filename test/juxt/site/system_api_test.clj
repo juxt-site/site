@@ -74,7 +74,7 @@
                 :ring.request/headers
                 {"accept" "application/json"}})]
 
-          ;; This access token is not sufficient
+          ;; This access token is not sufficient, so we get a 403
           (is (= 403 (:ring.response/status response))))))
 
     ;; Assign Alice to the SystemReadonly role
