@@ -640,7 +640,7 @@
 
 (defn wrap-cors-headers [h]
   (fn [req]
-    (let [{:juxt.site/keys [resource db] :as req} (h req)
+    (let [{:juxt.site/keys [resource] :as req} (h req)
 
           _ (log/infof "(cors) resource is %s" (pr-str resource))
 
