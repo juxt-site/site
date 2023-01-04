@@ -182,6 +182,20 @@
        (map first)
        (sort-by :xt/id)))
 
+(defn ^::public user
+  "Return installed user, with given username"
+  [username]
+  (->> (q '{:find [(pull e [* {(:juxt.site/_user {:as :juxt.site/user-identities})
+                               [* {(:juxt.site/_user-identity {:as :juxt.site/subjects})
+                                   [* {(:juxt.site/_subject {:as :sessions-and-tokens})
+                                       [*]}]}]}])]
+            :where [[e :xt/id]
+                    [e :username username]
+                    [e :juxt.site/type "https://meta.juxt.site/types/user"]]
+            :in [username]} username)
+       (map first)
+       (sort-by :xt/id)))
+
 (defn now-id []
   (.format
    (.withZone
