@@ -14,16 +14,10 @@
             with-session-token with-bearer-token
             with-fixtures *handler* *xt-node* with-handler
             install-package! install-packages!
-            install-resource-with-action!]]))
+            install-resource-with-action!
+            AUTH_SERVER RESOURCE_SERVER]]))
 
 (use-fixtures :each with-system-xt with-handler)
-
-(def AUTH_SERVER
-  {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
-
-(def RESOURCE_SERVER
-  {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.test"
-   "https://example.org" "https://data.example.test"})
 
 (deftest register-client-test
   (install-packages! ["bootstrap" "sessions" "oauth-authorization-server"] AUTH_SERVER)

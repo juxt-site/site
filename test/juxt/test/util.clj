@@ -158,3 +158,7 @@
 
 (defn put! [& args]
   (apply pkg/put! *xt-node* args))
+
+(def AUTH_SERVER {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
+
+(def RESOURCE_SERVER {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.test" "https://example.org" "https://data.example.test"})

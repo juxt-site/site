@@ -12,16 +12,10 @@
     :refer [with-system-xt
             with-session-token with-bearer-token
             with-fixtures *handler* with-handler
-            install-packages! install-resource-with-action! put!]]))
+            install-packages! install-resource-with-action!
+            AUTH_SERVER RESOURCE_SERVER]]))
 
 (use-fixtures :each with-system-xt with-handler)
-
-(def AUTH_SERVER
-  {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
-
-(def RESOURCE_SERVER
-  {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.test"
-   "https://example.org" "https://data.example.test"})
 
 (deftest system-api-test
 
