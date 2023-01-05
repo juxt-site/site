@@ -20,14 +20,14 @@
 
   ;; /actions
   "https://auth.example.org/actions/system-api/get-actions"
-  "https://auth.example.org/permissions/system-api/get-actions"
+;;  "https://auth.example.org/permissions/system-api/get-actions"
   "https://example.org/_site/actions"
   "https://example.org/_site/actions.html"
   "https://example.org/_site/actions.json"
 
   ;; /users
   "https://auth.example.org/actions/system-api/get-users"
-  "https://auth.example.org/permissions/system-api/get-users"
+;;  "https://auth.example.org/permissions/system-api/get-users"
   "https://example.org/_site/users"
   "https://example.org/_site/users.html"
   "https://example.org/_site/users.json"
