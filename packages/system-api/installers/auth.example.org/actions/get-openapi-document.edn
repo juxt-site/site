@@ -6,5 +6,5 @@
    :juxt.site/rules
    [
     ;; Anyone
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [permission :xt/id]]]}}}

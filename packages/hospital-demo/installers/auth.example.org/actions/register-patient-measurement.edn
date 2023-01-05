@@ -36,5 +36,5 @@
 
    :juxt.site/rules
    [
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [permission :juxt.site/subject subject]]]}}}

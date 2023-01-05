@@ -20,7 +20,7 @@
         ;; TODO: Do a view
         :juxt.site/rules
         '[
-          [(allowed? subject resource permission)
+          [(allowed? subject action resource permission)
            [subject :juxt.site/user-identity id]
            [id :juxt.site/user user]
            [permission :juxt.site/user user]]]
@@ -90,7 +90,7 @@
 
         :juxt.site/rules
         '[
-          [(allowed? subject resource permission)
+          [(allowed? subject action resource permission)
            [subject :juxt.site/user-identity id]
            [id :juxt.site/user user]
            [permission :juxt.site/user user]]]}})}
@@ -164,7 +164,7 @@
 
         :juxt.site/rules
         '[
-          [(allowed? subject resource permission)
+          [(allowed? subject action resource permission)
            [subject :juxt.site/user-identity id]
            [id :juxt.site/user user]
            [permission :juxt.site/user user]]]}})}

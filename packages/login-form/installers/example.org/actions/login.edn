@@ -5,7 +5,7 @@
   {:xt/id "{{$id}}"
    :juxt.site/rules
    [
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [permission :xt/id]]]
 
    :juxt.site.malli/input-schema

@@ -15,5 +15,5 @@
           [[:ring.response/status 404]]))}
    :juxt.site/rules
    [
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [permission :xt/id]]]}}}

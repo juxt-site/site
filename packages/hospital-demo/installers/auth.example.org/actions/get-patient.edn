@@ -15,14 +15,14 @@
    [
     ;; TODO: Performance tweak: put [subject] to hint that subject is always
     ;; bound - see @jdt for details
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [subject :juxt.site/user-identity id]
      [id :juxt.site/user user]
      [permission :juxt.site/user user]
      [resource :juxt.site/type "https://example.org/types/patient"]
      [permission :patient :all]]
 
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [subject :juxt.site/user-identity id]
      [id :juxt.site/user user]
      [permission :juxt.site/user user]

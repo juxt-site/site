@@ -10,7 +10,7 @@
    [
     ;; Creating actions should only be available to the most trusted
     ;; subjects. Actions can write directly to the database, if they wish.
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [permission :juxt.site/subject subject]]]
 
    :juxt.site.malli/input-schema

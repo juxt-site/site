@@ -43,12 +43,12 @@
 
    :juxt.site/rules
    [
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [permission :juxt.site/subject subject]]
 
     ;; This might be overly powerful, as a general way of granting anyone a
     ;; permission on any action! Let's comment for now
-    #_[(allowed? subject resource permission)
+    #_[(allowed? subject action resource permission)
        [subject :juxt.site/user-identity id]
        [id :juxt.site/user user]
        [user :role role]

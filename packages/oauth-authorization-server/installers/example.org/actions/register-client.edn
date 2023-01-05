@@ -62,10 +62,10 @@
       [[:xtdb.api/put *prepare*]])}
 
    :juxt.site/rules
-   [[(allowed? subject resource permission)
+   [[(allowed? subject action resource permission)
      [permission :juxt.site/subject subject]]
 
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [id :juxt.site/user user]
      [subject :juxt.site/user-identity id]
      [user :role role]

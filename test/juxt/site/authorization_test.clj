@@ -5,7 +5,7 @@
    [clojure.set :as set]
    [clojure.test :refer [deftest is are use-fixtures testing] :as t]
    [juxt.site.actions :as authz]
-   [juxt.test.util :refer [with-xt submit-and-await! *xt-node*]]
+   [juxt.test.util :refer [with-xt submit-and-await! *xt-node* with-fixtures]]
    [xtdb.api :as xt]))
 
 (use-fixtures :each with-xt)
@@ -129,18 +129,18 @@
    :juxt.site/rules
    '[
      ;; Unidentified visitors can read of PUBLIC resources
-     [(allowed? subject resource permission)
+     [(allowed? subject action resource permission)
       [resource :juxt.site/classification "PUBLIC"]
       [(nil? subject)]
       ]
 
      ;; Identified visitors can also read PUBLIC resource
-     [(allowed? subject resource permission)
+     [(allowed? subject action resource permission)
       [resource :juxt.site/classification "PUBLIC"]
       [subject :xt/id]]
 
      ;; Only persons granted permission to read INTERNAL resources
-     [(allowed? subject resource permission)
+     [(allowed? subject action resource permission)
       [resource :juxt.site/classification "INTERNAL"]
       [permission ::person person]
       [subject ::person person]]
@@ -231,7 +231,7 @@
    :juxt.site/type "https://meta.juxt.site/types/action"
    :juxt.site/scope "read:resource"
    :juxt.site/rules
-   '[[(allowed? subject resource permission)
+   '[[(allowed? subject action resource permission)
       [permission ::person person]
       [subject ::person person]
       [person ::type "Person"]
@@ -246,7 +246,7 @@
    :juxt.site/type "https://meta.juxt.site/types/action"
    :juxt.site/scope "write:resource"
    :juxt.site/rules
-   '[[(allowed? subject resource permission)
+   '[[(allowed? subject action resource permission)
       [permission ::person person]
       [subject ::person person]
       [person ::type "Person"]
@@ -260,7 +260,7 @@
    :juxt.site/type "https://meta.juxt.site/types/action"
    :juxt.site/scope "read:resource"
    :juxt.site/rules
-   '[[(allowed? subject resource permission)
+   '[[(allowed? subject action resource permission)
       [permission ::person person]
       [person ::type "Person"]
       [subject ::person person]
@@ -490,7 +490,7 @@
          :juxt.site/scope "read:user"
          :juxt.site/pull [::username]
          :juxt.site/rules
-         '[[(allowed? subject resource permission)
+         '[[(allowed? subject action resource permission)
             [permission ::person person]
             [subject ::person person]
             [person ::type "Person"]
@@ -502,7 +502,7 @@
          :juxt.site/scope "read:user"
          :juxt.site/pull [::secret]
          :juxt.site/rules
-         '[[(allowed? subject resource permission)
+         '[[(allowed? subject action resource permission)
             [permission ::person person]
             [subject ::person person]
             [person ::type "Person"]
@@ -595,7 +595,7 @@
          :juxt.site/scope "read:messages"
          :juxt.site/pull [::content]
          :juxt.site/rules
-         '[[(allowed? subject resource permission)
+         '[[(allowed? subject action resource permission)
             [permission ::person person]
             [subject ::person person]
             [person ::type "Person"]
@@ -609,7 +609,7 @@
          :juxt.site/scope "read:messages"
          :juxt.site/pull [::from ::to ::date]
          :juxt.site/rules
-         '[[(allowed? subject resource permission)
+         '[[(allowed? subject action resource permission)
             [permission ::person person]
             [subject ::person person]
             [person ::type "Person"]
@@ -777,7 +777,7 @@
          :juxt.site/pull ['*]
          :juxt.site/alert-log false
          :juxt.site/rules
-         '[[(allowed? subject resource permission)
+         '[[(allowed? subject action resource permission)
             [permission ::person person]
             [subject ::person person]
             [person ::type "Person"]
@@ -790,7 +790,7 @@
          :juxt.site/pull ['*]
          :juxt.site/alert-log true
          :juxt.site/rules
-         '[[(allowed? subject resource permission)
+         '[[(allowed? subject action resource permission)
             [permission ::person person]
             [subject ::person person]
             [person ::type "Person"]
@@ -857,7 +857,7 @@
          :juxt.site/scope "read:health"
          :juxt.site/pull ['*]
          :juxt.site/rules
-         '[[(allowed? subject resource permission)
+         '[[(allowed? subject action resource permission)
             [permission ::person person]
             [subject ::person person]
             [person ::type "Person"]
@@ -966,7 +966,7 @@
     [::xt/put]]
 
    :juxt.site/rules
-   '[[(allowed? subject resource permission)
+   '[[(allowed? subject action resource permission)
       [permission ::person person]
       [subject ::person person]
       [person ::type "Person"]]]})
@@ -1066,13 +1066,13 @@
                :juxt.site/rules
                '[
                  ;; Allow traders to see their own trades
-                 [(allowed? person trade role-membership)
+                 [(allowed? person action trade role-membership)
                   [role-membership ::role "https://example.org/roles/trader"]
                   [role-membership ::person person]
                   [trade ::type "Trade"]
                   [trade ::trader person]]
 
-                 [(allowed? person trade role-membership)
+                 [(allowed? person action trade role-membership)
                   ;; Subjects who have the head-of-desk role
                   [role-membership ::role "https://example.org/roles/head-of-desk"]
                   [role-membership ::person person]
@@ -1089,7 +1089,7 @@
                :juxt.site/pull '[::desk ::value :xt/id]
                :juxt.site/rules
                '[
-                 [(allowed? person trade role-membership)
+                 [(allowed? person action trade role-membership)
                   [role-membership ::role "https://example.org/roles/regulatory-risk-controller"]
                   [role-membership ::person person]
                   [trade ::type "Trade"]
@@ -1100,7 +1100,7 @@
                :juxt.site/pull '[*]
                :juxt.site/rules
                '[
-                 [(allowed? head-of-desk trader role-membership)
+                 [(allowed? head-of-desk action trader role-membership)
 
                   ;; Subjects who have the head-of-desk role
                   [role-membership :juxt.site/type "https://meta.juxt.site/types/permission"]
@@ -1406,7 +1406,7 @@
             [::xt/put]]
 
           :juxt.site/rules
-          '[[(allowed? subject resource permission)
+          '[[(allowed? subject action resource permission)
              [permission ::person person]
              [subject ::person person]
              [person ::type "Person"]]]}]
@@ -1461,7 +1461,7 @@
    :juxt.site/type "https://meta.juxt.site/types/action"
    :juxt.site/scope "read:resource"
    :juxt.site/rules
-   [['(allowed? subject resource permission)
+   [['(allowed? subject action resource permission)
      ['permission :xt/id]]]})
 
 (deftest actions->rules-test
@@ -1470,41 +1470,53 @@
 
   (submit-and-await! [[::xt/put (make-action "employee")]])
   (submit-and-await! [[::xt/put (update (make-action "contractor") :juxt.site/rules conj '[(include? e action)
-                                                                                                 [e :type :contractor]])]])
+                                                                                           [e :type :contractor]])]])
 
   (testing "When there are no actions specified for lookup, returns empty result"
     (is (empty? (authz/actions->rules (xt/db *xt-node*) #{}))))
 
   (testing "When a single action is specified for lookup, returns the single result, with an action rule appended"
-    (is (= '[[(allowed? subject resource permission)
-              [permission :xt/id]
-              [action :xt/id "https://test.example.com/actions/employee"]]]
-           (authz/actions->rules (xt/db *xt-node*) #{"https://test.example.com/actions/employee"})))
-    (is (= '[[(allowed? subject resource permission)
-              [permission :xt/id]
-              [action :xt/id "https://test.example.com/actions/contractor"]]
-             [(include? e action)
-              [e :type :contractor]
-              [action :xt/id "https://test.example.com/actions/contractor"]]]
-           (authz/actions->rules (xt/db *xt-node*) #{"https://test.example.com/actions/contractor"}))))
+    (is (= #{'[(allowed? subject action resource permission)
+               [permission :xt/id]
+               [action :xt/id "https://test.example.com/actions/employee"]]}
+           (set
+            (authz/actions->rules
+             (xt/db *xt-node*)
+             #{"https://test.example.com/actions/employee"}))))
+    (is (= #{'[(allowed? subject action resource permission)
+               [permission :xt/id]
+               [action :xt/id "https://test.example.com/actions/contractor"]]
+             '[(include? e action)
+               [e :type :contractor]
+               [action :xt/id "https://test.example.com/actions/contractor"]]}
+           (set
+            (authz/actions->rules
+             (xt/db *xt-node*)
+             #{"https://test.example.com/actions/contractor"})))))
 
   (testing "When a multiple actions are specified for lookup, returns multiple results, each with an action rule appended"
-    (is (= '[[(allowed? subject resource permission)
-              [permission :xt/id]
-              [action :xt/id "https://test.example.com/actions/employee"]]
-             [(allowed? subject resource permission)
-              [permission :xt/id]
-              [action :xt/id "https://test.example.com/actions/contractor"]]
-             [(include? e action)
-              [e :type :contractor]
-              [action :xt/id "https://test.example.com/actions/contractor"]]]
-           (authz/actions->rules (xt/db *xt-node*) #{"https://test.example.com/actions/employee"
-                                                     "https://test.example.com/actions/contractor"}))))
+    (is (= #{'[(allowed? subject action resource permission)
+               [permission :xt/id]
+               [action :xt/id "https://test.example.com/actions/employee"]]
+             '[(allowed? subject action resource permission)
+               [permission :xt/id]
+               [action :xt/id "https://test.example.com/actions/contractor"]]
+             '[(include? e action)
+               [e :type :contractor]
+               [action :xt/id "https://test.example.com/actions/contractor"]]}
+           (set
+            (authz/actions->rules
+             (xt/db *xt-node*)
+             #{"https://test.example.com/actions/employee"
+               "https://test.example.com/actions/contractor"})))))
 
   (testing "When an action is specified that does not exist in the db ignores that entry"
     (is (empty? (authz/actions->rules (xt/db *xt-node*) #{"https://test.example.com/actions/project"})))
-    (is (= '[[(allowed? subject resource permission)
-              [permission :xt/id]
-             [action :xt/id "https://test.example.com/actions/employee"]]]
-           (authz/actions->rules (xt/db *xt-node*) #{"https://test.example.com/actions/project"
-                                                        "https://test.example.com/actions/employee"})))))
+    (is (= #{'[(allowed? subject action resource permission)
+               [permission :xt/id]
+               [action :xt/id "https://test.example.com/actions/employee"]]}
+           (set
+            (authz/actions->rules
+             (xt/db *xt-node*)
+             #{"https://test.example.com/actions/project"
+               "https://test.example.com/actions/employee"}))))))

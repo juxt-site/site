@@ -36,10 +36,10 @@
 
    :juxt.site/rules
    [
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [permission :juxt.site/subject subject]]
 
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [subject :juxt.site/user-identity id]
      [id :juxt.site/user user]
      [permission :role role]

@@ -27,7 +27,7 @@
    :juxt.site.alpha/type "https://meta.juxt.site/pass/action" ; <1>
    :juxt.site.alpha/rules                                     ; <2>
    [
-    '[(allowed? subject resource permission) …]
+    '[(allowed? subject action resource permission) …]
     ]
    :juxt.site.alpha/transact
    {:juxt.flip.alpha/quotation '(…)}      ; <3>
@@ -68,10 +68,10 @@
 
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [permission :juxt.site.alpha/subject subject]]
 
-         [(allowed? subject resource permission) ; <3>
+         [(allowed? subject action resource permission) ; <3>
           [subject :juxt.site.alpha/user-identity id]
           [id :juxt.site.alpha/user user]
           [user :role role]
@@ -106,7 +106,7 @@
 
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [permission :xt/id "https://example.org/permissions/public-resources-to-all"] ; <2>
           ]]})
      ;; end::create-action-get-public-resource![]
@@ -235,10 +235,10 @@
 
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [permission :juxt.site.alpha/subject subject]]
 
-         [(allowed? subject resource permission) ; <3>
+         [(allowed? subject action resource permission) ; <3>
           [subject :juxt.site.alpha/user-identity id]
           [id :juxt.site.alpha/user user]
           [permission :role role]
@@ -273,7 +273,7 @@
 
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [subject :juxt.site.alpha/user-identity id]
           [id :juxt.site.alpha/user user]
           [permission :juxt.site.alpha/user user]    ; <1>
@@ -568,7 +568,7 @@
 
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [subject :juxt.site.alpha/user-identity id]
           [id :juxt.site.alpha/user user]
           [permission :juxt.site.alpha/user user]]]})))))
@@ -678,7 +678,7 @@
 
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [subject :juxt.site.alpha/user-identity id]
           [id :juxt.site.alpha/user user]
           [permission :juxt.site.alpha/user user]]]})))))
@@ -733,7 +733,7 @@
                 [[:ring.response/status 404]])))}
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [subject :juxt.site.alpha/user-identity id]
           [id :juxt.site.alpha/user user]
           [permission :juxt.site.alpha/user user]]]})))))
@@ -750,7 +750,7 @@
        {:juxt.flip.alpha/quotation `()}
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [permission :xt/id "https://example.org/permissions/graphql-access-to-known-subjects"]
           [subject :xt/id]]]})))))
 
@@ -945,7 +945,7 @@
 
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [permission :juxt.site.alpha/subject subject]]]})))))
 
 (defn grant-permission-to-invoke-action-create-oauth-scope! [_]
@@ -978,7 +978,7 @@
       {:xt/id "https://example.org/actions/put-user-owned-content"
        :juxt.site.alpha/rules
        '[
-         [(allowed? subject resource permission)
+         [(allowed? subject action resource permission)
           [permission :juxt.site.alpha/user user]
           [subject :juxt.site.alpha/user-identity id]
           [id :juxt.site.alpha/user user]

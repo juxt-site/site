@@ -272,7 +272,7 @@ two further key advantages:
 Each rule is a collection of clauses, headed by the following *rule head*:
 
 ----
-(allowed? subject resource permission)
+(allowed? subject action resource permission)
 ----
 
 (((permission, definition)))

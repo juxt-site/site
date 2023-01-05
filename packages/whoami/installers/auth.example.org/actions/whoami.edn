@@ -23,6 +23,6 @@
 
    :juxt.site/rules
    [
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [subject :juxt.site/user-identity id]
      [permission :xt/id]]]}}}

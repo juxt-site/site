@@ -47,7 +47,7 @@
                  ;; Only consider a permitted action
                  [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
                  [permission :juxt.site/action action]
-                 (allowed? subject resource permission)
+                 (allowed? subject action resource permission)
 
                  ;; Only permissions that match our purpose
                  [permission :juxt.site/purpose purpose]]
@@ -114,7 +114,7 @@
                  ;; Only consider a permitted action
                  [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
                  [permission :juxt.site/action action]
-                 (allowed? subject resource permission)
+                 (allowed? subject action resource permission)
 
                  ;; Only permissions that match our purpose
                  [permission :juxt.site/purpose purpose]]
@@ -170,7 +170,7 @@
              ;; Only consider a permitted action
              [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
              [permission :juxt.site/action action]
-             (allowed? subject resource permission)
+             (allowed? subject action resource permission)
 
              ;; Only permissions that match our purpose
              [permission :juxt.site/purpose purpose]
@@ -232,7 +232,7 @@
                     ;; Only consider allowed permssions
                     [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
                     [permission :juxt.site/action action]
-                    (allowed? subject resource permission)
+                    (allowed? subject action resource permission)
 
                     ;; Only permissions that match our purpose
                     [permission :juxt.site/purpose purpose]]

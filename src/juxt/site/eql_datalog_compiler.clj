@@ -70,7 +70,7 @@
                   ;; affect rules from sub-queries. In other
                   ;; words, sub-queries must be completely
                   ;; isolated.
-                  ~(list (symbol (str "depth" depth) "allowed?") 'subject 'e 'permission)]
+                  ~(list (symbol (str "depth" depth) "allowed?") 'subject 'action 'e 'permission)]
           additional-where-clauses (-> (concat additional-where-clauses) vec))
        :rules ~(mapv (fn [rule]
                        (update rule 0 #(apply list (cons (symbol (str "depth" depth) "allowed?") (rest %))))

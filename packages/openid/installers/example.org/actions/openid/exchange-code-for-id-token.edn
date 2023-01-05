@@ -6,7 +6,7 @@
 
    :juxt.site/rules
    [
-    [(allowed? subject resource permission)
+    [(allowed? subject action resource permission)
      [permission :xt/id]]]
 
    ;; We can process the request outside of the transaction, since the query
