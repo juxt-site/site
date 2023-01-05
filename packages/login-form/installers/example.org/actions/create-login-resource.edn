@@ -66,4 +66,4 @@ Password: <input name=password type=password>
    :juxt.site/rules
    [
     [(allowed? subject resource permission)
-     [permission :xt/id]]]}}}
+     [permission :juxt.site/subject subject]]]}}}
