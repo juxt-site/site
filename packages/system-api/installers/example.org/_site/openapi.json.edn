@@ -31,7 +31,7 @@
         {"read:actions" "Read actions"
          "read:users" "Read users"}
         "authorizationUrl"
-        "https://auth.site.test/oauth/authorize"}}}}
+        "https://auth.example.org/oauth/authorize"}}}}
     "schemas" {}
     "requestBodies" {}}
 
