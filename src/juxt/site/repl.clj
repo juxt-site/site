@@ -530,12 +530,6 @@
      ["packages/system-api"]
      RESOURCE_SERVER)
 
-    (call-command!
-     :oauth/register-client
-     {"client-id" "swagger-ui"
-      "client-type" #_"public" "confidential"
-      "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"})
-
     ;; For OpenID authentication, configure the authorization
     ;; server with OpenID client details.
 
@@ -562,6 +556,19 @@
      ;; Replace with your user here
      {:juxt.site/user "https://auth.site.test/users/mal"
       :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
+
+    ;; Register OAuth2 clients
+    (call-command!
+     :oauth/register-client
+     {"client-id" "swagger-ui"
+      "client-type" #_"public" "confidential"
+      "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"})
+
+    (call-command!
+     :oauth/register-client
+     {"client-id" "postman"
+      "client-type" #_"public" "confidential"
+      "redirect-uri" "https://oauth.pstmn.io/v1/callback"})
 
     :ok
 
