@@ -96,6 +96,10 @@ Site might be a good choice if one or more of the following apply:
 * you want to access your data over web APIs, such as OpenAPI and/or GraphQL.
 * you want to interatively prototype a web API.
 
+== Testing
+
+Run the tests with `make test` if you have make installed, or if not, with `clojure -M:test -m kaocha.runner test`.
+
 == Technical Description
 
 Site is a standards-compliant web server, fulfilling the roles of an https://www.rfc-editor.org/rfc/rfc6749[OAuth2] resource server and authorization server.
