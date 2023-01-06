@@ -75,11 +75,7 @@
         "schemas" {}
         "requestBodies" {}}
        "tags" []
-       "externalDocs" {}}
-
-      )
-
-    }
+       "externalDocs" {}})}
 
    :juxt.site/rules
    [

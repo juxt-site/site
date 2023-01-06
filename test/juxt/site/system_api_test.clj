@@ -21,7 +21,7 @@
 
 (deftest system-api-test
 
-  (install-packages! ["bootstrap" "roles" "protection-spaces"] AUTH_SERVER)
+  (install-packages! ["bootstrap" "roles" "protection-spaces" "openapi"] AUTH_SERVER)
   (install-packages! ["system-api"] RESOURCE_SERVER)
 
   (testing "Users API endpoint cannot be accessed anonymously"

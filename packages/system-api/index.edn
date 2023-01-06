@@ -1,22 +1,21 @@
 {:xt/id "https://example.org/_site/packages/system-api"
- :description "Swagger"
+ :description "Site System API"
 
  :uri-map
  [["https://example.org"
-   {:description "Host where the Swagger descriptor will be served from"}]
+   {:description "Host of the OpenAPI document"}]
   ["https://auth.example.org" {:description "Host of actions/permissions"}]
   ["https://core.example.org" {:description "Host of the Site core actions"}]]
 
  :dependencies
  ["https://auth.example.org/_site/packages/protection-spaces"
-  "https://auth.example.org/_site/packages/roles"]
+  "https://auth.example.org/_site/packages/roles"
+  "https://auth.example.org/_site/packages/openapi"]
 
  :resources
  [
   ;; API resources
   "https://example.org/_site/openapi.json"
-  "https://auth.example.org/actions/get-openapi-document"
-  "https://auth.example.org/permissions/get-openapi-document"
 
   ;; /actions
   "https://auth.example.org/actions/system-api/get-actions"

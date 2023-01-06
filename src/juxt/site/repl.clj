@@ -522,7 +522,8 @@
       "packages/user-model"
       "packages/openid"
       "packages/roles"
-      "packages/protection-spaces"]
+      "packages/protection-spaces"
+      "packages/openapi"]
      AUTH_SERVER)
 
     (install-packages!
@@ -580,9 +581,8 @@
 
     [:system-api ^{:doc "Install System API"}
      (fn []
-       (install-packages!
-        ["packages/system-api"]
-        RESOURCE_SERVER)
+       (install-packages! ["packages/openapi"] AUTH_SERVER)
+       (install-packages! ["packages/system-api"] RESOURCE_SERVER)
 
        ;; Assign mal access to SystemReadonly
        (install-resource-with-action!
