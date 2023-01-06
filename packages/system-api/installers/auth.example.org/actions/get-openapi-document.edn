@@ -3,6 +3,84 @@
   :juxt.site/action-id "https://core.example.org/_site/actions/create-action"
   :juxt.site/input
   {:xt/id "{{$id}}"
+
+   :juxt.site/state
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [openapi-paths
+          (xt/q '{:find [(pull path [* {(:juxt.site/_variant-of {:as :variants}) [*]}])]
+                  :where [[path :juxt.site/type "https://meta.juxt.site/types/openapi-path"]]})
+
+          paths
+          (reduce
+           (fn [acc [path]]
+             (assoc
+              acc
+              (:openapi.v3/path path)
+              (reduce
+               (fn [acc [method metadata]]
+                 (assoc
+                  acc
+                  (name method)
+                  {"operationId" (:openapi.v3/operation-id metadata)
+                   "security" [{"oauth" [(:openapi.v3/scope metadata)]}]
+                   "responses"
+                   {"200"
+                    {"content"
+                     (reduce
+                      (fn [acc variant]
+                        (assoc acc (:juxt.http/content-type variant) {}))
+                      {}
+                      (:variants path))
+                     "description" "Successful operation"}}
+                   "tags" (:openapi.v3/tags metadata)
+                   "description" (:juxt.site/description metadata)}))
+               {} (:juxt.site/methods path))))
+           {}
+           openapi-paths)]
+
+      {"openapi" "3.0.2"
+
+       "info"
+       {"title" "Site System API"
+
+        "description"
+        "This is the OpenAPI 3.0 description of the Site System API. \n\nSome useful links:\n- [Site at Github](https://github.com/juxt/site)"
+
+        "termsOfService" "http://swagger.io/terms/"
+
+        "contact" {"email" "info@juxt.pro"}
+
+        "license"
+        {"url" "http://www.apache.org/licenses/LICENSE-2.0.html"
+         "name" "Apache 2.0"}
+
+        "version" "1.0.0"}
+
+       "servers" [{"url" "/_site"}]
+
+       "paths" paths
+
+       "components"
+       {"securitySchemes"
+        {"oauth"
+         {"type" "oauth2"
+          "flows"
+          {"implicit"
+           {"scopes"
+            {"read:actions" "Read actions"
+             "read:users" "Read users"}
+            "authorizationUrl"
+            "https://auth.site.test/oauth/authorize"}}}}
+        "schemas" {}
+        "requestBodies" {}}
+       "tags" []
+       "externalDocs" {}}
+
+      )
+
+    }
+
    :juxt.site/rules
    [
     ;; Anyone
