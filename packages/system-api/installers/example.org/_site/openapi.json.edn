@@ -52,7 +52,7 @@
            {"openapi" "3.0.2"
 
             "info"
-            {"title" "Site API"
+            {"title" "Site System API"
 
              "description"
              "This is the OpenAPI 3.0 description of the Site System API. \n\nSome useful links:\n- [Site at Github](https://github.com/juxt/site)"
