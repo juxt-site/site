@@ -82,6 +82,9 @@ Follow these instructions:
 . Go to the file `src/juxt/site/repl.clj` and search for `:openid/register-user`. Edit the settings there according to your GitHub username.
 . From the REPL, enter `(init)`. Alternatively, `rlwrap ncat localhost 50505` and type `:init` - this step will require network access as it downloads issuer configuration and keys.
 . Browse to https://swagger-ui.site.test/
+. Click on the green `Authorize` button
+. Initially this will redirect you to Auth0. Click on the Github icon which will take you to Github. You'll need to allow Github to authorize Auth0 to access your basic profile details. These are used to match the identity you've registered with `:open/register-user`.
+. You should now be able to 'try out' the API operations in the Swagger UI.
 
 == When would you use Site?
 
