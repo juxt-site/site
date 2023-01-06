@@ -597,14 +597,6 @@
     [:init ^{:doc "Run test setup script"}
      init]
 
-    [:system-api ^{:doc "Reinstall System API"}
-     (fn []
-       (install-package!
-        "packages/system-api"
-        {"https://example.org" "https://data.site.test"
-         "https://auth.example.org" "https://auth.site.test"
-         "https://core.example.org" "https://auth.site.test"}))]
-
     [:ls ^{:doc "List all resources"}
      (fn []
        (let [resources (ls)]

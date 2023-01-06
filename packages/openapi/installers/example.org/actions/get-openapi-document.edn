@@ -40,40 +40,10 @@
            openapi-paths)]
 
       {"openapi" "3.0.2"
-
-       "info"
-       {"title" "Site System API"
-
-        "description"
-        "This is the OpenAPI 3.0 description of the Site System API. \n\nSome useful links:\n- [Site at Github](https://github.com/juxt/site)"
-
-        "termsOfService" "http://swagger.io/terms/"
-
-        "contact" {"email" "info@juxt.pro"}
-
-        "license"
-        {"url" "http://www.apache.org/licenses/LICENSE-2.0.html"
-         "name" "Apache 2.0"}
-
-        "version" "1.0.0"}
-
-       "servers" [{"url" "/_site"}]
-
+       "info" (:openapi.v3/info *resource*)
+       "servers" (:openapi.v3/servers *resource*)
        "paths" paths
-
-       "components"
-       {"securitySchemes"
-        {"oauth"
-         {"type" "oauth2"
-          "flows"
-          {"implicit"
-           {"scopes"
-            {"read:actions" "Read actions"
-             "read:users" "Read users"}
-            "authorizationUrl"
-            "https://auth.site.test/oauth/authorize"}}}}
-        "schemas" {}
-        "requestBodies" {}}
+       "components" (:openapi.v3/components *resource*)
        "tags" []
        "externalDocs" {}})}
 
