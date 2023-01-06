@@ -18,13 +18,67 @@ Site is intended to handle the more complex projects which many BaaS products ca
 
 == Getting Started
 
-If you're really keen, you can take Site for a quick test-drive.
+If you're really keen, you can try out Site and use Swagger UI as a test client.
+Follow these instructions:
 
-Download nginx - see link:doc/next/Installation.adoc[]
+. Install nginx - see link:doc/next/Installation.adoc[]
+. `git clone https://github.com/juxt-site/swagger-ui`
+. Clone this repo: `git clone https://github.com/juxt-site/site`
+. Install `mkcert` as per link:doc/next/Installation.adoc[]
+. Create a cert: `mkcert data.site.test auth.site.test`
+. Create a separate cert for the Swagger UI client: `mkcert swagger-ui.site.test`
+. Add the following sub-section to the `http` section of your `/etc/nginx/nginx.conf` file
++
+----
+    server {
+        listen       443 ssl;
+        server_name  data.site.test auth.site.test;
 
-Start a REPL using the provided deps.edn in the usual way.
+        ssl_certificate      data.site.test+1.pem;
+        ssl_certificate_key  data.site.test+1-key.pem;
 
-Go to the file `src/juxt/site/repl.clj` and search for `:openid/register-user`. Edit the settings there according to your ...
+        ssl_session_cache    shared:SSL:1m;
+        ssl_session_timeout  5m;
+
+        ssl_ciphers  HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers  on;
+
+        location / {
+           proxy_pass	http://localhost:2021;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+----
+. Add the following sub-section to the `http` section of your `/etc/nginx/nginx.conf` file
++
+----
+    server {
+        listen       443 ssl;
+        server_name  swagger-ui.site.test;
+
+        ssl_certificate      swagger-ui.site.test.pem;
+        ssl_certificate_key  swagger-ui.site.test-key.pem;
+
+        ssl_session_cache    shared:SSL:1m;
+        ssl_session_timeout  5m;
+
+        ssl_ciphers  HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers  on;
+
+        location / {
+	  # Replace this with the absolute path of the dist subdir of the swagger-ui clone
+	  root swagger-ui/dist/;
+        }
+    }
+----
+. As noted, replace the `swagger-ui/dist/` line with the right location on your system.
+. Start nginx (check config with `nginx -t` first)
+. Start a REPL using the provided deps.edn in the usual way.
+. Go to the file `src/juxt/site/repl.clj` and search for `:openid/register-user`. Edit the settings there according to your GitHub username.
+. From the REPL, enter `(init)`. Alternatively, `rlwrap ncat localhost 50505` and type `:init` - this step will require network access as it downloads issuer configuration and keys.
+. Browse to https://swagger-ui.site.test/
 
 == When would you use Site?
 
