@@ -4,10 +4,14 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
 
+   :juxt.site/description "Get the summary details of all permissible actions"
+
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.pprint
-    (keys (juxt.site/allowed-actions {}))}
+    (map
+     (fn [x] (select-keys x [:xt/id :juxt.site/description]))
+     (juxt.site/allowed-actions {}))}
 
    :juxt.site/rules
    [
@@ -16,10 +20,10 @@
      [permission :xt/id]]
 
     #_[(allowed? subject action resource permission)
-     [subject :juxt.site/user-identity id]
-     [id :juxt.site/user user]
-     [permission :juxt.site/role role]
-     [role :juxt.site/type "https://auth.example.org/_site/types/role"]
-     [role-assignment :juxt.site/type "https://auth.example.org/_site/types/role-assignment"]
-     [role-assignment :juxt.site/role role]
-     [role-assignment :juxt.site/user user]]]}}}
+       [subject :juxt.site/user-identity id]
+       [id :juxt.site/user user]
+       [permission :juxt.site/role role]
+       [role :juxt.site/type "https://auth.example.org/_site/types/role"]
+       [role-assignment :juxt.site/type "https://auth.example.org/_site/types/role-assignment"]
+       [role-assignment :juxt.site/role role]
+       [role-assignment :juxt.site/user user]]]}}}

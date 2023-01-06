@@ -23,7 +23,7 @@
 {% endfor %}
 </table>
 </body>\n"
-           *state*
+           {:actions *state*}
            )]
       (-> *ctx*
           (assoc :ring.response/body content)

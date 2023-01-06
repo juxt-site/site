@@ -329,9 +329,8 @@
      (group-by :juxt.site/action)
      (reduce-kv
       (fn [acc action permissions]
-        (assoc acc (:xt/id action)
-               (assoc action :juxt.site/permitted-by (mapv :juxt.site/permission permissions))))
-      {}))))
+        (conj acc (assoc action :juxt.site/permitted-by (mapv :juxt.site/permission permissions))))
+      []))))
 
 (defn common-sci-namespaces [action-doc]
   {

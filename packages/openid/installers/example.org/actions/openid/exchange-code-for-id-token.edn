@@ -3,6 +3,7 @@
   :juxt.site/action-id "https://core.example.org/_site/actions/create-action"
   :juxt.site/input
   {:xt/id "{{$id}}"
+   :juxt.site/description "Exchange a code for an ID_TOKEN from an identity provider"
 
    :juxt.site/rules
    [
