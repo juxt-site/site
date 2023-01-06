@@ -281,6 +281,58 @@
              (group-by :xt/id))]
     (map #(update % join-key (comp first idx)) coll)))
 
+(defn allowed-actions
+  "Return all the actions that a subject is allowed to perform, along
+  with the permissions that permit them."
+  [db {:juxt.site/keys [subject purpose]}]
+  (let [
+        ;; Start with a list of all actions
+        actions
+        (set
+         (map first
+              (xt/q db '{:find [e]
+                         :where [[e :juxt.site/type "https://meta.juxt.site/types/action"]]})))
+
+        rules (actions->rules db actions)]
+
+    (->>
+     (xt/q
+      db
+      {:find '[(pull action [*]) permission]
+       :keys '[juxt.site/action juxt.site/permission]
+       :where
+       '[
+         [action :juxt.site/type "https://meta.juxt.site/types/action"]
+
+         ;; Only consider given actions
+         [(contains? actions action)]
+
+         ;; Only consider a permitted action
+         [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
+         [permission :juxt.site/action action]
+         (allowed? subject action resource permission)
+
+         ;; Only permissions that match our purpose
+         [permission :juxt.site/purpose purpose]]
+
+       :rules rules
+
+       :in '[subject actions resource purpose]}
+
+      (:xt/id subject)
+      actions
+      nil
+      purpose)
+
+     ;; We want to list unique actions but associated with the
+     ;; permissions that let the subject have access.
+     (group-by :juxt.site/action)
+     (reduce-kv
+      (fn [acc action permissions]
+        (assoc acc (:xt/id action)
+               (assoc action :juxt.site/permitted-by (mapv :juxt.site/permission permissions))))
+      {}))))
+
 (defn common-sci-namespaces [action-doc]
   {
    'com.auth0.jwt.JWT

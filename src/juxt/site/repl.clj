@@ -146,7 +146,7 @@
        (sort)))
 
 (defn ^::public ls-type
-  "Return resources by type t. For example, (ls-type \"https://meta.juxt.site/types/action\")."
+  "Return resources by type: (ls-type \"https://meta.juxt.site/types/action\")."
   [t]
   (->> (q '{:find [e]
             :where [[e :xt/id]
@@ -509,7 +509,9 @@
   {#{"https://auth.example.org" "https://core.example.org"} "https://auth.site.test"
    "https://example.org" "https://data.site.test"})
 
-(defn init []
+(defn ^::public init
+  "Reset and re-initialize system with some resources for getting started."
+  []
   (try
     (factory-reset!)
 
@@ -575,6 +577,22 @@
     ;;[:status ^{:doc "Show status"} (fn [] (status))]
 
     [:quit ^{:doc "Disconnect"} (fn [] nil)]
+
+    [:system-api ^{:doc "Install System API"}
+     (fn []
+       (install-packages!
+        ["packages/system-api"]
+        RESOURCE_SERVER)
+
+       ;; Assign mal access to SystemReadonly
+       (install-resource-with-action!
+        "https://auth.site.test/_site/subjects/system"
+        "https://auth.site.test/actions/assign-role"
+        ;; Replace with your user here
+        {:juxt.site/user "https://auth.site.test/users/mal"
+         :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
+
+       :ok)]
 
     [:init ^{:doc "Run test setup script"}
      init]

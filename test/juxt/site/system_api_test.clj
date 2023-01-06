@@ -19,17 +19,15 @@
 
 (use-fixtures :each with-system-xt with-handler)
 
-;;
-
 (deftest system-api-test
 
   (install-packages! ["bootstrap" "roles" "protection-spaces"] AUTH_SERVER)
   (install-packages! ["system-api"] RESOURCE_SERVER)
 
-  (testing "Actions API endpoint cannot be accessed anonymously"
+  (testing "Users API endpoint cannot be accessed anonymously"
     (let [response
           (*handler*
-           {:juxt.site/uri "https://data.example.test/_site/actions.json"
+           {:juxt.site/uri "https://data.example.test/_site/users"
             :ring.request/method :get})]
       (is (= 401 (:ring.response/status response)))
       (is (= "Bearer" (get-in response [:ring.response/headers "www-authenticate"])))))
@@ -67,7 +65,7 @@
       (with-bearer-token access-token
         (let [response
               (*handler*
-               {:juxt.site/uri "https://data.example.test/_site/actions"
+               {:juxt.site/uri "https://data.example.test/_site/users"
                 :ring.request/method :get
                 :ring.request/headers
                 {"accept" "application/json"}})]
@@ -96,69 +94,5 @@
 
           (let [json (some-> response :ring.response/body json/read-value)]
             (is json)
-            (is (<= 10 (count (get json "actions")) 30))))))
-
-
-    (repl/ls-type "https://meta.juxt.site/types/action")
-
-    (repl/ls-type "https://meta.juxt.site/types/permission")
-
-    (repl/e (:juxt.site/action (repl/e "https://auth.example.test/permissions/alice-can-authorize")))
-
-    (let [db (xt/db *xt-node*)
-          actions #_(set (repl/ls-type "https://meta.juxt.site/types/action"))
-          (set #{"https://auth.example.test/actions/system-api/get-actions"
-                 "https://auth.example.test/actions/system-api/get-users"
-                 "https://auth.example.test/actions/put-session-scope"
-                 "https://auth.example.test/actions/login"})
-
-          rules
-          (actions/actions->rules db actions)
-          #_(vec
-             (for [[e rules]
-                   (xt/q db {:find ['e 'rules]
-                             :where [['e :xt/id (set actions)]
-                                     ['e :juxt.site/rules 'rules]]})]
-               (vec
-                (concat ['(allowed? subject action resource permission)]
-                        (rest rules)
-                        [['action :xt/id e]]))))
-          subject (some-> (repl/access-token access-token) first :juxt.site/subject :xt/id)]
-
-      (is (= 3
-             (count
-              (map :juxt.site/action
-                   (for [{:juxt.site/keys [permission action] :as item}
-                         (xt/q
-                          db
-                          {:find '[(pull permission [*]) (pull action [*])]
-                           :keys '[juxt.site/permission juxt.site/action]
-                           :where
-                           '[
-                             [action :juxt.site/type "https://meta.juxt.site/types/action"]
-
-                             ;; Only consider given actions
-                             [(contains? actions action)]
-
-                             ;; Only consider a permitted action
-                             [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                             [permission :juxt.site/action action]
-                             (allowed? subject action resource permission)
-
-                             ;; Only permissions that match our purpose
-                             [permission :juxt.site/purpose purpose]]
-
-                           :rules rules
-
-                           :in '[subject actions resource purpose]}
-
-                          subject
-                          actions
-                          nil                   ; resource
-                          nil
-                          )]
-                     ;;        item
-                     permission
-                     ))))))))
-
-;;(set! *print-namespace-maps* false)
+            (is (<= 2 (count json) 10))
+            json))))))

@@ -7,16 +7,15 @@
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.pprint
-    {:actions
-     (->> (xt/q
-           '{:find [(pull e [:xt/id :juxt.site/description])]
-             :where [[e :juxt.site/type "https://meta.juxt.site/types/action"]]})
-          (map first)
-          (sort-by :xt/id))}}
+    (keys (juxt.site/allowed-actions {}))}
 
    :juxt.site/rules
    [
+    ;; Anyone get call this API, and some actions are public
     [(allowed? subject action resource permission)
+     [permission :xt/id]]
+
+    #_[(allowed? subject action resource permission)
      [subject :juxt.site/user-identity id]
      [id :juxt.site/user user]
      [permission :juxt.site/role role]

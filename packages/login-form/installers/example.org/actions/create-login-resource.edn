@@ -31,8 +31,7 @@
          (assoc
           :juxt.site/methods
           {:get {:juxt.site/actions #{"https://example.org/actions/get-public-resource"}}
-           :post {:juxt.site/actions #{"https://example.org/actions/login"}}
-           :options {:juxt.site/actions #{"https://example.org/actions/get-options"}}}
+           :post {:juxt.site/actions #{"https://example.org/actions/login"}}}
 
           :juxt.http/content-type "text/html;charset=utf-8"
           ;; TODO: We could make the HTML content a parameter

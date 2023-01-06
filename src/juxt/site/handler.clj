@@ -264,7 +264,12 @@
                       m
                       {:juxt.site/subject subject
                        ;; TODO: Don't forget purpose
-                       }))}})
+                       }))
+                   'allowed-actions
+                   (fn [m]
+                     (actions/allowed-actions
+                      (:juxt.site/db req)
+                      (merge {:juxt.site/subject subject} m)))}})
 
                 :classes
                 {'java.util.Date java.util.Date
