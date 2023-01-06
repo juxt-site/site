@@ -509,6 +509,63 @@
   {#{"https://auth.example.org" "https://core.example.org"} "https://auth.site.test"
    "https://example.org" "https://data.site.test"})
 
+(defn init []
+  (try
+    (factory-reset!)
+
+    (install-packages!
+     ["packages/bootstrap"
+      "packages/sessions"
+      "packages/oauth-authorization-server"
+      "packages/user-model"
+      "packages/openid"
+      "packages/roles"
+      "packages/protection-spaces"]
+     AUTH_SERVER)
+
+    (install-packages!
+     ["packages/system-api"]
+     RESOURCE_SERVER)
+
+    (call-command!
+     :oauth/register-client
+     {"client-id" "swagger-ui"
+      "client-type" #_"public" "confidential"
+      "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"})
+
+    ;; For OpenID authentication, configure the authorization
+    ;; server with OpenID client details.
+
+    (call-command!
+     :openid/register-client
+     ;; Register an application with an OpenID provider and amend
+     ;; the details here:
+     {"iss" "https://juxt.eu.auth0.com"
+      "client-id" "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
+      "client-secret" "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
+
+    (call-command!
+     :openid/register-user
+     ;; Replace with your matching details below:
+     {"username" "mal"
+      "fullname" "Malcolm Sparks"
+      "iss" "https://juxt.eu.auth0.com"
+      "nickname" "malcolmsparks"})
+
+    ;; Assign mal access to SystemReadonly
+    (install-resource-with-action!
+     "https://auth.site.test/_site/subjects/system"
+     "https://auth.site.test/actions/assign-role"
+     ;; Replace with your user here
+     {:juxt.site/user "https://auth.site.test/users/mal"
+      :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
+
+    :ok
+
+    (catch Exception exception
+      (pprint exception)))
+  )
+
 (defn keyword-commands []
   (concat
    [[:help
@@ -520,61 +577,7 @@
     [:quit ^{:doc "Disconnect"} (fn [] nil)]
 
     [:init ^{:doc "Run test setup script"}
-     (fn []
-       (try
-         (factory-reset!)
-
-         (install-packages!
-          ["packages/bootstrap"
-           "packages/sessions"
-           "packages/oauth-authorization-server"
-           "packages/user-model"
-           "packages/openid"
-           "packages/roles"
-           "packages/protection-spaces"]
-          AUTH_SERVER)
-
-         (install-packages!
-          ["packages/system-api"]
-          RESOURCE_SERVER)
-
-         (call-command!
-          :oauth/register-client
-          {"client-id" "swagger-ui"
-           "client-type" #_"public" "confidential"
-           "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"})
-
-         ;; For OpenID authentication, configure the authorization
-         ;; server with OpenID client details.
-
-         (call-command!
-          :openid/register-client
-          ;; Register an application with an OpenID provider and amend
-          ;; the details here:
-          {"iss" "https://juxt.eu.auth0.com"
-           "client-id" "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
-           "client-secret" "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
-
-         (call-command!
-          :openid/register-user
-          ;; Replace with your matching details below:
-          {"username" "mal"
-           "fullname" "Malcolm Sparks"
-           "iss" "https://juxt.eu.auth0.com"
-           "sub" "github|163131"})
-
-         ;; Assign mal access to SystemReadonly
-         (install-resource-with-action!
-          "https://auth.site.test/_site/subjects/system"
-          "https://auth.site.test/actions/assign-role"
-          ;; Replace with your user here
-          {:juxt.site/user "https://auth.site.test/users/mal"
-           :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
-
-         :ok
-
-         (catch Exception exception
-           (pprint exception))))]
+     init]
 
     [:system-api ^{:doc "Reinstall System API"}
      (fn []

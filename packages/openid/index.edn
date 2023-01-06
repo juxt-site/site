@@ -56,18 +56,28 @@
    [["username" {:description "Username"}]
     ["fullname" {:description "User's full name"}]
     ["iss" {:description "Issuer URL"}]
-    ["sub" {:description "Issuer's subject id"}]]
+    ["sub" {:description "Issuer's subject id"}]
+    ["nickname" {:description "Subject nickname"}]]
    :juxt.site.sci/program
    #juxt.pprint
    (do
      (assert (get *args* "iss") "iss (issuer) not given")
-     (assert (get *args* "sub") "subject not given")
-     (let [user (format "https://example.org/users/%s" (ring.util.codec/url-encode (get *args* "username")))]
+     (assert (or (get *args* "sub") (get *args* "nickname")) "subject/nickname not given")
+     (let [user (format "https://example.org/users/%s" (ring.util.codec/url-encode (get *args* "username")))
+           sub (get *args* "sub")
+           nickname (get *args* "nickname")]
        (converge!
         [user
-         (format "https://example.org/openid/user-identities/%s/%s"
-                 (ring.util.codec/url-encode (get *args* "iss"))
-                 (ring.util.codec/url-encode (get *args* "sub")))
+         (cond
+           sub
+           (format "https://example.org/openid/user-identities/%s/sub/%s"
+                   (ring.util.codec/url-encode (get *args* "iss"))
+                   (ring.util.codec/url-encode (get *args* "sub")))
+
+           nickname
+           (format "https://example.org/openid/user-identities/%s/nickname/%s"
+                   (ring.util.codec/url-encode (get *args* "iss"))
+                   (ring.util.codec/url-encode (get *args* "nickname"))))
 
          ;; TODO: The grant-permission action should not here, rather,
          ;; create a new action called 'permit-user-to-authorize'

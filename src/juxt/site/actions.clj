@@ -398,11 +398,14 @@
                          (log/infof "Matching identity: %s" m)
                          (let [q {:find ['id]
                                   :where (into
-                                          [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]]
-                                          (for [[k v] m] ['id k v] ))}]
+                                          [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]
+                                           `(~'or
+                                             [~'id :juxt.site.jwt.claims/sub ~(:juxt.site.jwt.claims/sub m)]
+                                             [~'id :juxt.site.jwt.claims/nickname ~(:juxt.site.jwt.claims/nickname m)])])}]
                            (log/infof "Query used: %s" (pr-str q))
-                           (ffirst
-                            (xt/q db q))))
+                           (let [result (ffirst (xt/q db q))]
+                             (log/infof "Result: %s" result)
+                             result)))
 
                        'match-identity-with-password
                        (fn [m password password-hash-key]

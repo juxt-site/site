@@ -16,6 +16,16 @@ Every change to the database is auditable, so you can find out who made which ch
 Many BaaS products are great for simple CRUD applications but don't work well for more sophisticated use-cases.
 Site is intended to handle the more complex projects which many BaaS products can't.
 
+== Getting Started
+
+If you're really keen, you can take Site for a quick test-drive.
+
+Download nginx - see link:doc/next/Installation.adoc[]
+
+Start a REPL using the provided deps.edn in the usual way.
+
+Go to the file `src/juxt/site/repl.clj` and search for `:openid/register-user`. Edit the settings there according to your ...
+
 == When would you use Site?
 
 Site might be a good choice if one or more of the following apply:

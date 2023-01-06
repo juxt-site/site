@@ -14,7 +14,9 @@
    juxt.site.schema
    xtdb.query
    fipp.ednize
-   [juxt.clojars-mirrors.nippy.v3v1v1.taoensso.nippy :as nippy]))
+   [juxt.clojars-mirrors.nippy.v3v1v1.taoensso.nippy :as nippy]
+   [juxt.site.repl :as repl]
+   [xtdb.api :as xt]))
 
 (nippy/extend-freeze
  clojure.lang.Atom :juxt.site.nippy/atom [x data-output]

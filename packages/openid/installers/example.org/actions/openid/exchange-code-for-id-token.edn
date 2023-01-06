@@ -202,7 +202,8 @@
           user-identity
           (juxt.site/match-identity
            {:juxt.site.jwt.claims/iss (normalize-issuer (get claims :juxt.site.jwt.claims/iss))
-            :juxt.site.jwt.claims/sub (get claims :juxt.site.jwt.claims/sub)})
+            :juxt.site.jwt.claims/sub (get claims :juxt.site.jwt.claims/sub)
+            :juxt.site.jwt.claims/nickname (get claims :juxt.site.jwt.claims/nickname)})
 
           issued-date (get-in id-token [:claims "iat"])
           expiry-date (get-in id-token [:claims "exp"]) ;;(java.util.Date/from (.plusSeconds (java.time.Instant/now) 30)) ;;
