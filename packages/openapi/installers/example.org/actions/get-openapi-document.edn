@@ -25,14 +25,17 @@
                   {"operationId" (:openapi.v3/operation-id metadata)
                    "security" [{"oauth" [(:openapi.v3/scope metadata)]}]
                    "responses"
-                   {"200"
-                    {"content"
-                     (reduce
-                      (fn [acc variant]
-                        (assoc acc (:juxt.http/content-type variant) {}))
-                      {}
-                      (:variants path))
-                     "description" "Successful operation"}}
+                   (case method
+                     :get
+                     {"200"
+                      {"content"
+                       (reduce
+                        (fn [acc variant]
+                          (assoc acc (:juxt.http/content-type variant) {}))
+                        {}
+                        (:variants path))
+                       "description" "Successful operation"}}
+                     {})
                    "tags" (:openapi.v3/tags metadata)
                    "description" (:juxt.site/description metadata)}))
                {} (:juxt.site/methods path))))
