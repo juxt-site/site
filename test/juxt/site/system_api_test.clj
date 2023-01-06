@@ -3,19 +3,17 @@
 (ns juxt.site.system-api-test
   (:require
    [jsonista.core :as json]
-   [juxt.site.actions :as actions]
    [juxt.site.logging :refer [with-logging]]
    [clojure.test :refer [deftest is use-fixtures testing]]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.oauth :as oauth]
    [juxt.test.util
-    :refer [with-system-xt *xt-node*
+    :refer [with-system-xt
             with-session-token with-bearer-token
             with-fixtures *handler* with-handler
             install-packages! install-resource-with-action!
-            AUTH_SERVER RESOURCE_SERVER]]
-   [xtdb.api :as xt]))
+            AUTH_SERVER RESOURCE_SERVER]]))
 
 (use-fixtures :each with-system-xt with-handler)
 
