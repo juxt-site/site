@@ -4,8 +4,18 @@
  :install
  {:juxt.site/input
   {:xt/id "{{$id}}"
+
+   :juxt.site/type "https://meta.juxt.site/types/openapi-path"
+
+   :openapi.v3/path "/actions"
+
    :juxt.site/methods
-   {:get {:juxt.site/actions #{"https://auth.example.org/actions/system-api/get-actions"}}}
+   {:get
+    {:juxt.site/description "Get all permitted actions"
+     :juxt.site/actions #{"https://auth.example.org/actions/system-api/get-actions"}
+     :openapi.v3/operation-id "getActions"
+     :openapi.v3/scope "read:actions"
+     :openapi.v3/tags ["Actions"]}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 

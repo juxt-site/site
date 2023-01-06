@@ -3,6 +3,7 @@
  :install
  {:juxt.site/input
   {:xt/id "{{$id}}"
+   :juxt.site/type "https://meta.juxt.site/types/openapi-document"
    :juxt.site/methods
    {:get {:juxt.site/actions #{"https://auth.example.org/actions/get-openapi-document"}}}
 
@@ -13,7 +14,40 @@
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [content
+    (let [
+          openapi-paths
+          (xt/q '{:find [(pull path [* {(:juxt.site/_variant-of {:as :variants}) [*]}])]
+                  :where [[path :juxt.site/type "https://meta.juxt.site/types/openapi-path"]]})
+
+          paths
+          (reduce
+           (fn [acc [path]]
+             (assoc
+              acc
+              (:openapi.v3/path path)
+              (reduce
+               (fn [acc [method metadata]]
+                 (assoc
+                  acc
+                  (name method)
+                  {"operationId" (:openapi.v3/operation-id metadata)
+                   "security" [{"oauth" [(:openapi.v3/scope metadata)]}]
+                   "responses"
+                   {"200"
+                    {"content"
+                     (reduce
+                      (fn [acc variant]
+                        (assoc acc (:juxt.http/content-type variant) {}))
+                      {}
+                      (:variants path))
+                     "description" "Successful operation"}}
+                   "tags" (:openapi.v3/tags metadata)
+                   "description" (:juxt.site/description metadata)}))
+               {} (:juxt.site/methods path))))
+           {}
+           openapi-paths)
+
+          content
           (jsonista.core/write-value-as-string
            {"openapi" "3.0.2"
 
@@ -35,36 +69,7 @@
 
             "servers" [{"url" "/_site"}]
 
-            "paths"
-            {"/actions"
-             {"get"
-              {"operationId" "getActions"
-               "security" [{"oauth" ["read:actions"]}]
-               "responses"
-               {"200"
-                {"content"
-                 {"application/json"
-                  {}
-                  "text/html"
-                  {}}
-                 "description" "Successful operation"}}
-               "tags" ["actions"]
-               "description" "Get all actions in the system"}}
-
-             "/users"
-             {"get"
-              {"operationId" "getUsers"
-               "security" [{"oauth" ["read:users"]}]
-               "responses"
-               {"200"
-                {"content"
-                 {"application/json"
-                  {}
-                  "text/html"
-                  {}}
-                 "description" "Successful operation"}}
-               "tags" ["actions"]
-               "description" "Get all users in the system"}}}
+            "paths" paths
 
             "components"
             {"securitySchemes"

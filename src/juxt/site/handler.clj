@@ -309,7 +309,8 @@
                 { ;; Unsafe due to violation of strict serializability, hence marked as
                  ;; entity*
                  'entity*
-                 (fn [id] (xt/entity (:juxt.site/db req) id))}})})
+                 (fn [id] (xt/entity (:juxt.site/db req) id))
+                 'q (fn [& args] (apply xt/q (:juxt.site/db req) args))}})})
 
             _ (assert
                (:juxt.site/start-date response)
