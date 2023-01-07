@@ -82,11 +82,7 @@
  :aliases
  {:dev
   {:extra-paths ["dev" "test"]
-   :extra-deps { ;; Convenience libraries made available during development
-                org.clojure/test.check {:mvn/version "0.9.0"}
-                org.clojure/alpha.spec {:git/url "https://github.com/clojure/spec-alpha2.git"
-                                        :sha "c087ded910b3532a938b37e853df79fc3b9c48c1"}
-                org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
+   :extra-deps {org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
                 djblue/portal {:mvn/version "0.29.1"}
                 borkdude/rewrite-edn {:mvn/version "0.4.6"}}
    :jvm-opts ["-XX:-OmitStackTraceInFastThrow"
@@ -104,8 +100,7 @@
 
   :coverage
   {:extra-paths ["test"]
-   :extra-deps {
-                lambdaisland/kaocha-cloverage {:mvn/version "1.0.75"}
+   :extra-deps {lambdaisland/kaocha-cloverage {:mvn/version "1.0.75"}
                 org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
                 djblue/portal {:mvn/version "0.29.1"}}}
 
@@ -117,5 +112,4 @@
               "-Dcom.sun.management.jmxremote.port=8001"]
    ;; nREPL can be useful debugging prod
    :extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
-                org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
-                }}}}
+                org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}}}}}
