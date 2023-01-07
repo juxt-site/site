@@ -19,7 +19,7 @@
 
     "version" "1.0.0"}
 
-   :openapi.v3/servers [{"url" "/_site"}]
+   :openapi.v3/servers [{"url" "https://example.org/_site"}]
 
    :openapi.v3/components
    {"securitySchemes"
@@ -34,6 +34,9 @@
         "https://auth.example.org/oauth/authorize"}}}}
     "schemas" {}
     "requestBodies" {}}
+
+   :openapi.v3/security
+   [{"oauth" ["read:actions" "write:actions"]}]
 
    :juxt.site/methods
    {:get {:juxt.site/actions #{"https://auth.example.org/actions/get-openapi-document"}}}

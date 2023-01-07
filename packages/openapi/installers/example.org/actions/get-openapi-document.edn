@@ -29,8 +29,8 @@
                    ;; resolved (https://github.com/swagger-api/swagger-ui/issues/4324)
                    ;; we can't to this:
                    #_(seq (clojure.set/intersection
-                           (set (:juxt.site/actions metadata))
-                           allowed-actions))
+                         (set (:juxt.site/actions metadata))
+                         allowed-actions))
                    (assoc
                     (name method)
                     {"operationId" (:openapi.v3/operation-id metadata)
@@ -58,8 +58,10 @@
        "servers" (:openapi.v3/servers *resource*)
        "paths" paths
        "components" (:openapi.v3/components *resource*)
+       "security" (:openapi.v3/security *resource*)
        "tags" []
-       "externalDocs" {}})}
+       ;;"externalDocs" {}
+       })}
 
    :juxt.site/rules
    [
