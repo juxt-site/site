@@ -1,18 +1,18 @@
 {:xt/id "https://example.org/_site/packages/system-api"
- :description "Site System API"
+ :juxt.site/description "Site System API"
 
- :uri-map
+ :juxt.site/uri-map
  [["https://example.org"
-   {:description "Host of the OpenAPI document"}]
-  ["https://auth.example.org" {:description "Host of actions/permissions"}]
-  ["https://core.example.org" {:description "Host of the Site core actions"}]]
+   {:juxt.site/description "Host of the OpenAPI document"}]
+  ["https://auth.example.org" {:juxt.site/description "Host of actions/permissions"}]
+  ["https://core.example.org" {:juxt.site/description "Host of the Site core actions"}]]
 
- :dependencies
+ :juxt.site/dependencies
  ["https://auth.example.org/_site/packages/protection-spaces"
   "https://auth.example.org/_site/packages/roles"
   "https://auth.example.org/_site/packages/openapi"]
 
- :resources
+ :juxt.site/resources
  [
   ;; API resources
   "https://example.org/_site/openapi.json"

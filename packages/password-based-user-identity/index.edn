@@ -1,12 +1,12 @@
 {:xt/id "https://example.org/_site/packages/password-based-user-identity"
- :description "Password based user identities"
+ :juxt.site/description "Password based user identities"
 
- :uri-map
- [["https://example.org" {:description "The server hosting the user database"}]
-  ["https://core.example.org" {:description "Host of the Site core actions"}]]
+ :juxt.site/uri-map
+ [["https://example.org" {:juxt.site/description "The server hosting the user database"}]
+  ["https://core.example.org" {:juxt.site/description "Host of the Site core actions"}]]
 
- :dependencies
+ :juxt.site/dependencies
  ["https://example.org/_site/packages/user-model"]
 
- :resources
+ :juxt.site/resources
  ["https://example.org/permissions/system/register-password-based-user-identity"]}

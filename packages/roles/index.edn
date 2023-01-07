@@ -1,14 +1,14 @@
 {:xt/id "https://example.org/_site/packages/roles"
- :description "Actions to establish and assign roles to users"
+ :juxt.site/description "Actions to establish and assign roles to users"
 
- :uri-map
- [["https://example.org" {:description "The server hosting the user database"}]
-  ["https://core.example.org" {:description "Host of the Site core actions"}]]
+ :juxt.site/uri-map
+ [["https://example.org" {:juxt.site/description "The server hosting the user database"}]
+  ["https://core.example.org" {:juxt.site/description "Host of the Site core actions"}]]
 
- :dependencies
+ :juxt.site/dependencies
  ["https://core.example.org/_site/packages/bootstrap"]
 
- :resources
+ :juxt.site/resources
  ["https://example.org/actions/put-role"
   "https://example.org/permissions/system/put-role"
   "https://example.org/actions/assign-role"

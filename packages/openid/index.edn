@@ -1,14 +1,14 @@
 {:xt/id "https://example.org/_site/packages/openid"
- :description "OpenID Connect"
+ :juxt.site/description "OpenID Connect"
 
- :uri-map
- [["https://example.org" {:description "Host of the OpenID client"}]
-  ["https://core.example.org" {:description "Host of the Site core actions"}]]
+ :juxt.site/uri-map
+ [["https://example.org" {:juxt.site/description "Host of the OpenID client"}]
+  ["https://core.example.org" {:juxt.site/description "Host of the Site core actions"}]]
 
- :dependencies
+ :juxt.site/dependencies
  ["https://example.org/_site/packages/user-model"]
 
- :resources
+ :juxt.site/resources
  ["https://example.org/actions/openid/exchange-code-for-id-token"
   "https://example.org/actions/register-openid-issuer"
   "https://example.org/actions/register-openid-client"
@@ -21,18 +21,18 @@
  {
   ;; TODO: Deprecate this? Is it used?
   :openid/register-issuer
-  {:description "Register an OpenID issuer"
-   :arguments [["iss" {:description "Issuer URL" :default [:juxt.site/issuer]}]]
+  {:juxt.site/description "Register an OpenID issuer"
+   :arguments [["iss" {:juxt.site/description "Issuer URL" :default [:juxt.site/issuer]}]]
    :juxt.site.sci/program
    #juxt.pprint
    (converge! [(format "https://example.org/openid/issuers/%s" (ring.util.codec/url-encode (get *args* "iss")))])}
 
   :openid/register-client
-  {:description "Register an OpenID client"
+  {:juxt.site/description "Register an OpenID client"
    :arguments
-   [["iss" {:description "Issuer URL"}]
-    ["client-id" {:description "Client id"}]
-    ["client-secret" {:description "Client secret"}]]
+   [["iss" {:juxt.site/description "Issuer URL"}]
+    ["client-id" {:juxt.site/description "Client id"}]
+    ["client-secret" {:juxt.site/description "Client secret"}]]
 
    :juxt.site.sci/program
    #juxt.pprint
@@ -51,13 +51,13 @@
              (format "https://example.org/openid/clients/%s" (get *args* "client-id")))))}
 
   :openid/register-user
-  {:description "Register a user's identity"
+  {:juxt.site/description "Register a user's identity"
    :arguments
-   [["username" {:description "Username"}]
-    ["fullname" {:description "User's full name"}]
-    ["iss" {:description "Issuer URL"}]
-    ["sub" {:description "Issuer's subject id"}]
-    ["nickname" {:description "Subject nickname"}]]
+   [["username" {:juxt.site/description "Username"}]
+    ["fullname" {:juxt.site/description "User's full name"}]
+    ["iss" {:juxt.site/description "Issuer URL"}]
+    ["sub" {:juxt.site/description "Issuer's subject id"}]
+    ["nickname" {:juxt.site/description "Subject nickname"}]]
    :juxt.site.sci/program
    #juxt.pprint
    (do

@@ -221,7 +221,7 @@
   uri-map argument may be individual strings or sets of strings."
   [pkg uri-map]
   (let [uri-map (normalize-uri-map uri-map)]
-    (when-let [missing (seq (set/difference (set (map first (:uri-map pkg))) (set (keys uri-map))))]
+    (when-let [missing (seq (set/difference (set (map first (:juxt.site/uri-map pkg))) (set (keys uri-map))))]
       (throw (ex-info "uri-map is missing some required keys" {:missing missing})))
     (postwalk
      (fn [x]
@@ -230,7 +230,7 @@
          (str/replace
           #"(https://.*?example.org)(.*)"
           (fn [[_ host path]] (str (get uri-map host host) path)))))
-     (dissoc pkg :uri-map))))
+     (dissoc pkg :juxt.site/uri-map))))
 
 ;; Make this a test
 (comment
@@ -274,7 +274,7 @@
                         {:juxt.site/package (:xt/id index)}))))
 
 (defn get-package-transitive-dependencies [db pkg]
-  (let [dependencies (:dependencies pkg)]
+  (let [dependencies (:juxt.site/dependencies pkg)]
     (mapcat (fn [depid]
               (when-let [dep-pkg (xt/entity db depid)]
                 (cons dep-pkg
@@ -289,7 +289,7 @@
    (let [db (xt/db xt-node)]
 
      ;; Check all the package's dependencies exist in the database
-     (doseq [dep (:dependencies pkg)]
+     (doseq [dep (:juxt.site/dependencies pkg)]
        (when-not (xt/entity db dep)
          (throw
           (ex-info
@@ -303,7 +303,7 @@
      ;; Install the package's resources
      (converge!
       xt-node
-      (:resources pkg)
+      (:juxt.site/resources pkg)
       (apply merge
              (:dependency-graph pkg)
              (map :dependency-graph (get-package-transitive-dependencies db pkg)))

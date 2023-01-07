@@ -1,22 +1,22 @@
 {:xt/id "https://auth.example.org/_site/packages/hospital-demo"
 
- :description "Hospital demo resources"
+ :juxt.site/description "Hospital demo resources"
 
- :uri-map
+ :juxt.site/uri-map
  [["https://core.example.org"
-   {:description "Host of the Site rules"}]
+   {:juxt.site/description "Host of the Site rules"}]
   ["https://auth.example.org"
-   {:description "Host of the hospital authentication data (users, session, applications, access-tokens)"}]
+   {:juxt.site/description "Host of the hospital authentication data (users, session, applications, access-tokens)"}]
   ["https://example.org"
-   {:description "Host of the patient data"}]]
+   {:juxt.site/description "Host of the patient data"}]]
 
- :dependencies
+ :juxt.site/dependencies
  ["https://auth.example.org/_site/packages/example-users"
   "https://auth.example.org/_site/packages/login-form"
   "https://auth.example.org/_site/packages/oauth-authorization-server"
   "https://auth.example.org/_site/packages/protection-spaces"]
 
- :resources
+ :juxt.site/resources
  #{
    ;; Auth resources
    ;; TODO: is this required? test without it

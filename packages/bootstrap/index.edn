@@ -1,11 +1,11 @@
 {:xt/id "https://example.org/_site/packages/bootstrap"
- :description "Bootstrap resources"
+ :juxt.site/description "Bootstrap resources"
 
- :uri-map
- [["https://example.org" {:description "Base URI of data host"}]]
+ :juxt.site/uri-map
+ [["https://example.org" {:juxt.site/description "Base URI of data host"}]]
 
  ;; These are always added on package installation
- :resources
+ :juxt.site/resources
  ["https://example.org/_site/do-action"
   "https://example.org/_site/subjects/system"
   "https://example.org/_site/actions/create-action"

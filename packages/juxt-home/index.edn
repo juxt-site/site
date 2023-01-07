@@ -1,28 +1,28 @@
 {:xt/id "https://example.org/_site/packages/juxt-home"
- :description "JUXT Home"
+ :juxt.site/description "JUXT Home"
 
- :uri-map
+ :juxt.site/uri-map
  [["https://example.org"
    ;; We usually store actions and permissions in the authorization server, but
    ;; I'm beginning to think they don't belong there. Let's try storing them on
    ;; the main server.
-   {:description "Host where the JUXT Home content will be served, also hosting actions and permissions"}]
-  ["https://core.example.org" {:description "Host of the Site core actions"}]]
+   {:juxt.site/description "Host where the JUXT Home content will be served, also hosting actions and permissions"}]
+  ["https://core.example.org" {:juxt.site/description "Host of the Site core actions"}]]
 
- :dependencies
+ :juxt.site/dependencies
  []
 
- :resources
+ :juxt.site/resources
  ["https://example.org/index.html"]
 
  :commands
  {:home/register-user
-  {:description "Register a JUXT employee or associate"
-   :arguments [["fullname" {:description "Full name"}]
-               ["juxtcode" {:description "JUXT code (three letters)"}]
-               ["iss" {:description "Identity issuer"
+  {:juxt.site/description "Register a JUXT employee or associate"
+   :arguments [["fullname" {:juxt.site/description "Full name"}]
+               ["juxtcode" {:juxt.site/description "JUXT code (three letters)"}]
+               ["iss" {:juxt.site/description "Identity issuer"
                        :default "https://juxt.eu.auth0.com"}]
-               ["sub" {:description "Issuer subject"}]]
+               ["sub" {:juxt.site/description "Issuer subject"}]]
    :juxt.site.sci/program
    #juxt.pprint
    (converge! [(format "https://example.org/~%s" (get *args* "juxtcode"))])}}}
