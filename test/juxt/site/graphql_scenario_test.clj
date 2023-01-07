@@ -227,7 +227,7 @@
   (with-fixtures
     (with-resource-graph
       (merge dependency-graph
-             (:dependency-graph (dgu/load-package-from-filesystem "resources/graphql")))
+             (:juxt.site/dependency-graph (dgu/load-package-from-filesystem "resources/graphql")))
       (with-resources
 
         #{"https://example.org/user-identities/alice" ; Alice

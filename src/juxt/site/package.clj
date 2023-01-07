@@ -269,7 +269,7 @@
         index (edn/read-string {:readers READERS} (slurp (io/file root "index.edn")))]
     (assoc
      index
-     :dependency-graph (load-dependency-graph-from-filesystem
+     :juxt.site/dependency-graph (load-dependency-graph-from-filesystem
                         (io/file root "installers")
                         {:juxt.site/package (:xt/id index)}))))
 
@@ -305,8 +305,8 @@
       xt-node
       (:juxt.site/resources pkg)
       (apply merge
-             (:dependency-graph pkg)
-             (map :dependency-graph (get-package-transitive-dependencies db pkg)))
+             (:juxt.site/dependency-graph pkg)
+             (map :juxt.site/dependency-graph (get-package-transitive-dependencies db pkg)))
       parameter-map)))
   ([pkg xt-node]
    (install-package! pkg xt-node {})))
@@ -329,12 +329,12 @@
 (defn dependency-graph
   ([pkg db]
    (apply merge
-          (:dependency-graph pkg)
-          (map :dependency-graph (get-package-transitive-dependencies db pkg))))
+          (:juxt.site/dependency-graph pkg)
+          (map :juxt.site/dependency-graph (get-package-transitive-dependencies db pkg))))
   ([db]
    (apply merge
-          (map :dependency-graph
-               (map first (xt/q db '{:find [(pull e [:dependency-graph])]
+          (map :juxt.site/dependency-graph
+               (map first (xt/q db '{:find [(pull e [:juxt.site/dependency-graph])]
                                      :where [[e :juxt.site/type "https://meta.juxt.site/types/package"]]}))))))
 
 (defn create-command-fn [program args]
