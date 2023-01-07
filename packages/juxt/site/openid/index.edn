@@ -6,7 +6,8 @@
   ["https://core.example.org" {:juxt.site/description "Host of the Site core actions"}]]
 
  :juxt.site/dependencies
- ["https://example.org/_site/packages/juxt/site/user-model"]
+ [{:juxt.site/package "https://repo.juxt.site/packages/juxt/site/user-model"
+   :juxt.site/host "https://example.org"}]
 
  :juxt.site/resources
  ["https://example.org/actions/openid/exchange-code-for-id-token"

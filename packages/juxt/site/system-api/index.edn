@@ -8,9 +8,12 @@
   ["https://core.example.org" {:juxt.site/description "Host of the Site core actions"}]]
 
  :juxt.site/dependencies
- ["https://auth.example.org/_site/packages/juxt/site/protection-spaces"
-  "https://auth.example.org/_site/packages/juxt/site/roles"
-  "https://auth.example.org/_site/packages/juxt/site/openapi"]
+ [{:juxt.site/package "https://repo.juxt.site/packages/juxt/site/protection-spaces"
+   :juxt.site/host "https://auth.example.org"}
+  {:juxt.site/package "https://repo.juxt.site/packages/juxt/site/roles"
+   :juxt.site/host "https://auth.example.org"}
+  {:juxt.site/package "https://repo.juxt.site/packages/juxt/site/openapi"
+   :juxt.site/host "https://auth.example.org"}]
 
  :juxt.site/resources
  [

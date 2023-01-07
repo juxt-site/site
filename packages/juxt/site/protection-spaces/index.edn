@@ -8,7 +8,8 @@
    {:juxt.site/description "Core Site actions"}]]
 
  :juxt.site/dependencies
- ["https://core.example.org/_site/packages/juxt/site/bootstrap"]
+ [{:juxt.site/package "https://repo.juxt.site/packages/juxt/site/bootstrap"
+   :juxt.site/host "https://core.example.org"}]
 
  :juxt.site/resources
  ["https://example.org/actions/put-protection-space"]}

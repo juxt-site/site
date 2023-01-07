@@ -269,12 +269,20 @@
         index (edn/read-string {:readers READERS} (slurp (io/file root "index.edn")))]
     (assoc
      index
-     :juxt.site/dependency-graph (load-dependency-graph-from-filesystem
-                        (io/file root "installers")
-                        {:juxt.site/package (:xt/id index)}))))
+     :juxt.site/dependency-graph
+     (load-dependency-graph-from-filesystem
+      (io/file root "installers")
+      {:juxt.site/package (:xt/id index)}))))
+
+(defn relocate-dependency [dep]
+  (assert (map? dep))
+  (assert (:juxt.site/package dep))
+  (assert (:juxt.site/host dep))
+  (let [[_ path] (re-matches #"https://.*?/packages/(.*)" (:juxt.site/package dep))]
+    (str (:juxt.site/host dep) "/_site/packages/" path)))
 
 (defn get-package-transitive-dependencies [db pkg]
-  (let [dependencies (:juxt.site/dependencies pkg)]
+  (let [dependencies (map relocate-dependency (:juxt.site/dependencies pkg))]
     (mapcat (fn [depid]
               (when-let [dep-pkg (xt/entity db depid)]
                 (cons dep-pkg
@@ -285,17 +293,23 @@
   "Install a package. Not that installation of packages is NOT atomic. Any errors
   that are reported during the installation of a package must be investigated
   and repaired."
-  ([pkg xt-node parameter-map]
+  ([pkg xt-node
+    ;; TODO: Is this actually necessary? Can we parameterize packages?
+    ;; I don't think we should.
+    parameter-map]
    (let [db (xt/db xt-node)]
 
      ;; Check all the package's dependencies exist in the database
      (doseq [dep (:juxt.site/dependencies pkg)]
-       (when-not (xt/entity db dep)
-         (throw
-          (ex-info
-           (format "Required dependency '%s' not installed" dep)
-           {:package (:xt/id pkg)
-            :dependency dep}))))
+       (let [relocated-dep (relocate-dependency dep)]
+         (when-not (xt/entity db relocated-dep)
+           (throw
+            (ex-info
+             (format "Required dependency '%s' not installed" relocated-dep)
+             (merge
+              {:package (:xt/id pkg)
+               :dependency relocated-dep}
+              dep))))))
 
      ;; Install the package
      (put! xt-node (assoc pkg :juxt.site/type "https://meta.juxt.site/types/package"))

@@ -7,8 +7,10 @@
   ["https://core.example.org" {:juxt.site/description "Core Site actions"}]]
 
  :juxt.site/dependencies
- ["https://auth.example.org/_site/packages/juxt/site/bootstrap"
-  "https://auth.example.org/_site/packages/juxt/site/protection-spaces"]
+ [{:juxt.site/package "https://repo.juxt.site/packages/juxt/site/bootstrap"
+   :juxt.site/host "https://auth.example.org"}
+  {:juxt.site/package "https://repo.juxt.site/packages/juxt/site/protection-spaces"
+   :juxt.site/host "https://auth.example.org"}]
 
  :juxt.site/resources
  ["https://auth.example.org/permissions/whoami"

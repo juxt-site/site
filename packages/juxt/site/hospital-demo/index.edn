@@ -11,10 +11,14 @@
    {:juxt.site/description "Host of the patient data"}]]
 
  :juxt.site/dependencies
- ["https://auth.example.org/_site/packages/juxt/site/example-users"
-  "https://auth.example.org/_site/packages/juxt/site/login-form"
-  "https://auth.example.org/_site/packages/juxt/site/oauth-authorization-server"
-  "https://auth.example.org/_site/packages/juxt/site/protection-spaces"]
+ [{:juxt.site/package "https://repo.juxt.site/packages/juxt/site/example-users"
+   :juxt.site/host "https://auth.example.org"}
+  {:juxt.site/package "https://repo.juxt.site/packages/juxt/site/login-form"
+   :juxt.site/host "https://auth.example.org"}
+  {:juxt.site/package "https://repo.juxt.site/packages/juxt/site/oauth-authorization-server"
+   :juxt.site/host "https://auth.example.org"}
+  {:juxt.site/package "https://repo.juxt.site/packages/juxt/site/protection-spaces"
+   :juxt.site/host "https://auth.example.org"}]
 
  :juxt.site/resources
  #{
