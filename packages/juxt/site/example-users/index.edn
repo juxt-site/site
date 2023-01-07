@@ -1,0 +1,28 @@
+{:xt/id "https://example.org/_site/packages/juxt/site/example-users"
+ :juxt.site/description "Example users"
+
+ :juxt.site/uri-map
+ [["https://example.org"
+   {:juxt.site/description "Host of the server hosting the user database and associated sessions"}]
+  ["https://core.example.org"
+   {:juxt.site/description "Host of the Site core actions"}]]
+
+ :juxt.site/dependencies
+ ["https://core.example.org/_site/packages/juxt/site/bootstrap"
+  "https://example.org/_site/packages/juxt/site/user-model"
+  "https://example.org/_site/packages/juxt/site/password-based-user-identity"
+  ;; Provides the 'can-authorize' permission installer
+  "https://example.org/_site/packages/juxt/site/oauth-authorization-server"]
+
+ :juxt.site/resources
+ ["https://example.org/users/alice"
+  "https://example.org/user-identities/alice"
+  "https://example.org/permissions/alice-can-authorize"
+
+  "https://example.org/users/bob"
+  "https://example.org/user-identities/bob"
+  "https://example.org/permissions/bob-can-authorize"
+
+  "https://example.org/users/carlos"
+  "https://example.org/user-identities/carlos"
+  "https://example.org/permissions/carlos-can-authorize"]}

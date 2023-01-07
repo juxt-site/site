@@ -13,13 +13,13 @@
 
 (deftest login-with-form-test
   (install-packages!
-   ["bootstrap"
-    "sessions"
-    "login-form"
-    "user-model"
-    "password-based-user-identity"
-    "oauth-authorization-server"
-    "example-users"]
+   ["juxt/site/bootstrap"
+    "juxt/site/sessions"
+    "juxt/site/login-form"
+    "juxt/site/user-model"
+    "juxt/site/password-based-user-identity"
+    "juxt/site/oauth-authorization-server"
+    "juxt/site/example-users"]
    AUTH_SERVER)
 
   (let [result (login/login-with-form!

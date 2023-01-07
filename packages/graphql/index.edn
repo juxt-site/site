@@ -1,4 +1,0 @@
-{:xt/id "https://example.org/_site/packages/graphql"
- :juxt.site/description "GraphQL resources"
- :juxt.site/resources
- #{}}

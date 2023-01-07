@@ -23,9 +23,9 @@
            "client-secret" "REDACTED"
            "redirect-uri" "https://example.org/openid/callback"}]
 
-      (install-package! "bootstrap" {})
-      (install-package! "core" {})
-      (install-package! "openid" {})
+      (install-package! "juxt/site/bootstrap" {})
+      (install-package! "juxt/site/core" {})
+      (install-package! "juxt/site/openid" {})
 
       (repl/ls)
       (repl/e "https://site.test/login")

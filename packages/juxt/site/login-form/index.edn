@@ -1,0 +1,15 @@
+{:xt/id "https://example.org/_site/packages/juxt/site/login-form"
+ :juxt.site/description "Login form"
+
+ :juxt.site/uri-map
+ [["https://example.org" {:juxt.site/description "Host serving the login form and creating sessions"}]
+  ["https://core.example.org" {:juxt.site/description "Host of the Site core actions"}]]
+
+ :juxt.site/dependencies
+ ["https://example.org/_site/packages/juxt/site/sessions"]
+
+ :juxt.site/resources
+ ["https://example.org/actions/login"
+  "https://example.org/permissions/login"
+  "https://example.org/actions/create-login-resource"
+  "https://example.org/login"]}

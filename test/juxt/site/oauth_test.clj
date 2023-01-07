@@ -20,7 +20,7 @@
 (use-fixtures :each with-system-xt with-handler)
 
 (deftest register-client-test
-  (install-packages! ["bootstrap" "sessions" "oauth-authorization-server"] AUTH_SERVER)
+  (install-packages! ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"] AUTH_SERVER)
 
   (testing "Register client with generated client-id"
     (let [result
@@ -75,7 +75,7 @@
 (deftest get-subject-test
 
   ;; Build the authorization server (https://auth.example.test)
-  (install-packages! ["bootstrap" "sessions" "oauth-authorization-server"] AUTH_SERVER)
+  (install-packages! ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"] AUTH_SERVER)
 
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
@@ -90,11 +90,11 @@
   ;; order to authorize applications and acquire tokens.
 
   (install-packages!
-   ["login-form" "user-model" "password-based-user-identity"
-    "example-users" "protection-spaces"]
+   ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
+    "juxt/site/example-users" "juxt/site/protection-spaces"]
    AUTH_SERVER)
 
-  (install-package! "whoami" RESOURCE_SERVER)
+  (install-package! "juxt/site/whoami" RESOURCE_SERVER)
 
   (let [login-result
         (login/login-with-form!

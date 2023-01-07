@@ -23,23 +23,23 @@
 
 (defn install-hospital! []
   (install-package!
-   "bootstrap"
+   "juxt/site/bootstrap"
    {"https://example.org" "https://auth.hospital.com"})
 
   (install-package!
-   "user-model"
+   "juxt/site/user-model"
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-package!
-   "password-based-user-identity"
+   "juxt/site/password-based-user-identity"
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-package!
-   "sessions"
+   "juxt/site/sessions"
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-package!
-   "oauth-authorization-server"
+   "juxt/site/oauth-authorization-server"
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-resource-with-action!
@@ -50,19 +50,19 @@
     :juxt.site/redirect-uri "https://test-app.example.test/callback"})
 
   (install-package!
-   "example-users"
+   "juxt/site/example-users"
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-package!
-   "login-form"
+   "juxt/site/login-form"
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-package!
-   "protection-spaces"
+   "juxt/site/protection-spaces"
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-package!
-   "hospital-demo"
+   "juxt/site/hospital-demo"
    {"https://example.org" "https://hospital.com"
     #{"https://core.example.org" "https://auth.example.org"} "https://auth.hospital.com"}))
 

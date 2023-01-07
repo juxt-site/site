@@ -516,18 +516,18 @@
     (factory-reset!)
 
     (install-packages!
-     ["packages/bootstrap"
-      "packages/sessions"
-      "packages/oauth-authorization-server"
-      "packages/user-model"
-      "packages/openid"
-      "packages/roles"
-      "packages/protection-spaces"
-      "packages/openapi"]
+     ["packages/juxt/site/bootstrap"
+      "packages/juxt/site/sessions"
+      "packages/juxt/site/oauth-authorization-server"
+      "packages/juxt/site/user-model"
+      "packages/juxt/site/openid"
+      "packages/juxt/site/roles"
+      "packages/juxt/site/protection-spaces"
+      "packages/juxt/site/openapi"]
      AUTH_SERVER)
 
     (install-packages!
-     ["packages/system-api"]
+     ["packages/juxt/site/system-api"]
      RESOURCE_SERVER)
 
     ;; For OpenID authentication, configure the authorization

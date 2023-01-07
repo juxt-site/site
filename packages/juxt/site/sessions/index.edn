@@ -1,0 +1,13 @@
+{:xt/id "https://example.org/_site/packages/juxt/site/sessions"
+ :juxt.site/description "Sessions"
+
+ :juxt.site/uri-map
+ [["https://example.org" {:juxt.site/description "Host of the server hosting sessions"}]
+  ["https://core.example.org" {:juxt.site/description "Host of the Site core actions"}]]
+
+ :juxt.site/dependencies
+ ["https://core.example.org/_site/packages/juxt/site/bootstrap"]
+
+ :juxt.site/resources
+ ["https://example.org/actions/put-session-scope"
+  "https://example.org/permissions/system/put-session-scope"]}

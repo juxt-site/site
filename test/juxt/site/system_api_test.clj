@@ -19,8 +19,8 @@
 
 (deftest system-api-test
 
-  (install-packages! ["bootstrap" "roles" "protection-spaces" "openapi"] AUTH_SERVER)
-  (install-packages! ["system-api"] RESOURCE_SERVER)
+  (install-packages! ["juxt/site/bootstrap" "juxt/site/roles" "juxt/site/protection-spaces" "juxt/site/openapi"] AUTH_SERVER)
+  (install-packages! ["juxt/site/system-api"] RESOURCE_SERVER)
 
   (testing "Users API endpoint cannot be accessed anonymously"
     (let [response
@@ -31,8 +31,8 @@
       (is (= "Bearer" (get-in response [:ring.response/headers "www-authenticate"])))))
 
   (install-packages!
-   ["sessions" "oauth-authorization-server" "login-form"
-    "user-model" "password-based-user-identity" "example-users"]
+   ["juxt/site/sessions" "juxt/site/oauth-authorization-server" "juxt/site/login-form"
+    "juxt/site/user-model" "juxt/site/password-based-user-identity" "juxt/site/example-users"]
    AUTH_SERVER)
 
   (install-resource-with-action!
