@@ -293,37 +293,32 @@
   "Install a package. Not that installation of packages is NOT atomic. Any errors
   that are reported during the installation of a package must be investigated
   and repaired."
-  ([pkg xt-node
-    ;; TODO: Is this actually necessary? Can we parameterize packages?
-    ;; I don't think we should.
-    parameter-map]
-   (let [db (xt/db xt-node)]
+  [pkg xt-node]
+  (let [db (xt/db xt-node)]
 
-     ;; Check all the package's dependencies exist in the database
-     (doseq [dep (:juxt.site/dependencies pkg)]
-       (let [relocated-dep (relocate-dependency dep)]
-         (when-not (xt/entity db relocated-dep)
-           (throw
-            (ex-info
-             (format "Required dependency '%s' not installed" relocated-dep)
-             (merge
-              {:package (:xt/id pkg)
-               :dependency relocated-dep}
-              dep))))))
+    ;; Check all the package's dependencies exist in the database
+    (doseq [dep (:juxt.site/dependencies pkg)]
+      (let [relocated-dep (relocate-dependency dep)]
+        (when-not (xt/entity db relocated-dep)
+          (throw
+           (ex-info
+            (format "Required dependency '%s' not installed" relocated-dep)
+            (merge
+             {:package (:xt/id pkg)
+              :dependency relocated-dep}
+             dep))))))
 
-     ;; Install the package
-     (put! xt-node (assoc pkg :juxt.site/type "https://meta.juxt.site/types/package"))
+    ;; Install the package
+    (put! xt-node (assoc pkg :juxt.site/type "https://meta.juxt.site/types/package"))
 
-     ;; Install the package's resources
-     (converge!
-      xt-node
-      (:juxt.site/resources pkg)
-      (apply merge
-             (:juxt.site/dependency-graph pkg)
-             (map :juxt.site/dependency-graph (get-package-transitive-dependencies db pkg)))
-      parameter-map)))
-  ([pkg xt-node]
-   (install-package! pkg xt-node {})))
+    ;; Install the package's resources
+    (converge!
+     xt-node
+     (:juxt.site/resources pkg)
+     (apply merge
+            (:juxt.site/dependency-graph pkg)
+            (map :juxt.site/dependency-graph (get-package-transitive-dependencies db pkg)))
+     {})))
 
 (defn inspect-package-from-filesystem!
   [dir uri-map]
@@ -336,7 +331,7 @@
   (-> dir
       load-package-from-filesystem
       (apply-uri-map uri-map)
-      (install-package! xt-node {})))
+      (install-package! xt-node)))
 
 ;; Commands
 
