@@ -10,14 +10,14 @@
    [juxt.site.test-helpers.oauth :as oauth]
    [xtdb.api :as xt]
    [juxt.test.util
-    :refer [with-system-xt
+    :refer [system-xt-fixture
             with-session-token with-bearer-token
-            with-fixtures *handler* *xt-node* with-handler
+            with-fixtures *handler* *xt-node* handler-fixture
             install-package! install-packages!
             install-resource-with-action!
             AUTH_SERVER RESOURCE_SERVER]]))
 
-(use-fixtures :each with-system-xt with-handler)
+(use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest register-client-test
   (install-packages! ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"] AUTH_SERVER)

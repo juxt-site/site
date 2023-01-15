@@ -7,7 +7,7 @@
    [xtdb.api :as x]
    [jsonista.core :as json]
    [juxt.reap.alpha.encoders :refer [format-http-date]]
-   [juxt.test.util :refer [with-xt with-handler submit-and-await!
+   [juxt.test.util :refer [xt-fixture handler-fixture submit-and-await!
                            *xt-node* *handler*
                            install-test-resources!]]
    [juxt.site.actions :as authz]
@@ -18,7 +18,7 @@
   (:import
    (java.io ByteArrayInputStream)))
 
-(t/use-fixtures :each with-xt with-handler)
+(t/use-fixtures :each xt-fixture handler-fixture)
 
 (deftest put-test
   (install-test-resources!)
@@ -87,7 +87,7 @@
             (x/entity db "https://example.org/things/foo")
             (dissoc ::site/request))))))
 
-#_((t/join-fixtures [with-xt with-handler])
+#_((t/join-fixtures [xt-fixture handler-fixture])
  (fn []
    (install-test-resources!)
 
@@ -429,7 +429,7 @@
                "if-match" "*"}
               :ring.request/path "/test.png"}))))))
 
-#_((t/join-fixtures [with-xt with-handler])
+#_((t/join-fixtures [xt-fixture handler-fixture])
  (fn []
    (install-test-resources!)
    ;; Install a VirtualResource for any top-level png files
@@ -580,7 +580,7 @@
           :ring.request/headers {"accept" "image/png"}})]
     (is (= 406 (:ring.response/status response)))))
 
-#_((t/join-fixtures [with-xt with-handler])
+#_((t/join-fixtures [xt-fixture handler-fixture])
  (fn []
    (submit-and-await!
     [[:xtdb.api/put
@@ -621,7 +621,7 @@
      :ring.request/path "/sensitive-report.html"
      :ring.request/headers {"accept" "text/html"}})))
 
-#_((t/join-fixtures [with-xt with-handler])
+#_((t/join-fixtures [xt-fixture handler-fixture])
  (fn []
    (submit-and-await!
     [[:xtdb.api/put
@@ -664,7 +664,7 @@
     (is (= "<h1>Hello!</h1>" (:ring.response/body response)))))
 
 
-#_((t/join-fixtures [with-xt with-handler])
+#_((t/join-fixtures [xt-fixture handler-fixture])
  (fn []
    (install-test-resources!)
 

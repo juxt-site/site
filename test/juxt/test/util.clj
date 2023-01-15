@@ -16,16 +16,22 @@
 (def ^:dynamic *db*)
 (def ^:dynamic *resource-dependency-graph* nil)
 
-(defn with-xt [f]
-  (with-open [node (xt/start-node *opts*)]
-    (binding [*xt-node* node]
-      (f))))
+(defmacro with-xt [& body]
+  `(with-open [node# (xt/start-node *opts*)]
+    (binding [*xt-node* node#]
+      ~@body)))
 
-(defn with-system-xt [f]
-  (with-open [node (xt/start-node *opts*)]
-    (binding [*xt-node* node
-              main/*system* {:juxt.site.db/xt-node node}]
-      (f))))
+(defn xt-fixture [f]
+  (with-xt (f)))
+
+(defmacro with-system-xt [& body]
+  `(with-open [node# (xt/start-node *opts*)]
+     (binding [*xt-node* node#
+               main/*system* {:juxt.site.db/xt-node node#}]
+       ~@body)))
+
+(defn system-xt-fixture [f]
+  (with-system-xt (f)))
 
 (defn submit-and-await! [transactions]
   (->>
@@ -40,25 +46,23 @@
            (h/make-pipeline opts)))
    identity))
 
-(defn with-handler [f]
-  (binding [*handler* (make-handler {:juxt.site/xt-node *xt-node*})]
-    (f)))
+(defmacro with-handler [& body]
+  `(binding [*handler* (make-handler {:juxt.site/xt-node *xt-node*})]
+     ~@body))
 
-(defn with-timing [f]
+(defn handler-fixture [f]
+  (with-handler (f)))
+
+(defn timing-fixture [f]
   (let [t0 (System/nanoTime)
         result (f)
         t1 (System/nanoTime)]
     {:result result
      :duration-µs (/ (- t1 t0) 1000.0)}))
 
-(defn with-db [f]
+(defn db-fixture [f]
   (binding [*db* (xt/db *xt-node*)]
     (f)))
-
-(defn with-open-db [f]
-  (with-open [db (xt/open-db *xt-node*)]
-    (binding [*db* db]
-      (f))))
 
 (defmacro with-fixtures [& body]
   `((clojure.test/join-fixtures (-> *ns* meta :clojure.test/each-fixtures))

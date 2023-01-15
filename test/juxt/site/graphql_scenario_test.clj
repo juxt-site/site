@@ -5,9 +5,9 @@
    [juxt.site.logging :refer [with-logging]]
    [clojure.test :refer [deftest is use-fixtures]]
    [juxt.site.repl :as repl]
-   [juxt.test.util :refer [with-system-xt with-fixtures with-handler]]))
+   [juxt.test.util :refer [system-xt-fixture with-fixtures handler-fixture]]))
 
-(use-fixtures :each with-system-xt with-handler)
+(use-fixtures :each system-xt-fixture handler-fixture)
 
 (def dependency-graph
   {"https://example.org/actions/get-graphql-type"

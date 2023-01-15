@@ -4,7 +4,7 @@
   (:require
    [clojure.test :refer [deftest is are testing] :as t]
    [xtdb.api :as x]
-   [juxt.test.util :refer [with-xt with-handler submit-and-await!
+   [juxt.test.util :refer [xt-fixture handler-fixture submit-and-await!
                            *xt-node* *handler*
                            access-all-areas access-all-apis]]))
 
@@ -12,7 +12,7 @@
 (alias 'http (create-ns 'juxt.http))
 (alias 'site (create-ns 'juxt.site))
 
-(t/use-fixtures :each with-xt)
+(t/use-fixtures :each xt-fixture)
 
 ;; We'll borrow terms and definitions from Google's Zanzibar system.
 ;; 3.2.3 Check Evaluation

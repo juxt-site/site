@@ -7,9 +7,9 @@
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
    [juxt.test.util
-    :refer [*handler* with-fixtures with-system-xt with-handler install-packages! AUTH_SERVER]]))
+    :refer [*handler* with-fixtures system-xt-fixture handler-fixture install-packages! AUTH_SERVER]]))
 
-(use-fixtures :each with-system-xt with-handler)
+(use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest login-with-form-test
   (install-packages!

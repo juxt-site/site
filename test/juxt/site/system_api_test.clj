@@ -9,13 +9,13 @@
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.oauth :as oauth]
    [juxt.test.util
-    :refer [with-system-xt
+    :refer [system-xt-fixture
             with-session-token with-bearer-token
-            with-fixtures *handler* with-handler
+            with-fixtures *handler* handler-fixture
             install-packages! install-resource-with-action!
             AUTH_SERVER RESOURCE_SERVER]]))
 
-(use-fixtures :each with-system-xt with-handler)
+(use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest system-api-test
 

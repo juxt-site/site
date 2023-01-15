@@ -16,8 +16,8 @@
    [juxt.site.eql-datalog-compiler :as eqlc]
    [juxt.site.graphql-eql-compiler :refer [graphql->eql-ast]]
    [juxt.site.logging :refer [with-logging]]
-   [juxt.test.util :refer [with-system-xt with-fixtures
-                           with-handler *handler* *xt-node*
+   [juxt.test.util :refer [system-xt-fixture with-fixtures
+                           handler-fixture *handler* *xt-node*
                            install-package! install-resource-with-action!] :as tutil]
    [xtdb.api :as xt]))
 
@@ -70,7 +70,7 @@
   (install-hospital!)
   (f))
 
-(use-fixtures :each with-system-xt with-handler with-hospital)
+(use-fixtures :each system-xt-fixture handler-fixture with-hospital)
 
 (deftest eql-with-acl-test
   ;; Create some measurements

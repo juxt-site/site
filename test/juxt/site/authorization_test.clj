@@ -5,10 +5,10 @@
    [clojure.set :as set]
    [clojure.test :refer [deftest is are use-fixtures testing] :as t]
    [juxt.site.actions :as authz]
-   [juxt.test.util :refer [with-xt submit-and-await! *xt-node* with-fixtures]]
+   [juxt.test.util :refer [xt-fixture submit-and-await! *xt-node* with-fixtures]]
    [xtdb.api :as xt]))
 
-(use-fixtures :each with-xt)
+(use-fixtures :each xt-fixture)
 
 ;; First, we define the actors.
 
@@ -159,7 +159,7 @@
    :juxt.site/purpose nil
    ::person (:xt/id ALICE)})
 
-#_((t/join-fixtures [with-xt])
+#_((t/join-fixtures [xt-fixture])
  (fn []
    ))
 
@@ -1378,7 +1378,7 @@
  [:let :token-id [:gen-hex-string [:random-bytes 20]]])
 
 
-#_((t/join-fixtures [with-xt])
+#_((t/join-fixtures [xt-fixture])
  (fn []
    (let [CREATE_ACCESS_TOKEN_ACTION
          {:xt/id "https://example.org/actions/create-access-token"
@@ -1448,7 +1448,7 @@
 ;; TODO: Build back access-token concept, apps, scopes and filtering of available
 ;; actions.
 
-#_((t/join-fixtures [with-xt])
+#_((t/join-fixtures [xt-fixture])
  (fn []
    ))
 

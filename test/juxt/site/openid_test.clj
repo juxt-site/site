@@ -6,10 +6,10 @@
    [juxt.site.repl :as repl]
    [ring.util.codec :as codec]
    [juxt.test.util
-    :refer [*handler* with-system-xt with-fixtures
-            with-handler lookup-session-details install-package!]]))
+    :refer [*handler* system-xt-fixture with-fixtures
+            handler-fixture lookup-session-details install-package!]]))
 
-(use-fixtures :each with-system-xt with-handler)
+(use-fixtures :each system-xt-fixture handler-fixture)
 
 ;;deftest openid-test
 
