@@ -207,7 +207,7 @@
   {'juxt.pprint (fn [x] (with-out-str (pprint x)))
    'juxt.json (fn [x] (json/write-value-as-string x))})
 
-(defn- normalize-uri-map [uri-map]
+(defn normalize-uri-map [uri-map]
   (->> uri-map
        (mapcat (fn [[k v]]
                  (if (coll? k)
@@ -260,8 +260,7 @@
            (update-in [:install :juxt.site/input] merge metadata {:juxt.site.package/source (str f)})
            (assoc :juxt.site.package/source (str f)))
           (catch Exception e
-            (throw (ex-info (format "Failed to load %s" f) {:file f} e))
-            ))]))))
+            (throw (ex-info (format "Failed to load %s" f) {:file f} e))))]))))
 
 (defn load-package-from-filesystem [dir]
   (let [root (io/file dir)
