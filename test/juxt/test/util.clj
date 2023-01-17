@@ -139,12 +139,6 @@
                  "content-length" (str (count body-bytes)))
          (assoc :ring.request/body (io/input-stream body-bytes))))))
 
-(defn install-package! [name uri-map]
-  (pkg/install-package-from-filesystem!
-   (str "packages/" name)
-   *xt-node*
-   uri-map))
-
 (defn install-packages! [names uri-map]
   (doall
    (for [n names]

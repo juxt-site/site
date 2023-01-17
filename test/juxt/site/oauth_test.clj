@@ -13,7 +13,7 @@
     :refer [system-xt-fixture
             with-session-token with-bearer-token
             with-fixtures *handler* *xt-node* handler-fixture
-            install-package! install-packages!
+            install-packages!
             install-resource-with-action!
             AUTH_SERVER RESOURCE_SERVER]]))
 
@@ -94,7 +94,7 @@
     "juxt/site/example-users" "juxt/site/protection-spaces"]
    AUTH_SERVER)
 
-  (install-package! "juxt/site/whoami" RESOURCE_SERVER)
+  (install-packages! ["juxt/site/whoami"] RESOURCE_SERVER)
 
   (let [login-result
         (login/login-with-form!

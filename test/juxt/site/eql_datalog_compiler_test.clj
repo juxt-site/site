@@ -18,28 +18,19 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.test.util :refer [system-xt-fixture with-fixtures
                            handler-fixture *handler* *xt-node*
-                           install-package! install-resource-with-action!] :as tutil]
+                           install-packages! install-resource-with-action!] :as tutil]
    [xtdb.api :as xt]))
 
 (defn install-hospital! []
-  (install-package!
-   "juxt/site/bootstrap"
+  (install-packages!
+   ["juxt/site/bootstrap"]
    {"https://example.org" "https://auth.hospital.com"})
 
-  (install-package!
-   "juxt/site/user-model"
-   {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
-
-  (install-package!
-   "juxt/site/password-based-user-identity"
-   {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
-
-  (install-package!
-   "juxt/site/sessions"
-   {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
-
-  (install-package!
-   "juxt/site/oauth-authorization-server"
+  (install-packages!
+   ["juxt/site/user-model"
+    "juxt/site/password-based-user-identity"
+    "juxt/site/sessions"
+    "juxt/site/oauth-authorization-server"]
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
   (install-resource-with-action!
@@ -49,20 +40,14 @@
     :juxt.site/client-type "confidential"
     :juxt.site/redirect-uri "https://test-app.example.test/callback"})
 
-  (install-package!
-   "juxt/site/example-users"
+  (install-packages!
+   ["juxt/site/example-users"
+    "juxt/site/login-form"
+    "juxt/site/protection-spaces"]
    {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
 
-  (install-package!
-   "juxt/site/login-form"
-   {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
-
-  (install-package!
-   "juxt/site/protection-spaces"
-   {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
-
-  (install-package!
-   "juxt/site/hospital-demo"
+  (install-packages!
+   ["juxt/site/hospital-demo"]
    {"https://example.org" "https://hospital.com"
     #{"https://core.example.org" "https://auth.example.org"} "https://auth.hospital.com"}))
 
