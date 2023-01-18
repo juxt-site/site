@@ -16,22 +16,30 @@
    [juxt.site.eql-datalog-compiler :as eqlc]
    [juxt.site.graphql-eql-compiler :refer [graphql->eql-ast]]
    [juxt.site.logging :refer [with-logging]]
-   [juxt.test.util :refer [system-xt-fixture with-fixtures
-                           handler-fixture *handler* *xt-node*
-                           install-packages! install-resource-with-action!] :as tutil]
+   [juxt.test.util-shim :refer [system-xt-fixture
+                                handler-fixture *handler* *xt-node*
+                                with-fixtures
+                                install-packages! install-resource-with-action!]]
    [xtdb.api :as xt]))
+
+(def AUTH_SERVER
+  {"https://auth.example.org" "https://auth.hospital.com"})
+
+(def RESOURCE_SERVER
+  {"https://auth.example.org" "https://auth.hospital.com"
+   "https://data.example.org" "https://hospital.com"})
 
 (defn install-hospital! []
   (install-packages!
    ["juxt/site/bootstrap"]
-   {"https://example.org" "https://auth.hospital.com"})
+   AUTH_SERVER)
 
   (install-packages!
    ["juxt/site/user-model"
     "juxt/site/password-based-user-identity"
     "juxt/site/sessions"
     "juxt/site/oauth-authorization-server"]
-   {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
+   AUTH_SERVER)
 
   (install-resource-with-action!
    "https://auth.hospital.com/_site/subjects/system"
@@ -44,12 +52,11 @@
    ["juxt/site/example-users"
     "juxt/site/login-form"
     "juxt/site/protection-spaces"]
-   {#{"https://core.example.org" "https://example.org"} "https://auth.hospital.com"})
+   AUTH_SERVER)
 
   (install-packages!
    ["juxt/site/hospital-demo"]
-   {"https://example.org" "https://hospital.com"
-    #{"https://core.example.org" "https://auth.example.org"} "https://auth.hospital.com"}))
+   RESOURCE_SERVER))
 
 (defn with-hospital [f]
   (install-hospital!)

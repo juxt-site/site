@@ -18,8 +18,8 @@
 
 (defmacro with-xt [& body]
   `(with-open [node# (xt/start-node *opts*)]
-    (binding [*xt-node* node#]
-      ~@body)))
+     (binding [*xt-node* node#]
+       ~@body)))
 
 (defn xt-fixture [f]
   (with-xt (f)))

@@ -15,7 +15,6 @@
            "juxt.site.oauth-test"
            "juxt.site.openid-test"
            "juxt.site.package-test"
-           "juxt.site.system-api-test"
-           ]}]
+           "juxt.site.system-api-test"]}]
 
  :reporter kaocha.report/documentation}

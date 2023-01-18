@@ -5,7 +5,7 @@
    [juxt.site.logging :refer [with-logging]]
    [clojure.test :refer [deftest is use-fixtures]]
    [juxt.site.repl :as repl]
-   [juxt.test.util :refer [system-xt-fixture with-fixtures handler-fixture]]))
+   [juxt.test.util-shim :refer [system-xt-fixture with-fixtures handler-fixture]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 

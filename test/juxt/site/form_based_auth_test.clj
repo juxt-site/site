@@ -6,8 +6,8 @@
    [malli.core :as malli]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
-   [juxt.test.util
-    :refer [*handler* with-fixtures system-xt-fixture handler-fixture install-packages! AUTH_SERVER]]))
+   [juxt.test.util-shim
+    :refer [*handler* system-xt-fixture handler-fixture install-packages! AUTH_SERVER]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
