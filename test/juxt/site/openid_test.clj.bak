@@ -11,7 +11,7 @@
    [juxt.site.init :as init]
    [juxt.site.repl :as repl]
    [juxt.site.bootstrap :as bootstrap]
-   [juxt.test.util-shim :refer [*handler* *xt-node* with-fixtures with-resources]]
+   [juxt.test.util :refer [*handler* *xt-node* with-fixtures with-resources]]
    [ring.util.codec :as codec]
    [xtdb.api :as xt]
    [juxt.reap.alpha.regex :as re]))

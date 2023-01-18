@@ -16,7 +16,7 @@
    [juxt.site.eql-datalog-compiler :as eqlc]
    [juxt.site.graphql-eql-compiler :refer [graphql->eql-ast]]
    [juxt.site.logging :refer [with-logging]]
-   [juxt.test.util-shim :refer [system-xt-fixture
+   [juxt.test.util :refer [system-xt-fixture
                                 handler-fixture *handler* *xt-node*
                                 with-fixtures
                                 install-packages! install-resource-with-action!]]

@@ -8,7 +8,7 @@
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.oauth :as oauth]
-   [juxt.test.util-shim
+   [juxt.test.util
     :refer [system-xt-fixture with-session-token with-bearer-token
             *handler* handler-fixture
             install-packages! install-resource-with-action!

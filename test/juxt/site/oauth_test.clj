@@ -9,7 +9,7 @@
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.oauth :as oauth]
    [xtdb.api :as xt]
-   [juxt.test.util-shim
+   [juxt.test.util
     :refer [system-xt-fixture
             with-session-token with-bearer-token
             with-fixtures *handler* *xt-node* handler-fixture

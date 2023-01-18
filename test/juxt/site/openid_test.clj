@@ -5,7 +5,7 @@
    [clojure.test :refer [deftest is use-fixtures]]
    [juxt.site.repl :as repl]
    [ring.util.codec :as codec]
-   [juxt.test.util-shim
+   [juxt.test.util
     :refer [*handler* system-xt-fixture with-fixtures
             install-packages!
             handler-fixture lookup-session-details]]))

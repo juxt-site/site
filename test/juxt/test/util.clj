@@ -1,11 +1,16 @@
-;; Copyright © 2021, JUXT LTD.
+;; Copyright © 2023, JUXT LTD.
 
 (ns juxt.test.util
   (:require
+   [clojure.edn :as edn]
    [clojure.java.io :as io]
+   [clojure.pprint :refer [pprint]]
+   [clojure.string :as str]
+   [clojure.walk :refer [postwalk]]
+   [jsonista.core :as json]
    [juxt.site.handler :as h]
-   [juxt.site.package :as pkg]
    [juxt.site.main :as main]
+   [juxt.site.package :as pkg]
    [xtdb.api :as xt])
   (:import
    (xtdb.api IXtdb)))
@@ -13,8 +18,6 @@
 (def ^:dynamic *opts* {})
 (def ^:dynamic ^IXtdb *xt-node*)
 (def ^:dynamic *handler*)
-(def ^:dynamic *db*)
-(def ^:dynamic *resource-dependency-graph* nil)
 
 (defmacro with-xt [& body]
   `(with-open [node# (xt/start-node *opts*)]
@@ -53,16 +56,12 @@
 (defn handler-fixture [f]
   (with-handler (f)))
 
-(defn timing-fixture [f]
-  (let [t0 (System/nanoTime)
-        result (f)
-        t1 (System/nanoTime)]
-    {:result result
-     :duration-µs (/ (- t1 t0) 1000.0)}))
-
-(defn db-fixture [f]
-  (binding [*db* (xt/db *xt-node*)]
-    (f)))
+(defn install-resource-with-action! [subject action document]
+  (pkg/call-action-with-init-data!
+   *xt-node*
+   {:juxt.site/subject-id subject
+    :juxt.site/action-id action
+    :juxt.site/input document}))
 
 (defmacro with-fixtures [& body]
   `((clojure.test/join-fixtures (-> *ns* meta :clojure.test/each-fixtures))
@@ -123,40 +122,142 @@
                  (dlg# (assoc-bearer-token req# token#)))]
        ~@body)))
 
-(defn assoc-request-payload
-  "Add a body payload onto the request. If the content-type is of type 'text',
-  e.g. text/plain, then give the body as a string."
-  [req content-type body]
-  (let [body-bytes
-        (cond
-          (re-matches #"text/.+" content-type)
-          (.getBytes body)
-          :else body)]
-    (-> req
-        (->
-         (update :ring.request/headers (fnil assoc {})
-                 "content-type" content-type
-                 "content-length" (str (count body-bytes)))
-         (assoc :ring.request/body (io/input-stream body-bytes))))))
+;; These are all the resources in the packages/ directory:
+(defn map-uris
+  [o uri-map]
+  (let [uri-map (pkg/normalize-uri-map uri-map)]
+    (postwalk
+     (fn [x]
+       (cond-> x
+         (string? x)
+         (str/replace
+          #"(https://.*?example.org)(.*)"
+          (fn [[_ host path]] (str (get uri-map host host) path)))))
+     o)))
+
+(def READERS
+  {'juxt.pprint (fn [x] (with-out-str (pprint x)))
+   'juxt.json (fn [x] (json/write-value-as-string x))})
+
+(defn index [pkg-name]
+  (let [dir (io/file "packages" pkg-name)
+        index-file (io/file dir "index.edn")]
+    (edn/read-string {:readers READERS} (slurp index-file))))
+
+(def NORMALIZE_AUTH_SERVER {#{"https://example.org" "https://core.example.org"} "https://auth.example.org"})
+(def NORMALIZE_RESOURCE_SERVER {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.org"
+                                "https://example.org" "https://data.example.org"})
+
+(def PACKAGES_IN_SCOPE
+  {
+   "juxt/site/bootstrap" NORMALIZE_AUTH_SERVER
+   "juxt/site/example-users" NORMALIZE_AUTH_SERVER
+   "juxt/site/hospital-demo" NORMALIZE_RESOURCE_SERVER
+   "juxt/site/login-form" NORMALIZE_AUTH_SERVER
+   "juxt/site/oauth-authorization-server" NORMALIZE_AUTH_SERVER
+   "juxt/site/openapi" NORMALIZE_AUTH_SERVER
+   "juxt/site/password-based-user-identity" NORMALIZE_AUTH_SERVER
+   "juxt/site/protection-spaces" NORMALIZE_AUTH_SERVER
+   "juxt/site/roles" NORMALIZE_AUTH_SERVER
+   "juxt/site/sessions" NORMALIZE_AUTH_SERVER
+   "juxt/site/system-api" NORMALIZE_RESOURCE_SERVER
+   "juxt/site/user-model" NORMALIZE_AUTH_SERVER
+   "juxt/site/whoami" NORMALIZE_RESOURCE_SERVER
+   })
+
+(defn packages-resource-ids [& pkg-names]
+  (mapcat
+   (fn [pkg-name]
+     (let [index (index pkg-name)
+           resources (:juxt.site/resources index)]
+       resources))
+   pkg-names))
+
+(defn unified-installer-map
+  "This converts the existing package structure into a unified map of
+  installers."
+  []
+  (into
+   {}
+   (let [metadata {}]
+     (for [[n uri-map] PACKAGES_IN_SCOPE
+           :let [root (io/file "packages" n)]
+           host-root (.listFiles (io/file root "installers"))
+           f (file-seq host-root)
+           :let [path (.toPath f)
+                 relpath (.toString (.relativize (.toPath host-root) path))
+                 [_ urlpath] (re-matches #"(.+)\.edn" relpath)]
+           :when (and (.isFile f) urlpath)
+           :let [urlpath (if-let [[_ stem] (re-matches #"(.*/)\{index\}" urlpath)]
+                           stem
+                           urlpath)]]
+       (map-uris
+        [(format "https://%s/%s" (.getName host-root) urlpath)
+         (try
+           (->
+            (edn/read-string {:readers READERS} (slurp f))
+            (update-in [:install :juxt.site/input] merge metadata {:juxt.site.package/source (str f)})
+            (assoc :juxt.site.package/source (str f)))
+           (catch Exception e
+             (throw (ex-info (format "Failed to load %s" f) {:file f} e))))]
+        uri-map)))))
+
+(def AUTH_SERVER {"https://auth.example.org" "https://auth.example.test"})
+
+(def RESOURCE_SERVER {"https://auth.example.org" "https://auth.example.test"
+                      "https://data.example.org" "https://data.example.test"})
 
 (defn install-packages! [names uri-map]
-  (doall
-   (for [n names]
-     (pkg/install-package-from-filesystem!
-      (str "packages/" n)
-      *xt-node*
-      uri-map))))
+  (let [graph (map-uris (unified-installer-map) uri-map)]
+    (doall
+     (for [n names]
+       (pkg/converge!
+        *xt-node*
+        (map-uris
+         (map-uris
+          (packages-resource-ids n)
+          (or (get PACKAGES_IN_SCOPE n)
+              (throw (ex-info "Package isn't in scope" {:package n}))))
+         uri-map)
+        graph {})))))
 
-(defn install-resource-with-action! [subject action document]
-  (pkg/call-action-with-init-data!
-   *xt-node*
-   {:juxt.site/subject-id subject
-    :juxt.site/action-id action
-    :juxt.site/input document}))
+(with-xt
+  (install-packages!
+   ["juxt/site/bootstrap"]
+   {"https://auth.example.org" "https://auth.hospital.com"})
+  )
 
-(defn put! [& args]
-  (apply pkg/put! *xt-node* args))
+(comment
+  (with-xt
+    (install-packages! ["juxt/site/bootstrap"] AUTH_SERVER)))
 
-(def AUTH_SERVER {#{"https://example.org" "https://core.example.org"} "https://auth.example.test"})
+(comment
+  (let [graph (unified-installer-map)]
+    (with-xt
 
-(def RESOURCE_SERVER {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.test" "https://example.org" "https://data.example.test"})
+      ;; Bootstrap
+      (pkg/converge! *xt-node*
+                     (map-uris
+                      (packages-resource-ids "juxt/site/bootstrap")
+                      NORMALIZE_AUTH_SERVER) graph {})
+
+      (pkg/converge!
+       *xt-node*
+       (map-uris
+        (packages-resource-ids
+         "juxt/site/roles"
+         "juxt/site/protection-spaces"
+         "juxt/site/openapi"
+
+         "juxt/site/sessions"
+         "juxt/site/oauth-authorization-server"
+         "juxt/site/login-form"
+         "juxt/site/user-model"
+         "juxt/site/password-based-user-identity"
+         "juxt/site/example-users"
+         )
+        NORMALIZE_AUTH_SERVER)
+       graph
+       {})
+
+      )))

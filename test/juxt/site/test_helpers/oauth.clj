@@ -5,7 +5,7 @@
    [clojure.string :as str]
    [clojure.pprint :refer [pprint]]
    [juxt.site.util :refer [make-nonce]]
-   [juxt.test.util-shim :refer [*handler*]]
+   [juxt.test.util :refer [*handler*]]
    [malli.core :as malli]
    [ring.util.codec :as codec]))
 

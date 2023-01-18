@@ -4,7 +4,7 @@
   (:require
    [clojure.test :refer [deftest is are testing] :as t]
    [xtdb.api :as x]
-   [juxt.test.util-shim :refer [xt-fixture handler-fixture submit-and-await!
+   [juxt.test.util :refer [xt-fixture handler-fixture submit-and-await!
                                 *xt-node* *handler*
                                 access-all-areas access-all-apis]]))
 
