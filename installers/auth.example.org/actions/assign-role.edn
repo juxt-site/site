@@ -1,0 +1,46 @@
+{:deps [#_"https://auth.example.org/actions/get-role-assignment"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/action-id "https://auth.example.org/_site/actions/create-action"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site.malli/input-schema
+   [:map
+    [:juxt.site/user [:re "https://.*?/.+"]]
+    [:juxt.site/role [:re "https://.*?/.+"]]]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content-type (-> *ctx*
+                           :juxt.site/received-representation
+                           :juxt.http/content-type)
+          body (-> *ctx*
+                   :juxt.site/received-representation
+                   :juxt.http/body)]
+      (case content-type
+        "application/edn"
+        (some->
+         body
+         (String.)
+         clojure.edn/read-string
+         juxt.site.malli/validate-input
+         (assoc
+          :xt/id (format "https://auth.example.org/role-assignments/%s" (juxt.site.util/make-nonce 8))
+          :juxt.site/type "https://auth.example.org/_site/types/role-assignment"
+          :juxt.site/methods
+          {:get {:juxt.site/actions #{"https://auth.example.org/actions/get-role-assignment"}}}))))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    ;; TODO: We could/should see if the role has already be assigned,
+    ;; and if not, assign it. Don't create multiple role assignment
+    ;; documents.
+    [[:xtdb.api/put *prepare*]]}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject action resource permission)
+     [permission :juxt.site/subject subject]]]}}}

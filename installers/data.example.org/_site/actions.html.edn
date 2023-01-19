@@ -1,0 +1,31 @@
+{:deps
+ ["https://data.example.org/_site/actions"
+  "https://auth.example.org/actions/system-api/get-actions"]
+ :install
+ {:juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/methods
+   {:get {:juxt.site/actions #{"https://auth.example.org/actions/system-api/get-actions"}}}
+   :juxt.site/variant-of "https://data.example.org/_site/actions"
+   :juxt.http/content-type "text/html;charset=utf-8"
+   :juxt.site/respond
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content
+          (selmer/render
+           "<body><h1>Actions</h1>
+<table>
+{% for a in actions %}
+<tr>
+<td>{{a.xt/id}}</td>\n
+<td>{{a.juxt..site/description}}</td>\n
+</tr>
+{% endfor %}
+</table>
+</body>\n"
+           {:actions *state*}
+           )]
+      (-> *ctx*
+          (assoc :ring.response/body content)
+          (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}}}}

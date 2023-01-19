@@ -221,11 +221,12 @@
          uri-map)
         graph {})))))
 
-(with-xt
-  (install-packages!
-   ["juxt/site/bootstrap"]
-   {"https://auth.example.org" "https://auth.hospital.com"})
-  )
+(comment
+  (with-xt
+    (install-packages!
+     ["juxt/site/bootstrap"]
+     {"https://auth.example.org" "https://auth.hospital.com"})
+    ))
 
 (comment
   (with-xt

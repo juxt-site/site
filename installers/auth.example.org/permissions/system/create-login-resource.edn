@@ -1,0 +1,8 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/action-id "https://auth.example.org/_site/actions/grant-permission"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/subject "https://auth.example.org/_site/subjects/system"
+   :juxt.site/action "https://auth.example.org/actions/create-login-resource"
+   :juxt.site/purpose nil}}}

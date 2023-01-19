@@ -1,0 +1,19 @@
+{:deps
+ ["https://auth.example.org/_site/do-action"
+  "https://auth.example.org/_site/subjects/system"
+  "https://auth.example.org/_site/actions/create-action"
+  "https://auth.example.org/_site/permissions/system/bootstrap"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/action-id "https://auth.example.org/_site/actions/create-action"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   #_:juxt.site/transact
+   #_{:juxt.site.sci/program
+      (pr-str
+       '(do
+          [[:ring.response/status 404]]))}
+   :juxt.site/rules
+   [
+    [(allowed? subject action resource permission)
+     [permission :xt/id]]]}}}

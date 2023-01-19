@@ -1,0 +1,12 @@
+{:install
+ {:juxt.site/input
+  ;; tag::install-system-permissions![]
+  {:xt/id "{{$id}}"
+   :juxt.site/type "https://meta.juxt.site/types/permission"
+   :juxt.site/action #{"https://auth.example.org/_site/actions/create-action"
+                       "https://auth.example.org/_site/actions/grant-permission"}
+   :juxt.site/purpose nil
+   :juxt.site/subject "https://auth.example.org/_site/subjects/system"
+   }
+  ;; end::install-system-permissions![]
+  }}

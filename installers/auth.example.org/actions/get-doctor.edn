@@ -1,0 +1,23 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/action-id "https://auth.example.org/_site/actions/create-action"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site/params
+   {:search
+    {:juxt.site/additional-where-clauses
+     [[e :name doctor-name]
+      [(re-seq pat doctor-name)]
+      ;; Case-insensitive search
+      [(str "(?i:" $ ")") regex]
+      [(re-pattern regex) pat]
+      ]}}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject action resource permission)
+     [subject :juxt.site/user-identity id]
+     [id :juxt.site/user user]
+     [permission :juxt.site/user user]
+     [resource :juxt.site/type "https://data.example.org/types/doctor"]]]}}}

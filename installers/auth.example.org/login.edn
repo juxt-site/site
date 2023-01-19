@@ -1,0 +1,10 @@
+{:deps
+ ["https://auth.example.org/actions/create-login-resource"
+  "https://auth.example.org/permissions/system/create-login-resource"
+  "https://auth.example.org/session-scopes/default"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/action-id "https://auth.example.org/actions/create-login-resource"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/session-scope "https://auth.example.org/session-scopes/default"}}}
