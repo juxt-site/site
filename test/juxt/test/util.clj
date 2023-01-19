@@ -149,8 +149,7 @@
                                 "https://example.org" "https://data.example.org"})
 
 (def PACKAGES_IN_SCOPE
-  {
-   "juxt/site/bootstrap" NORMALIZE_AUTH_SERVER
+  {"juxt/site/bootstrap" NORMALIZE_AUTH_SERVER
    "juxt/site/example-users" NORMALIZE_AUTH_SERVER
    "juxt/site/hospital-demo" NORMALIZE_RESOURCE_SERVER
    "juxt/site/login-form" NORMALIZE_AUTH_SERVER
@@ -162,8 +161,7 @@
    "juxt/site/sessions" NORMALIZE_AUTH_SERVER
    "juxt/site/system-api" NORMALIZE_RESOURCE_SERVER
    "juxt/site/user-model" NORMALIZE_AUTH_SERVER
-   "juxt/site/whoami" NORMALIZE_RESOURCE_SERVER
-   })
+   "juxt/site/whoami" NORMALIZE_RESOURCE_SERVER})
 
 (defn packages-resource-ids [& pkg-names]
   (mapcat
@@ -211,8 +209,7 @@
   (with-xt
     (install-packages!
      ["juxt/site/bootstrap"]
-     {"https://auth.example.org" "https://auth.hospital.com"})
-    ))
+     {"https://auth.example.org" "https://auth.hospital.com"})))
 
 (comment
   (with-xt
@@ -245,6 +242,4 @@
          )
         NORMALIZE_AUTH_SERVER)
        graph
-       {})
-
-      )))
+       {}))))

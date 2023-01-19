@@ -20,8 +20,7 @@
                                 "https://example.org" "https://data.example.org"})
 
 (def PACKAGES_IN_SCOPE
-  {
-   "juxt/site/bootstrap" NORMALIZE_AUTH_SERVER
+  {"juxt/site/bootstrap" NORMALIZE_AUTH_SERVER
    "juxt/site/example-users" NORMALIZE_AUTH_SERVER
    "juxt/site/hospital-demo" NORMALIZE_RESOURCE_SERVER
    "juxt/site/login-form" NORMALIZE_AUTH_SERVER
@@ -33,8 +32,7 @@
    "juxt/site/sessions" NORMALIZE_AUTH_SERVER
    "juxt/site/system-api" NORMALIZE_RESOURCE_SERVER
    "juxt/site/user-model" NORMALIZE_AUTH_SERVER
-   "juxt/site/whoami" NORMALIZE_RESOURCE_SERVER
-   })
+   "juxt/site/whoami" NORMALIZE_RESOURCE_SERVER})
 
 (defn replace-string-uris [s uri-map]
   (str/replace
@@ -53,10 +51,6 @@
 
 (defn rewrite-uris [source uri-map]
     (-> (z/of-string source)
-        #_(z/find z/next (fn [zloc] (and
-                                     (= :token (n/tag (z/node zloc)))
-                                     (string? (n/sexpr (z/node zloc))))))
-
         (z/postwalk
          (fn [zloc] (and
                      (= :token (n/tag (z/node zloc)))
@@ -70,27 +64,21 @@
         z/root
         n/string))
 
-#_(do
-  (rewrite-uris
-   (slurp "packages/juxt/site/password-based-user-identity/installers/example.org/actions/register-password-based-user-identity.edn")
-   (pkg/normalize-uri-map NORMALIZE_AUTH_SERVER)))
-
-(doseq [[n uri-map] PACKAGES_IN_SCOPE
-        :let [uri-map (pkg/normalize-uri-map uri-map)
-              root (io/file "packages" n)]
-        host-root (.listFiles (io/file root "installers"))
-        sourcefile (file-seq host-root)
-        :let [path (.toPath sourcefile)
-              relpath (.toString (.relativize (.toPath host-root) path))
-              [_ urlpath] (re-matches #"(.+)\.edn" relpath)]
-        :when (and (.isFile sourcefile) urlpath)
-        :let [urlpath (if-let [[_ stem] (re-matches #"(.*/)\{index\}" urlpath)]
-                        stem
-                        urlpath)
-              id (map-uris (format "https://%s/%s" (.getName host-root) urlpath) uri-map)
-              [_ destpath] (re-matches #"https://(.*)" id)
-              destfile (io/file "installers" (str destpath ".edn"))
-              ]]
-  #_[id destfile]
-  (.mkdirs (.getParentFile destfile))
-  (spit destfile (rewrite-uris (slurp sourcefile) uri-map)))
+(defn generate-installer-files []
+  (doseq [[n uri-map] PACKAGES_IN_SCOPE
+          :let [uri-map (pkg/normalize-uri-map uri-map)
+                root (io/file "packages" n)]
+          host-root (.listFiles (io/file root "installers"))
+          sourcefile (file-seq host-root)
+          :let [path (.toPath sourcefile)
+                relpath (.toString (.relativize (.toPath host-root) path))
+                [_ urlpath] (re-matches #"(.+)\.edn" relpath)]
+          :when (and (.isFile sourcefile) urlpath)
+          :let [urlpath (if-let [[_ stem] (re-matches #"(.*/)\{index\}" urlpath)]
+                          stem
+                          urlpath)
+                id (map-uris (format "https://%s/%s" (.getName host-root) urlpath) uri-map)
+                [_ destpath] (re-matches #"https://(.*)" id)
+                destfile (io/file "installers" (str destpath ".edn"))]]
+    (.mkdirs (.getParentFile destfile))
+    (spit destfile (rewrite-uris (slurp sourcefile) uri-map))))
