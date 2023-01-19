@@ -144,25 +144,6 @@
         index-file (io/file dir "index.edn")]
     (edn/read-string {:readers READERS} (slurp index-file))))
 
-(def NORMALIZE_AUTH_SERVER {#{"https://example.org" "https://core.example.org"} "https://auth.example.org"})
-(def NORMALIZE_RESOURCE_SERVER {#{"https://auth.example.org" "https://core.example.org"} "https://auth.example.org"
-                                "https://example.org" "https://data.example.org"})
-
-(def PACKAGES_IN_SCOPE
-  {"juxt/site/bootstrap" NORMALIZE_AUTH_SERVER
-   "juxt/site/example-users" NORMALIZE_AUTH_SERVER
-   "juxt/site/hospital-demo" NORMALIZE_RESOURCE_SERVER
-   "juxt/site/login-form" NORMALIZE_AUTH_SERVER
-   "juxt/site/oauth-authorization-server" NORMALIZE_AUTH_SERVER
-   "juxt/site/openapi" NORMALIZE_AUTH_SERVER
-   "juxt/site/password-based-user-identity" NORMALIZE_AUTH_SERVER
-   "juxt/site/protection-spaces" NORMALIZE_AUTH_SERVER
-   "juxt/site/roles" NORMALIZE_AUTH_SERVER
-   "juxt/site/sessions" NORMALIZE_AUTH_SERVER
-   "juxt/site/system-api" NORMALIZE_RESOURCE_SERVER
-   "juxt/site/user-model" NORMALIZE_AUTH_SERVER
-   "juxt/site/whoami" NORMALIZE_RESOURCE_SERVER})
-
 (defn packages-resource-ids [& pkg-names]
   (mapcat
    (fn [pkg-name]
@@ -186,60 +167,18 @@
                  url (str "https://" auth+path)]]
        [url (edn/read-string {:readers READERS} (slurp installer-file))]))))
 
+(defn install-packages! [names uri-map]
+  (let [graph (map-uris (unified-installer-map) uri-map)
+        groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
+    (doall
+     (for [n names
+           :let [resources (some-> groups (get n) :juxt.site/resources)]]
+       (pkg/converge!
+          *xt-node*
+          (map-uris resources uri-map)
+          graph {})))))
+
 (def AUTH_SERVER {"https://auth.example.org" "https://auth.example.test"})
 
 (def RESOURCE_SERVER {"https://auth.example.org" "https://auth.example.test"
                       "https://data.example.org" "https://data.example.test"})
-
-(defn install-packages! [names uri-map]
-  (let [graph (map-uris (unified-installer-map) uri-map)]
-    (doall
-     (for [n names]
-       (pkg/converge!
-        *xt-node*
-        (map-uris
-         (map-uris
-          (packages-resource-ids n)
-          (or (get PACKAGES_IN_SCOPE n)
-              (throw (ex-info "Package isn't in scope" {:package n}))))
-         uri-map)
-        graph {})))))
-
-(comment
-  (with-xt
-    (install-packages!
-     ["juxt/site/bootstrap"]
-     {"https://auth.example.org" "https://auth.hospital.com"})))
-
-(comment
-  (with-xt
-    (install-packages! ["juxt/site/bootstrap"] AUTH_SERVER)))
-
-(comment
-  (let [graph (unified-installer-map)]
-    (with-xt
-
-      ;; Bootstrap
-      (pkg/converge! *xt-node*
-                     (map-uris
-                      (packages-resource-ids "juxt/site/bootstrap")
-                      NORMALIZE_AUTH_SERVER) graph {})
-
-      (pkg/converge!
-       *xt-node*
-       (map-uris
-        (packages-resource-ids
-         "juxt/site/roles"
-         "juxt/site/protection-spaces"
-         "juxt/site/openapi"
-
-         "juxt/site/sessions"
-         "juxt/site/oauth-authorization-server"
-         "juxt/site/login-form"
-         "juxt/site/user-model"
-         "juxt/site/password-based-user-identity"
-         "juxt/site/example-users"
-         )
-        NORMALIZE_AUTH_SERVER)
-       graph
-       {}))))

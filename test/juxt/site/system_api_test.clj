@@ -11,6 +11,7 @@
    [juxt.test.util
     :refer [system-xt-fixture with-session-token with-bearer-token
             *handler* handler-fixture
+            with-fixtures
             install-packages! install-resource-with-action!
             AUTH_SERVER RESOURCE_SERVER]]))
 

@@ -1,9 +1,9 @@
-{"protection-spaces"
+{"juxt/site/protection-spaces"
  {:juxt.site/description "Core resources",
   :juxt.site/resources
   ["https://auth.example.org/actions/put-protection-space"]},
 
- "system-api"
+ "juxt/site/system-api"
  {:juxt.site/description "Site System API",
   :juxt.site/resources
   [;; API resources
@@ -23,13 +23,13 @@
    "https://auth.example.org/roles/SystemReadonly"
    "https://auth.example.org/permissions/by-role/SystemReadonly/system-api/get-users"]},
 
- "sessions"
+ "juxt/site/sessions"
  {:juxt.site/description "Sessions",
   :juxt.site/resources
   ["https://auth.example.org/actions/put-session-scope"
    "https://auth.example.org/permissions/system/put-session-scope"]},
 
- "bootstrap"
+ "juxt/site/bootstrap"
  {:juxt.site/description "Bootstrap resources",
   :juxt.site/resources
   ["https://auth.example.org/_site/do-action"
@@ -43,14 +43,14 @@
    "https://auth.example.org/_site/actions/get-not-found"
    "https://auth.example.org/_site/permissions/get-not-found"]},
 
- "user-model"
+ "juxt/site/user-model"
  {:juxt.site/description
   "Actions to establish users upon a common model",
   :juxt.site/resources
   ["https://auth.example.org/actions/put-user"
    "https://auth.example.org/permissions/system/put-user"]},
 
- "login-form"
+ "juxt/site/login-form"
  {:juxt.site/description "Login form",
   :juxt.site/resources
   ["https://auth.example.org/actions/login"
@@ -58,13 +58,13 @@
    "https://auth.example.org/actions/create-login-resource"
    "https://auth.example.org/login"]},
 
- "openapi"
+ "juxt/site/openapi"
  {:juxt.site/description "OpenAPI",
   :juxt.site/resources
   ["https://auth.example.org/actions/get-openapi-document"
    "https://auth.example.org/permissions/get-openapi-document"]},
 
- "whoami"
+ "juxt/site/whoami"
  {:juxt.site/description "whoami resources",
   :juxt.site/resources
   ["https://auth.example.org/permissions/whoami"
@@ -72,7 +72,7 @@
    "https://data.example.org/whoami.json"
    "https://data.example.org/whoami.html"]},
 
- "oauth-authorization-server"
+ "juxt/site/oauth-authorization-server"
  {:juxt.site/description "OAuth2 Authorization Server",
   :juxt.site/resources
   ["https://auth.example.org/oauth/authorize"
@@ -81,7 +81,7 @@
    "https://auth.example.org/permissions/system/install-authorization-server"
    "https://auth.example.org/permissions/system/register-client"]},
 
- "example-users"
+ "juxt/site/example-users"
  {:juxt.site/description "Example users",
   :juxt.site/resources
   ["https://auth.example.org/users/alice"
@@ -94,7 +94,7 @@
    "https://auth.example.org/user-identities/carlos"
    "https://auth.example.org/permissions/carlos-can-authorize"]},
 
- "hospital-demo"
+ "juxt/site/hospital-demo"
  {:juxt.site/description "Hospital demo resources",
   :juxt.site/resources
   ["https://auth.example.org/session-scopes/default"
@@ -151,7 +151,7 @@
    "https://data.example.org/assignments/patient/006/doctor/003"
    "https://data.example.org/assignments/patient/010/doctor/003"]},
 
- "roles"
+ "juxt/site/roles"
  {:juxt.site/description
   "Actions to establish and assign roles to users",
   :juxt.site/resources
@@ -160,7 +160,7 @@
    "https://auth.example.org/actions/assign-role"
    "https://auth.example.org/permissions/system/assign-role"]},
 
- "password-based-user-identity"
+ "juxt/site/password-based-user-identity"
  {:juxt.site/description "Password based user identities",
   :juxt.site/resources
   ["https://auth.example.org/permissions/system/register-password-based-user-identity"]}}

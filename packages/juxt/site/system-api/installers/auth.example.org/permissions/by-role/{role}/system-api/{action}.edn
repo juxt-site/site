@@ -1,8 +1,0 @@
-{:install
- {:juxt.site/subject-id "https://core.example.org/_site/subjects/system"
-  :juxt.site/action-id "https://core.example.org/_site/actions/grant-permission"
-  :juxt.site/input
-  {:xt/id "{{$id}}"
-   :juxt.site/action "https://auth.example.org/actions/system-api/{{action}}"
-   :juxt.site/purpose nil
-   :juxt.site/role "https://auth.example.org/roles/{{role}}"}}}
