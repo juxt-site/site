@@ -2,13 +2,10 @@
 
 (ns juxt.site.package
   (:require
-   [clojure.edn :as edn]
-   [sci.core :as sci]
    [juxt.site.locator :refer [to-regex]]
    [juxt.site.actions :as actions]
    [selmer.parser :as selmer]
    [ring.util.codec :as codec]
-   [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.set :as set]
    [clojure.tools.logging :as log]
