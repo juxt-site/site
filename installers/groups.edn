@@ -1,0 +1,166 @@
+{"protection-spaces"
+ {:juxt.site/description "Core resources",
+  :juxt.site/resources
+  ["https://auth.example.org/actions/put-protection-space"]},
+
+ "system-api"
+ {:juxt.site/description "Site System API",
+  :juxt.site/resources
+  [;; API resources
+   "https://data.example.org/_site/openapi.json"
+   ;; /actions
+   "https://auth.example.org/actions/system-api/get-actions"
+   "https://auth.example.org/permissions/system-api/get-actions"
+   "https://data.example.org/_site/actions"
+   "https://data.example.org/_site/actions.html"
+   "https://data.example.org/_site/actions.json"
+   ;; /users
+   "https://auth.example.org/actions/system-api/get-users"
+   "https://data.example.org/_site/users"
+   "https://data.example.org/_site/users.html"
+   "https://data.example.org/_site/users.json"
+   ;; Roles
+   "https://auth.example.org/roles/SystemReadonly"
+   "https://auth.example.org/permissions/by-role/SystemReadonly/system-api/get-users"]},
+
+ "sessions"
+ {:juxt.site/description "Sessions",
+  :juxt.site/resources
+  ["https://auth.example.org/actions/put-session-scope"
+   "https://auth.example.org/permissions/system/put-session-scope"]},
+
+ "bootstrap"
+ {:juxt.site/description "Bootstrap resources",
+  :juxt.site/resources
+  ["https://auth.example.org/_site/do-action"
+   "https://auth.example.org/_site/subjects/system"
+   "https://auth.example.org/_site/actions/create-action"
+   "https://auth.example.org/_site/actions/grant-permission"
+   "https://auth.example.org/_site/permissions/system/bootstrap"
+   "https://auth.example.org/_site/actions/install-not-found"
+   "https://auth.example.org/_site/permissions/system/install-not-found"
+   "https://auth.example.org/_site/not-found"
+   "https://auth.example.org/_site/actions/get-not-found"
+   "https://auth.example.org/_site/permissions/get-not-found"]},
+
+ "user-model"
+ {:juxt.site/description
+  "Actions to establish users upon a common model",
+  :juxt.site/resources
+  ["https://auth.example.org/actions/put-user"
+   "https://auth.example.org/permissions/system/put-user"]},
+
+ "login-form"
+ {:juxt.site/description "Login form",
+  :juxt.site/resources
+  ["https://auth.example.org/actions/login"
+   "https://auth.example.org/permissions/login"
+   "https://auth.example.org/actions/create-login-resource"
+   "https://auth.example.org/login"]},
+
+ "openapi"
+ {:juxt.site/description "OpenAPI",
+  :juxt.site/resources
+  ["https://auth.example.org/actions/get-openapi-document"
+   "https://auth.example.org/permissions/get-openapi-document"]},
+
+ "whoami"
+ {:juxt.site/description "whoami resources",
+  :juxt.site/resources
+  ["https://auth.example.org/permissions/whoami"
+   "https://data.example.org/whoami"
+   "https://data.example.org/whoami.json"
+   "https://data.example.org/whoami.html"]},
+
+ "oauth-authorization-server"
+ {:juxt.site/description "OAuth2 Authorization Server",
+  :juxt.site/resources
+  ["https://auth.example.org/oauth/authorize"
+   "https://auth.example.org/actions/oauth/authorize"
+   "https://auth.example.org/actions/install-authorization-server"
+   "https://auth.example.org/permissions/system/install-authorization-server"
+   "https://auth.example.org/permissions/system/register-client"]},
+
+ "example-users"
+ {:juxt.site/description "Example users",
+  :juxt.site/resources
+  ["https://auth.example.org/users/alice"
+   "https://auth.example.org/user-identities/alice"
+   "https://auth.example.org/permissions/alice-can-authorize"
+   "https://auth.example.org/users/bob"
+   "https://auth.example.org/user-identities/bob"
+   "https://auth.example.org/permissions/bob-can-authorize"
+   "https://auth.example.org/users/carlos"
+   "https://auth.example.org/user-identities/carlos"
+   "https://auth.example.org/permissions/carlos-can-authorize"]},
+
+ "hospital-demo"
+ {:juxt.site/description "Hospital demo resources",
+  :juxt.site/resources
+  ["https://auth.example.org/session-scopes/default"
+   "https://auth.example.org/protection-spaces/bearer"
+   "https://auth.example.org/actions/get-patient"
+   "https://auth.example.org/permissions/alice/get-any-patient"
+   "https://auth.example.org/permissions/bob/get-patient/004"
+   "https://auth.example.org/permissions/bob/get-patient/009"
+   "https://auth.example.org/permissions/bob/get-patient/010"
+   "https://auth.example.org/actions/list-patients"
+   "https://auth.example.org/permissions/alice/list-patients"
+   "https://auth.example.org/permissions/bob/list-patients"
+   "https://auth.example.org/actions/register-patient-measurement"
+   "https://auth.example.org/permissions/system/register-patient-measurement"
+   "https://auth.example.org/actions/get-doctor"
+   "https://auth.example.org/permissions/alice/get-doctor"
+   "https://auth.example.org/permissions/bob/get-doctor"
+   "https://auth.example.org/actions/read-any-measurement"
+   "https://auth.example.org/permissions/alice/read-any-measurement"
+   "https://auth.example.org/permissions/bob/read-any-measurement"
+
+   ;; Hospital data
+   "https://data.example.org/patients/"
+   "https://data.example.org/doctors/001"
+   "https://data.example.org/doctors/002"
+   "https://data.example.org/doctors/003"
+   "https://data.example.org/doctors/004"
+   "https://data.example.org/patients/001"
+   "https://data.example.org/patients/002"
+   "https://data.example.org/patients/003"
+   "https://data.example.org/patients/004"
+   "https://data.example.org/patients/005"
+   "https://data.example.org/patients/006"
+   "https://data.example.org/patients/007"
+   "https://data.example.org/patients/008"
+   "https://data.example.org/patients/009"
+   "https://data.example.org/patients/010"
+   "https://data.example.org/patients/011"
+   "https://data.example.org/patients/012"
+   "https://data.example.org/patients/013"
+   "https://data.example.org/patients/014"
+   "https://data.example.org/patients/015"
+   "https://data.example.org/patients/016"
+   "https://data.example.org/patients/017"
+   "https://data.example.org/patients/018"
+   "https://data.example.org/patients/019"
+   "https://data.example.org/patients/020"
+   "https://data.example.org/assignments/patient/001/doctor/001"
+   "https://data.example.org/assignments/patient/002/doctor/001"
+   "https://data.example.org/assignments/patient/003/doctor/001"
+   "https://data.example.org/assignments/patient/004/doctor/002"
+   "https://data.example.org/assignments/patient/005/doctor/001"
+   "https://data.example.org/assignments/patient/005/doctor/002"
+   "https://data.example.org/assignments/patient/006/doctor/003"
+   "https://data.example.org/assignments/patient/010/doctor/003"]},
+
+ "roles"
+ {:juxt.site/description
+  "Actions to establish and assign roles to users",
+  :juxt.site/resources
+  ["https://auth.example.org/actions/put-role"
+   "https://auth.example.org/permissions/system/put-role"
+   "https://auth.example.org/actions/assign-role"
+   "https://auth.example.org/permissions/system/assign-role"]},
+
+ "password-based-user-identity"
+ {:juxt.site/description "Password based user identities",
+  :juxt.site/resources
+  ["https://auth.example.org/permissions/system/register-password-based-user-identity"]}}

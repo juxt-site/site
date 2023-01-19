@@ -9,7 +9,8 @@
    [clojure.pprint :refer [pprint]]
    [jsonista.core :as json]
    [clojure.walk :refer [postwalk]]
-   [juxt.site.package :as pkg]))
+   [juxt.site.package :as pkg]
+   [clojure.edn :as edn]))
 
 (def READERS
   {'juxt.pprint (fn [x] (with-out-str (pprint x)))
@@ -82,3 +83,28 @@
                 destfile (io/file "installers" (str destpath ".edn"))]]
     (.mkdirs (.getParentFile destfile))
     (spit destfile (rewrite-uris (slurp sourcefile) uri-map))))
+
+(defn generate-resource-groups []
+  (for [dir (.listFiles (io/file "packages/juxt/site"))
+        :when (.isDirectory dir)
+        :let [index-file (io/file dir "index.edn")]
+        :when (.exists index-file)
+        :let [index (edn/read-string {:readers READERS} (slurp index-file))
+              uri-map (get PACKAGES_IN_SCOPE (str "juxt/site/" (.getName dir)))]
+        :when uri-map
+        :let [uri-map (pkg/normalize-uri-map uri-map)]]
+
+    [(.getName dir)
+     (->
+      (select-keys index [:juxt.site/description :juxt.site/resources])
+      (update :juxt.site/resources (fn [uris] (map-uris uris uri-map))))
+     ]))
+
+(defn save-resource-groups []
+  (set! *print-namespace-maps* false)
+  (spit
+   "resource-groups.edn"
+   (with-out-str
+     (pprint (into {} (generate-resource-groups))))))
+
+;;(save-resource-groups)
