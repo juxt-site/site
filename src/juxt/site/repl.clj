@@ -454,14 +454,14 @@
 (defn encrypt-password [password]
   (password/encrypt password))
 
-(defn install-package!
+#_(defn install-package!
   "Install local package from filesystem"
   [dir uri-map]
   (printf "Installing package %s\n" dir)
   (pkg/install-package-from-filesystem! dir (xt-node) uri-map)
   :ok)
 
-(defn install-packages!
+#_(defn install-packages!
   "Install local package from filesystem"
   [dirs uri-map]
   (doseq [dir dirs]
@@ -477,7 +477,7 @@
     :juxt.site/action-id action
     :juxt.site/input document}))
 
-(defn keyword-commands-from-packages []
+#_(defn keyword-commands-from-packages []
   (for [[k vs]
         (->>
          (q '{:find [(pull e [:xt/id :description :commands])]
@@ -490,7 +490,7 @@
         :let [[_ v] (first vs)]]
     [k v]))
 
-(defn call-command!
+#_(defn call-command!
   ([command-k args]
    (printf "Calling command %s\n" command-k)
    (let [command (get (into {} (keyword-commands-from-packages)) command-k)
@@ -515,7 +515,7 @@
   (try
     (factory-reset!)
 
-    (install-packages!
+    #_(install-packages!
      ["packages/juxt/site/bootstrap"
       "packages/juxt/site/sessions"
       "packages/juxt/site/oauth-authorization-server"
@@ -526,14 +526,14 @@
       "packages/juxt/site/openapi"]
      AUTH_SERVER)
 
-    (install-packages!
+    #_(install-packages!
      ["packages/juxt/site/system-api"]
      RESOURCE_SERVER)
 
     ;; For OpenID authentication, configure the authorization
     ;; server with OpenID client details.
 
-    (call-command!
+    #_(call-command!
      :openid/register-client
      ;; Register an application with an OpenID provider and amend
      ;; the details here:
@@ -541,7 +541,7 @@
       "client-id" "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
       "client-secret" "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
 
-    (call-command!
+    #_(call-command!
      :openid/register-user
      ;; Replace with your matching details below:
      {"username" "mal"
@@ -558,13 +558,13 @@
       :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
 
     ;; Register OAuth2 clients
-    (call-command!
+    #_(call-command!
      :oauth/register-client
      {"client-id" "swagger-ui"
       "client-type" #_"public" "confidential"
       "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"})
 
-    (call-command!
+    #_(call-command!
      :oauth/register-client
      {"client-id" "postman"
       "client-type" #_"public" "confidential"
@@ -586,7 +586,7 @@
 
     [:quit ^{:doc "Disconnect"} (fn [] nil)]
 
-    [:system-api ^{:doc "Install System API"}
+    #_[:system-api ^{:doc "Install System API"}
      (fn []
        (install-packages! ["packages/openapi"] AUTH_SERVER)
        (install-packages! ["packages/system-api"] RESOURCE_SERVER)
@@ -614,7 +614,7 @@
     [:reset ^{:doc "Reset entire database"}
      (fn [] (factory-reset!))]
 
-    [:install ^{:doc "Install a local package"}
+    #_[:install ^{:doc "Install a local package"}
      (fn []
        (println "Install local package")
        (let [args (some-> [["dir" {:description "Package directory"
@@ -639,7 +639,7 @@
      (fn [] (doseq [a (actions)]
               (println (:xt/id a))))]]
 
-   (reduce
+   #_(reduce
     (fn [acc [k v]]
       (conj
        acc [k

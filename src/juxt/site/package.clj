@@ -240,7 +240,7 @@
                  {"https://data.example.org" "https://apis.site.test"
                   "https://example.org" "https://site.test"}))
 
-(defn- load-dependency-graph-from-filesystem [dir metadata]
+#_(defn- load-dependency-graph-from-filesystem [dir metadata]
   (let [root (io/file dir)]
     (into
      {}
@@ -262,7 +262,7 @@
           (catch Exception e
             (throw (ex-info (format "Failed to load %s" f) {:file f} e))))]))))
 
-(defn load-package-from-filesystem [dir]
+#_(defn load-package-from-filesystem [dir]
   (let [root (io/file dir)
         _ (assert (.isDirectory root) (format "%s is not a directory" root))
         index (edn/read-string {:readers READERS} (slurp (io/file root "index.edn")))]
@@ -273,14 +273,14 @@
       (io/file root "installers")
       {:juxt.site/package (:xt/id index)}))))
 
-(defn relocate-dependency [dep]
+#_(defn relocate-dependency [dep]
   (assert (map? dep))
   (assert (:juxt.site/package dep))
   (assert (:juxt.site/host dep))
   (let [[_ path] (re-matches #"https://.*?/packages/(.*)" (:juxt.site/package dep))]
     (str (:juxt.site/host dep) "/_site/packages/" path)))
 
-(defn get-package-transitive-dependencies [db pkg]
+#_(defn get-package-transitive-dependencies [db pkg]
   (let [dependencies (map relocate-dependency (:juxt.site/dependencies pkg))]
     (mapcat (fn [depid]
               (when-let [dep-pkg (xt/entity db depid)]
@@ -288,53 +288,9 @@
                       (get-package-transitive-dependencies db dep-pkg))))
             dependencies)))
 
-(defn install-package!
-  "Install a package. Not that installation of packages is NOT atomic. Any errors
-  that are reported during the installation of a package must be investigated
-  and repaired."
-  [pkg xt-node]
-  (let [db (xt/db xt-node)]
-
-    ;; Check all the package's dependencies exist in the database
-    (doseq [dep (:juxt.site/dependencies pkg)]
-      (let [relocated-dep (relocate-dependency dep)]
-        (when-not (xt/entity db relocated-dep)
-          (throw
-           (ex-info
-            (format "Required dependency '%s' not installed" relocated-dep)
-            (merge
-             {:package (:xt/id pkg)
-              :dependency relocated-dep}
-             dep))))))
-
-    ;; Install the package
-    (put! xt-node (assoc pkg :juxt.site/type "https://meta.juxt.site/types/package"))
-
-    ;; Install the package's resources
-    (converge!
-     xt-node
-     (:juxt.site/resources pkg)
-     (apply merge
-            (:juxt.site/dependency-graph pkg)
-            (map :juxt.site/dependency-graph (get-package-transitive-dependencies db pkg)))
-     {})))
-
-(defn inspect-package-from-filesystem!
-  [dir uri-map]
-  (-> dir
-      load-package-from-filesystem
-      (apply-uri-map uri-map)))
-
-(defn install-package-from-filesystem!
-  [dir xt-node uri-map]
-  (-> dir
-      load-package-from-filesystem
-      (apply-uri-map uri-map)
-      (install-package! xt-node)))
-
 ;; Commands
 
-(defn dependency-graph
+#_(defn dependency-graph
   ([pkg db]
    (apply merge
           (:juxt.site/dependency-graph pkg)
@@ -345,7 +301,7 @@
                (map first (xt/q db '{:find [(pull e [:juxt.site/dependency-graph])]
                                      :where [[e :juxt.site/type "https://meta.juxt.site/types/package"]]}))))))
 
-(defn create-command-fn [program args]
+#_(defn create-command-fn [program args]
   (assert program)
   (assert (map? args))
   (fn [xt-node]
