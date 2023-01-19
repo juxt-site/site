@@ -177,30 +177,16 @@
   "This converts the existing package structure into a unified map of
   installers."
   []
-  (into
-   {}
-   (let [metadata {}]
-     (for [[n uri-map] PACKAGES_IN_SCOPE
-           :let [root (io/file "packages" n)]
-           host-root (.listFiles (io/file root "installers"))
-           f (file-seq host-root)
-           :let [path (.toPath f)
-                 relpath (.toString (.relativize (.toPath host-root) path))
-                 [_ urlpath] (re-matches #"(.+)\.edn" relpath)]
-           :when (and (.isFile f) urlpath)
-           :let [urlpath (if-let [[_ stem] (re-matches #"(.*/)\{index\}" urlpath)]
-                           stem
-                           urlpath)]]
-       (map-uris
-        [(format "https://%s/%s" (.getName host-root) urlpath)
-         (try
-           (->
-            (edn/read-string {:readers READERS} (slurp f))
-            (update-in [:install :juxt.site/input] merge metadata {:juxt.site.package/source (str f)})
-            (assoc :juxt.site.package/source (str f)))
-           (catch Exception e
-             (throw (ex-info (format "Failed to load %s" f) {:file f} e))))]
-        uri-map)))))
+  (let [root (io/file "installers")]
+    (into
+     {}
+     (for [installer-file (file-seq root)
+           :when (.isFile installer-file)
+           :let [filepath (.toPath installer-file)
+                 relpath (.toString (.relativize (.toPath root) filepath))
+                 [_ auth+path] (re-matches #"(.+)\.edn" relpath)
+                 url (str "https://" auth+path)]]
+       [url (edn/read-string {:readers READERS} (slurp installer-file))]))))
 
 (def AUTH_SERVER {"https://auth.example.org" "https://auth.example.test"})
 
