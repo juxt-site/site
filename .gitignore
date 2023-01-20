@@ -10,5 +10,8 @@ opt/graphiql/target
 *.dylib
 .clj-kondo/.cache
 .clj-kondo/metosin/malli-types/
+.clj-kondo/metosin/malli/
+.clj-kondo/rewrite-clj/
+.clj-kondo/babashka/sci
 **/generated/*
 /target/
