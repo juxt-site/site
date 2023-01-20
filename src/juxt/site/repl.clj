@@ -12,7 +12,7 @@
    [juxt.site.main :as main]
    [juxt.site.actions :as actions]
    [juxt.site.cache :as cache]
-   [juxt.site.package :as pkg]
+   [juxt.site.resource-group :as pkg]
    [juxt.site.util :as util]
    [xtdb.api :as xt])
   (:import (java.util Date)))

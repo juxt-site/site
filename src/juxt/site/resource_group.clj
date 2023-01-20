@@ -1,6 +1,6 @@
 ;; Copyright © 2022, JUXT LTD.
 
-(ns juxt.site.package
+(ns juxt.site.resource-group
   (:require
    [juxt.site.locator :refer [to-regex]]
    [juxt.site.actions :as actions]

@@ -10,7 +10,7 @@
    [jsonista.core :as json]
    [juxt.site.handler :as h]
    [juxt.site.main :as main]
-   [juxt.site.package :as pkg]
+   [juxt.site.resource-group :as pkg]
    [xtdb.api :as xt])
   (:import
    (xtdb.api IXtdb)))

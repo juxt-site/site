@@ -3,7 +3,7 @@
 (ns package-debug
   (:require
    [clojure.string :as str]
-   [juxt.site.package :as pkg]
+   [juxt.site.resource-group :as pkg]
    [juxt.test.util :as util]
    [jsonista.core :as json]
    [clojure.pprint :refer [pprint]]
