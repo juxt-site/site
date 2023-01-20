@@ -13,14 +13,14 @@
     :refer [system-xt-fixture
             with-session-token with-bearer-token
             with-fixtures *handler* *xt-node* handler-fixture
-            install-packages!
+            install-resource-groups!
             install-resource-with-action!
             AUTH_SERVER RESOURCE_SERVER]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest register-client-test
-  (install-packages! ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"] AUTH_SERVER)
+  (install-resource-groups! ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"] AUTH_SERVER)
 
   (testing "Register client with generated client-id"
     (let [result
@@ -75,7 +75,7 @@
 (deftest get-subject-test
 
   ;; Build the authorization server (https://auth.example.test)
-  (install-packages! ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"] AUTH_SERVER)
+  (install-resource-groups! ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"] AUTH_SERVER)
 
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
@@ -89,12 +89,12 @@
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
 
-  (install-packages!
+  (install-resource-groups!
    ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
     "juxt/site/example-users" "juxt/site/protection-spaces"]
    AUTH_SERVER)
 
-  (install-packages! ["juxt/site/whoami"] RESOURCE_SERVER)
+  (install-resource-groups! ["juxt/site/whoami"] RESOURCE_SERVER)
 
   (let [login-result
         (login/login-with-form!

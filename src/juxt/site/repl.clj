@@ -461,7 +461,7 @@
   (pkg/install-package-from-filesystem! dir (xt-node) uri-map)
   :ok)
 
-#_(defn install-packages!
+#_(defn install-resource-groups!
   "Install local package from filesystem"
   [dirs uri-map]
   (doseq [dir dirs]
@@ -515,7 +515,7 @@
   (try
     (factory-reset!)
 
-    #_(install-packages!
+    #_(install-resource-groups!
      ["packages/juxt/site/bootstrap"
       "packages/juxt/site/sessions"
       "packages/juxt/site/oauth-authorization-server"
@@ -526,7 +526,7 @@
       "packages/juxt/site/openapi"]
      AUTH_SERVER)
 
-    #_(install-packages!
+    #_(install-resource-groups!
      ["packages/juxt/site/system-api"]
      RESOURCE_SERVER)
 
@@ -588,8 +588,8 @@
 
     #_[:system-api ^{:doc "Install System API"}
      (fn []
-       (install-packages! ["packages/openapi"] AUTH_SERVER)
-       (install-packages! ["packages/system-api"] RESOURCE_SERVER)
+       (install-resource-groups! ["packages/openapi"] AUTH_SERVER)
+       (install-resource-groups! ["packages/system-api"] RESOURCE_SERVER)
 
        ;; Assign mal access to SystemReadonly
        (install-resource-with-action!

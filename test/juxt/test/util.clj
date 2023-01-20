@@ -167,7 +167,7 @@
                  url (str "https://" auth+path)]]
        [url (edn/read-string {:readers READERS} (slurp installer-file))]))))
 
-(defn install-packages! [names uri-map]
+(defn install-resource-groups! [names uri-map]
   (let [graph (map-uris (unified-installer-map) uri-map)
         groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
     (doall

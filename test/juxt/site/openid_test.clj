@@ -7,7 +7,7 @@
    [ring.util.codec :as codec]
    [juxt.test.util
     :refer [*handler* system-xt-fixture with-fixtures
-            install-packages!
+            install-resource-groups!
             handler-fixture lookup-session-details]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
@@ -24,7 +24,7 @@
            "client-secret" "REDACTED"
            "redirect-uri" "https://example.org/openid/callback"}]
 
-      (install-packages! ["juxt/site/bootstrap" "juxt/site/core" "juxt/site/openid"] {})
+      (install-resource-groups! ["juxt/site/bootstrap" "juxt/site/core" "juxt/site/openid"] {})
 
       (repl/ls)
       (repl/e "https://site.test/login")

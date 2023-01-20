@@ -19,7 +19,7 @@
    [juxt.test.util :refer [system-xt-fixture
                                 handler-fixture *handler* *xt-node*
                                 with-fixtures
-                                install-packages! install-resource-with-action!]]
+                                install-resource-groups! install-resource-with-action!]]
    [xtdb.api :as xt]))
 
 (def AUTH_SERVER
@@ -30,11 +30,11 @@
    "https://data.example.org" "https://hospital.com"})
 
 (defn install-hospital! []
-  (install-packages!
+  (install-resource-groups!
    ["juxt/site/bootstrap"]
    AUTH_SERVER)
 
-  (install-packages!
+  (install-resource-groups!
    ["juxt/site/user-model"
     "juxt/site/password-based-user-identity"
     "juxt/site/sessions"
@@ -48,13 +48,13 @@
     :juxt.site/client-type "confidential"
     :juxt.site/redirect-uri "https://test-app.example.test/callback"})
 
-  (install-packages!
+  (install-resource-groups!
    ["juxt/site/example-users"
     "juxt/site/login-form"
     "juxt/site/protection-spaces"]
    AUTH_SERVER)
 
-  (install-packages!
+  (install-resource-groups!
    ["juxt/site/hospital-demo"]
    RESOURCE_SERVER))
 

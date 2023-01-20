@@ -12,15 +12,15 @@
     :refer [system-xt-fixture with-session-token with-bearer-token
             *handler* handler-fixture
             with-fixtures
-            install-packages! install-resource-with-action!
+            install-resource-groups! install-resource-with-action!
             AUTH_SERVER RESOURCE_SERVER]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest system-api-test
 
-  (install-packages! ["juxt/site/bootstrap" "juxt/site/roles" "juxt/site/protection-spaces" "juxt/site/openapi"] AUTH_SERVER)
-  (install-packages! ["juxt/site/system-api"] RESOURCE_SERVER)
+  (install-resource-groups! ["juxt/site/bootstrap" "juxt/site/roles" "juxt/site/protection-spaces" "juxt/site/openapi"] AUTH_SERVER)
+  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER)
 
   (testing "Users API endpoint cannot be accessed anonymously"
     (let [response
@@ -30,7 +30,7 @@
       (is (= 401 (:ring.response/status response)))
       (is (= "Bearer" (get-in response [:ring.response/headers "www-authenticate"])))))
 
-  (install-packages!
+  (install-resource-groups!
    ["juxt/site/sessions" "juxt/site/oauth-authorization-server" "juxt/site/login-form"
     "juxt/site/user-model" "juxt/site/password-based-user-identity" "juxt/site/example-users"]
    AUTH_SERVER)
