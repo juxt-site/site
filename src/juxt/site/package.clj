@@ -6,12 +6,9 @@
    [juxt.site.actions :as actions]
    [selmer.parser :as selmer]
    [ring.util.codec :as codec]
-   [clojure.string :as str]
-   [clojure.set :as set]
    [clojure.tools.logging :as log]
    [clojure.pprint :refer [pprint]]
    [clojure.walk :refer [prewalk postwalk]]
-   [jsonista.core :as json]
    [xtdb.api :as xt]))
 
 (defn put! [xt-node & ms]
@@ -99,7 +96,7 @@
                            _ (when-not child
                                (throw
                                 (ex-info
-                                 (format "Unsatisfied dependency between '%s' and '%s'" (:juxt.site.package/source parent) child-id)
+                                 (format "Unsatisfied dependency between '%s' and '%s'" (:juxt.site/source parent) child-id)
                                  {:dependant parent
                                   :dependency child-id
                                   :graph (keys graph)})))]]
@@ -116,7 +113,7 @@
           (let [init-data (render-form-templates install (assoc (merge parameter-map params) "$id" id))]
             (when (nil? init-data)
               (throw (ex-info "Nil init data" {:id id})))
-            (conj acc (-> node (assoc :juxt.site.package/init-data init-data)))))
+            (conj acc (-> node (assoc :juxt.site/init-data init-data)))))
         [])))
 
 (defn call-action-with-init-data! [xt-node init-data]
@@ -178,7 +175,7 @@
     (->> nodes
          (mapv
           (fn [{id :id
-                init-data :juxt.site.package/init-data
+                init-data :juxt.site/init-data
                 error :error :as node}]
             (assert id)
             (when error (throw (ex-info "Cannot proceed with error resource" {:id id :error error})))
@@ -199,11 +196,6 @@
                 ;;{:id id :status :error :error cause}
                 )))))))
 
-
-(def READERS
-  {'juxt.pprint (fn [x] (with-out-str (pprint x)))
-   'juxt.json (fn [x] (json/write-value-as-string x))})
-
 (defn normalize-uri-map [uri-map]
   (->> uri-map
        (mapcat (fn [[k v]]
@@ -211,92 +203,6 @@
                    (zipmap k (repeat v))
                    [[k v]])))
        (into {})))
-
-(defn apply-uri-map
-  "A uri-map allows a package to be relocated to a given host or hosts. A package
-  declares the uris that must be mapped to the target host. The keys to the
-  uri-map argument may be individual strings or sets of strings."
-  [pkg uri-map]
-  (let [uri-map (normalize-uri-map uri-map)]
-    (when-let [missing (seq (set/difference (set (map first (:juxt.site/uri-map pkg))) (set (keys uri-map))))]
-      (throw (ex-info "uri-map is missing some required keys" {:missing missing})))
-    (postwalk
-     (fn [x]
-       (cond-> x
-         (string? x)
-         (str/replace
-          #"(https://.*?example.org)(.*)"
-          (fn [[_ host path]] (str (get uri-map host host) path)))))
-     (dissoc pkg :juxt.site/uri-map))))
-
-;; Make this a test
-(comment
-  (apply-uri-map {"a" "https://data.example.org/customers/"
-                  "b" "https://example.org/index.html"
-                  "c" "https://other.example.org/index.html"}
-                 {"https://data.example.org" "https://apis.site.test"
-                  "https://example.org" "https://site.test"}))
-
-#_(defn- load-dependency-graph-from-filesystem [dir metadata]
-  (let [root (io/file dir)]
-    (into
-     {}
-     (for [host-root (.listFiles root)
-           f (file-seq host-root)
-           :let [path (.toPath f)
-                 relpath (.toString (.relativize (.toPath host-root) path))
-                 [_ urlpath] (re-matches #"(.+)\.edn" relpath)]
-           :when (and (.isFile f) urlpath)
-           :let [urlpath (if-let [[_ stem] (re-matches #"(.*/)\{index\}" urlpath)]
-                           stem
-                           urlpath)]]
-       [(format "https://%s/%s" (.getName host-root) urlpath)
-        (try
-          (->
-           (edn/read-string {:readers READERS} (slurp f))
-           (update-in [:install :juxt.site/input] merge metadata {:juxt.site.package/source (str f)})
-           (assoc :juxt.site.package/source (str f)))
-          (catch Exception e
-            (throw (ex-info (format "Failed to load %s" f) {:file f} e))))]))))
-
-#_(defn load-package-from-filesystem [dir]
-  (let [root (io/file dir)
-        _ (assert (.isDirectory root) (format "%s is not a directory" root))
-        index (edn/read-string {:readers READERS} (slurp (io/file root "index.edn")))]
-    (assoc
-     index
-     :juxt.site/dependency-graph
-     (load-dependency-graph-from-filesystem
-      (io/file root "installers")
-      {:juxt.site/package (:xt/id index)}))))
-
-#_(defn relocate-dependency [dep]
-  (assert (map? dep))
-  (assert (:juxt.site/package dep))
-  (assert (:juxt.site/host dep))
-  (let [[_ path] (re-matches #"https://.*?/packages/(.*)" (:juxt.site/package dep))]
-    (str (:juxt.site/host dep) "/_site/packages/" path)))
-
-#_(defn get-package-transitive-dependencies [db pkg]
-  (let [dependencies (map relocate-dependency (:juxt.site/dependencies pkg))]
-    (mapcat (fn [depid]
-              (when-let [dep-pkg (xt/entity db depid)]
-                (cons dep-pkg
-                      (get-package-transitive-dependencies db dep-pkg))))
-            dependencies)))
-
-;; Commands
-
-#_(defn dependency-graph
-  ([pkg db]
-   (apply merge
-          (:juxt.site/dependency-graph pkg)
-          (map :juxt.site/dependency-graph (get-package-transitive-dependencies db pkg))))
-  ([db]
-   (apply merge
-          (map :juxt.site/dependency-graph
-               (map first (xt/q db '{:find [(pull e [:juxt.site/dependency-graph])]
-                                     :where [[e :juxt.site/type "https://meta.juxt.site/types/package"]]}))))))
 
 #_(defn create-command-fn [program args]
   (assert program)
