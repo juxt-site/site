@@ -24,7 +24,7 @@
 
   (let [result (login/login-with-form!
                 *handler*
-                :juxt.site/uri "https://auth.example.test/login"
+                :juxt.site/uri "https://auth.example.test/login-with-form"
                 "username" "ALICE"
                 "password" "garden")]
     (is (malli/validate [:map [:juxt.site/session-token :string]] result))))

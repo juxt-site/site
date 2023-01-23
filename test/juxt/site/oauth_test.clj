@@ -101,7 +101,7 @@
          *handler*
          "username" "alice"
          "password" "garden"
-         :juxt.site/uri "https://auth.example.test/login")
+         :juxt.site/uri "https://auth.example.test/login-with-form")
 
         session-token (:juxt.site/session-token login-result)
         _ (assert session-token)

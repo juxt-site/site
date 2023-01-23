@@ -1,0 +1,13 @@
+{:deps
+ ["{{issuer-configuration}}"
+  "{{client-configuration}}"
+  "https://auth.example.org/openid/callback"
+  "https://auth.example.org/actions/install-openid-login-endpoint"
+  "https://auth.example.org/permissions/system/install-openid-login-endpoint"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/action-id "https://auth.example.org/actions/install-openid-login-endpoint"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/openid-client-configuration "{{client-configuration}}"
+   :juxt.site/session-scope "https://auth.example.org/session-scopes/default"}}}

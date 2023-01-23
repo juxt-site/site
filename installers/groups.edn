@@ -56,7 +56,7 @@
   ["https://auth.example.org/actions/login"
    "https://auth.example.org/permissions/login"
    "https://auth.example.org/actions/create-login-resource"
-   "https://auth.example.org/login"]},
+   "https://auth.example.org/login-with-form"]},
 
  "juxt/site/openapi"
  {:juxt.site/description "OpenAPI",

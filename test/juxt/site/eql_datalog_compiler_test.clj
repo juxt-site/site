@@ -103,7 +103,7 @@
   (let [alice-session-token
         (login/login-with-form!
          *handler*
-         :juxt.site/uri "https://auth.hospital.com/login"
+         :juxt.site/uri "https://auth.hospital.com/login-with-form"
          "username" "alice"
          "password" "garden")
 
@@ -120,7 +120,7 @@
         bob-session-token
         (login/login-with-form!
          *handler*
-         :juxt.site/uri "https://auth.hospital.com/login"
+         :juxt.site/uri "https://auth.hospital.com/login-with-form"
          "username" "bob"
          "password" "walrus")
         {bob-access-token "access_token"
@@ -649,7 +649,7 @@
   (let [alice-session-token
         (login/login-with-form!
          *handler*
-         :juxt.site/uri "https://auth.hospital.com/login"
+         :juxt.site/uri "https://auth.hospital.com/login-with-form"
          "username" "alice"
          "password" "garden")
         {alice-access-token "access_token"}
@@ -664,7 +664,7 @@
         bob-session-token
         (login/login-with-form!
          *handler*
-         :juxt.site/uri "https://auth.hospital.com/login"
+         :juxt.site/uri "https://auth.hospital.com/login-with-form"
          "username" "bob"
          "password" "walrus")
         {bob-access-token "access_token"}

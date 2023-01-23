@@ -9,4 +9,4 @@
    :juxt.site/cookie-name "id"
    :juxt.site/cookie-domain "https://auth.example.org"
    :juxt.site/cookie-path "/"
-   :juxt.site/login-uri "https://auth.example.org/login"}}}
+   :juxt.site/login-uri "https://auth.example.org/login-with-form"}}}
