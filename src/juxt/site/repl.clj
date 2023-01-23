@@ -550,7 +550,7 @@
       "nickname" "malcolmsparks"})
 
     ;; Assign mal access to SystemReadonly
-    (install-resource-with-action!
+    #_(install-resource-with-action!
      "https://auth.site.test/_site/subjects/system"
      "https://auth.site.test/actions/assign-role"
      ;; Replace with your user here
