@@ -163,4 +163,15 @@
  "juxt/site/password-based-user-identity"
  {:juxt.site/description "Password based user identities",
   :juxt.site/resources
-  ["https://auth.example.org/permissions/system/register-password-based-user-identity"]}}
+  ["https://auth.example.org/permissions/system/register-password-based-user-identity"]}
+
+ "juxt/site/openid"
+ {:juxt.site/description "OpenID Connect",
+  :juxt.site/resources
+  ["https://auth.example.org/actions/openid/exchange-code-for-id-token"
+   "https://auth.example.org/actions/register-openid-issuer"
+   "https://auth.example.org/actions/register-openid-client"
+   "https://auth.example.org/actions/register-openid-user-identity"
+   "https://auth.example.org/permissions/system/register-openid-issuer"
+   "https://auth.example.org/permissions/system/register-openid-client"
+   "https://auth.example.org/permissions/system/register-openid-user-identity"]}}
