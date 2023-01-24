@@ -8,12 +8,14 @@
    [clojure.string :as str]
    [clojure.walk :refer [postwalk]]
    [crypto.password.bcrypt :as password]
-   [io.aviso.ansi :as ansi]
+;;   [io.aviso.ansi :as ansi]
    [juxt.site.main :as main]
    [juxt.site.actions :as actions]
    [juxt.site.cache :as cache]
-   [juxt.site.resource-group :as pkg]
+   [juxt.site.local-files-util :as local]
+   [juxt.site.resource-group :as rgroups]
    [juxt.site.util :as util]
+   [ring.util.codec :as codec]
    [xtdb.api :as xt])
   (:import (java.util Date)))
 
@@ -161,15 +163,6 @@
   (->> (q '{:find [(pull e [:xt/id :description])]
             :where [[e :xt/id]
                     [e :juxt.site/type "https://meta.juxt.site/types/action"]]})
-       (map first)
-       (sort-by :xt/id)))
-
-(defn ^::public packages
-  "Return installed packages"
-  []
-  (->> (q '{:find [(pull e [:xt/id :description])]
-            :where [[e :xt/id]
-                    [e :juxt.site/type "https://meta.juxt.site/types/package"]]})
        (map first)
        (sort-by :xt/id)))
 
@@ -454,76 +447,47 @@
 (defn encrypt-password [password]
   (password/encrypt password))
 
-#_(defn install-package!
-  "Install local package from filesystem"
-  [dir uri-map]
-  (printf "Installing package %s\n" dir)
-  (pkg/install-package-from-filesystem! dir (xt-node) uri-map)
-  :ok)
+(defn install-resource-groups!
+  "Install local resource-groups from local filesystem"
+  [names uri-map]
+  (local/install-resource-groups! (xt-node) names uri-map))
 
-#_(defn install-resource-groups!
-  "Install local package from filesystem"
-  [dirs uri-map]
-  (doseq [dir dirs]
-    (printf "Installing package %s\n" dir)
-    (pkg/install-package-from-filesystem! dir (xt-node) uri-map))
-  :ok)
-
-(defn install-resource-with-action! [subject action document]
-  (printf "Calling action: %s\n" action)
-  (pkg/call-action-with-init-data!
+(defn install-resource-with-action! [subject action input-arg]
+  (rgroups/call-action-with-init-data!
    (xt-node)
    {:juxt.site/subject-id subject
     :juxt.site/action-id action
-    :juxt.site/input document}))
+    :juxt.site/input input-arg}))
 
-#_(defn keyword-commands-from-packages []
-  (for [[k vs]
-        (->>
-         (q '{:find [(pull e [:xt/id :description :commands])]
-              :where [[e :xt/id]
-                      [e :juxt.site/type "https://meta.juxt.site/types/package"]]})
-         (map first)
-         (mapcat :commands)
-         (group-by first))
-        :when (= (count vs) 1)
-        :let [[_ v] (first vs)]]
-    [k v]))
-
-#_(defn call-command!
-  ([command-k args]
-   (printf "Calling command %s\n" command-k)
-   (let [command (get (into {} (keyword-commands-from-packages)) command-k)
-         ;; TODO: Check args match, else throw error
-         f (pkg/create-command-fn
-            (:juxt.site.sci/program command)
-            args)]
-     (f (xt-node)))
-   :ok)
-  ([command-k] (call-command! command-k {})))
+(defn converge! [resources uri-map parameter-map]
+  (let [graph (rgroups/map-uris (local/unified-installer-map) uri-map)]
+    (rgroups/converge! (xt-node) resources graph parameter-map)))
 
 (def AUTH_SERVER
-  {#{"https://example.org" "https://core.example.org"} "https://auth.site.test"})
+  {"https://auth.example.org" "https://auth.site.test"})
 
 (def RESOURCE_SERVER
-  {#{"https://auth.example.org" "https://core.example.org"} "https://auth.site.test"
-   "https://example.org" "https://data.site.test"})
+  {"https://auth.example.org" "https://auth.site.test"
+   "https://data.example.org" "https://data.site.test"})
 
-(defn ^::public init
+#_(defn ^::public init
   "Reset and re-initialize system with some resources for getting started."
   []
   (try
     (factory-reset!)
 
-    #_(install-resource-groups!
-     ["packages/juxt/site/bootstrap"
-      "packages/juxt/site/sessions"
-      "packages/juxt/site/oauth-authorization-server"
-      "packages/juxt/site/user-model"
-      "packages/juxt/site/openid"
-      "packages/juxt/site/roles"
-      "packages/juxt/site/protection-spaces"
-      "packages/juxt/site/openapi"]
+    (install-resource-groups!
+     ["juxt/site/bootstrap"]
+     AUTH_SERVER)
+
+    (install-resource-groups!
+     ["juxt/site/sessions"
+      "juxt/site/oauth-authorization-server"
+      "juxt/site/user-model"
+      "juxt/site/openid"
+      "juxt/site/roles"
+      "juxt/site/protection-spaces"
+      "juxt/site/openapi"]
      AUTH_SERVER)
 
     #_(install-resource-groups!
@@ -601,7 +565,7 @@
 
        :ok)]
 
-    [:init ^{:doc "Run test setup script"}
+    #_[:init ^{:doc "Run test setup script"}
      init]
 
     [:ls ^{:doc "List all resources"}
@@ -627,35 +591,13 @@
      (fn [] (doseq [t (types)]
               (println t)))]
 
-    [:packages ^{:doc "Show installed packages"}
-     (fn [] (doseq [pkg (packages)]
-              (printf "%s|%s\n" (:xt/id pkg) (:description pkg))))]
-
     [:users ^{:doc "Show all users"}
      (fn [] (doseq [user (users)]
               (println (:xt/id user))))]
 
     [:actions ^{:doc "Show installed actions"}
      (fn [] (doseq [a (actions)]
-              (println (:xt/id a))))]]
-
-   #_(reduce
-    (fn [acc [k v]]
-      (conj
-       acc [k
-            (let [{:keys [juxt.site.sci/program] :as command} v]
-              ^{:doc (:description v)}
-              (fn []
-                (cond
-                  program
-                  (when-let [args (some-> (:arguments command)
-                                          (grab-input!)
-                                          (confirm!))]
-                    (let [f (pkg/create-command-fn program args)]
-                      (f (xt-node))))
-                  :else (throw (ex-info "Cannot execute command" {:command command})))))]))
-    []
-    (keyword-commands-from-packages))))
+              (println (:xt/id a))))]]))
 
 (defn help*
   ([{:keys [include-keyword-commands?]}]

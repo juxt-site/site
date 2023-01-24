@@ -2,16 +2,17 @@
 
 (ns juxt.site.resource-group
   (:require
-   [juxt.site.locator :refer [to-regex]]
-   [juxt.site.actions :as actions]
-   [selmer.parser :as selmer]
-   [ring.util.codec :as codec]
-   [clojure.tools.logging :as log]
    [clojure.pprint :refer [pprint]]
+   [clojure.string :as str]
+   [clojure.tools.logging :as log]
    [clojure.walk :refer [prewalk postwalk]]
+   [juxt.site.actions :as actions]
+   [ring.util.codec :as codec]
+   [selmer.parser :as selmer]
    [xtdb.api :as xt]))
 
 (defn put! [xt-node & ms]
+  (assert xt-node)
   (->>
    (xt/submit-tx
     xt-node
@@ -19,6 +20,23 @@
       (let [vt (:xtdb.api/valid-time m)]
         [:xtdb.api/put (dissoc m :xtdb.api/valid-time) vt])))
    (xt/await-tx xt-node)))
+
+(defn to-regex [uri-template]
+   (re-pattern
+    (str/replace
+     uri-template
+     #"\{([^\}]+)\}"
+     (fn replacer [[_ group]]
+       (format "(?<%s>[^/#\\?]+)" (str/replace group "-" ""))))))
+
+#_(let [k "https://auth.example.org/{prefix}/clients/{client-id}"]
+  (to-regex k)
+  (when-let [matches (re-matches (to-regex k)
+                                 "https://auth.example.org/openid/clients/abc123")]
+    (zipmap
+     (map second (re-seq #"\{([\p{Alpha}-]+)\}" k))
+     (map codec/url-decode (next matches)))
+    ))
 
 (defn lookup [id graph]
   (or
@@ -29,7 +47,7 @@
                     :id id
                     :params
                     (zipmap
-                     (map second (re-seq #"\{(\p{Alpha}+)\}" k))
+                     (map second (re-seq #"\{([\p{Alpha}-]+)\}" k))
                      (map codec/url-decode (next matches))))))
          graph)))
 
@@ -204,42 +222,14 @@
                    [[k v]])))
        (into {})))
 
-#_(defn create-command-fn [program args]
-  (assert program)
-  (assert (map? args))
-  (fn [xt-node]
-    (try
-      (sci/binding [sci/out *out*
-                    sci/in *in*]
-        (sci/eval-string
-         program
-         {:namespaces
-          {'user
-           {'*args* args
-
-            'converge!
-            (fn
-              [resources parameters]
-              (converge!
-               xt-node
-               resources
-               (dependency-graph (xt/db xt-node)) ;; (pkg/dependency-graph pkg)
-               parameters))
-
-            'install-resource-with-action!
-            (fn [init-data]
-              (call-action-with-init-data! xt-node init-data))
-
-            'q (fn [query & args] (apply xt/q (xt/db xt-node) query args))
-            ;; TODO: Need to think about uri-map arg here
-            ;;'install! (fn [dir] (install! dir {}))
-            }
-           'ring.util.codec
-           {'form-encode codec/form-encode
-            'form-decode codec/form-decode
-            'url-encode codec/url-encode
-            'url-decode codec/url-decode}}}))
-      (catch clojure.lang.ExceptionInfo e
-        (println (.getMessage e))
-        (pprint (ex-data e))
-        (throw (ex-info (.getMessage e) (or (ex-data (.getCause e)) {}) (.getCause e)))))))
+(defn map-uris
+  [o uri-map]
+  (let [uri-map (normalize-uri-map uri-map)]
+    (postwalk
+     (fn [x]
+       (cond-> x
+         (string? x)
+         (str/replace
+          #"(https://.*?example.org)(.*)"
+          (fn [[_ host path]] (str (get uri-map host host) path)))))
+     o)))

@@ -2,15 +2,11 @@
 
 (ns juxt.test.util
   (:require
-   [clojure.edn :as edn]
-   [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
-   [clojure.string :as str]
-   [clojure.walk :refer [postwalk]]
-   [jsonista.core :as json]
    [juxt.site.handler :as h]
    [juxt.site.main :as main]
-   [juxt.site.resource-group :as pkg]
+   [juxt.site.local-files-util :as local]
+   [juxt.site.resource-group :as rgroups]
    [xtdb.api :as xt])
   (:import
    (xtdb.api IXtdb)))
@@ -57,7 +53,7 @@
   (with-handler (f)))
 
 (defn install-resource-with-action! [subject action document]
-  (pkg/call-action-with-init-data!
+  (rgroups/call-action-with-init-data!
    *xt-node*
    {:juxt.site/subject-id subject
     :juxt.site/action-id action
@@ -122,61 +118,15 @@
                  (dlg# (assoc-bearer-token req# token#)))]
        ~@body)))
 
-;; These are all the resources in the packages/ directory:
-(defn map-uris
-  [o uri-map]
-  (let [uri-map (pkg/normalize-uri-map uri-map)]
-    (postwalk
-     (fn [x]
-       (cond-> x
-         (string? x)
-         (str/replace
-          #"(https://.*?example.org)(.*)"
-          (fn [[_ host path]] (str (get uri-map host host) path)))))
-     o)))
+(defn install-resource-groups!
+  ([names uri-map]
+   (local/install-resource-groups! *xt-node* names uri-map)))
 
-(def READERS
-  {'juxt.pprint (fn [x] (with-out-str (pprint x)))
-   'juxt.json (fn [x] (json/write-value-as-string x))})
+(defn converge! [resources uri-map parameter-map]
+  (let [graph (rgroups/map-uris (local/unified-installer-map) uri-map)]
+    (rgroups/converge! *xt-node* resources graph parameter-map)))
 
-(defn index [pkg-name]
-  (let [dir (io/file "packages" pkg-name)
-        index-file (io/file dir "index.edn")]
-    (edn/read-string {:readers READERS} (slurp index-file))))
-
-(defn packages-resource-ids [& pkg-names]
-  (mapcat
-   (fn [pkg-name]
-     (let [index (index pkg-name)
-           resources (:juxt.site/resources index)]
-       resources))
-   pkg-names))
-
-(defn unified-installer-map
-  "This converts the existing package structure into a unified map of
-  installers."
-  []
-  (let [root (io/file "installers")]
-    (into
-     {}
-     (for [installer-file (file-seq root)
-           :when (.isFile installer-file)
-           :let [filepath (.toPath installer-file)
-                 relpath (.toString (.relativize (.toPath root) filepath))
-                 [_ auth+path] (re-matches #"(.+)\.edn" relpath)
-                 url (str "https://" auth+path)]]
-       [url (edn/read-string {:readers READERS} (slurp installer-file))]))))
-
-(defn install-resource-groups! [names uri-map]
-  (let [graph (map-uris (unified-installer-map) uri-map)
-        groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
-    (doall
-     (for [n names
-           :let [resources (some-> groups (get n) :juxt.site/resources)]]
-       (pkg/converge!
-          *xt-node*
-          (map-uris resources uri-map)
-          graph {})))))
+;; This are the uri-maps used by the tests
 
 (def AUTH_SERVER {"https://auth.example.org" "https://auth.example.test"})
 
