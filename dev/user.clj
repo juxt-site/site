@@ -76,41 +76,6 @@
 
   :ready)
 
-
-
-#_(factory-reset!)
-#_(ls)
-
-#_(install-resource-groups!
-   ["juxt/site/bootstrap"]
-   {"https://auth.example.org" "https://auth.site.test"})
-
-#_(install-resource-groups!
- ["juxt/site/openid"]
- {"https://auth.example.org" "https://auth.site.test"})
-
-;; Now we must see if we can update
-;; https://auth.site.test/actions/register-openid-client to do the
-;; heavy lifting here - it shouldn't be up to the caller.
-#_(let [iss "https://juxt.eu.auth0.com"
-        client-id "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"]
-    (install-resource-with-action!
-     "https://auth.site.test/_site/subjects/system"
-     "https://auth.site.test/actions/register-openid-client"
-     {:xt/id (format "https://auth.site.test/openid/clients/%s" client-id)
-
-      :juxt.site/client-id "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
-      :juxt.site/client-secret "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"
-      :juxt.site/redirect-uri "https://auth.site.test/openid/callback"
-
-      :juxt.site/issuer-configuration (format "https://auth.site.test/openid/issuers/%s" (codec/url-encode iss))
-      :juxt.site/client-configuration (format "https://auth.site.test/openid/clients/%s" client-id)}))
-
-#_(e "https://auth.site.test/openid/clients/d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK")
-
-(ls)
-
-
 (comment
   (factory-reset!))
 
@@ -127,5 +92,10 @@
     "client-configuration" "https://auth.site.test/openid/clients/d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
     "client-secret" "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"}))
 
-;; We'll want callbacks too
-#_(ls)
+;; TODO: Install system-api
+
+(comment
+  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER))
+
+(comment
+  (ls))
