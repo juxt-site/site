@@ -72,16 +72,11 @@
           ;; This access token is not sufficient, so we get a 403
           (is (= 403 (:ring.response/status response))))))
 
-    ;; Need these resources to assign a role, but really, could we rather use an installer?
-    (converge! ["https://auth.example.test/actions/assign-role"
-                "https://auth.example.test/permissions/system/assign-role"] AUTH_SERVER {})
-
-    ;; Assign Alice to the SystemReadonly role
-    (install-resource-with-action!
-     "https://auth.example.test/_site/subjects/system"
-     "https://auth.example.test/actions/assign-role"
-     {:juxt.site/user "https://auth.example.test/users/alice"
-      :juxt.site/role "https://auth.example.test/roles/SystemReadonly"})
+    (converge!
+     ["https://auth.example.test/role-assignments/XYZ"]
+     AUTH_SERVER
+     {"user" "https://auth.example.test/users/alice"
+      "role" "https://auth.example.test/roles/SystemReadonly"})
 
     (testing "Access achieved with correct permissions and role assignment"
       (with-bearer-token access-token
