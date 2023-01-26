@@ -12,14 +12,14 @@
     :refer [system-xt-fixture with-session-token with-bearer-token
             *handler* handler-fixture
             with-fixtures
-            install-resource-groups! install-resource-with-action!
+            install-resource-groups! install-resource-with-action! converge!
             AUTH_SERVER RESOURCE_SERVER]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest system-api-test
 
-  (install-resource-groups! ["juxt/site/bootstrap" "juxt/site/roles" "juxt/site/protection-spaces" "juxt/site/openapi"] AUTH_SERVER)
+  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER)
   (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER)
 
   (testing "Users API endpoint cannot be accessed anonymously"
@@ -31,8 +31,9 @@
       (is (= "Bearer" (get-in response [:ring.response/headers "www-authenticate"])))))
 
   (install-resource-groups!
-   ["juxt/site/sessions" "juxt/site/oauth-authorization-server" "juxt/site/login-form"
-    "juxt/site/user-model" "juxt/site/password-based-user-identity" "juxt/site/example-users"]
+   ["juxt/site/oauth-authorization-server"
+    "juxt/site/login-form"
+    "juxt/site/example-users"]
    AUTH_SERVER)
 
   (install-resource-with-action!
@@ -70,6 +71,10 @@
 
           ;; This access token is not sufficient, so we get a 403
           (is (= 403 (:ring.response/status response))))))
+
+    ;; Need these resources to assign a role, but really, could we rather use an installer?
+    (converge! ["https://auth.example.test/actions/assign-role"
+                "https://auth.example.test/permissions/system/assign-role"] AUTH_SERVER {})
 
     ;; Assign Alice to the SystemReadonly role
     (install-resource-with-action!
