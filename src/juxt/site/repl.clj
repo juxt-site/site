@@ -117,6 +117,12 @@
    first
    (xt/q (db) '{:find [e] :where [[e :type t]] :in [t]} t)))
 
+(defn events []
+  (->> (q '{:find [(pull e [*])]
+            :where [[e :juxt.site/type "https://meta.juxt.site/types/event"]]})
+       (map first)
+       (sort-by :xtdb.api/tx-id)))
+
 (defn ls
   "Return all Site resources"
   ([]
