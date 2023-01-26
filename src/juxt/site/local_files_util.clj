@@ -3,7 +3,7 @@
 (ns juxt.site.local-files-util
   (:require
    [clojure.edn :as edn]
-   [juxt.site.resource-group :as rgroups]
+   [juxt.site.install :as rgroups]
    [clojure.pprint :refer [pprint]]
    [clojure.java.io :as io]
    [jsonista.core :as json])

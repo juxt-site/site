@@ -13,7 +13,7 @@
    [juxt.site.actions :as actions]
    [juxt.site.cache :as cache]
    [juxt.site.local-files-util :as local]
-   [juxt.site.resource-group :as rgroups]
+   [juxt.site.install :as rgroups]
    [juxt.site.util :as util]
    [ring.util.codec :as codec]
    [xtdb.api :as xt])

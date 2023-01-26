@@ -9,7 +9,7 @@
    [clojure.pprint :refer [pprint]]
    [jsonista.core :as json]
    [clojure.walk :refer [postwalk]]
-   [juxt.site.resource-group :as pkg]
+   [juxt.site.install :as pkg]
    [clojure.edn :as edn]))
 
 (def READERS

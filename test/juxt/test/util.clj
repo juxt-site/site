@@ -6,7 +6,7 @@
    [juxt.site.handler :as h]
    [juxt.site.main :as main]
    [juxt.site.local-files-util :as local]
-   [juxt.site.resource-group :as rgroups]
+   [juxt.site.install :as rgroups]
    [xtdb.api :as xt])
   (:import
    (xtdb.api IXtdb)))

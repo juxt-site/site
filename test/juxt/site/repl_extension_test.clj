@@ -17,7 +17,7 @@
             converge!
             AUTH_SERVER]]
 
-   [juxt.site.resource-group :as rgroups]))
+   [juxt.site.install :as rgroups]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
