@@ -9,7 +9,8 @@
    [juxt.site.actions :as actions]
    [ring.util.codec :as codec]
    [selmer.parser :as selmer]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [clojure.set :as set]))
 
 (defn put! [xt-node & ms]
   (assert xt-node)
@@ -66,18 +67,32 @@
 (defn wrap-as-template [[k v]]
   [k (->DoNotRender v)])
 
+(defn namespaced-name [kw]
+  (str
+   (when-let [ns (namespace kw)]
+     (str ns "/"))
+   (name kw)))
+
+(defn render-with-required-check [template m]
+  (when-let [missing (seq
+                      (set/difference
+                       (set (map namespaced-name (selmer/known-variables template)))
+                       (set (keys m))))]
+    (throw (ex-info (format "Required template variables missing: %s" (str/join ", " missing)) {:missing missing :all m :keys (set (keys m))})))
+  (selmer/render template m))
+
 (defn render-form-templates [form params]
   (->> form
        (prewalk
         (fn [x]
           (cond-> x
             (and (vector? x) (= (first x) :juxt.site.sci/program)) wrap-as-template
-            (string? x) (selmer/render params))))
+            (string? x) (render-with-required-check params))))
        ;; Unwrap the templates
        (postwalk
-          (fn [x]
-            (cond-> x
-              (instance? DoNotRender x) unwrap)))))
+        (fn [x]
+          (cond-> x
+            (instance? DoNotRender x) unwrap)))))
 
 (defn- node-dependencies
   "Return the dependency ids for the given node, with any parameters expanded
@@ -88,7 +103,7 @@
       ;; Dependencies may be templates, with parameters
       ;; that correspond to the uri-template pattern of
       ;; the id.
-      (map #(selmer/render % (merge parameter-map params)) deps))))
+      (map #(render-with-required-check % (merge parameter-map params)) deps))))
 
 (defn ids->nodes [ids graph parameter-map]
   (assert (every? some? ids) (format "Some ids were nil: %s" (pr-str ids)))
