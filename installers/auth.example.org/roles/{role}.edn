@@ -1,4 +1,7 @@
-{:install
+{:deps
+ ["https://auth.example.org/actions/put-role"
+  "https://auth.example.org/permissions/system/put-role"]
+ :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/action-id "https://auth.example.org/actions/put-role"
   :juxt.site/input {:xt/id "{{$id}}"}}}

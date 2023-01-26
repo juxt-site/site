@@ -1,5 +1,6 @@
 {:deps
- ["https://auth.example.org/actions/get-openapi-document"]
+ ["https://auth.example.org/actions/get-openapi-document"
+  "https://auth.example.org/permissions/get-openapi-document"]
  :install
  {:juxt.site/input
   {:xt/id "{{$id}}"
@@ -8,7 +9,7 @@
 
    :openapi.v3/info
    {"title" "Site System API"
-    "description" "This is the OpenAPI 3.0 description of the Site System API. 
+    "description" "This is the OpenAPI 3.0 description of the Site System API.
 
 Some useful links:
 - [Site at Github](https://github.com/juxt/site)"

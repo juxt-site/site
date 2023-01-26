@@ -58,8 +58,10 @@
    "https://auth.example.org/actions/create-login-resource"
    "https://auth.example.org/login-with-form"]},
 
- "juxt/site/openapi"
- {:juxt.site/description "OpenAPI",
+ ;; Commenting out, as we can depend directly on these resources from
+ ;; dependent OpenAPI resources
+ #_"juxt/site/openapi"
+ #_{:juxt.site/description "OpenAPI",
   :juxt.site/resources
   ["https://auth.example.org/actions/get-openapi-document"
    "https://auth.example.org/permissions/get-openapi-document"]},
