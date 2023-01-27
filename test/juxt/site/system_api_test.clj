@@ -19,8 +19,8 @@
 
 (deftest system-api-test
 
-  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER)
-  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER)
+  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
+  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER {})
 
   (testing "Users API endpoint cannot be accessed anonymously"
     (let [response
@@ -34,7 +34,8 @@
    ["juxt/site/oauth-authorization-server"
     "juxt/site/login-form"
     "juxt/site/example-users"]
-   AUTH_SERVER)
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/openid-login-session"})
 
   (install-resource-with-action!
    "https://auth.example.test/_site/subjects/system"

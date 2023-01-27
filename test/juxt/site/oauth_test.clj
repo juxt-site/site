@@ -20,7 +20,10 @@
 (use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest register-client-test
-  (install-resource-groups! ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"] AUTH_SERVER)
+  (install-resource-groups!
+   ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   (testing "Register client with generated client-id"
     (let [result
@@ -75,7 +78,10 @@
 (deftest get-subject-test
 
   ;; Build the authorization server (https://auth.example.test)
-  (install-resource-groups! ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"] AUTH_SERVER)
+  (install-resource-groups!
+   ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
@@ -92,9 +98,10 @@
   (install-resource-groups!
    ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
     "juxt/site/example-users" "juxt/site/protection-spaces"]
-   AUTH_SERVER)
+   AUTH_SERVER
+   {})
 
-  (install-resource-groups! ["juxt/site/whoami"] RESOURCE_SERVER)
+  (install-resource-groups! ["juxt/site/whoami"] RESOURCE_SERVER {})
 
   (let [login-result
         (login/login-with-form!

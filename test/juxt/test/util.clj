@@ -6,7 +6,7 @@
    [juxt.site.handler :as h]
    [juxt.site.main :as main]
    [juxt.site.local-files-util :as local]
-   [juxt.site.install :as rgroups]
+   [juxt.site.install :as install]
    [xtdb.api :as xt])
   (:import
    (xtdb.api IXtdb)))
@@ -53,7 +53,7 @@
   (with-handler (f)))
 
 (defn install-resource-with-action! [subject action document]
-  (rgroups/call-action-with-init-data!
+  (install/call-action-with-init-data!
    *xt-node*
    {:juxt.site/subject-id subject
     :juxt.site/action-id action
@@ -119,12 +119,12 @@
        ~@body)))
 
 (defn install-resource-groups!
-  ([names uri-map]
-   (local/install-resource-groups! *xt-node* names uri-map)))
+  [names uri-map parameter-map]
+  (local/install-resource-groups! *xt-node* names uri-map parameter-map))
 
 (defn converge! [resources uri-map parameter-map]
-  (let [graph (rgroups/map-uris (local/unified-installer-map) uri-map)]
-    (rgroups/converge! *xt-node* resources graph parameter-map)))
+  (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
+    (install/converge! *xt-node* resources graph parameter-map)))
 
 ;; This are the uri-maps used by the tests
 

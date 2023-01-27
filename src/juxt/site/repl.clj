@@ -13,7 +13,7 @@
    [juxt.site.actions :as actions]
    [juxt.site.cache :as cache]
    [juxt.site.local-files-util :as local]
-   [juxt.site.install :as rgroups]
+   [juxt.site.install :as install]
    [juxt.site.util :as util]
    [ring.util.codec :as codec]
    [xtdb.api :as xt])
@@ -459,15 +459,19 @@
   (local/install-resource-groups! (xt-node) names uri-map))
 
 (defn install-resource-with-action! [subject action input-arg]
-  (rgroups/call-action-with-init-data!
+  (install/call-action-with-init-data!
    (xt-node)
    {:juxt.site/subject-id subject
     :juxt.site/action-id action
     :juxt.site/input input-arg}))
 
+(defn installer-graph [resources uri-map parameter-map]
+  (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
+    (install/installer-graph resources graph parameter-map)))
+
 (defn converge! [resources uri-map parameter-map]
-  (let [graph (rgroups/map-uris (local/unified-installer-map) uri-map)]
-    (rgroups/converge! (xt-node) resources graph parameter-map)))
+  (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
+    (install/converge! (xt-node) resources graph parameter-map)))
 
 (def AUTH_SERVER
   {"https://auth.example.org" "https://auth.site.test"})

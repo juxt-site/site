@@ -3,7 +3,7 @@
 (ns juxt.site.local-files-util
   (:require
    [clojure.edn :as edn]
-   [juxt.site.install :as rgroups]
+   [juxt.site.install :as install]
    [clojure.pprint :refer [pprint]]
    [clojure.java.io :as io]
    [jsonista.core :as json])
@@ -31,14 +31,14 @@
         (edn/read-string {:readers READERS} (slurp installer-file))]))))
 
 (defn install-resource-groups!
-  ([xt-node names uri-map]
+  ([xt-node names uri-map parameter-map]
    (assert xt-node)
-   (let [graph (rgroups/map-uris (unified-installer-map) uri-map)
+   (let [graph (install/map-uris (unified-installer-map) uri-map)
          groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
      (doall
       (for [n names
             :let [resources (some-> groups (get n) :juxt.site/resources)]]
-        (rgroups/converge!
+        (install/converge!
          xt-node
-         (rgroups/map-uris resources uri-map)
-         graph {}))))))
+         (install/map-uris resources uri-map)
+         graph parameter-map))))))

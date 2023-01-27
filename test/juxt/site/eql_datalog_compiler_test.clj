@@ -32,14 +32,14 @@
 (defn install-hospital! []
   (install-resource-groups!
    ["juxt/site/bootstrap"]
-   AUTH_SERVER)
+   AUTH_SERVER {})
 
   (install-resource-groups!
    ["juxt/site/user-model"
     "juxt/site/password-based-user-identity"
     "juxt/site/sessions"
     "juxt/site/oauth-authorization-server"]
-   AUTH_SERVER)
+   AUTH_SERVER {"session-scope" "https://auth.hospital.com/session-scopes/openid-login-session"})
 
   (install-resource-with-action!
    "https://auth.hospital.com/_site/subjects/system"
@@ -52,11 +52,11 @@
    ["juxt/site/example-users"
     "juxt/site/login-form"
     "juxt/site/protection-spaces"]
-   AUTH_SERVER)
+   AUTH_SERVER {})
 
   (install-resource-groups!
    ["juxt/site/hospital-demo"]
-   RESOURCE_SERVER))
+   RESOURCE_SERVER {}))
 
 (defn with-hospital [f]
   (install-hospital!)

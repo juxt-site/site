@@ -30,15 +30,6 @@
      (fn replacer [[_ group]]
        (format "(?<%s>[^/#\\?]+)" (str/replace group "-" ""))))))
 
-#_(let [k "https://auth.example.org/{prefix}/clients/{client-id}"]
-  (to-regex k)
-  (when-let [matches (re-matches (to-regex k)
-                                 "https://auth.example.org/openid/clients/abc123")]
-    (zipmap
-     (map second (re-seq #"\{([\p{Alpha}-]+)\}" k))
-     (map codec/url-decode (next matches)))
-    ))
-
 (defn lookup [id graph]
   (or
    (when-let [v (get graph id)] (assoc v :id id))
@@ -105,7 +96,7 @@
       ;; the id.
       (map #(render-with-required-check % (merge parameter-map params)) deps))))
 
-(defn ids->nodes [ids graph parameter-map]
+(defn installer-graph [ids graph parameter-map]
   (assert (every? some? ids) (format "Some ids were nil: %s" (pr-str ids)))
   (->> ids
        (mapcat
@@ -124,7 +115,7 @@
              some?
              (fn [parent]
                (assert parent)
-               (for [child-id (node-dependencies parent parameter-map)
+               (for [child-id (:deps parent)
                      :let [child (lookup child-id graph)
                            _ (when-not child
                                (throw
@@ -133,8 +124,10 @@
                                  {:dependant parent
                                   :dependency child-id
                                   :graph (keys graph)})))]]
-                 child))
-             root))))
+                 (-> child
+                     (assoc :juxt.site/dependant parent)
+                     (assoc :deps (node-dependencies child parameter-map)))))
+             (assoc root :deps (node-dependencies root parameter-map))))))
        ;; to get depth-first order
        reverse
        ;; to dedupe
@@ -148,6 +141,15 @@
               (throw (ex-info "Nil init data" {:id id})))
             (conj acc (-> node (assoc :juxt.site/init-data init-data)))))
         [])))
+
+(defn index-by-id [installer-graph]
+  (into {} (map (juxt :id identity) installer-graph)))
+
+(defn dependency-graph [id index]
+  (let [installer (get index id)
+        deps (mapv #(dependency-graph % index) (:deps installer))]
+    (cond-> {:id (:id installer)}
+      (seq deps) (assoc :deps deps))))
 
 (defn call-action-with-init-data! [xt-node init-data]
   (when-not init-data (throw (ex-info "No init data" {})))
@@ -195,6 +197,30 @@
        (get-in init-data [:juxt.site/input :xt/id]))
       (put! xt-node (:juxt.site/input init-data)))))
 
+(defn call-installer
+  [xt-node
+   {id :id
+    init-data :juxt.site/init-data
+    error :error :as installer}]
+  (assert id)
+  (when error (throw (ex-info "Cannot proceed with error resource" {:id id :error error})))
+  (when-not init-data
+    (throw
+     (ex-info
+      "Installer does not contain init-data"
+      {:id id :installer installer})))
+
+  (try
+    (let [{:juxt.site/keys [puts] :as result}
+          (call-action-with-init-data! xt-node init-data)]
+      (when (and puts (not (contains? (set puts) id)))
+        (throw (ex-info "Puts does not contain id" {:id id :puts puts})))
+      {:id id :status :installed :result result})
+    (catch Throwable cause
+      (throw (ex-info (format "Failed to converge id: '%s'" id) {:id id} cause))
+      ;;{:id id :status :error :error cause}
+      )))
+
 (defn converge!
   "Given a set of resource ids and a dependency graph, create resources and their
   dependencies. A resource id that is a keyword is a proxy for a set of
@@ -204,30 +230,8 @@
   (assert (map? parameter-map) "Parameter map arg must be a map")
   (assert (every? (fn [[k v]] (and (string? k) (string? v))) parameter-map) "All keys in parameter map must be strings")
 
-  (let [nodes (ids->nodes ids graph parameter-map)]
-    (->> nodes
-         (mapv
-          (fn [{id :id
-                init-data :juxt.site/init-data
-                error :error :as node}]
-            (assert id)
-            (when error (throw (ex-info "Cannot proceed with error resource" {:id id :error error})))
-            (when-not init-data
-              (throw
-               (ex-info
-                "Node does not contain init-data"
-                {:id id :node node})))
-
-            (try
-              (let [{:juxt.site/keys [puts] :as result}
-                    (call-action-with-init-data! xt-node init-data)]
-                (when (and puts (not (contains? (set puts) id)))
-                  (throw (ex-info "Puts does not contain id" {:id id :puts puts})))
-                {:id id :status :installed :result result})
-              (catch Throwable cause
-                (throw (ex-info (format "Failed to converge id: '%s'" id) {:id id} cause))
-                ;;{:id id :status :error :error cause}
-                )))))))
+  (->> (installer-graph ids graph parameter-map)
+       (mapv #(call-installer xt-node %))))
 
 (defn normalize-uri-map [uri-map]
   (->> uri-map

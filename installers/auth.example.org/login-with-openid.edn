@@ -10,4 +10,4 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/openid-client-configuration "{{client-configuration}}"
-   :juxt.site/session-scope "https://auth.example.org/session-scopes/default"}}}
+   :juxt.site/session-scope "https://auth.example.org/session-scopes/form-login-session"}}}

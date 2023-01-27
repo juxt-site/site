@@ -1,5 +1,5 @@
 {:deps
- ["https://auth.example.org/session-scopes/default"
+ ["{{session-scope}}"
   "https://auth.example.org/actions/install-authorization-server"
   "https://auth.example.org/permissions/system/install-authorization-server"
   "https://auth.example.org/actions/oauth/authorize"]
@@ -10,4 +10,5 @@
   {:xt/id "{{$id}}"
    :juxt.http/content-type "text/html;charset=utf-8"
    :juxt.http/content "<p>Welcome to the Site authorization server.</p>"
-   :juxt.site/session-scope "https://auth.example.org/session-scopes/default"}}}
+   :juxt.site/session-scope "{{session-scope}}"
+   }}}

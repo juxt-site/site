@@ -20,7 +20,8 @@
     "juxt/site/password-based-user-identity"
     "juxt/site/oauth-authorization-server"
     "juxt/site/example-users"]
-   AUTH_SERVER)
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   (let [result (login/login-with-form!
                 *handler*

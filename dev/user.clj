@@ -13,6 +13,7 @@
    [juxt.site.repl :refer :all]
    [juxt.site.local-files-util :as local]
    ;; Push this into repl!
+   [juxt.site.install :as install]
    [malli.dev :as md]
    [xtdb.api :as xt]
    clojure.main
@@ -92,10 +93,42 @@
     "client-configuration" "https://auth.site.test/openid/clients/d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
     "client-secret" "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"}))
 
-;; TODO: Install system-api
+;; Facility to analyse dependency graph
+(comment
+  (install/dependency-graph
+   "https://auth.site.test/login-with-openid"
+   (install/index-by-id
+    (installer-graph
+     ["https://auth.site.test/login-with-openid"
+      "https://auth.site.test/openid/callback"]
+     {"https://auth.example.org" "https://auth.site.test"}
+     {"issuer-configuration" "https://auth.site.test/openid/issuers/https%3A%2F%2Fjuxt.eu.auth0.com"
+      "client-configuration" "https://auth.site.test/openid/clients/d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
+      "client-secret" "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"
+      "login-uri" "https://auth.example.org/login-with-openid"}))))
 
 (comment
-  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER))
+  (install-resource-groups!
+   ["juxt/site/oauth-authorization-server"
+    "juxt/site/system-api"] RESOURCE_SERVER))
 
 (comment
   (ls))
+
+
+;;(e "https://auth.site.test/openid/clients/d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK")
+
+;; Need some way of drilling down the dependency graph
+;; Something to analyse which dependencies will be installed on converge
+;; Break converge up into steps
+
+(comment
+  (ls)
+
+  (xt/entity-history (db) "https://auth.site.test/session-scopes/default" :asc)
+
+  (ls-type "https://meta.juxt.site/types/event")
+
+  (e "https://auth.site.test/_site/events/294"))
+
+;; Can/should we put in dependants?
