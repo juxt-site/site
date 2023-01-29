@@ -1,0 +1,54 @@
+#_( ;; Allow this script to be executed directly
+   "exec" "bb" "--classpath" "$(clojure -Spath -Sdeps '{:deps {io.aviso/pretty {:mvn/version "1.1"}}}')" "$0" "$(readlink -f $(dirname $0)/..)" "$@"
+   )
+
+;; Copyright © 2021, JUXT LTD.
+
+(ns site
+  (:require
+   [babashka.curl :as curl]
+   [clojure.tools.cli :refer [parse-opts summarize]]
+   [clojure.java.io :as io]
+   [clojure.java.shell :as sh]
+   [cheshire.core :as json]
+   [clojure.pprint :refer [pprint]]
+   [clojure.edn :as edn]
+   [io.aviso.ansi :as ansi]
+   [clojure.string :as str])
+  (:import
+   (java.nio.file Files)
+   (java.nio.file.attribute FileAttribute)))
+
+
+(defn read-line-from-socket [in]
+  (try
+    (.readLine in)
+    (catch java.net.SocketTimeoutException e
+      nil)))
+
+(defn read-response [in]
+  (loop [line (read-line-from-socket in)]
+    (when line
+      (println "> " line)
+      (recur (read-line-from-socket in))))
+  )
+
+(let [s (java.net.Socket. "localhost" 50505)
+      out (io/writer (.getOutputStream s))
+      in (io/reader (.getInputStream s))
+      ]
+  (.setSoTimeout s 1000)
+
+  (read-response in)
+  (binding [*out* out]
+    (println "(ls)\n"))
+  (read-response in)
+
+  (println "endloop"))
+
+;; Oh, but try with core.async - this will be fun and perhaps more reliable
+
+
+;; Local Variables:
+;; mode: clojure
+;; End:
