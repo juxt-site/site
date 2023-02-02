@@ -93,16 +93,13 @@
                        (update :title str "..."))})]
     (when (pos? status)
       (println "ERROR")
-      (pprint result))
-    )
-  #_(println (or (:success-message opts) "Installation succeeded")))
+      (pprint result))))
 
 (defn reset []
   (when (confirm "Factory reset and delete ALL resources?")
     (eval-and-read!
      (pr-str
-      '(factory-reset!)))
-    #_(println "Factory reset complete")))
+      '(factory-reset!)))))
 
 (defn ls []
   (let [resources (eval-and-read! (pr-str '(ls)))
@@ -248,7 +245,10 @@
                  "https://data.example.org" data-base-uri}]
 
     (push!
-     `(~'converge! ~resources ~uri-map {"session-scope" ~(str auth-base-uri "/session-scopes/openid-login-session")})
+     `(~'converge!
+       ~resources
+       ~uri-map
+       {"session-scope" ~(str auth-base-uri "/session-scopes/openid-login-session")})
      {:title "Installing authorization server"})))
 
 (defn register-swagger-ui []
