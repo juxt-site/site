@@ -3,8 +3,10 @@
 (ns juxt.site.repl-server
   (:require
    [clojure.main :as m]
+   [fipp.visit :as fv]
    [juxt.site.repl :as repl]
-   [puget.printer :as puget]))
+   [puget.printer :as puget]
+   [puget.dispatch :as dispatch]))
 
 (defn repl-init
   "Initialize repl in user namespace and make standard repl requires."
@@ -12,7 +14,7 @@
   (require 'juxt.site.repl)
   (in-ns 'juxt.site.repl)
   (apply require clojure.main/repl-requires)
-  (println "Site by JUXT. Copyright (c) 2020-2022, JUXT LTD.")
+  (println "Site by JUXT. Copyright (c) 2020-2023, JUXT LTD.")
   (println "Type :quit to exit, :help for help.")
   #_(let [f (requiring-resolve 'juxt.site.repl/steps)
         steps (f)]
@@ -43,4 +45,19 @@
    :init repl-init
    :read repl-read
    :prompt #(printf "site> ")
-   :print puget/cprint))
+   :caught (fn [e]
+             (binding [*out* *err*]
+               (println (pr-str {:error e}))
+               (flush)))
+   :print
+   ;; Colorized output creates escape sequences which need to be filtered out
+   #_puget/cprint
+   (fn [value]
+     (puget/pprint
+      value
+      {:sort-keys true
+       :seq-limit 50000
+       :namespace-maps false
+
+
+       }))))

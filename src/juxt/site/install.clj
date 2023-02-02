@@ -120,7 +120,7 @@
                            _ (when-not child
                                (throw
                                 (ex-info
-                                 (format "Unsatisfied dependency between '%s' and '%s'" (:juxt.site/source parent) child-id)
+                                 (format "Unsatisfied dependency between '%s' and '%s'" (:id parent) child-id)
                                  {:dependant parent
                                   :dependency child-id
                                   :graph (keys graph)})))]]

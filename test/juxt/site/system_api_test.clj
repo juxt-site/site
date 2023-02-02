@@ -35,7 +35,7 @@
     "juxt/site/login-form"
     "juxt/site/example-users"]
    AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/openid-login-session"})
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   (install-resource-with-action!
    "https://auth.example.test/_site/subjects/system"

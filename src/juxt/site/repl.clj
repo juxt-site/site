@@ -8,14 +8,12 @@
    [clojure.string :as str]
    [clojure.walk :refer [postwalk]]
    [crypto.password.bcrypt :as password]
-;;   [io.aviso.ansi :as ansi]
    [juxt.site.main :as main]
    [juxt.site.actions :as actions]
    [juxt.site.cache :as cache]
    [juxt.site.local-files-util :as local]
    [juxt.site.install :as install]
    [juxt.site.util :as util]
-   [ring.util.codec :as codec]
    [xtdb.api :as xt])
   (:import (java.util Date)))
 
@@ -407,7 +405,6 @@
   (actions/check-permissions (db) actions options))
 
 (defn factory-reset! []
-  (printf "Resetting system\n")
   (apply evict! (->> (q '{:find [(pull e [:xt/id :juxt.site/type])]
                           :where [[e :xt/id]]})
                      (map first)
@@ -455,8 +452,8 @@
 
 (defn install-resource-groups!
   "Install local resource-groups from local filesystem"
-  [names uri-map]
-  (local/install-resource-groups! (xt-node) names uri-map))
+  [names uri-map parameter-map]
+  (local/install-resource-groups! (xt-node) names uri-map parameter-map))
 
 (defn install-resource-with-action! [subject action input-arg]
   (install/call-action-with-init-data!
@@ -473,10 +470,10 @@
   (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
     (install/converge! (xt-node) resources graph parameter-map)))
 
-(def AUTH_SERVER
-  {"https://auth.example.org" "https://auth.site.test"})
+#_(def AUTH_SERVER
+    {"https://auth.example.org" "https://auth.site.test"})
 
-(def RESOURCE_SERVER
+#_(def RESOURCE_SERVER
   {"https://auth.example.org" "https://auth.site.test"
    "https://data.example.org" "https://data.site.test"})
 

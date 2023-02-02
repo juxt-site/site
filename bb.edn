@@ -1,0 +1,35 @@
+;; See https://book.babashka.org/#tasks
+{:min-bb-version "0.6.2"
+ :paths ["bb"]
+ :deps {io.github.lispyclouds/bblgum {:git/sha "7ebae0e2231899fe2a6ad44bc9ef5fca64099fcd"}}
+ :tasks
+ {:requires (juxt.site
+             [clojure.core.async :as async])
+
+  reset {:doc "Factory reset"
+         :task (juxt.site/reset)}
+
+  bootstrap {:doc "Bootstrap system"
+             :task (juxt.site/bootstrap)}
+
+  ls {:task (juxt.site/ls)}
+
+  openid {:task (juxt.site/openid)}
+  system-api {:task (juxt.site/system-api)}
+  auth-server {:task (juxt.site/auth-server)}
+  add-user {:task (juxt.site/add-user)}
+  register-swagger-ui {:task (juxt.site/register-swagger-ui)}
+
+  test {:task (do
+                (juxt.site/reset)
+                (juxt.site/bootstrap)
+                (juxt.site/openid)
+                (juxt.site/system-api)
+                (juxt.site/auth-server)
+                (juxt.site/add-user)
+                (juxt.site/register-swagger-ui)
+                )}
+
+  ;;users {:task (juxt.site/users)}
+
+  }}
