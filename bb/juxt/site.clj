@@ -3,7 +3,6 @@
 (ns juxt.site
   (:require
    [bblgum.core :as b]
-   [babashka.process :refer [shell]]
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
    [clojure.edn :as edn]
@@ -138,10 +137,22 @@
               :default "https://data.site.test"}))
 
 (defn bootstrap []
-  (let [auth-base-uri (input-auth-base-uri)]
+  (let [auth-base-uri (input-auth-base-uri)
+        resources
+        (->> ["https://auth.example.org/_site/do-action"
+              "https://auth.example.org/_site/subjects/system"
+              "https://auth.example.org/_site/actions/create-action"
+              "https://auth.example.org/_site/actions/grant-permission"
+              "https://auth.example.org/_site/permissions/system/bootstrap"
+              "https://auth.example.org/_site/actions/install-not-found"
+              "https://auth.example.org/_site/permissions/system/install-not-found"
+              "https://auth.example.org/_site/not-found"
+              "https://auth.example.org/_site/actions/get-not-found"
+              "https://auth.example.org/_site/permissions/get-not-found"]
+             (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))]
     (push!
-     `(~'install-resource-groups!
-       ["juxt/site/bootstrap"]
+     `(~'converge!
+       ~resources
        {"https://auth.example.org" ~auth-base-uri}
        {})
      {:title "Bootstrapping"
