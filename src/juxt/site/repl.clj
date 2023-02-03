@@ -11,8 +11,8 @@
    [juxt.site.main :as main]
    [juxt.site.actions :as actions]
    [juxt.site.cache :as cache]
+   [juxt.site.installer :as installer]
    [juxt.site.local-files-util :as local]
-   [juxt.site.install :as install]
    [juxt.site.util :as util]
    [xtdb.api :as xt])
   (:import (java.util Date)))
@@ -457,7 +457,7 @@
   (local/install-resource-groups! (xt-node) names uri-map parameter-map))
 
 ;; Demote to tests
-(defn install-resource-with-action! [subject action input-arg]
+#_(defn install-resource-with-action! [subject action input-arg]
   (install/call-action-with-init-data!
    (xt-node)
    {:juxt.site/subject-id subject
@@ -465,12 +465,12 @@
     :juxt.site/input input-arg}))
 
 ;; Demote to tests
-(defn installer-graph [resources uri-map parameter-map]
+#_(defn installer-graph [resources uri-map parameter-map]
   (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
     (install/installer-graph resources graph parameter-map)))
 
 ;; Demote to tests
-(defn converge! [resources uri-map parameter-map]
+#_(defn converge! [resources uri-map parameter-map]
   (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
     (install/converge! (xt-node) resources graph parameter-map)))
 
@@ -481,14 +481,14 @@
   (find-resources
    ["https://auth.site.test/_site/do-action" "https://auth.site.test/_site/subjects/system" "https://auth.site.test/_site/actions/create-action" "https://auth.site.test/_site/permissions/system/bootstrap" "https://auth.site.test/_site/actions/grant-permission" "https://auth.site.test/_site/actions/install-not-found" "https://auth.site.test/_site/permissions/system/install-not-found" "https://auth.site.test/_site/not-found" "https://auth.site.test/_site/actions/get-not-found" "https://auth.site.test/_site/permissions/get-not-found"]))
 
-(defn call-installer! [installer]
+#_(defn call-installer! [installer]
   (install/call-installer (xt-node) installer))
 
 (defn call-installers! [installers]
   (let [node (xt-node)]
     (doseq [installer installers]
       (try
-        (install/call-installer node installer)
+        (installer/call-installer node installer)
         (catch clojure.lang.ExceptionInfo e
           (throw (ex-info (format "Failed to install %s" (:id installer)) {:installer (:id installer)} e))
           )))))

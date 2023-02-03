@@ -6,21 +6,10 @@
    [clojure.string :as str]
    [clojure.tools.logging :as log]
    [clojure.walk :refer [prewalk postwalk]]
-   [juxt.site.actions :as actions]
    [ring.util.codec :as codec]
    [selmer.parser :as selmer]
-   [xtdb.api :as xt]
-   [clojure.set :as set]))
-
-(defn put! [xt-node & ms]
-  (assert xt-node)
-  (->>
-   (xt/submit-tx
-    xt-node
-    (for [m ms]
-      (let [vt (:xtdb.api/valid-time m)]
-        [:xtdb.api/put (dissoc m :xtdb.api/valid-time) vt])))
-   (xt/await-tx xt-node)))
+   [clojure.set :as set]
+   [juxt.site.installer :as installer]))
 
 (defn to-regex [uri-template]
    (re-pattern
@@ -151,76 +140,6 @@
     (cond-> {:id (:id installer)}
       (seq deps) (assoc :deps deps))))
 
-(defn call-action-with-init-data! [xt-node init-data]
-  (when-not init-data (throw (ex-info "No init data" {})))
-
-  (if-let [subject-id (:juxt.site/subject-id init-data)]
-
-    (let [db (xt/db xt-node)
-          _ (assert (:juxt.site/subject-id init-data))
-          _ (log/infof
-             "Calling action %s by subject %s: input id %s"
-             (:juxt.site/action-id init-data)
-             subject-id
-             (:xt/id init-data))
-
-          subject (when (:juxt.site/subject-id init-data)
-                    (xt/entity db (:juxt.site/subject-id init-data)))
-
-          _ (when-not subject
-              (throw
-               (ex-info
-                (format "No subject found in database for %s" subject-id)
-                {:subject-id subject-id})))]
-
-      (try
-        (:juxt.site/action-result
-         (actions/do-action!
-          (cond->
-              {:juxt.site/xt-node xt-node
-               :juxt.site/db db
-               :juxt.site/subject subject
-               :juxt.site/action (:juxt.site/action-id init-data)}
-
-              (:juxt.site/input init-data)
-              (merge {:juxt.site/received-representation
-                      {:juxt.http/content-type "application/edn"
-                       :juxt.http/body (.getBytes (pr-str (:juxt.site/input init-data)))}}))))
-        (catch Exception cause
-          (throw (ex-info "Failed to perform action" {:init-data init-data} cause)))))
-
-    ;; Go direct!
-    (do
-      (assert (get-in init-data [:juxt.site/input :xt/id]))
-      (log/infof
-       "Installing id %s"
-       (get-in init-data [:juxt.site/input :xt/id]))
-      (put! xt-node (:juxt.site/input init-data)))))
-
-(defn call-installer
-  [xt-node
-   {id :id
-    init-data :juxt.site/init-data
-    error :error :as installer}]
-  (assert id)
-  (when error (throw (ex-info "Cannot proceed with error resource" {:id id :error error})))
-  (when-not init-data
-    (throw
-     (ex-info
-      "Installer does not contain init-data"
-      {:id id :installer installer})))
-
-  (try
-    (let [{:juxt.site/keys [puts] :as result}
-          (call-action-with-init-data! xt-node init-data)]
-      (when (and puts (not (contains? (set puts) id)))
-        (throw (ex-info "Puts does not contain id" {:id id :puts puts})))
-      {:id id :status :installed :result result})
-    (catch Throwable cause
-      (throw (ex-info (format "Failed to converge id: '%s'" id) {:id id} cause))
-      ;;{:id id :status :error :error cause}
-      )))
-
 (defn converge!
   "Given a set of resource ids and a dependency graph, create resources and their
   dependencies. A resource id that is a keyword is a proxy for a set of
@@ -231,7 +150,7 @@
   (assert (every? (fn [[k v]] (and (string? k) (string? v))) parameter-map) "All keys in parameter map must be strings")
 
   (->> (installer-graph ids graph parameter-map)
-       (mapv #(call-installer xt-node %))))
+       (mapv #(installer/call-installer xt-node %))))
 
 (defn normalize-uri-map [uri-map]
   (->> uri-map

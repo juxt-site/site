@@ -7,6 +7,7 @@
    [juxt.site.main :as main]
    [juxt.site.local-files-util :as local]
    [juxt.site.install :as install]
+   [juxt.site.installer :as installer]
    [xtdb.api :as xt])
   (:import
    (xtdb.api IXtdb)))
@@ -53,7 +54,7 @@
   (with-handler (f)))
 
 (defn install-resource-with-action! [subject action document]
-  (install/call-action-with-init-data!
+  (installer/call-action-with-init-data!
    *xt-node*
    {:juxt.site/subject-id subject
     :juxt.site/action-id action
