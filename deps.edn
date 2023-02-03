@@ -1,96 +1,99 @@
 ;; Copyright © 2021-2022, JUXT LTD.
 
 {:paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.11.0"}
+ :deps
+ {org.clojure/clojure {:mvn/version "1.11.0"}
 
-        ;; Project skeleton - also see src/config.edn
-        integrant/integrant {:mvn/version "0.7.0"}
-        aero/aero {:mvn/version "1.1.3"}
-        io.aviso/pretty {:mvn/version "0.1.35"}
+  ;; Project skeleton - also see src/config.edn
+  integrant/integrant {:mvn/version "0.7.0"}
+  aero/aero {:mvn/version "1.1.3"}
+  io.aviso/pretty {:mvn/version "0.1.35"}
 
-        ;; XT
-        com.xtdb/xtdb-core {:mvn/version "1.23.0"}
-        com.xtdb/xtdb-rocksdb {:mvn/version "1.23.0"}
-        com.xtdb/xtdb-lucene {:mvn/version "1.23.0"}
-        com.xtdb/xtdb-http-server {:mvn/version "1.23.0"}
+  ;; XT
+  com.xtdb/xtdb-core {:mvn/version "1.23.0"}
+  com.xtdb/xtdb-rocksdb {:mvn/version "1.23.0"}
+  com.xtdb/xtdb-lucene {:mvn/version "1.23.0"}
+  com.xtdb/xtdb-http-server {:mvn/version "1.23.0"}
 
-        ;; Jetty
-        ring/ring-jetty-adapter {:mvn/version "1.9.5"}
+  ;; Jetty
+  ring/ring-jetty-adapter {:mvn/version "1.9.5"}
 
-        ;; Logging
-        org.clojure/tools.logging {:mvn/version "1.2.4"}
-        org.slf4j/jcl-over-slf4j {:mvn/version "2.0.1"}
-        org.slf4j/jul-to-slf4j {:mvn/version "2.0.1"}
-        org.slf4j/log4j-over-slf4j {:mvn/version "2.0.1"}
-        ch.qos.logback/logback-classic {:mvn/version "1.3.0"
-                                        :exclusions [org.slf4j/slf4j-api]}
+  ;; Logging
+  org.clojure/tools.logging {:mvn/version "1.2.4"}
+  org.slf4j/jcl-over-slf4j {:mvn/version "2.0.1"}
+  org.slf4j/jul-to-slf4j {:mvn/version "2.0.1"}
+  org.slf4j/log4j-over-slf4j {:mvn/version "2.0.1"}
+  ch.qos.logback/logback-classic {:mvn/version "1.3.0"
+                                  :exclusions [org.slf4j/slf4j-api]}
 
-        ;; Content negotiation
-        juxt/pick
-        {:git/url "https://github.com/juxt/pick.git"
-         :sha "166c8a3788c42dabc3cddbd46b44213082098101"}
-        ;;:local/root "/home/mal/src/github.com/juxt/pick"
+  ;; Content negotiation
+  juxt/pick
+  {:git/url "https://github.com/juxt/pick.git"
+   :sha "166c8a3788c42dabc3cddbd46b44213082098101"}
+  ;;:local/root "/home/mal/src/github.com/juxt/pick"
 
-        juxt/grab
-        {:git/url "https://github.com/juxt/grab.git"
-         :sha "6722e5885039f31e28a14d2bd23f956dd3c1dde4"
-         ;;:local/root "/home/mal/src/github.com/juxt/grab"
-         }
+  juxt/grab
+  {:git/url "https://github.com/juxt/grab.git"
+   :sha "6722e5885039f31e28a14d2bd23f956dd3c1dde4"
+   ;;:local/root "/home/mal/src/github.com/juxt/grab"
+   }
 
-        ;; JSON Schema support functions
-        jinx/jinx
-        {:git/url "https://github.com/juxt/jinx.git"
-         :sha "68325edd1c4d5884d78e11f2a31d871a8512893d"}
-        #_{:local/root "../jinx"}
+  ;; JSON Schema support functions
+  jinx/jinx
+  {:git/url "https://github.com/juxt/jinx.git"
+   :sha "68325edd1c4d5884d78e11f2a31d871a8512893d"}
+  #_{:local/root "../jinx"}
 
-        ;; Ring for some utility code
-        ring/ring-core {:mvn/version "1.9.1"}
+  ;; Ring for some utility code
+  ring/ring-core {:mvn/version "1.9.1"}
 
-        ;; Passwords
-        crypto-password/crypto-password {:mvn/version "0.2.1"}
+  ;; Passwords
+  crypto-password/crypto-password {:mvn/version "0.2.1"}
 
-        ;; REPL highlighting
-        mvxcvi/puget {:mvn/version "1.3.1"}
+  ;; REPL highlighting
+  mvxcvi/puget {:mvn/version "1.3.1"}
 
-        ;; Required by OpenID Connect
-        java-http-clj/java-http-clj {:mvn/version "0.4.3"}
+  ;; Required by OpenID Connect
+  java-http-clj/java-http-clj {:mvn/version "0.4.3"}
 
-        ;; Required for OAuth2, not necessarily only for Auth0 since it
-        ;; implements the relevant standards so any OAuth2 provided should work.
-        com.auth0/java-jwt {:mvn/version "3.18.3"}
-        com.auth0/jwks-rsa {:mvn/version "0.20.1"}
+  ;; Required for OAuth2, not necessarily only for Auth0 since it
+  ;; implements the relevant standards so any OAuth2 provided should work.
+  com.auth0/java-jwt {:mvn/version "3.18.3"}
+  com.auth0/jwks-rsa {:mvn/version "0.20.1"}
 
-        ;; JSON is used in a few places
-        metosin/jsonista {:mvn/version "0.2.7"}
+  ;; JSON is used in a few places
+  metosin/jsonista {:mvn/version "0.2.7"}
 
-        ;; Malli is used for validation
-        metosin/malli {:mvn/version "0.8.9"}
+  ;; Malli is used for validation
+  metosin/malli {:mvn/version "0.8.9"}
 
-        ;; sci is used as a transaction script
-        org.babashka/sci {:mvn/version "0.3.32"}
+  ;; sci is used as a transaction script
+  org.babashka/sci {:mvn/version "0.3.32"}
 
-        ;; EQL is used for creating trees from resource state
-        edn-query-language/eql {:mvn/version "1.0.0"}
+  ;; EQL is used for creating trees from resource state
+  edn-query-language/eql {:mvn/version "1.0.0"}
 
-        ;; Some resource installers use templating, and Selmer is also
-        ;; available for :juxt.site/respond programs.
-        selmer/selmer {:mvn/version "1.12.55"}
+  ;; Some resource installers use templating, and Selmer is also
+  ;; available for :juxt.site/respond programs.
+  selmer/selmer {:mvn/version "1.12.55"}
 
-        clj-commons/clj-yaml {:mvn/version "1.0.26"}
-        }
+  clj-commons/clj-yaml {:mvn/version "1.0.26"}
+  }
 
  :aliases
  {:dev
   {:extra-paths ["dev" "test"]
-   :extra-deps {org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
-                djblue/portal {:mvn/version "0.29.1"}
-                borkdude/rewrite-edn {:mvn/version "0.4.6"}
-                ;;lambdaisland/kaocha {:mvn/version "1.0.887"}
-                }
-   :jvm-opts ["-XX:-OmitStackTraceInFastThrow"
-              "-Dclojure.server.site={:port,50505,:accept,juxt.site.repl-server/repl}"
-              "-Dclojure.spec.check-asserts=true"
-              "--add-opens" "java.base/java.util.concurrent=ALL-UNNAMED"]}
+   :extra-deps
+   {org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
+    djblue/portal {:mvn/version "0.29.1"}
+    borkdude/rewrite-edn {:mvn/version "0.4.6"}
+    ;;lambdaisland/kaocha {:mvn/version "1.0.887"}
+    }
+   :jvm-opts
+   ["-XX:-OmitStackTraceInFastThrow"
+    "-Dclojure.server.site={:port,50505,:accept,juxt.site.repl-server/repl}"
+    "-Dclojure.spec.check-asserts=true"
+    "--add-opens" "java.base/java.util.concurrent=ALL-UNNAMED"]}
 
   :test
   {:extra-paths ["test"]
@@ -102,16 +105,19 @@
 
   :coverage
   {:extra-paths ["test"]
-   :extra-deps {lambdaisland/kaocha-cloverage {:mvn/version "1.0.75"}
-                org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
-                djblue/portal {:mvn/version "0.29.1"}}}
+   :extra-deps
+   {lambdaisland/kaocha-cloverage {:mvn/version "1.0.75"}
+    org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
+    djblue/portal {:mvn/version "0.29.1"}}}
 
   :prod
   {:extra-paths ["prod"]
-   :jvm-opts ["-Dcom.sun.management.jmxremote"
-              "-Dcom.sun.management.jmxremote.ssl=false"
-              "-Dcom.sun.management.jmxremote.authenticate=false"
-              "-Dcom.sun.management.jmxremote.port=8001"]
+   :jvm-opts
+   ["-Dcom.sun.management.jmxremote"
+    "-Dcom.sun.management.jmxremote.ssl=false"
+    "-Dcom.sun.management.jmxremote.authenticate=false"
+    "-Dcom.sun.management.jmxremote.port=8001"]
    ;; nREPL can be useful debugging prod
-   :extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
-                org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}}}}}
+   :extra-deps
+   {nrepl/nrepl {:mvn/version "0.9.0"}
+    org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}}}}}
