@@ -441,20 +441,22 @@
      (mapcat seq)
      (apply evict!))))
 
-(defn random-bytes [size]
+(defn ^:deprecated random-bytes [size]
   (util/random-bytes size))
 
-(defn as-hex-str [bytes]
+(defn ^:deprecated as-hex-str [bytes]
   (util/as-hex-str bytes))
 
-(defn encrypt-password [password]
+(defn ^:deprecated encrypt-password [password]
   (password/encrypt password))
 
+;; Demote to tests
 (defn install-resource-groups!
   "Install local resource-groups from local filesystem"
   [names uri-map parameter-map]
   (local/install-resource-groups! (xt-node) names uri-map parameter-map))
 
+;; Demote to tests
 (defn install-resource-with-action! [subject action input-arg]
   (install/call-action-with-init-data!
    (xt-node)
@@ -462,13 +464,34 @@
     :juxt.site/action-id action
     :juxt.site/input input-arg}))
 
+;; Demote to tests
 (defn installer-graph [resources uri-map parameter-map]
   (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
     (install/installer-graph resources graph parameter-map)))
 
+;; Demote to tests
 (defn converge! [resources uri-map parameter-map]
   (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
     (install/converge! (xt-node) resources graph parameter-map)))
+
+(defn find-resources [resources]
+  (keep :xt/id (xt/pull-many (db) [:xt/id] resources)))
+
+(comment
+  (find-resources
+   ["https://auth.site.test/_site/do-action" "https://auth.site.test/_site/subjects/system" "https://auth.site.test/_site/actions/create-action" "https://auth.site.test/_site/permissions/system/bootstrap" "https://auth.site.test/_site/actions/grant-permission" "https://auth.site.test/_site/actions/install-not-found" "https://auth.site.test/_site/permissions/system/install-not-found" "https://auth.site.test/_site/not-found" "https://auth.site.test/_site/actions/get-not-found" "https://auth.site.test/_site/permissions/get-not-found"]))
+
+(defn call-installer! [installer]
+  (install/call-installer (xt-node) installer))
+
+(defn call-installers! [installers]
+  (let [node (xt-node)]
+    (doseq [installer installers]
+      (try
+        (install/call-installer node installer)
+        (catch clojure.lang.ExceptionInfo e
+          (throw (ex-info (format "Failed to install %s" (:id installer)) {:installer (:id installer)} e))
+          )))))
 
 #_(def AUTH_SERVER
     {"https://auth.example.org" "https://auth.site.test"})

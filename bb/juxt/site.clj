@@ -6,7 +6,8 @@
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
    [clojure.edn :as edn]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [juxt.installer-tree :refer [resource-installers]]))
 
 (defn read-line* [r]
   (let [sb (java.lang.StringBuilder.)]
@@ -19,6 +20,10 @@
 (defn read-object [r]
   (binding [*read-eval* false]
     (edn/read {:readers {'error (fn [x] x)}} r)))
+
+(defn read-string* [r]
+  (binding [*read-eval* false]
+    (edn/read-string {:readers {'error (fn [x] x)}} r)))
 
 (defn slurp-prompt [r]
   (let [prompt (read-object r)]
@@ -91,9 +96,30 @@
                          :title "Installing"}
                         (select-keys opts [:title]))
                        (update :title str "..."))})]
-    (when (pos? status)
-      (println "ERROR")
-      (pprint result))))
+
+    (if (pos? status)
+      (do ;; replace with throwing exception
+        (println "ERROR")
+        (pprint result))
+      (str/join " " result))))
+
+(defn install! [resources uri-map parameter-map install-opts]
+
+  ;; 1. Ask tree to return an installer-seq
+  (let [installers (resource-installers resources uri-map parameter-map)
+        existing (set (edn/read-string (push! `(~'find-resources ~(mapv :id installers)) {})))
+        remaining-installers (remove (comp existing :id) installers)]
+
+    (push! `(~'call-installers! (quote ~remaining-installers)) {}))
+
+  ;; TODO: 2. Exchange installer-seq with repl to enquire which resources have already installed.
+  ;; (Perhaps we use a -f to 'force' a re-install, otherwise resources aren't overwritten)
+
+  ;; TODO: 3. Amend the installer-seq accordingly
+
+  )
+
+;; End of infrastructure
 
 (defn reset []
   (when (confirm "Factory reset and delete ALL resources?")
@@ -147,7 +173,13 @@
               "https://auth.example.org/_site/actions/get-not-found"
               "https://auth.example.org/_site/permissions/get-not-found"]
              (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))]
-    (push!
+    (install!
+     resources
+     {"https://auth.example.org" auth-base-uri}
+     {}
+     {:title "Bootstrapping"
+      :success-message "Bootstrap succeeded"})
+    #_(push!
      `(~'converge!
        ~resources
        {"https://auth.example.org" ~auth-base-uri}
@@ -186,15 +218,14 @@
             {:header "Client Secret"
              :value "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})]
 
-          ["session-scope" (str auth-base-uri "/session-scopes/openid-login-session")]])
+          ["session-scope" (str auth-base-uri "/session-scopes/openid-login-session")]])]
 
-        expr `(~'converge!
-               [~(str auth-base-uri "/login-with-openid")
-                ~(str auth-base-uri "/openid/callback")]
-               {"https://auth.example.org" ~auth-base-uri}
-               ~params)]
-
-    (push! expr {:title "Installing OpenAPI"})))
+    (install!
+     [(str auth-base-uri "/login-with-openid")
+      (str auth-base-uri "/openid/callback")]
+     {"https://auth.example.org" auth-base-uri}
+     params
+     {:title "Installing OpenAPI"})))
 
 (defn system-api []
   (let [auth-base-uri (input-auth-base-uri)
@@ -224,9 +255,8 @@
                  "https://data.example.org" data-base-uri}
 
         ]
-    (push!
-     `(~'converge! ~resources ~uri-map {})
-     {:title "Installing System API"})))
+    (install! resources uri-map {} {:title "Installing System API"})
+    ))
 
 (defn auth-server []
   (let [auth-base-uri (input-auth-base-uri)
@@ -244,11 +274,10 @@
         uri-map {"https://auth.example.org" auth-base-uri
                  "https://data.example.org" data-base-uri}]
 
-    (push!
-     `(~'converge!
-       ~resources
-       ~uri-map
-       {"session-scope" ~(str auth-base-uri "/session-scopes/openid-login-session")})
+    (install!
+     resources
+     uri-map
+     {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
      {:title "Installing authorization server"})))
 
 (defn register-swagger-ui []
@@ -256,12 +285,10 @@
         client-id (input {:header "Client ID" :value "swagger-ui"})
         resources [(format "%s/clients/%s" auth-base-uri client-id)]
         uri-map {"https://auth.example.org" auth-base-uri}]
-    (push!
-     `(~'converge!
-       ~resources
-       ~uri-map
-       {"client-type" "public"
-        "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"})
+    (install!
+     resources uri-map
+     {"client-type" "public"
+      "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"}
      {:title (format "Adding OAuth client: %s" client-id)})))
 
 (defn add-user []
@@ -284,12 +311,11 @@
                    (format "%s/permissions/%s-can-authorize" auth-base-uri username)]
 
         uri-map {"https://auth.example.org" auth-base-uri}]
-    (push!
-     `(~'converge!
-       ~resources
-       ~uri-map
-       {"user" ~user
-        "fullname" ~fullname})
+
+    (install!
+     resources uri-map
+     {"user" user
+      "fullname" fullname}
      {:title (format "Adding user: %s" username)})))
 
 (defn users []
