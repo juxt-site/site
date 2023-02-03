@@ -12,7 +12,6 @@
    [juxt.site.actions :as actions]
    [juxt.site.cache :as cache]
    [juxt.site.installer :as installer]
-   [juxt.site.local-files-util :as local]
    [juxt.site.util :as util]
    [xtdb.api :as xt])
   (:import (java.util Date)))
@@ -314,8 +313,7 @@
   ([] (recent 5))
   ([n]
    (map (juxt :juxt.site/request-id :juxt.site/date :juxt.site/uri :ring.request/method :ring.response/status)
-        (cache/recent cache/requests-cache n))
-   ))
+        (cache/recent cache/requests-cache n))))
 
 (defn requests-cache []
   cache/requests-cache)
@@ -334,72 +332,6 @@
      (doseq [batch (partition-all 100 records)]
        (println "Evicting" (count batch) "records")
        (println (apply evict! batch))))))
-
-#_(defn steps
-  ([] (steps (config)))
-  ([opts]
-   (let [{:juxt.site/keys [base-uri]} opts
-         _ (assert base-uri)
-         db (xt/db (xt-node))]
-     [ ;; Awaiting a fix to https://github.com/juxt/xtdb/issues/1480
-      #_{:complete? (xt/entity db "urn:site:tx-fns:do-action")
-         :happy-message "Site do-action transaction function installed."
-         :sad-message "Site do-action transaction function not installed. "
-         :fix "Enter (install-do-action-fn!) to fix this."}
-
-      #_{:complete? (xt/entity db (str base-uri "/_site/apis/site/openapi.json"))
-         :happy-message "Site API resources installed."
-         :sad-message "Site API not installed. "
-         :fix "Enter (put-site-api!) to fix this."}
-
-      #_{:complete? (xt/entity db (str base-uri "/_site/token"))
-         :happy-message "Authentication resources installed."
-         :sad-message "Authentication resources not installed. "
-         :fix "Enter (put-auth-resources!) to fix this."}
-
-      {:complete? (xt/entity db (str base-uri "/_site/subjects/system"))
-       :happy-message "System subject exists."
-       :sad-message "System subject does not exist."
-       :fix "Enter (init/install-system-subject!) to fix this."}
-
-      #_{:complete? (xt/entity db (str base-uri "/_site/roles/superuser"))
-         :happy-message "Role of superuser exists."
-         :sad-message "Role of superuser not yet created."
-         :fix "Enter (put-superuser-role!) to fix this."}
-
-      #_{:complete? (pos? (count (superusers opts)))
-         :happy-message "At least one superuser exists."
-         :sad-message "No superusers exist."
-         :fix "Enter (put-superuser! <username> <fullname>) or (put-superuser! <username> <fullname> <password>) to fix this."}
-
-      #_{:complete? (xt/entity db (str base-uri "/_site/apps/admin"))
-         :happy-message "Admin app exists."
-         :sad-message "Admin app does not yet exist."
-         :fix "Enter (install-admin-app!) to fix this."}
-
-      #_{:complete? (seq (admin-access-tokens db base-uri))
-         :happy-message "Local admin access-token exists."
-         :sad-message "Local admin access-token does not yet exist."
-         :fix "Enter (create-local-admin-access-token! <subject>) to fix this."}
-
-      ])))
-
-#_(defn status
-  ([] (status (steps (config))))
-  ([steps]
-   (println)
-   (doseq [{:keys [complete? happy-message sad-message fix]} steps]
-     (if complete?
-       (println "[X] " (ansi/green happy-message))
-       (println
-        "[ ] "
-        (ansi/red sad-message)
-        (ansi/yellow fix))))
-   (println)
-   (if (every? :complete? steps) :ok :incomplete)))
-
-;; The REPL is having to construct the more usual network representation of a
-;; request context.
 
 (defn check-permissions [actions options]
   (actions/check-permissions (db) actions options))
@@ -451,28 +383,10 @@
   (password/encrypt password))
 
 ;; Demote to tests
-(defn install-resource-groups!
+#_(defn install-resource-groups!
   "Install local resource-groups from local filesystem"
   [names uri-map parameter-map]
   (local/install-resource-groups! (xt-node) names uri-map parameter-map))
-
-;; Demote to tests
-#_(defn install-resource-with-action! [subject action input-arg]
-  (install/call-action-with-init-data!
-   (xt-node)
-   {:juxt.site/subject-id subject
-    :juxt.site/action-id action
-    :juxt.site/input input-arg}))
-
-;; Demote to tests
-#_(defn installer-graph [resources uri-map parameter-map]
-  (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
-    (install/installer-graph resources graph parameter-map)))
-
-;; Demote to tests
-#_(defn converge! [resources uri-map parameter-map]
-  (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
-    (install/converge! (xt-node) resources graph parameter-map)))
 
 (defn find-resources [resources]
   (keep :xt/id (xt/pull-many (db) [:xt/id] resources)))
@@ -481,94 +395,13 @@
   (find-resources
    ["https://auth.site.test/_site/do-action" "https://auth.site.test/_site/subjects/system" "https://auth.site.test/_site/actions/create-action" "https://auth.site.test/_site/permissions/system/bootstrap" "https://auth.site.test/_site/actions/grant-permission" "https://auth.site.test/_site/actions/install-not-found" "https://auth.site.test/_site/permissions/system/install-not-found" "https://auth.site.test/_site/not-found" "https://auth.site.test/_site/actions/get-not-found" "https://auth.site.test/_site/permissions/get-not-found"]))
 
-#_(defn call-installer! [installer]
-  (install/call-installer (xt-node) installer))
-
 (defn call-installers! [installers]
   (let [node (xt-node)]
     (doseq [installer installers]
       (try
         (installer/call-installer node installer)
         (catch clojure.lang.ExceptionInfo e
-          (throw (ex-info (format "Failed to install %s" (:id installer)) {:installer (:id installer)} e))
-          )))))
-
-#_(def AUTH_SERVER
-    {"https://auth.example.org" "https://auth.site.test"})
-
-#_(def RESOURCE_SERVER
-  {"https://auth.example.org" "https://auth.site.test"
-   "https://data.example.org" "https://data.site.test"})
-
-#_(defn ^::public init
-  "Reset and re-initialize system with some resources for getting started."
-  []
-  (try
-    (factory-reset!)
-
-    (install-resource-groups!
-     ["juxt/site/bootstrap"]
-     AUTH_SERVER)
-
-    (install-resource-groups!
-     ["juxt/site/sessions"
-      "juxt/site/oauth-authorization-server"
-      "juxt/site/user-model"
-      "juxt/site/openid"
-      "juxt/site/roles"
-      "juxt/site/protection-spaces"
-      "juxt/site/openapi"]
-     AUTH_SERVER)
-
-    #_(install-resource-groups!
-     ["packages/juxt/site/system-api"]
-     RESOURCE_SERVER)
-
-    ;; For OpenID authentication, configure the authorization
-    ;; server with OpenID client details.
-
-    #_(call-command!
-     :openid/register-client
-     ;; Register an application with an OpenID provider and amend
-     ;; the details here:
-     {"iss" "https://juxt.eu.auth0.com"
-      "client-id" "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
-      "client-secret" "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
-
-    #_(call-command!
-     :openid/register-user
-     ;; Replace with your matching details below:
-     {"username" "mal"
-      "fullname" "Malcolm Sparks"
-      "iss" "https://juxt.eu.auth0.com"
-      "nickname" "malcolmsparks"})
-
-    ;; Assign mal access to SystemReadonly
-    #_(install-resource-with-action!
-     "https://auth.site.test/_site/subjects/system"
-     "https://auth.site.test/actions/assign-role"
-     ;; Replace with your user here
-     {:juxt.site/user "https://auth.site.test/users/mal"
-      :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
-
-    ;; Register OAuth2 clients
-    #_(call-command!
-     :oauth/register-client
-     {"client-id" "swagger-ui"
-      "client-type" #_"public" "confidential"
-      "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"})
-
-    #_(call-command!
-     :oauth/register-client
-     {"client-id" "postman"
-      "client-type" #_"public" "confidential"
-      "redirect-uri" "https://oauth.pstmn.io/v1/callback"})
-
-    :ok
-
-    (catch Exception exception
-      (pprint exception)))
-  )
+          (throw (ex-info (format "Failed to install %s" (:id installer)) {:installer (:id installer)} e)))))))
 
 (defn keyword-commands []
   (concat
@@ -580,24 +413,6 @@
 
     [:quit ^{:doc "Disconnect"} (fn [] nil)]
 
-    #_[:system-api ^{:doc "Install System API"}
-     (fn []
-       (install-resource-groups! ["packages/openapi"] AUTH_SERVER)
-       (install-resource-groups! ["packages/system-api"] RESOURCE_SERVER)
-
-       ;; Assign mal access to SystemReadonly
-       (install-resource-with-action!
-        "https://auth.site.test/_site/subjects/system"
-        "https://auth.site.test/actions/assign-role"
-        ;; Replace with your user here
-        {:juxt.site/user "https://auth.site.test/users/mal"
-         :juxt.site/role "https://auth.site.test/roles/SystemReadonly"})
-
-       :ok)]
-
-    #_[:init ^{:doc "Run test setup script"}
-     init]
-
     [:ls ^{:doc "List all resources"}
      (fn []
        (let [resources (ls)]
@@ -607,15 +422,6 @@
 
     [:reset ^{:doc "Reset entire database"}
      (fn [] (factory-reset!))]
-
-    #_[:install ^{:doc "Install a local package"}
-     (fn []
-       (println "Install local package")
-       (let [args (some-> [["dir" {:description "Package directory"
-                                   :type :dir}]
-                           ["host" {:description "Host"}]]
-                          (grab-input!))]
-         (install-package! (get args "dir") {"https://example.org" (str "https://" (get args "host"))})))]
 
     [:types ^{:doc "Show types"}
      (fn [] (doseq [t (types)]
