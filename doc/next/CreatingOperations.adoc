@@ -1,0 +1,33 @@
+= Creating Operations
+:toc: left
+:experimental:
+
+We are now ready to create and perform actions.
+
+== Creating the operation to permit actions
+
+One operation that we need to create immediately is an operation to grant a permission.
+
+Now that we have our system subject, and our `create-operation` operation, we can call `do-operation`.
+
+`do-operation` is a function that takes the following arguments:
+
+* the subject identifier (in this case, `+https://site.test/_site/subjects/system+`),
+* the operation identifier (in this case, `+https://site.test/_site/operations/create-operation+`),
+* a document
+
+The actual call to `do-operation` is shown below:
+
+[source,clojure]
+----
+include::../../src/juxt/site/alpha/init.clj[tag=create-grant-permission-operation!,indent=0]
+----
+
+NOTE: We would usually have to grant permission to our system subject for this operation.
+However, this permission was already installed in <<bootstrap-install-system-permissions>>.
+
+
+// Local Variables:
+// mode: outline
+// outline-regexp: "[=]+"
+// End:

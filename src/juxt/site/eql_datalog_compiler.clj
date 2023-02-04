@@ -3,7 +3,7 @@
 (ns juxt.site.eql-datalog-compiler
   (:require
    [clojure.walk :refer [postwalk]]
-   [juxt.site.actions :as actions]
+   [juxt.site.operations :as operations]
    [xtdb.api :as xt]))
 
 (defn- compile-ast*
@@ -11,25 +11,25 @@
   (assert (map? ctx))
   (assert (number? (:depth ctx)))
   (let [depth (:depth ctx)
-        action-id (-> ast :params :juxt.site/action)
-        _ (assert action-id "Action must be specified on metadata")
-        action (when action-id (xt/entity db action-id))
-        _ (when action-id (assert action (format "Action not found: %s" action-id)))
-        rules (when action (actions/actions->rules db #{action-id}))
-        _ (when action (assert (seq rules) (format "No rules found for action %s" action-id)))
+        operation-id (-> ast :params :juxt.site/operation)
+        _ (assert operation-id "Operation must be specified on metadata")
+        operation (when operation-id (xt/entity db operation-id))
+        _ (when operation-id (assert operation (format "Operation not found: %s" operation-id)))
+        rules (when operation (operations/operations->rules db #{operation-id}))
+        _ (when operation (assert (seq rules) (format "No rules found for operation %s" operation-id)))
 
-        parent-action (:juxt.site/action ctx)
+        parent-operation (:juxt.site/operation ctx)
 
         additional-where-clauses
         (concat
          ;; Context
-         (when-let [parent-action-id (:xt/id parent-action)]
-           (get-in action [:juxt.site/action-contexts parent-action-id :juxt.site/additional-where-clauses]))
+         (when-let [parent-operation-id (:xt/id parent-operation)]
+           (get-in operation [:juxt.site/operation-contexts parent-operation-id :juxt.site/additional-where-clauses]))
          ;; Parameters
          (mapcat
           (fn [[k v]]
             (when-let [clauses
-                       (get-in action [:juxt.site/params k :juxt.site/additional-where-clauses])]
+                       (get-in operation [:juxt.site/params k :juxt.site/additional-where-clauses])]
               (postwalk
                (fn [x] (if (= x '$) v x))
                clauses)))
@@ -49,7 +49,7 @@
                                       ~(compile-ast*
                                         db
                                         (-> ctx
-                                            (assoc :juxt.site/action action)
+                                            (assoc :juxt.site/operation operation)
                                             (update :depth inc))
                                         node)
                                       ~'e ; e becomes the parent
@@ -61,16 +61,16 @@
      `{:find [(~'pull ~'e [])]
        :keys [~'root]
        :where
-       ~(cond-> `[[~'action :xt/id ~action-id]
+       ~(cond-> `[[~'operation :xt/id ~operation-id]
                   ~'[permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                  ~'[permission :juxt.site/action action]
+                  ~'[permission :juxt.site/operation operation]
                   ~'[permission :juxt.site/purpose purpose]
                   ;; We must rename 'allowed?' here because we
                   ;; cannot allow rules from parent queries to
                   ;; affect rules from sub-queries. In other
                   ;; words, sub-queries must be completely
                   ;; isolated.
-                  ~(list (symbol (str "depth" depth) "allowed?") 'subject 'action 'e 'permission)]
+                  ~(list (symbol (str "depth" depth) "allowed?") 'subject 'operation 'e 'permission)]
           additional-where-clauses (-> (concat additional-where-clauses) vec))
        :rules ~(mapv (fn [rule]
                        (update rule 0 #(apply list (cons (symbol (str "depth" depth) "allowed?") (rest %))))

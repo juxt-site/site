@@ -53,11 +53,11 @@
 (defn handler-fixture [f]
   (with-handler (f)))
 
-(defn install-resource-with-action! [subject action document]
-  (installer/call-action-with-init-data!
+(defn install-resource-with-operation! [subject operation document]
+  (installer/call-operation-with-init-data!
    *xt-node*
    {:juxt.site/subject-id subject
-    :juxt.site/action-id action
+    :juxt.site/operation-id operation
     :juxt.site/input document}))
 
 (defmacro with-fixtures [& body]

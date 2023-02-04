@@ -1,8 +1,8 @@
 {:deps
- ["https://auth.example.org/actions/assign-doctor-to-patient"
+ ["https://auth.example.org/operations/assign-doctor-to-patient"
   "https://auth.example.org/permissions/system/assign-doctor-to-patient"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/action-id "https://auth.example.org/actions/assign-doctor-to-patient"
+  :juxt.site/operation-id "https://auth.example.org/operations/assign-doctor-to-patient"
   :juxt.site/input {:patient "https://data.example.org/patients/{{pid}}"
                     :doctor "https://data.example.org/doctors/{{did}}"}}}

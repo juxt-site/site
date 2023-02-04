@@ -4,37 +4,37 @@
 
 In <<ch-users>> we put Documents directly the database to represent an initial User.
 
-Actions can't be invoked without a User, yet Actions, but Actions are required
+Operations can't be invoked without a User, yet Operations, but Operations are required
 to create Users. We had a chicken-and-egg situation that we resolved by directly
 inserting the first user by hand.
 
-However, now that we have built the capability to create Actions and
-Permissions, we can build the Actions to create new Users, User Identities and
+However, now that we have built the capability to create Operations and
+Permissions, we can build the Operations to create new Users, User Identities and
 Subjects. That's the subject of this chapter.
 
-== Create an action to create a user
+== Create an operation to create a user
 
-An Action to create a User should take a new Document describing the User,
+An Operation to create a User should take a new Document describing the User,
 validate that the `:juxt.site.alpha/type` attribute is set to
 `https://meta.juxt.site/pass/user` and other required checks. For example, a
 User might be required to have a name and other required attributes.
 
-<<ex-create-action-put-user>> demonstrates the creation of an Action that
+<<ex-create-operation-put-user>> demonstrates the creation of an Operation that
 fulfils these criteria.
 
-[[ex-create-action-put-user]]
-.Creating an action to put a user
+[[ex-create-operation-put-user]]
+.Creating an operation to put a user
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-put-user!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-put-user!,indent=0]
 ----
 
-Here we grant the REPL user access to perform this Action.
+Here we grant the REPL user access to perform this Operation.
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-action-put-user!,indent=0]
+include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-operation-put-user!,indent=0]
 ----
 
 <1> Check the format of the id.
@@ -44,66 +44,66 @@ include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-action-put-user
 <3> Default the type, if not given in the argument.
 
 <4> Allow the user details to be retrieved via the GET method, with the
-`https://site.test/actions/get-user` Action.
+`https://site.test/operations/get-user` Operation.
 
-<5> Ensure only roles with a Permission are able to perform this Action.
+<5> Ensure only roles with a Permission are able to perform this Operation.
 
 ====
 
 [IMPORTANT]
 --
-Copy the code in <<ex-create-action-put-user>>, paste it into a REPL and evaluate.
+Copy the code in <<ex-create-operation-put-user>>, paste it into a REPL and evaluate.
 --
 
-== Create an Action to create a User Identity
+== Create an Operation to create a User Identity
 
 In the same way, we may also need the ability to create a User Identity. For
-this Action it is important that the Document given in the document refers to
+this Operation it is important that the Document given in the document refers to
 the User it is identifying.
 
-See <<ex-create-action-put-user-identity>> for a demonstration of creating and
-permitting an Action that meets these requirements.
+See <<ex-create-operation-put-user-identity>> for a demonstration of creating and
+permitting an Operation that meets these requirements.
 
-[[ex-create-action-put-user-identity]]
-.Creating an Action to put a User Identity
+[[ex-create-operation-put-user-identity]]
+.Creating an Operation to put a User Identity
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-put-user-identity!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-put-user-identity!,indent=0]
 ----
 
-Here we grant the REPL user access to perform this Action.
+Here we grant the REPL user access to perform this Operation.
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-action-put-user-identity!,indent=0]
-----
-====
-
-[IMPORTANT]
---
-Copy the code in <<ex-create-action-put-identity>>, paste it into a REPL and evaluate.
---
-
-== Create an Action to create an Subject
-
-[[ex-create-action-put-subject]]
-.Creating an action to put a subject
-====
-[source,clojure]
-----
-include::../../test/juxt/book.clj[tag=create-action-put-subject!,indent=0]
-----
-
-Here we grant the REPL user access to perform this Action.
-
-[source,clojure]
-----
-include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-action-put-subject!,indent=0]
+include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-operation-put-user-identity!,indent=0]
 ----
 ====
 
 [IMPORTANT]
 --
-Copy the code in <<ex-create-action-put-subject>>, paste it into a REPL and evaluate.
+Copy the code in <<ex-create-operation-put-identity>>, paste it into a REPL and evaluate.
+--
+
+== Create an Operation to create an Subject
+
+[[ex-create-operation-put-subject]]
+.Creating an operation to put a subject
+====
+[source,clojure]
+----
+include::../../test/juxt/book.clj[tag=create-operation-put-subject!,indent=0]
+----
+
+Here we grant the REPL user access to perform this Operation.
+
+[source,clojure]
+----
+include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-operation-put-subject!,indent=0]
+----
+====
+
+[IMPORTANT]
+--
+Copy the code in <<ex-create-operation-put-subject>>, paste it into a REPL and evaluate.
 --

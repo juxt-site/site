@@ -29,7 +29,7 @@ ____
 
 == Configuring the Authorization Server
 
-NOTE: TODO: If this is written as an action, much of it can be defaulted leaving
+NOTE: TODO: If this is written as an operation, much of it can be defaulted leaving
 the user to decide the URI and other optional details, perhaps such as which
 types of authorization grant to support.
 

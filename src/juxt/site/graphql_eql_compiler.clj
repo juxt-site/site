@@ -18,7 +18,7 @@
         args (reduce-kv (fn [acc k v]
                           (assoc acc (keyword k) v))
                         {} (:juxt.grab.alpha.graphql/arguments field))
-        action (some-> site-dir :juxt.grab.alpha.graphql/arguments (get "action"))]
+        operation (some-> site-dir :juxt.grab.alpha.graphql/arguments (get "operation"))]
 
     (cond
       (:juxt.grab.alpha.graphql/selection-set field)
@@ -26,7 +26,7 @@
        :dispatch-key k
        :key k
        :params (cond-> args
-                 action (assoc :juxt.site/action action))
+                 operation (assoc :juxt.site/operation operation))
        :children (mapv #(graphql->eql-ast* schema %)
                        (:juxt.grab.alpha.graphql/selection-set field))}
 

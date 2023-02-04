@@ -1,11 +1,11 @@
 {:deps
- ["https://auth.example.org/actions/whoami"
+ ["https://auth.example.org/operations/whoami"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
  {:juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/actions #{"https://auth.example.org/actions/whoami"}}}
+   {:get {:juxt.site/operations #{"https://auth.example.org/operations/whoami"}}}
    :juxt.site/variant-of "https://data.example.org/whoami"
    :juxt.http/content-type "application/json"
    :juxt.site/respond

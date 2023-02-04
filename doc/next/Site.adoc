@@ -49,12 +49,12 @@ include::BootstrappingSite.adoc[leveloffset=+1]
 
 include::CreatingActions.adoc[leveloffset=+2]
 
-// TODO: Gently move sections from Actions.adoc and Permissions.adoc into chapters here
+// TODO: Gently move sections from Operations.adoc and Permissions.adoc into chapters here
 
 // TODO: Include a chapter on Flip
 
-[[ch-actions]]
-include::Actions.adoc[leveloffset=+1]
+[[ch-operations]]
+include::Operations.adoc[leveloffset=+1]
 
 ////
 include::Permissions.adoc[leveloffset=+0]
@@ -79,7 +79,7 @@ include::Representations.adoc[leveloffset=+1]
 Authentication is the process by which a user is identified.
 
 (((access control)))
-In Site, Actions are integrated with authorization rules, providing a rich access control
+In Site, Operations are integrated with authorization rules, providing a rich access control
 layer between users and data.
 
 (((Subject)))
@@ -139,7 +139,7 @@ include::GraphQL.adoc[leveloffset=+1]
 
 include::ErrorResources.adoc[leveloffset=+1]
 
-// Create an action to list-identities
+// Create an operation to list-identities
 // Create a resource at /users that is attached to list-identities
 
 // include::APIs.adoc[leveloffset=+1]

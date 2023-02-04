@@ -1,9 +1,9 @@
 {:deps
- ["https://auth.example.org/actions/register-client"
+ ["https://auth.example.org/operations/register-client"
   "https://auth.example.org/permissions/system/register-client"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/action-id "https://auth.example.org/actions/register-client"
+  :juxt.site/operation-id "https://auth.example.org/operations/register-client"
   :juxt.site/input
   {:juxt.site/client-id "{{client-id}}"
    :juxt.site/client-type "{{client-type}}"

@@ -178,15 +178,15 @@
 (defn ^:temp installer-tree []
   (pprint
    (resource-installers
-    ["https://auth.example.org/_site/do-action"
+    ["https://auth.example.org/_site/do-operation"
      "https://auth.example.org/_site/subjects/system"
-     "https://auth.example.org/_site/actions/create-action"
-     "https://auth.example.org/_site/actions/grant-permission"
+     "https://auth.example.org/_site/operations/create-operation"
+     "https://auth.example.org/_site/operations/grant-permission"
      "https://auth.example.org/_site/permissions/system/bootstrap"
-     "https://auth.example.org/_site/actions/install-not-found"
+     "https://auth.example.org/_site/operations/install-not-found"
      "https://auth.example.org/_site/permissions/system/install-not-found"
      "https://auth.example.org/_site/not-found"
-     "https://auth.example.org/_site/actions/get-not-found"
+     "https://auth.example.org/_site/operations/get-not-found"
      "https://auth.example.org/_site/permissions/get-not-found"]
     {"https://auth.example.org" "https://auth.site.test"}
     {})))

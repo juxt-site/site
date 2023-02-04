@@ -152,10 +152,10 @@ These methods are also used to generate the `Allow` header in web responses,
 where applicable.
 
 For instance, the actions that are used for each method are listed in the
-`juxt.pass.alpha/actions` entry.
+`juxt.pass.alpha/operations` entry.
 
 When Site receives a web request for a resource it will look for a
-`juxt.site.alpha/methods` entry which indicates which action or actions should
+`juxt.site.alpha/methods` entry which indicates which operation or actions should
 be used when seeking permission.
 
 In effect, this allows the resource to indicate which rules are to be used in
@@ -170,11 +170,11 @@ determining whether a user can access the resource.
 ----
 {:juxt.site.alpha/methods
   {:get
-    {:juxt.pass.alpha/actions
-      #{"https://site.test/actions/get-shopping-list"}}
+    {:juxt.pass.alpha/operations
+      #{"https://site.test/operations/get-shopping-list"}}
    :post
-    {:juxt.pass.alpha/actions
-      #{"https://site.test/actions/post-shopping-list-item"}}}}
+    {:juxt.pass.alpha/operations
+      #{"https://site.test/operations/post-shopping-list-item"}}}}
 ----
 ====
 
@@ -183,25 +183,25 @@ determining whether a user can access the resource.
 Let's publish a resource to Site that everyone can see.
 
 NOTE: In many organisations, publishing information to the public web may well be
-a restricted operation, so the action might be restricted to authorized users.
+a restricted operation, so the operation might be restricted to authorized users.
 
 We'll need to perform these steps:
 
-. Create an action for accessing a public resource
-. Grant the permission for anyone to perform this action
-. Create an action for creating a public resource
-. Grant the permission for the REPL user to perform this action
+. Create an operation for accessing a public resource
+. Grant the permission for anyone to perform this operation
+. Create an operation for creating a public resource
+. Grant the permission for the REPL user to perform this operation
 
-Let's start with the first action, shown in <<ex-get-public-resource>>.
+Let's start with the first operation, shown in <<ex-get-public-resource>>.
 
 .Accessing a public resource
 [[ex-get-public-resource]]
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-get-public-resource!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-get-public-resource!,indent=0]
 ----
-<1> We use a more appropriate scope that better reflects this action.
+<1> We use a more appropriate scope that better reflects this operation.
 <2> This is a very weak rule that matches a particular permission.
 ====
 
@@ -210,7 +210,7 @@ include::../../test/juxt/book.clj[tag=create-action-get-public-resource!,indent=
 Copy the code in <<ex-get-public-resource>>, paste it into a REPL and evaluate.
 --
 
-A Permission _must_ exist for an Action to be allowed.
+A Permission _must_ exist for an Operation to be allowed.
 
 Note in <<ex-get-public-resource>> the Rules referenced the existence of a Permission, `https://site.test/permissions/public-resources-to-all`. This is created in <<ex-permit-get-public-resource>>.
 
@@ -229,27 +229,27 @@ include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-get-public-reso
 Copy the code in <<ex-permit-get-public-resource>>, paste it into a REPL and evaluate.
 --
 
-Now we create the Action that can be used to create public resources. The Action
+Now we create the Operation that can be used to create public resources. The Operation
 ensures that the resources it creates set the correct methods (GET, HEAD and
-OPTIONS) and the corresponding Actions those methods map onto.
+OPTIONS) and the corresponding Operations those methods map onto.
 
-For instance, a `GET` request on resources created with this Action would
-correspond to the `https://site.test/actions/get-public-resource` action we
+For instance, a `GET` request on resources created with this Operation would
+correspond to the `https://site.test/operations/get-public-resource` operation we
 created in <<ex-get-public-resource>>.
 
-<<ex-create-public-resource>> demonstrates the creation of our Action at the
+<<ex-create-public-resource>> demonstrates the creation of our Operation at the
 REPL.
 
-.Creating the Action to create a public resource
-[[ex-create-action-to-create-public-resource]]
+.Creating the Operation to create a public resource
+[[ex-create-operation-to-create-public-resource]]
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-put-immutable-public-resource!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-put-immutable-public-resource!,indent=0]
 ----
-<1> We'll put this action in the `write:resource` scope
-<2> We add (or override) the HTTP methods allowed on this resource. Each entry is a mapping from an allowed method to a set of actions. This restricts the search for permissions to a set of actions. The fact that we don't specify any methods such as PUT, POST or DELETE that will change the resource is the reason we've named this action as creating an immutable public resource.
-<3> This rule ensures this action must be specifically granted to someone.
+<1> We'll put this operation in the `write:resource` scope
+<2> We add (or override) the HTTP methods allowed on this resource. Each entry is a mapping from an allowed method to a set of actions. This restricts the search for permissions to a set of actions. The fact that we don't specify any methods such as PUT, POST or DELETE that will change the resource is the reason we've named this operation as creating an immutable public resource.
+<3> This rule ensures this operation must be specifically granted to someone.
 ====
 
 [IMPORTANT]
@@ -258,16 +258,16 @@ Copy the code in <<ex-create-public-resource>>, paste it into a REPL and evaluat
 --
 
 We mustn't forget to grant permission for our REPL user to perform this
-action. This is shown in <<ex-permit-create-public-resource>>.
+operation. This is shown in <<ex-permit-create-public-resource>>.
 
 .Granting permission to create a public resource
 [[ex-permit-create-public-resource]]
 ====
-In this example, we allow anyone with the role of `Administrator` to perform the action of creating public resources.
+In this example, we allow anyone with the role of `Administrator` to perform the operation of creating public resources.
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-action-put-immutable-public-resource!,indent=0]
+include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-operation-put-immutable-public-resource!,indent=0]
 ----
 ====
 
@@ -280,9 +280,9 @@ Copy the code above, paste it into a REPL and evaluate.
 [[hello-world]]
 === Hello World!
 
-Finally we can demonstrate that the action we created in <<ex-create-action-to-create-public-resource>>.
+Finally we can demonstrate that the operation we created in <<ex-create-operation-to-create-public-resource>>.
 
-To demonstrate our new `put-immutable-public-resource` action, let's publish a
+To demonstrate our new `put-immutable-public-resource` operation, let's publish a
 resource that will print `Hello World!` on a web page.
 
 .Creating a simple public 'Hello World' resource

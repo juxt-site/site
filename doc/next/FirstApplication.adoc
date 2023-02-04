@@ -75,7 +75,7 @@ can't dynamically load rules)
 Alternatively, we can add two rules: if the permission has a user attribute, the first rule applies.
 If the permission has a subject attribute, the second rule applies.
 
-But that still doesn't solve our problem, since we want to restrict an action in
+But that still doesn't solve our problem, since we want to restrict an operation in
 certain cases to, say, 2FA, which is only available on a Session.
 
 The only solution seems to have separate actions, or even use purpose, or go

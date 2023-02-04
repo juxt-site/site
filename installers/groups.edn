@@ -1,21 +1,21 @@
 {"juxt/site/protection-spaces"
  {:juxt.site/description "Core resources",
   :juxt.site/resources
-  ["https://auth.example.org/actions/put-protection-space"]},
+  ["https://auth.example.org/operations/put-protection-space"]},
 
  "juxt/site/system-api"
  {:juxt.site/description "Site System API",
   :juxt.site/resources
   [;; API resources
    "https://data.example.org/_site/openapi.json"
-   ;; /actions
-   "https://auth.example.org/actions/system-api/get-actions"
-   "https://auth.example.org/permissions/system-api/get-actions"
-   "https://data.example.org/_site/actions"
-   "https://data.example.org/_site/actions.html"
-   "https://data.example.org/_site/actions.json"
+   ;; /operations
+   "https://auth.example.org/operations/system-api/get-operations"
+   "https://auth.example.org/permissions/system-api/get-operations"
+   "https://data.example.org/_site/operations"
+   "https://data.example.org/_site/operations.html"
+   "https://data.example.org/_site/operations.json"
    ;; /users
-   "https://auth.example.org/actions/system-api/get-users"
+   "https://auth.example.org/operations/system-api/get-users"
    "https://data.example.org/_site/users"
    "https://data.example.org/_site/users.html"
    "https://data.example.org/_site/users.json"
@@ -26,36 +26,36 @@
  "juxt/site/sessions"
  {:juxt.site/description "Sessions",
   :juxt.site/resources
-  ["https://auth.example.org/actions/put-session-scope"
+  ["https://auth.example.org/operations/put-session-scope"
    "https://auth.example.org/permissions/system/put-session-scope"]},
 
  "juxt/site/bootstrap"
  {:juxt.site/description "Bootstrap resources",
   :juxt.site/resources
-  ["https://auth.example.org/_site/do-action"
+  ["https://auth.example.org/_site/do-operation"
    "https://auth.example.org/_site/subjects/system"
-   "https://auth.example.org/_site/actions/create-action"
-   "https://auth.example.org/_site/actions/grant-permission"
+   "https://auth.example.org/_site/operations/create-operation"
+   "https://auth.example.org/_site/operations/grant-permission"
    "https://auth.example.org/_site/permissions/system/bootstrap"
-   "https://auth.example.org/_site/actions/install-not-found"
+   "https://auth.example.org/_site/operations/install-not-found"
    "https://auth.example.org/_site/permissions/system/install-not-found"
    "https://auth.example.org/_site/not-found"
-   "https://auth.example.org/_site/actions/get-not-found"
+   "https://auth.example.org/_site/operations/get-not-found"
    "https://auth.example.org/_site/permissions/get-not-found"]},
 
  "juxt/site/user-model"
  {:juxt.site/description
-  "Actions to establish users upon a common model",
+  "Operations to establish users upon a common model",
   :juxt.site/resources
-  ["https://auth.example.org/actions/put-user"
+  ["https://auth.example.org/operations/put-user"
    "https://auth.example.org/permissions/system/put-user"]},
 
  "juxt/site/login-form"
  {:juxt.site/description "Login form",
   :juxt.site/resources
-  ["https://auth.example.org/actions/login"
+  ["https://auth.example.org/operations/login"
    "https://auth.example.org/permissions/login"
-   "https://auth.example.org/actions/create-login-resource"
+   "https://auth.example.org/operations/create-login-resource"
    "https://auth.example.org/login-with-form"]},
 
  ;; Commenting out, as we can depend directly on these resources from
@@ -63,7 +63,7 @@
  #_"juxt/site/openapi"
  #_{:juxt.site/description "OpenAPI",
   :juxt.site/resources
-  ["https://auth.example.org/actions/get-openapi-document"
+  ["https://auth.example.org/operations/get-openapi-document"
    "https://auth.example.org/permissions/get-openapi-document"]},
 
  "juxt/site/whoami"
@@ -78,8 +78,8 @@
  {:juxt.site/description "OAuth2 Authorization Server",
   :juxt.site/resources
   ["https://auth.example.org/oauth/authorize"
-   "https://auth.example.org/actions/oauth/authorize"
-   "https://auth.example.org/actions/install-authorization-server"
+   "https://auth.example.org/operations/oauth/authorize"
+   "https://auth.example.org/operations/install-authorization-server"
    "https://auth.example.org/permissions/system/install-authorization-server"
    "https://auth.example.org/permissions/system/register-client"]},
 
@@ -101,20 +101,20 @@
   :juxt.site/resources
   ["https://auth.example.org/session-scopes/form-login-session"
    "https://auth.example.org/protection-spaces/bearer"
-   "https://auth.example.org/actions/get-patient"
+   "https://auth.example.org/operations/get-patient"
    "https://auth.example.org/permissions/alice/get-any-patient"
    "https://auth.example.org/permissions/bob/get-patient/004"
    "https://auth.example.org/permissions/bob/get-patient/009"
    "https://auth.example.org/permissions/bob/get-patient/010"
-   "https://auth.example.org/actions/list-patients"
+   "https://auth.example.org/operations/list-patients"
    "https://auth.example.org/permissions/alice/list-patients"
    "https://auth.example.org/permissions/bob/list-patients"
-   "https://auth.example.org/actions/register-patient-measurement"
+   "https://auth.example.org/operations/register-patient-measurement"
    "https://auth.example.org/permissions/system/register-patient-measurement"
-   "https://auth.example.org/actions/get-doctor"
+   "https://auth.example.org/operations/get-doctor"
    "https://auth.example.org/permissions/alice/get-doctor"
    "https://auth.example.org/permissions/bob/get-doctor"
-   "https://auth.example.org/actions/read-any-measurement"
+   "https://auth.example.org/operations/read-any-measurement"
    "https://auth.example.org/permissions/alice/read-any-measurement"
    "https://auth.example.org/permissions/bob/read-any-measurement"
 
@@ -155,11 +155,11 @@
 
  "juxt/site/roles"
  {:juxt.site/description
-  "Actions to establish and assign roles to users",
+  "Operations to establish and assign roles to users",
   :juxt.site/resources
-  ["https://auth.example.org/actions/put-role"
+  ["https://auth.example.org/operations/put-role"
    "https://auth.example.org/permissions/system/put-role"
-   "https://auth.example.org/actions/assign-role"
+   "https://auth.example.org/operations/assign-role"
    "https://auth.example.org/permissions/system/assign-role"]},
 
  "juxt/site/password-based-user-identity"
@@ -170,10 +170,10 @@
  "juxt/site/openid"
  {:juxt.site/description "OpenID Connect",
   :juxt.site/resources
-  ["https://auth.example.org/actions/openid/exchange-code-for-id-token"
-   "https://auth.example.org/actions/register-openid-issuer"
-   "https://auth.example.org/actions/register-openid-client"
-   "https://auth.example.org/actions/register-openid-user-identity"
+  ["https://auth.example.org/operations/openid/exchange-code-for-id-token"
+   "https://auth.example.org/operations/register-openid-issuer"
+   "https://auth.example.org/operations/register-openid-client"
+   "https://auth.example.org/operations/register-openid-user-identity"
    "https://auth.example.org/permissions/system/register-openid-issuer"
    "https://auth.example.org/permissions/system/register-openid-client"
    "https://auth.example.org/permissions/system/register-openid-user-identity"]}}

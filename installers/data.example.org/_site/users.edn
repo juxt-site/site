@@ -1,5 +1,5 @@
 {:deps
- ["https://auth.example.org/actions/system-api/get-users"
+ ["https://auth.example.org/operations/system-api/get-users"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
  {:juxt.site/input
@@ -11,7 +11,7 @@
    :juxt.site/methods
    {:get
     {:juxt.site/description "Get users"
-     :juxt.site/actions #{"https://auth.example.org/actions/system-api/get-users"}
+     :juxt.site/operations #{"https://auth.example.org/operations/system-api/get-users"}
 
      :openapi.v3/operation-id "getUsers"
      :openapi.v3/scope "read:users"

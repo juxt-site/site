@@ -78,7 +78,7 @@
         user/dependency-graph
         form-based-auth/dependency-graph
         oauth/dependency-graph}}
-    #{"https://site.test/actions/put-user-owned-content"
+    #{"https://site.test/operations/put-user-owned-content"
       "https://site.test/permissions/alice/put-user-owned-content"
 
       "https://site.test/oauth/authorize"
@@ -93,13 +93,13 @@
     (doseq [user #{"bob" "alice"}]
       (juxt.site.alpha.init/put!
        {:xt/id (format "https://site.test/~%s/{path}" user)
-        ;; This needs to return a resource 'owned' by the user, then the action can
+        ;; This needs to return a resource 'owned' by the user, then the operation can
         ;; unify on the subject's user and the resource's owner.
         :owner (format "https://site.test/users/%s" user)
         ::site/uri-template true
         ::site/methods
-        {:get {::pass/actions #{"https://site.test/_site/actions/get-not-found"}}
-         :put {::pass/actions #{"https://site.test/actions/put-user-owned-content"}}}}))
+        {:get {::pass/operations #{"https://site.test/_site/operations/get-not-found"}}
+         :put {::pass/operations #{"https://site.test/operations/put-user-owned-content"}}}}))
 
     (testing "404 on GET, doesn't exist yet"
       (let [req {:ring.request/method :get
@@ -133,7 +133,7 @@
               response (*handler* request)]
           (is (= 411 (:ring.response/status response))))))))
 
-;; TODO: Actions should eventually be promoted to 'site'.
+;; TODO: Operations should eventually be promoted to 'site'.
 
 ;; TODO: Test all branches of implicit grant, especially cases where quotations should throw exceptions
 
@@ -144,7 +144,7 @@
 
     ;; Try to access /private/internal.html - there is no protection space so no
     ;; WWW-Authenticate header. We simply can't perform
-    ;; /actions/get-protected-resource anonymously.
+    ;; /operations/get-protected-resource anonymously.
     (is (= 403
            (:ring.response/status
             (*handler*
@@ -584,7 +584,7 @@
 
       "https://site.test/applications/local-terminal"
 
-      "https://site.test/actions/install-graphql-endpoint"
+      "https://site.test/operations/install-graphql-endpoint"
       "https://site.test/permissions/alice/install-graphql-endpoint"
       "https://site.test/oauth/scope/graphql/administer"
       "https://site.test/oauth/scope/graphql/develop"}
@@ -604,7 +604,7 @@
 
               request
               {:ring.request/method :post
-               :ring.request/path "/actions/install-graphql-endpoint"
+               :ring.request/path "/operations/install-graphql-endpoint"
                :ring.request/headers
                {"authorization" (format "Bearer %s" access-token)
                 "content-type" "application/edn"}}
@@ -626,7 +626,7 @@
 
               request
               {:ring.request/method :post
-               :ring.request/path "/actions/install-graphql-endpoint"
+               :ring.request/path "/operations/install-graphql-endpoint"
                :ring.request/headers
                {"authorization" (format "Bearer %s" access-token)
                 "content-type" "application/edn"}}
@@ -645,7 +645,7 @@
 
               request
               {:ring.request/method :post
-               :ring.request/path "/actions/install-graphql-endpoint"
+               :ring.request/path "/operations/install-graphql-endpoint"
                :ring.request/headers
                {"authorization" (format "Bearer %s" access-token)
                 "content-type" "application/edn"}}
@@ -886,7 +886,7 @@
       ;;error
       )))
 
-;; A post to /graphql selects the action relating to 'query', 'mutation' or
+;; A post to /graphql selects the operation relating to 'query', 'mutation' or
 ;; 'subscription'
 
 ;; Do we need to rethink scopes? No, but the /graphql POST handler needs to
@@ -924,9 +924,9 @@
 #_(with-fixtures
   (with-resources
     #{"https://site.test/graphql"
-      "https://site.test/actions/put-graphql-schema"
+      "https://site.test/operations/put-graphql-schema"
       "https://site.test/permissions/alice/put-graphql-schema"
-      "https://site.test/actions/get-graphql-schema"
+      "https://site.test/operations/get-graphql-schema"
       "https://site.test/permissions/alice/get-graphql-schema"}
     (f/eval-quotation
      []
@@ -1022,4 +1022,4 @@
   (p/register! #'repl/e))
 
 
-;; Create an action: install-openid-provider
+;; Create an operation: install-openid-provider

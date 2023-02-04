@@ -1,9 +1,9 @@
 {:deps
- ["https://auth.example.org/actions/get-openapi-document"]
+ ["https://auth.example.org/operations/get-openapi-document"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/action-id "https://auth.example.org/_site/actions/grant-permission"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/action "https://auth.example.org/actions/get-openapi-document"
+   :juxt.site/operation "https://auth.example.org/operations/get-openapi-document"
    :juxt.site/purpose nil}}}

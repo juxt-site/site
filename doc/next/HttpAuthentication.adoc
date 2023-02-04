@@ -26,17 +26,17 @@ details depend on the configuration of the protection space.
 
 In Site, a protection space is defined in a Document in the database.
 
-If the Action on the resource fails to be authorized, and the request does not
+If the Operation on the resource fails to be authorized, and the request does not
 supply valid credentials, then the request is met with a `401 Unauthorized`
 response, along with a `WWW-Authenticate` header giving details of how to
 authenticate according to the protection spaces that the resource belongs to.
 
-If the request contains valid credentials, yet the Action on the resource is
+If the request contains valid credentials, yet the Operation on the resource is
 still not authorized, a `403 Forbidden` response is returned.
 
 Being in a protection space does not imply that a resource cannot still be
 publically accessible without credentials. It just means that any credentials in
-the request might be used when deciding if the Action corresponding to the
+the request might be used when deciding if the Operation corresponding to the
 request's method can be authorized. _This is why a 401 response status is
 labelled `Unauthorized` rather than `Unauthenticated`_. It's possible that a
 resource might generate a successful response for unauthenticated users, showing
@@ -45,7 +45,7 @@ only publically accessible information.
 [CAUTION]
 --
 Do not rely on a protection space providing protection for your resource. You
-still need to write rules for how your Actions will be authorized!
+still need to write rules for how your Operations will be authorized!
 --
 
 == Realm values
@@ -65,15 +65,15 @@ _realm_ value for each partition.
 == Creating a Protection Space
 
 (((protection space,creating))) Since a protection space is represented as a
-Document, an Action is required to create one. If one is not already set up we
-can create it one, as shown in <<ex-create-action-put-protection-space>>.
+Document, an Operation is required to create one. If one is not already set up we
+can create it one, as shown in <<ex-create-operation-put-protection-space>>.
 
-[[ex-create-action-put-protection-space]]
-.Creating the Action to establish a Protection Space
+[[ex-create-operation-put-protection-space]]
+.Creating the Operation to establish a Protection Space
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-put-protection-space!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-put-protection-space!,indent=0]
 ----
 
 We'll grant this permission to our REPL user:
@@ -86,7 +86,7 @@ include::../../test/juxt/book.clj[tag=grant-permission-to-put-protection-space!,
 [IMPORTANT]
 --
 
-Copy the code in <<ex-create-action-put-protection-space>> into a REPL, edit as
+Copy the code in <<ex-create-operation-put-protection-space>> into a REPL, edit as
 necessary and evaluate.
 
 --

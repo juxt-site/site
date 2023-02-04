@@ -30,22 +30,22 @@ Site to support session-based authentication commonly used on the Web.
 
 == Preparing the creation of session scopes
 
-To create a session scope, we first need to establish an Action that will allow
-us to do so. As always, the Action specifies which attributes are required and
-their values. <<ex-create-action-put-session-scope>> demonstrates the creation of
-such an Action.
+To create a session scope, we first need to establish an Operation that will allow
+us to do so. As always, the Operation specifies which attributes are required and
+their values. <<ex-create-operation-put-session-scope>> demonstrates the creation of
+such an Operation.
 
-[[ex-create-action-put-session-scope]]
-.Creating the Action to establish a session scope
+[[ex-create-operation-put-session-scope]]
+.Creating the Operation to establish a session scope
 ====
-We first create the Action.
+We first create the Operation.
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-put-session-scope!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-put-session-scope!,indent=0]
 ----
 
-We must also ensure our REPL user has permission to call this Action.
+We must also ensure our REPL user has permission to call this Operation.
 
 [source,clojure]
 ----
@@ -56,7 +56,7 @@ include::../../test/juxt/book.clj[tag=grant-permission-to-put-session-scope!,ind
 [IMPORTANT]
 --
 
-Copy the code in <<ex-create-action-put-session-scope>> into a REPL, edit as
+Copy the code in <<ex-create-operation-put-session-scope>> into a REPL, edit as
 necessary and evaluate.
 
 --

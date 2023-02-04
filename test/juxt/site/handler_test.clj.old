@@ -25,8 +25,8 @@
   (submit-and-await!
    [
     [::xt/put
-     {:xt/id "https://example.org/_site/actions/put-things"
-      ::site/type "Action"
+     {:xt/id "https://example.org/_site/operations/put-things"
+      ::site/type "Operation"
       :juxt.site.malli/args-schema
       [:tuple
        [:map
@@ -47,7 +47,7 @@
      {:xt/id "https://example.org/_site/permissions/put-things"
       ::site/type "Permission"
       ::pass/subject :tester
-      ::pass/action "https://example.org/_site/actions/put-things"
+      ::pass/operation "https://example.org/_site/operations/put-things"
       ::pass/purpose nil}]])
 
   (submit-and-await!
@@ -69,7 +69,7 @@
                "properties"
                {"name" {"type" "string"
                         "minLength" 2}}}}}}
-           "x-juxt-site-action" "https://example.org/_site/actions/put-things"}}}}}]])
+           "x-juxt-site-operation" "https://example.org/_site/operations/put-things"}}}}}]])
 
   (let [body (json/write-value-as-string {"name" "foo"})
         _ (*handler*
@@ -94,8 +94,8 @@
    (submit-and-await!
     [
      [::xt/put
-      {:xt/id "https://example.org/_site/actions/put-things"
-       ::site/type "Action"
+      {:xt/id "https://example.org/_site/operations/put-things"
+       ::site/type "Operation"
        :juxt.site.malli/args-schema
        [:tuple
         [:map
@@ -116,7 +116,7 @@
       {:xt/id "https://example.org/_site/permissions/put-things"
        ::site/type "Permission"
        ::pass/subject :tester
-       ::pass/action "https://example.org/_site/actions/put-things"
+       ::pass/operation "https://example.org/_site/operations/put-things"
        ::pass/purpose nil}]])
 
    (submit-and-await!
@@ -138,7 +138,7 @@
                "properties"
                {"name" {"type" "string"
                         "minLength" 2}}}}}}
-           "x-juxt-site-action" "https://example.org/_site/actions/put-things"}}}}}]
+           "x-juxt-site-operation" "https://example.org/_site/operations/put-things"}}}}}]
 
      ])
 
@@ -159,7 +159,7 @@
 
    #_(authz/check-permissions
     (xt/db *xt-node*)
-    #{"https://example.org/_site/actions/put-things"}
+    #{"https://example.org/_site/operations/put-things"}
     (cond-> {:subject :tester}
       ;; When the resource is in the database, we can add it to the
       ;; permission checking in case there's a specific permission for
@@ -167,7 +167,7 @@
       ;;(:xt/id resource) (assoc :resource (:xt/id resource))
       ))
 
-   #_(xt/entity (xt/db *xt-node*) "https://example.org/_site/actions/put-things")
+   #_(xt/entity (xt/db *xt-node*) "https://example.org/_site/operations/put-things")
 
    (let [body (json/write-value-as-string {"name" "foo"})
          response
@@ -206,8 +206,8 @@
   (submit-and-await!
    [
     [::xt/put
-     {:xt/id "https://example.org/_site/actions/put-things"
-      ::site/type "Action"
+     {:xt/id "https://example.org/_site/operations/put-things"
+      ::site/type "Operation"
       :juxt.site.malli/args-schema
       [:tuple [:map]]
 
@@ -226,7 +226,7 @@
      {:xt/id "https://example.org/_site/permissions/put-things"
       ::site/type "Permission"
       ::pass/subject :tester
-      ::pass/action "https://example.org/_site/actions/put-things"
+      ::pass/operation "https://example.org/_site/operations/put-things"
       ::pass/purpose nil}]])
 
   (submit-and-await!
@@ -248,7 +248,7 @@
             {"schema"
              {"properties"
               {"name" {"type" "string" "minLength" 1}}}}}}
-          "x-juxt-site-action" "https://example.org/_site/actions/put-things"}}
+          "x-juxt-site-operation" "https://example.org/_site/operations/put-things"}}
 
         "/things/{a}/{b}"
         {"parameters"
@@ -264,7 +264,7 @@
             {"schema"
              {"properties"
               {"name" {"type" "string" "minLength" 1}}}}}}
-          "x-juxt-site-action" "https://example.org/_site/actions/put-things"}}}}}]])
+          "x-juxt-site-operation" "https://example.org/_site/operations/put-things"}}}}}]])
   (let [body (json/write-value-as-string {"name" "foo"})
         r (*handler*
            {::pass/subject :tester
@@ -286,8 +286,8 @@
   (submit-and-await!
    [
     [::xt/put
-     {:xt/id "https://example.org/_site/actions/put-things"
-      ::site/type "Action"
+     {:xt/id "https://example.org/_site/operations/put-things"
+      ::site/type "Operation"
       :juxt.site.alpha.malli/args-schema
       [:tuple [:map]]
 
@@ -306,7 +306,7 @@
      {:xt/id "https://example.org/_site/permissions/put-things"
       ::site/type "Permission"
       ::pass/subject :tester
-      ::pass/action "https://example.org/_site/actions/put-things"
+      ::pass/operation "https://example.org/_site/operations/put-things"
       ::pass/purpose nil}]])
 
   (submit-and-await!
@@ -330,7 +330,7 @@
             {"schema"
              {"properties"
               {"name" {"type" "string" "minLength" 1}}}}}}
-          "x-juxt-site-action" "https://example.org/_site/actions/put-things"}}
+          "x-juxt-site-operation" "https://example.org/_site/operations/put-things"}}
 
         "/things/{a}/{n}"
         {"parameters"
@@ -346,7 +346,7 @@
             {"schema"
              {"properties"
               {"name" {"type" "string" "minLength" 1}}}}}}
-          "x-juxt-site-action" "https://example.org/_site/actions/put-things"}}}}}]])
+          "x-juxt-site-operation" "https://example.org/_site/operations/put-things"}}}}}]])
 
   (let [path (str"/things/" (java.net.URLEncoder/encode "ABC/DEF"))
         body (json/write-value-as-string {"name" "zip"})
@@ -460,7 +460,7 @@
       ::site/type "StaticRepresentation"
       ::http/etag "\"abc\""
       ::http/content-type "image/png"
-      ::http/methods {:put {::pass/actions #{:test}}}
+      ::http/methods {:put {::pass/operations #{:test}}}
       }]])
   (:ring.response/status
    (let [body "Hello"]
@@ -504,7 +504,7 @@
   (submit-and-await!
    [[:xtdb.api/put
      {:xt/id "https://example.org/report"
-      ::http/methods {:get {::pass/actions #{:test}} :head {} :options {}}
+      ::http/methods {:get {::pass/operations #{:test}} :head {} :options {}}
       ::http/representations
       #{{::http/content-type "text/html;charset=utf-8"
          ::http/content "<h1>Latest sales figures</h1>"}
@@ -671,7 +671,7 @@
    (let [db (xt/db *xt-node*)]
      (xt/entity db :tester)
 
-     (authz/actions->rules db #{:test})
+     (authz/operations->rules db #{:test})
      (authz/check-permissions
         (xt/db *xt-node*)
         #{:test}
@@ -686,7 +686,7 @@
     [
      [:xtdb.api/put
       {:xt/id "https://example.org/report"
-       ::http/methods {:get {::pass/actions #{:test}}
+       ::http/methods {:get {::pass/operations #{:test}}
                        :head {}
                        :options {}}
        ::http/representations

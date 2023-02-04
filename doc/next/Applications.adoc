@@ -3,7 +3,7 @@
 
 == Introduction
 
-Actions are invoked when users make direct requests to an API. However, APIs are
+Operations are invoked when users make direct requests to an API. However, APIs are
 primarily designed to be used by applications acting on a user's behalf.
 
 Applications must first be registered with Site. Then a user must authorize an
@@ -13,7 +13,7 @@ API requests.
 
 === Scope
 
-Actions can be grouped together into access ranges. For example, the actions required for user administration might be grouped into an access range named `user:admin`.
+Operations can be grouped together into access ranges. For example, the actions required for user administration might be grouped into an access range named `user:admin`.
 
 Applications might only need a limited set of these access ranges in order to function.
 The allowed access ranges might be restricted during application registration.
@@ -26,27 +26,27 @@ During the application authorization step, the authorizing user might choose to 
 
 Furthermore, applications might unilaterally request a restricted scope upon requesting an access token.
 
-No matter the ultimate scope of the access-token that is issued, an application cannot use an access-token to invoke an action that would otherwise be unavailable to a user.
+No matter the ultimate scope of the access-token that is issued, an application cannot use an access-token to invoke an operation that would otherwise be unavailable to a user.
 
-== Create the action to create an application
+== Create the operation to create an application
 
-[[example-create-action-put-application]]
-.Creating the action
+[[example-create-operation-put-application]]
+.Creating the operation
 [example]
 --
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-put-application!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-put-application!,indent=0]
 ----
 --
 
-== Create the action to authorize an application
+== Create the operation to authorize an application
 
 [example]
 --
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-authorize-application!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-authorize-application!,indent=0]
 ----
 --
 
@@ -56,17 +56,17 @@ include::../../test/juxt/book.clj[tag=create-action-authorize-application!,inden
 --
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-action-authorize-application!,indent=0]
+include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-operation-authorize-application!,indent=0]
 ----
 --
 
-== Create the action to issue an access token
+== Create the operation to issue an access token
 
 [example]
 --
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-issue-access-token!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-issue-access-token!,indent=0]
 ----
 --
 
@@ -76,7 +76,7 @@ include::../../test/juxt/book.clj[tag=create-action-issue-access-token!,indent=0
 --
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-action-issue-access-token!,indent=0]
+include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-operation-issue-access-token!,indent=0]
 ----
 
 <1> All users are permitted to issue access tokens to applications that have

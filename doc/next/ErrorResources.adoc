@@ -7,7 +7,7 @@ First, create an error resource.
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-put-error-resource!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-put-error-resource!,indent=0]
 ----
 
 [source,clojure]

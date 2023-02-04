@@ -13,7 +13,7 @@
    [juxt.reap.alpha.regex :as re]
    [juxt.reap.alpha.rfc7230 :as-alias rfc7230]
    [juxt.reap.alpha.ring :refer [headers->decoded-preferences]]
-   [juxt.site.actions :as actions]
+   [juxt.site.operations :as operations]
    [juxt.site.cache :as cache]
    [juxt.site.conditional :as conditional]
    [juxt.site.content-negotiation :as conneg]
@@ -213,21 +213,21 @@
 
   (let [req (assoc req :ring.response/status 200)
         ;; This use of 'first' is worrisome. Perhaps we should be merging the
-        ;; results of every permitted action? TODO: resolve this
-        permitted-action (:juxt.site/action (first (:juxt.site/permitted-actions req)))]
+        ;; results of every permitted operation? TODO: resolve this
+        permitted-operation (:juxt.site/operation (first (:juxt.site/permitted-operations req)))]
 
-    (log/infof "Permitted action is %s" permitted-action)
+    (log/infof "Permitted operation is %s" permitted-operation)
 
     (cond
 
       ;; It's rare but sometimes a GET will involve a transaction. For example,
       ;; the Authorization Request (RFC 6749 Section 4.2.1).
-      (and permitted-action (-> permitted-action :juxt.site/transact))
+      (and permitted-operation (-> permitted-operation :juxt.site/transact))
       (do
-        (log/infof "Permitted action is transactable")
-        (actions/do-action!
+        (log/infof "Permitted operation is transactable")
+        (operations/do-operation!
          (cond-> req
-           permitted-action (assoc :juxt.site/action (:xt/id permitted-action))
+           permitted-operation (assoc :juxt.site/operation (:xt/id permitted-operation))
            ;; A java.io.BufferedInputStream in the request can cause this error:
            ;; "invalid tx-op: Unfreezable type: class
            ;; java.io.BufferedInputStream".
@@ -235,12 +235,12 @@
 
       (-> resource :juxt.site/respond :juxt.site.sci/program)
       (let [state
-            (when-let [program (-> permitted-action :juxt.site/state :juxt.site.sci/program)]
+            (when-let [program (-> permitted-operation :juxt.site/state :juxt.site.sci/program)]
               (sci/eval-string
                program
                {:namespaces
                 (merge
-                 {'user {'*action* permitted-action
+                 {'user {'*operation* permitted-operation
                          '*resource* (:juxt.site/resource req)
                          '*ctx* (dissoc req :juxt.site/xt-node)
                          'logf (fn [& args] (eval `(log/debugf ~@args)))
@@ -259,15 +259,15 @@
                   'juxt.site
                   {'pull-allowed-resources
                    (fn [m]
-                     (actions/pull-allowed-resources
+                     (operations/pull-allowed-resources
                       (:juxt.site/db req)
                       m
                       {:juxt.site/subject subject
                        ;; TODO: Don't forget purpose
                        }))
-                   'allowed-actions
+                   'allowed-operations
                    (fn [m]
-                     (actions/allowed-actions
+                     (operations/allowed-operations
                       (:juxt.site/db req)
                       (merge {:juxt.site/subject subject} m)))}})
 
@@ -285,7 +285,7 @@
              {:namespaces
               (merge
                {'user (cond->
-                          {'*action* permitted-action
+                          {'*operation* permitted-operation
                            '*resource* (:juxt.site/resource req)
                            '*ctx* (dissoc req :juxt.site/xt-node)
                            'logf (fn [& args] (eval `(log/debugf ~@args)))
@@ -331,14 +331,14 @@
 (defn perform-unsafe-method [{:keys [ring.request/method] :as req}]
   (let [req (cond-> req
               (#{:post :put :patch} method) receive-representation)
-        ;; TODO: Should we fail if more than one permitted action available?
-        permitted-action (:juxt.site/action (first (:juxt.site/permitted-actions req)))
+        ;; TODO: Should we fail if more than one permitted operation available?
+        permitted-operation (:juxt.site/operation (first (:juxt.site/permitted-operations req)))
         ;; Default response status
         req (assoc req :ring.response/status 200)]
 
-    (actions/do-action!
+    (operations/do-operation!
      (-> req
-         (assoc :juxt.site/action (:xt/id permitted-action))
+         (assoc :juxt.site/operation (:xt/id permitted-operation))
          ;; A java.io.BufferedInputStream in the request can provoke this
          ;; error: "invalid tx-op: Unfreezable type: class
          ;; java.io.BufferedInputStream".
@@ -396,12 +396,12 @@
         (when (and
                (#{:get :head} method)
                (empty? cur-reps)
-                ;; We might have an action installed for the GET method. This is
+                ;; We might have an operation installed for the GET method. This is
                 ;; rare but used for certain cases such as special
                 ;; redirections. In this case, we don't throw a 404, but return
-               ;; the result of the action.
+               ;; the result of the operation.
                ;; New note: let's not do this, but rather ensure that there is content, even if it's null content, on the redirection resource.
-               ;;(empty? (get-in resource [:juxt.site/methods :get :juxt.site/actions]))
+               ;;(empty? (get-in resource [:juxt.site/methods :get :juxt.site/operations]))
                )
           (throw
            (ex-info
@@ -1196,7 +1196,7 @@
    wrap-method-not-allowed?
 
    ;; We authorize the resource, prior to finding representations.
-   actions/wrap-authorize-with-actions
+   operations/wrap-authorize-with-operations
 
    ;; Find representations and possibly do content negotiation
    wrap-find-current-representations

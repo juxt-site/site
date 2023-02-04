@@ -14,7 +14,7 @@
             with-session-token with-bearer-token
             with-fixtures *handler* *xt-node* handler-fixture
             install-resource-groups!
-            install-resource-with-action!
+            install-resource-with-operation!
             AUTH_SERVER RESOURCE_SERVER]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
@@ -27,9 +27,9 @@
 
   (testing "Register client with generated client-id"
     (let [result
-          (install-resource-with-action!
+          (install-resource-with-operation!
            "https://auth.example.test/_site/subjects/system"
-           "https://auth.example.test/actions/register-client"
+           "https://auth.example.test/operations/register-client"
            {:juxt.site/client-type "public"
             :juxt.site/redirect-uri "https://test-app.example.test/callback"})
           doc-id (some-> result :juxt.site/puts first)
@@ -39,9 +39,9 @@
 
   (testing "Register client with generated client-id and client-secret"
     (let [result
-          (install-resource-with-action!
+          (install-resource-with-operation!
            "https://auth.example.test/_site/subjects/system"
-           "https://auth.example.test/actions/register-client"
+           "https://auth.example.test/operations/register-client"
            {:juxt.site/client-type "confidential"
             :juxt.site/redirect-uri "https://test-app.example.test/callback"})
           doc-id (some-> result :juxt.site/puts first)
@@ -53,9 +53,9 @@
     (let [input {:juxt.site/client-id "test-app"
                  :juxt.site/client-type "public"
                  :juxt.site/redirect-uri "https://test-app.example.test/callback"}]
-      (install-resource-with-action!
+      (install-resource-with-operation!
        "https://auth.example.test/_site/subjects/system"
-       "https://auth.example.test/actions/register-client"
+       "https://auth.example.test/operations/register-client"
        input)
 
       (is
@@ -70,9 +70,9 @@
       (is
        (thrown?
         clojure.lang.ExceptionInfo
-        (install-resource-with-action!
+        (install-resource-with-operation!
          "https://auth.example.test/_site/subjects/system"
-         "https://auth.example.test/actions/register-client"
+         "https://auth.example.test/operations/register-client"
          input))))))
 
 (deftest get-subject-test
@@ -85,9 +85,9 @@
 
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
-  (install-resource-with-action!
+  (install-resource-with-operation!
    "https://auth.example.test/_site/subjects/system"
-   "https://auth.example.test/actions/register-client"
+   "https://auth.example.test/operations/register-client"
    {:juxt.site/client-id "test-app"
     :juxt.site/client-type "confidential"
     :juxt.site/redirect-uri "https://test-app.example.test/callback"})

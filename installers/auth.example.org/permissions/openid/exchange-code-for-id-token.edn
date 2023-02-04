@@ -1,9 +1,9 @@
 {:deps
- ["https://auth.example.org/actions/openid/exchange-code-for-id-token"]
+ ["https://auth.example.org/operations/openid/exchange-code-for-id-token"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/action-id "https://auth.example.org/_site/actions/grant-permission"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/action "https://auth.example.org/actions/openid/exchange-code-for-id-token"
+   :juxt.site/operation "https://auth.example.org/operations/openid/exchange-code-for-id-token"
    :juxt.site/purpose nil}}}

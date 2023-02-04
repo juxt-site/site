@@ -1,0 +1,28 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   ;; NOTE: This means: Use the operation to extract part of the
+   ;; resource's state.  Operations are used to extract
+   ;; protected data, particularly part of the state of a
+   ;; resource.
+   ;;
+   ;; NOTE: Operations emit DATA, not form. It is the data that
+   ;; an operation is protecting and managing, not a particular
+   ;; view of it.
+
+   :juxt.site/state
+   {:juxt.site.sci/program
+    #juxt.pprint
+    {:juxt.site/subject
+     (xt/pull
+      '[* {:juxt.site/user-identity [* {:juxt.site/user [*]}]}]
+      (:xt/id (:juxt.site/subject *ctx*)))}}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/user-identity id]
+     [permission :xt/id]]]}}}

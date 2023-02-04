@@ -4,7 +4,7 @@
 
 [glossary]
 
-Action:: An authorized read from, or write to, a Document or set of Documents.
+Operation:: An authorized read from, or write to, a Document or set of Documents.
 
 Document:: A set of attributes, possibly nested, as a Clojure map, stored in the
 database.

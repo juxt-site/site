@@ -1,0 +1,25 @@
+{:deps
+ ["https://auth.example.org/operations/system-api/get-operations"
+  "https://auth.example.org/protection-spaces/bearer"]
+ :install
+ {:juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site/type "https://meta.juxt.site/types/openapi-path"
+
+   :openapi.v3/path "/operations"
+
+   :juxt.site/methods
+   {:get
+    {:juxt.site/description "Get all permitted operations"
+     :juxt.site/operations #{"https://auth.example.org/operations/system-api/get-operations"}
+     :openapi.v3/operation-id "getOperations"
+     :openapi.v3/scope "read:operations"
+     :openapi.v3/tags ["Operations"]}}
+
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+
+   :juxt.site/access-control-allow-origins
+   [[".*" {:juxt.site/access-control-allow-origin "*"
+           :juxt.site/access-control-allow-methods [:get]
+           :juxt.site/access-control-allow-headers ["authorization"]}]]}}}

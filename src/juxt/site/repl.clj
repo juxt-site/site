@@ -9,7 +9,7 @@
    [clojure.walk :refer [postwalk]]
    [crypto.password.bcrypt :as password]
    [juxt.site.main :as main]
-   [juxt.site.actions :as actions]
+   [juxt.site.operations :as operations]
    [juxt.site.cache :as cache]
    [juxt.site.installer :as installer]
    [juxt.site.util :as util]
@@ -151,7 +151,7 @@
        (sort)))
 
 (defn ^::public ls-type
-  "Return resources by type: (ls-type \"https://meta.juxt.site/types/action\")."
+  "Return resources by type: (ls-type \"https://meta.juxt.site/types/operation\")."
   [t]
   (->> (q '{:find [e]
             :where [[e :xt/id]
@@ -160,12 +160,12 @@
        (map first)
        (sort)))
 
-(defn ^::public actions
-  "Return installed actions"
+(defn ^::public operations
+  "Return installed operations"
   []
   (->> (q '{:find [(pull e [:xt/id :description])]
             :where [[e :xt/id]
-                    [e :juxt.site/type "https://meta.juxt.site/types/action"]]})
+                    [e :juxt.site/type "https://meta.juxt.site/types/operation"]]})
        (map first)
        (sort-by :xt/id)))
 
@@ -333,8 +333,8 @@
        (println "Evicting" (count batch) "records")
        (println (apply evict! batch))))))
 
-(defn check-permissions [actions options]
-  (actions/check-permissions (db) actions options))
+(defn check-permissions [operations options]
+  (operations/check-permissions (db) operations options))
 
 (defn factory-reset! []
   (apply evict! (->> (q '{:find [(pull e [:xt/id :juxt.site/type])]
@@ -393,7 +393,7 @@
 
 (comment
   (find-resources
-   ["https://auth.site.test/_site/do-action" "https://auth.site.test/_site/subjects/system" "https://auth.site.test/_site/actions/create-action" "https://auth.site.test/_site/permissions/system/bootstrap" "https://auth.site.test/_site/actions/grant-permission" "https://auth.site.test/_site/actions/install-not-found" "https://auth.site.test/_site/permissions/system/install-not-found" "https://auth.site.test/_site/not-found" "https://auth.site.test/_site/actions/get-not-found" "https://auth.site.test/_site/permissions/get-not-found"]))
+   ["https://auth.site.test/_site/do-operation" "https://auth.site.test/_site/subjects/system" "https://auth.site.test/_site/operations/create-operation" "https://auth.site.test/_site/permissions/system/bootstrap" "https://auth.site.test/_site/operations/grant-permission" "https://auth.site.test/_site/operations/install-not-found" "https://auth.site.test/_site/permissions/system/install-not-found" "https://auth.site.test/_site/not-found" "https://auth.site.test/_site/operations/get-not-found" "https://auth.site.test/_site/permissions/get-not-found"]))
 
 (defn call-installers! [installers]
   (let [node (xt-node)]
@@ -431,8 +431,8 @@
      (fn [] (doseq [user (users)]
               (println (:xt/id user))))]
 
-    [:actions ^{:doc "Show installed actions"}
-     (fn [] (doseq [a (actions)]
+    [:operations ^{:doc "Show installed operations"}
+     (fn [] (doseq [a (operations)]
               (println (:xt/id a))))]]))
 
 (defn help*

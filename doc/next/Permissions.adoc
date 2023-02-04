@@ -2,11 +2,11 @@
 :toc: left
 :experimental:
 
-With Actions and Users established, we've got everything we need to start
+With Operations and Users established, we've got everything we need to start
 creating other resources.
 
-However, in practice, it is cumbersome to have to update Actions every time we
-want to authorize a new User to perform an Action. This is where Permissions
+However, in practice, it is cumbersome to have to update Operations every time we
+want to authorize a new User to perform an Operation. This is where Permissions
 come in.
 
 (((permission, definition)))
@@ -19,7 +19,7 @@ TIP: Permissions are straight-forward to grant and revoke, as they are
 represented as XTDB documents, so granting and revoking a permission can be done
 with XTDB's respective `:xtdb.api/put` and `:xtdb.api/delete` operations.
 
-An Action's Rules specify how Permissions determine the outcome of authorization
+An Operation's Rules specify how Permissions determine the outcome of authorization
 decisions.
 
 By writing Rules in terms of Permissions, as opposed to Users, grants and
@@ -44,8 +44,8 @@ s|Required
 l|"https://meta.juxt.site/pass/permission"
 s|Required
 
-|:juxt.pass.alpha/action
-|The URI of the Action this Permission grants access to.
+|:juxt.pass.alpha/operation
+|The URI of the Operation this Permission grants access to.
 s|Required
 
 |:juxt.pass.alpha/purpose
@@ -56,20 +56,20 @@ s|Required
 === Creating a permission
 
 We must install a Permission which will allow our user to call our
-`create-action` Action.
+`create-operation` Operation.
 
 This gives us an opportunity to inspect the document structure of a real
 Permission.
 
-<<example-put-permission-to-create-action>> demonstrates creating a Permission
-that works with the Action we created in <<example-create-action>>.
+<<example-put-permission-to-create-operation>> demonstrates creating a Permission
+that works with the Operation we created in <<example-create-operation>>.
 
-.Permitting the create-action action
-[[example-put-permission-to-create-action]]
+.Permitting the create-operation operation
+[[example-put-permission-to-create-operation]]
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=install-repl-permission-to-create-action!,indent=0]
+include::../../test/juxt/book.clj[tag=install-repl-permission-to-create-operation!,indent=0]
 ----
 
 <1> Permissions are individual resources, and must have unique URIs.
@@ -77,14 +77,14 @@ include::../../test/juxt/book.clj[tag=install-repl-permission-to-create-action!,
 <2> Each Permission must have a `:juxt.site.alpha/type` attribute of
 "`Permission`".
 
-<3> The Permission must be tied to a specific Action.
+<3> The Permission must be tied to a specific Operation.
 
 <4> The Permission can be granted for a particular purpose, but if not, this
 attribute must be nil.
 
 <5> In this case, the Permission references the `Administrator` role. All Users
 with this `Administrator` role will be able to call the
-`+https://site.test/_site/actions/create-action+` action.
+`+https://site.test/_site/operations/create-operation+` operation.
 
 ====
 
@@ -100,49 +100,49 @@ authorized users.
 
 [IMPORTANT]
 --
-Grant your user the Permission to invoke the create-action function you created in <<example-create-action>>:
+Grant your user the Permission to invoke the create-operation function you created in <<example-create-operation>>:
 
-. Copy the code in <<example-put-permission-to-create-action>> to an editor.
+. Copy the code in <<example-put-permission-to-create-operation>> to an editor.
 . Update it according to the Base URI you have chosen.
 . Copy the modified code into the REPL.
 . Evaluate!
 --
 
-=== Creating the grant-permssion action
+=== Creating the grant-permssion operation
 
-We have now created a `create-action` Action and granted a Permission for our
-User to invoke it. Let's invoke this action to create a new `grant-permission`
-action.
+We have now created a `create-operation` Operation and granted a Permission for our
+User to invoke it. Let's invoke this operation to create a new `grant-permission`
+operation.
 
-<<ex-create-grant-permission-action>> demonstrates how this is achieved.
+<<ex-create-grant-permission-operation>> demonstrates how this is achieved.
 
-.Creating the grant-permission action
-[[ex-create-grant-permission-action]]
+.Creating the grant-permission operation
+[[ex-create-grant-permission-operation]]
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-grant-permission-action!,indent=0]
+include::../../test/juxt/book.clj[tag=create-grant-permission-operation!,indent=0]
 ----
 ====
 
 [IMPORTANT]
 --
-Create the grant-permission action by following these steps:
+Create the grant-permission operation by following these steps:
 
-. Copy the code from <<ex-create-grant-permission-action>> into an editor
+. Copy the code from <<ex-create-grant-permission-operation>> into an editor
 . Make appropriate changes
 . Copy into the REPL
 . Evaluate
 --
 
-Finally, we need to permit our REPL user to invoke this grant-permission action, and this
+Finally, we need to permit our REPL user to invoke this grant-permission operation, and this
 permission too needs to be put directly into the database since we don't yet
 have a way of granting permissions!
 
-This is shown in <<ex-permit-grant-permission-action>>.
+This is shown in <<ex-permit-grant-permission-operation>>.
 
-.Permitting the grant-permission action
-[[ex-permit-grant-permission-action]]
+.Permitting the grant-permission operation
+[[ex-permit-grant-permission-operation]]
 ====
 [source,clojure]
 ----
@@ -152,9 +152,9 @@ include::../../test/juxt/book.clj[tag=install-repl-permission-to-grant-permissio
 
 [IMPORTANT]
 --
-Permit the grant-permission action by following these steps:
+Permit the grant-permission operation by following these steps:
 
-. Copy the code from <<ex-permit-grant-permission-action>> into an editor
+. Copy the code from <<ex-permit-grant-permission-operation>> into an editor
 . Make appropriate changes
 . Copy into the REPL
 . Evaluate
@@ -169,7 +169,7 @@ them, we have the building blocks we need to start creating
 
 Moved from Concepts
 
-The Action in <<ex-action>> potentially allows cats to sit on the mat, but a
+The Operation in <<ex-operation>> potentially allows cats to sit on the mat, but a
 Permission must still explicitly exist for the rule to be satisfied.
 
 The reason for this is simply that we often want to be able grant and revoke

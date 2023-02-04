@@ -38,18 +38,18 @@ person.
 We'll use the name `Alice` but feel free to replace this with your own personal
 details.
 
-==== Create an action to create a person
+==== Create an operation to create a person
 
-First, we'll need to create an action which will create our person entity.
+First, we'll need to create an operation which will create our person entity.
 
-.Creating the create-person action
+.Creating the create-person operation
 ====
 
 [source,clojure]
-.Install the create-person action
+.Install the create-person operation
 ----
-(create-action!
-{:xt/id "https://site.test/actions/create-person" <1>
+(create-operation!
+{:xt/id "https://site.test/operations/create-person" <1>
  :juxt.pass.alpha/scope "write:admin" <2>
 
  :juxt.pass.alpha.malli/args-schema <3>
@@ -74,17 +74,17 @@ First, we'll need to create an action which will create our person entity.
 
 <1> You can choose any id here but it's a good idea to keep to a convention
 
-<2> Actions are grouped into OAuth2 scopes
+<2> Operations are grouped into OAuth2 scopes
 
 <3> Arguments must conform to this schema
 
 <4> The processing pipeline which transforms arguments into XTDB transaction
 operations
 
-<5> An action declares the rules as to who is authorized to invoke it
+<5> An operation declares the rules as to who is authorized to invoke it
 ====
 
-==== Permit the REPL to invoke the create-person action
+==== Permit the REPL to invoke the create-person operation
 
 .Adding the permission for the REPL to create a person
 ====
@@ -94,21 +94,21 @@ operations
 (grant-permission!
 {:xt/id "https://site.test/permissions/repl/create-person"
  ::pass/subject (me)
- ::pass/action #{"https://site.test/actions/create-person"}
+ ::pass/operation #{"https://site.test/operations/create-person"}
  ::pass/purpose nil
  }
 )
 ----
 ====
 
-==== Create 'Alice' with the create-person action
+==== Create 'Alice' with the create-person operation
 
 .Creating 'Alice'
 ====
 
 [source,clojure]
 ----
-(do-action "https://site.test/actions/create-person"
+(do-operation "https://site.test/operations/create-person"
   {:xt/id "https://site.test/people/alice"
   :example/name "Alice"})
 ----
@@ -128,14 +128,14 @@ location or from a different country.
 ****
 ////
 
-==== Create an action to create a identity
+==== Create an operation to create a identity
 
-.Creating an action for creating the identity
+.Creating an operation for creating the identity
 ====
 [source,clojure]
 ----
-(create-action!
- {:xt/id "https://site.test/actions/create-identity"
+(create-operation!
+ {:xt/id "https://site.test/operations/create-identity"
   :juxt.pass.alpha/scope "write:admin"
 
   :juxt.pass.alpha.malli/args-schema
@@ -157,9 +157,9 @@ location or from a different country.
 ----
 ====
 
-==== Permit the REPL to invoke the create-identity action
+==== Permit the REPL to invoke the create-identity operation
 
-.Adding a permission on the create-identity action
+.Adding a permission on the create-identity operation
 ====
 
 [source,clojure]
@@ -167,19 +167,19 @@ location or from a different country.
 (grant-permission!
  {:xt/id "https://site.test/permissions/repl/create-identity"
   :juxt.pass.alpha/subject "urn:site:subjects:repl"
-  :juxt.pass.alpha/action #{"https://site.test/actions/create-identity"}
+  :juxt.pass.alpha/operation #{"https://site.test/operations/create-identity"}
   :juxt.pass.alpha/purpose nil})
 ----
 ====
 
-==== Call the create-identity action
+==== Call the create-identity operation
 
-.Calling the create-identity action
+.Calling the create-identity operation
 ====
 [source,clojure]
 ----
-(do-action
- "https://site.test/actions/create-identity"
+(do-operation
+ "https://site.test/operations/create-identity"
  {:xt/id "https://site.test/identities/alice"
   :example/person "https://site.test/people/alice"
   :juxt.pass.jwt/iss "https://juxt.eu.auth0.com/"
@@ -194,15 +194,15 @@ might not be necessary
 
 TODO
 
-==== Create an action to register an application
+==== Create an operation to register an application
 
 TODO
 
-==== Permit the REPL to invoke the register-application action
+==== Permit the REPL to invoke the register-application operation
 
 TODO
 
-==== Call the register-application action
+==== Call the register-application operation
 
 TODO
 

@@ -13,7 +13,7 @@
     :refer [system-xt-fixture with-session-token with-bearer-token
             *handler* handler-fixture
             with-fixtures
-            install-resource-groups! install-resource-with-action!
+            install-resource-groups! install-resource-with-operation!
             converge!
             AUTH_SERVER]]
 

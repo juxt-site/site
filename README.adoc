@@ -145,7 +145,7 @@ Current development is still focussed on the technical feature set, as required 
 
 == Programming Site
 
-Some types of resource, such as 'actions', may contain Site 'programs' that are executed when required.
+Some types of resource, such as 'operations', may contain Site 'programs' that are executed when required.
 All resources are stored in the database, including all program code.
 
 Currently, the only available programming language is https://github.com/babashka/sci/[SCI].

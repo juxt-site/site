@@ -2,12 +2,12 @@
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-put-template-action!,indent=0]
+include::../../test/juxt/book.clj[tag=create-put-template-operation!,indent=0]
 ----
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-action-put-template!,indent=0]
+include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-operation-put-template!,indent=0]
 ----
 
 .Creating a template

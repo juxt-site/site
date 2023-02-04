@@ -12,7 +12,7 @@
     :refer [system-xt-fixture with-session-token with-bearer-token
             *handler* handler-fixture
             with-fixtures
-            install-resource-groups! install-resource-with-action! converge!
+            install-resource-groups! install-resource-with-operation! converge!
             AUTH_SERVER RESOURCE_SERVER]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
@@ -37,9 +37,9 @@
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
-  (install-resource-with-action!
+  (install-resource-with-operation!
    "https://auth.example.test/_site/subjects/system"
-   "https://auth.example.test/actions/register-client"
+   "https://auth.example.test/operations/register-client"
    {:juxt.site/client-id "test-app"
     :juxt.site/client-type "confidential"
     :juxt.site/redirect-uri "https://test-app.example.test/callback"})
@@ -83,7 +83,7 @@
       (with-bearer-token access-token
         (let [response
               (*handler*
-               {:juxt.site/uri "https://data.example.test/_site/actions"
+               {:juxt.site/uri "https://data.example.test/_site/operations"
                 :ring.request/method :get
                 :ring.request/headers
                 {"accept" "application/json"}})]

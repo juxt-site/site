@@ -4,7 +4,7 @@
   (:require
    [xtdb.api :as xt]
    [juxt.site.graphql-compiler :as gcompiler]
-   [juxt.site.actions :as actions]))
+   [juxt.site.operations :as operations]))
 
 (defn graphql-query->xtdb-query
   "Transforms a graphql query string into an xtdb query
@@ -21,12 +21,12 @@
   (let [query-document (gcompiler/query->query-doc query-string compiled-schema)
         query-operation    (first (get-in query-document [:juxt.grab.alpha.document/operations]))
         root-selection-set (get query-operation :juxt.grab.alpha.graphql/selection-set)
-        action-rules       (->> (gcompiler/query-doc->actions query-document compiled-schema)
-                                (actions/actions->rules db))
+        operation-rules       (->> (gcompiler/query-doc->operations query-document compiled-schema)
+                                (operations/operations->rules db))
         built-query        (gcompiler/build-query-for-selection-set
                             (first root-selection-set)
                             compiled-schema
-                            action-rules
+                            operation-rules
                             false)]
     built-query))
 

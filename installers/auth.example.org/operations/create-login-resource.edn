@@ -1,0 +1,68 @@
+{:deps
+ ["https://auth.example.org/operations/login"
+  "https://auth.example.org/permissions/login"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site.malli/input-schema
+   [:map
+    [:xt/id [:re "https://auth.example.org/.*"]]
+    [:juxt.site/session-scope [:re "https://auth.example.org/.*"]]]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content-type (-> *ctx*
+                           :juxt.site/received-representation
+                           :juxt.http/content-type)
+          body (-> *ctx*
+                   :juxt.site/received-representation
+                   :juxt.http/body)]
+      (case content-type
+        "application/edn"
+        (some->
+         body
+         (String.)
+         clojure.edn/read-string
+         juxt.site.malli/validate-input
+         (assoc
+          :juxt.site/methods
+          {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-public-resource"}}
+           :post {:juxt.site/operations #{"https://auth.example.org/operations/login"}}}
+
+          :juxt.http/content-type "text/html;charset=utf-8"
+          ;; TODO: We could make the HTML content a parameter
+          ;; Note: It helps security if the http methods remain unconfigurable.
+          :juxt.http/content "
+<html>
+<head>
+<link rel='icon' href='data:,'>
+</head>
+<body>
+<form method=POST>
+<p>
+Username: <input name=username type=text>
+</p>
+<p>
+Password: <input name=password type=password>
+</p>
+<p>
+<input type=submit value=Login>
+</p>
+</form>
+</body>
+</html>
+\r\n"))))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    [[:xtdb.api/put *prepare*]]}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [permission :juxt.site/subject subject]]]}}}

@@ -17,9 +17,9 @@
    [juxt.site.graphql-eql-compiler :refer [graphql->eql-ast]]
    [juxt.site.logging :refer [with-logging]]
    [juxt.test.util :refer [system-xt-fixture
-                                handler-fixture *handler* *xt-node*
-                                with-fixtures
-                                install-resource-groups! install-resource-with-action!]]
+                           handler-fixture *handler* *xt-node*
+                           with-fixtures
+                           install-resource-groups! install-resource-with-operation!]]
    [xtdb.api :as xt]))
 
 (def AUTH_SERVER
@@ -41,9 +41,9 @@
     "juxt/site/oauth-authorization-server"]
    AUTH_SERVER {"session-scope" "https://auth.hospital.com/session-scopes/openid-login-session"})
 
-  (install-resource-with-action!
+  (install-resource-with-operation!
    "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/actions/register-client"
+   "https://auth.hospital.com/operations/register-client"
    {:juxt.site/client-id "local-terminal"
     :juxt.site/client-type "confidential"
     :juxt.site/redirect-uri "https://test-app.example.test/callback"})
@@ -66,33 +66,33 @@
 
 (deftest eql-with-acl-test
   ;; Create some measurements
-  (install-resource-with-action!
+  (install-resource-with-operation!
    "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/actions/register-patient-measurement"
+   "https://auth.hospital.com/operations/register-patient-measurement"
    {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
     :patient "https://hospital.com/patients/004"
     :reading {"heartRate" "120"
               "bloodPressure" "137/80"}})
 
-  (install-resource-with-action!
+  (install-resource-with-operation!
    "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/actions/register-patient-measurement"
+   "https://auth.hospital.com/operations/register-patient-measurement"
    {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
     :patient "https://hospital.com/patients/006"
     :reading {"heartRate" "82"
               "bloodPressure" "198/160"}})
 
-  (install-resource-with-action!
+  (install-resource-with-operation!
    "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/actions/register-patient-measurement"
+   "https://auth.hospital.com/operations/register-patient-measurement"
    {:xt/id "https://hospital.com/measurements/eeda3b49-2e96-42fc-9e6a-e89e2eb68c24"
     :patient "https://hospital.com/patients/010"
     :reading {"heartRate" "85"
               "bloodPressure" "120/80"}})
 
-  (install-resource-with-action!
+  (install-resource-with-operation!
    "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/actions/register-patient-measurement"
+   "https://auth.hospital.com/operations/register-patient-measurement"
    {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1d"
     :patient "https://hospital.com/patients/010"
     :reading {"heartRate" "87"
@@ -137,7 +137,7 @@
 
     ;; Add a /patient/XXX resource to serve an individual patient.
 
-    ;; https://auth.hospital.com/actions/get-patient must perform an XT query.
+    ;; https://auth.hospital.com/operations/get-patient must perform an XT query.
 
     ;; In the future, it would be good if the http request can include a
     ;; header indicating the minimum required version in order to provide
@@ -148,19 +148,19 @@
     ;; proceeding directly to calling add-payload.
 
     ;; Note: it would be useful to research whether a Flip database query
-    ;; could be automatically limited by the actions in scope. This would
+    ;; could be automatically limited by the operations in scope. This would
     ;; make it safer to allow people to add their own Flip quotations.
 
     ;; Here we have the conundrum: when the
-    ;; https://example.org/actions/get-patient action rule has the clause
+    ;; https://example.org/operations/get-patient operation rule has the clause
     ;; '[resource :juxt.site/type
     ;; "https://example.org/types/patient"]' then it is not a permitted
-    ;; action. We must separate the actions that allow access to a
-    ;; uri-template'd resource and the actions that create the body
+    ;; operation. We must separate the operations that allow access to a
+    ;; uri-template'd resource and the operations that create the body
     ;; payload.
 
     ;; Alice can access a particular patient because she has a particularly
-    ;; broad permission on the get-patient action
+    ;; broad permission on the get-patient operation
 
     (testing "Access to /hospital/patient/005"
       (let [response
@@ -217,14 +217,14 @@
         (is (vector? result))
         (is (= 3 (count result)))))
 
-    ;; We are calling juxt.site.actions/pull-allowed-resources which
+    ;; We are calling juxt.site.operations/pull-allowed-resources which
     ;; provides our query, but we want to experiment with creating our own
     ;; query with sub-queries, which we can compile to with GraphQL.
 
     ;; Now we have a get-patient with rules that we can bring into a sub-query
 
     ;; Let's start with an EQL that represents our query.
-    ;; Metadata attributed to the EQL contains actions.
+    ;; Metadata attributed to the EQL contains operations.
     ;; The EQL could be the target of the compilation of a GraphQL query.
 
     (let [db (xt/db *xt-node*)
@@ -242,21 +242,21 @@
       ;; manually or target with a compiler, for example, for the
       ;; production of GraphQL, XML or CSV.
 
-      ;; The actions are associated with EQL properties using
+      ;; The operations are associated with EQL properties using
       ;; metadata.
 
-      ;; Actions are where 'Form' is defined. Or, more precisely,
-      ;; actions are where 'Form' and 'Code' meet.
+      ;; Operations are where 'Form' is defined. Or, more precisely,
+      ;; operations are where 'Form' and 'Code' meet.
 
-      ;; An action defines the mapping from the Data to the Form (a
+      ;; An operation defines the mapping from the Data to the Form (a
       ;; view of the data that best suits a given domain or
       ;; application context).
 
-      ;; Additionally, actions define access controls that restrict
+      ;; Additionally, operations define access controls that restrict
       ;; who can see what.
 
       ;; The data processing activities of a system are entirely
-      ;; expressable in terms of actions.
+      ;; expressable in terms of operations.
 
       (testing "Graph query with two-levels of results"
         (let [q1 (first
@@ -267,11 +267,11 @@
                    db
                    (eql/query->ast
                     '[
-                      {(:patients {:juxt.site/action "https://auth.hospital.com/actions/get-patient"})
+                      {(:patients {:juxt.site/operation "https://auth.hospital.com/operations/get-patient"})
                        [:xt/id
                         :name
                         :juxt.site/type
-                        {(:measurements {:juxt.site/action "https://auth.hospital.com/actions/read-any-measurement"})
+                        {(:measurements {:juxt.site/operation "https://auth.hospital.com/operations/read-any-measurement"})
                          [:reading]}]}])))]
 
           (testing "Alice's view"
@@ -382,15 +382,15 @@
                   (eqlc/compile-ast
                    db
                    (eql/query->ast
-                    '[{(:doctors {:juxt.site/action "https://auth.hospital.com/actions/get-doctor"})
+                    '[{(:doctors {:juxt.site/operation "https://auth.hospital.com/operations/get-doctor"})
                        [:xt/id
                         :name
                         :juxt.site/type
-                        {(:patients {:juxt.site/action "https://auth.hospital.com/actions/get-patient"})
+                        {(:patients {:juxt.site/operation "https://auth.hospital.com/operations/get-patient"})
                          [:xt/id
                           :name
                           :juxt.site/type
-                          {(:readings {:juxt.site/action "https://auth.hospital.com/actions/read-any-measurement"})
+                          {(:readings {:juxt.site/operation "https://auth.hospital.com/operations/read-any-measurement"})
                            [:reading]}]}]}])))]
 
           (testing "Alice's view"
@@ -483,16 +483,16 @@
                   (eqlc/compile-ast
                    db
                    (eql/query->ast
-                    '[{(:doctor {:juxt.site/action "https://auth.hospital.com/actions/get-doctor"
+                    '[{(:doctor {:juxt.site/operation "https://auth.hospital.com/operations/get-doctor"
                                  :search "jack"})
                        [:xt/id
                         :name
                         :juxt.site/type
-                        {(:patients {:juxt.site/action "https://auth.hospital.com/actions/get-patient"})
+                        {(:patients {:juxt.site/operation "https://auth.hospital.com/operations/get-patient"})
                          [:xt/id
                           :name
                           :juxt.site/type
-                          {(:readings {:juxt.site/action "https://auth.hospital.com/actions/read-any-measurement"})
+                          {(:readings {:juxt.site/operation "https://auth.hospital.com/operations/read-any-measurement"})
                            [:reading]}]}]}])))]
 
           (testing "Alice's view"
@@ -570,25 +570,25 @@
 
     ;; Additional scenarios:
 
-    ;; Alice, Bob, Carlos - multiple joins, 3-level queries, multiple concurrent actions
+    ;; Alice, Bob, Carlos - multiple joins, 3-level queries, multiple concurrent operations
 
     ;; The challenge is to combine the following:
 
-    ;; 1. GraphQL schemas where fields in queries reference actions. For example:
+    ;; 1. GraphQL schemas where fields in queries reference operations. For example:
     ;;
-    ;; type Hospital { patients: [String] @site(action: https://auth.hospital.com/actions/list-patients) }
+    ;; type Hospital { patients: [String] @site(operation: https://auth.hospital.com/operations/list-patients) }
     ;;
-    ;; type Doctor { patients: [String] @site(action: https://auth.hospital.com/actions/list-patients-by-doctor) }
+    ;; type Doctor { patients: [String] @site(operation: https://auth.hospital.com/operations/list-patients-by-doctor) }
 
-    ;; Should https://auth.hospital.com/actions/list-patients-by-doctor exist
+    ;; Should https://auth.hospital.com/operations/list-patients-by-doctor exist
     ;; independently or instead be a reference to
-    ;; https://auth.hospital.com/actions/list-patients with a join key? The former
-    ;; is overly cumbersome and would require a lot of extra actions and
-    ;; associated admin costs. (DONE: we have gone with the notion of an action being called in the context of another)
+    ;; https://auth.hospital.com/operations/list-patients with a join key? The former
+    ;; is overly cumbersome and would require a lot of extra operations and
+    ;; associated admin costs. (DONE: we have gone with the notion of an operation being called in the context of another)
 
     ;; type Doctor {
     ;;   id ID
-    ;;   patients(gender: String, costBasis: String): [Patient] @site(action: "https://auth.hospital.com/actions/list-patients" join: "primary-doctor")
+    ;;   patients(gender: String, costBasis: String): [Patient] @site(operation: "https://auth.hospital.com/operations/list-patients" join: "primary-doctor")
     ;; }
 
     ;; The `patients` field transforms to a sub-query.
@@ -619,24 +619,24 @@
     ;; SDL to structural details and b) needs to be repeated for other
     ;; access protocols, like REST.
 
-    ;; Therefore, it makes sense that the actions themselves understand how
-    ;; to navigate these relationships. Actions can be both shared between
+    ;; Therefore, it makes sense that the operations themselves understand how
+    ;; to navigate these relationships. Operations can be both shared between
     ;; applications while still allowing applications to demand bespoke
-    ;; actions where necessary.
+    ;; operations where necessary.
 
-    ;; Therefore it seems that actions are the 'form' documents.
+    ;; Therefore it seems that operations are the 'form' documents.
 
-    ;; Let's take the list-patients action. In the context of a doctor, it
+    ;; Let's take the list-patients operation. In the context of a doctor, it
     ;; needs to know how to join on the doctor id. The 'parent context',
     ;; whether it be a hosital, doctor or other type, is extremely common
-    ;; (since data is often emitted as DAGs). Therefore each action should
+    ;; (since data is often emitted as DAGs). Therefore each operation should
     ;; be aware of the context in which it runs.
 
-    ;; 2. Actions that have 'query' logic. Should that query logic be Flip?
-    ;; Or reference other actions? To what extent is 'list-patients = fmap
+    ;; 2. Operations that have 'query' logic. Should that query logic be Flip?
+    ;; Or reference other operations? To what extent is 'list-patients = fmap
     ;; get-patient' - is this a common case? Looks like we may need a
-    ;; 'calculus' for defining actions in terms of other more fundamental
-    ;; actions. Note: I think we're just seeing that get-patient and
+    ;; 'calculus' for defining operations in terms of other more fundamental
+    ;; operations. Note: I think we're just seeing that get-patient and
     ;; list-patient *share* the same rules. There is no reason rules can't
     ;; be deduped via reference to independent documents, or even one to the
     ;; other:

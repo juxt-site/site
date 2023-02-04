@@ -13,5 +13,6 @@ opt/graphiql/target
 .clj-kondo/metosin/malli/
 .clj-kondo/rewrite-clj/
 .clj-kondo/babashka/sci
+.clj-kondo/babashka
 **/generated/*
 /target/

@@ -1,5 +1,5 @@
 directive @site(
-  action: [String!]
+  operation: [String!]
 ) on FIELD_DEFINITION
 
 schema {
@@ -7,10 +7,10 @@ schema {
 }
 
 type Query {
-  patients: [Patient] @site(action: ["https://site.test/actions/get-patients"])
+  patients: [Patient] @site(operation: ["https://site.test/operations/get-patients"])
 }
 
 type Patient {
   name: String
-  heartRate: Int @site(action: ["https://site.test/actions/read-vitals"])
+  heartRate: Int @site(operation: ["https://site.test/operations/read-vitals"])
 }

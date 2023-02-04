@@ -162,15 +162,15 @@
 (defn bootstrap []
   (let [auth-base-uri (input-auth-base-uri)
         resources
-        (->> ["https://auth.example.org/_site/do-action"
+        (->> ["https://auth.example.org/_site/do-operation"
               "https://auth.example.org/_site/subjects/system"
-              "https://auth.example.org/_site/actions/create-action"
-              "https://auth.example.org/_site/actions/grant-permission"
+              "https://auth.example.org/_site/operations/create-operation"
+              "https://auth.example.org/_site/operations/grant-permission"
               "https://auth.example.org/_site/permissions/system/bootstrap"
-              "https://auth.example.org/_site/actions/install-not-found"
+              "https://auth.example.org/_site/operations/install-not-found"
               "https://auth.example.org/_site/permissions/system/install-not-found"
               "https://auth.example.org/_site/not-found"
-              "https://auth.example.org/_site/actions/get-not-found"
+              "https://auth.example.org/_site/operations/get-not-found"
               "https://auth.example.org/_site/permissions/get-not-found"]
              (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))]
     (install!
@@ -234,14 +234,14 @@
         (->>
          [ ;; API resources
           "https://data.example.org/_site/openapi.json"
-          ;; /actions
-          "https://auth.example.org/actions/system-api/get-actions"
-          "https://auth.example.org/permissions/system-api/get-actions"
-          "https://data.example.org/_site/actions"
-          "https://data.example.org/_site/actions.html"
-          "https://data.example.org/_site/actions.json"
+          ;; /operations
+          "https://auth.example.org/operations/system-api/get-operations"
+          "https://auth.example.org/permissions/system-api/get-operations"
+          "https://data.example.org/_site/operations"
+          "https://data.example.org/_site/operations.html"
+          "https://data.example.org/_site/operations.json"
           ;; /users
-          "https://auth.example.org/actions/system-api/get-users"
+          "https://auth.example.org/operations/system-api/get-users"
           "https://data.example.org/_site/users"
           "https://data.example.org/_site/users.html"
           "https://data.example.org/_site/users.json"
@@ -264,8 +264,8 @@
         resources
         (->>
          ["https://auth.example.org/oauth/authorize"
-          "https://auth.example.org/actions/oauth/authorize"
-          "https://auth.example.org/actions/install-authorization-server"
+          "https://auth.example.org/operations/oauth/authorize"
+          "https://auth.example.org/operations/install-authorization-server"
           "https://auth.example.org/permissions/system/install-authorization-server"
           "https://auth.example.org/permissions/system/register-client"]
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri))
@@ -302,10 +302,10 @@
                    (format "%s/openid/user-identities/%s/nickname/%s"
                            auth-base-uri (url-encode iss) (url-encode nickname))
 
-                   ;; TODO: The grant-permission action should not
-                   ;; here, rather, create a new action called
+                   ;; TODO: The grant-permission operation should not
+                   ;; here, rather, create a new operation called
                    ;; 'permit-user-to-authorize' which can take the
-                   ;; actual user, and this action can be permitted to
+                   ;; actual user, and this operation can be permitted to
                    ;; others without granting them the all-powerful
                    ;; grant-permission permission.
                    (format "%s/permissions/%s-can-authorize" auth-base-uri username)]

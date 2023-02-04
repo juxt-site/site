@@ -1,10 +1,10 @@
 {:deps
- ["https://auth.example.org/actions/put-role"]
+ ["https://auth.example.org/operations/put-role"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/action-id "https://auth.example.org/_site/actions/grant-permission"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/subject "https://auth.example.org/_site/subjects/system"
-   :juxt.site/action "https://auth.example.org/actions/put-role"
+   :juxt.site/operation "https://auth.example.org/operations/put-role"
    :juxt.site/purpose nil}}}

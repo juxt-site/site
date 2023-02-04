@@ -1,5 +1,5 @@
 {:deps
- ["https://auth.example.org/actions/get-openapi-document"
+ ["https://auth.example.org/operations/get-openapi-document"
   "https://auth.example.org/permissions/get-openapi-document"]
  :install
  {:juxt.site/input
@@ -32,7 +32,7 @@ Some useful links:
       "flows"
       {"implicit"
        {"scopes"
-        {"read:actions" "Read actions"
+        {"read:operations" "Read operations"
          "read:users" "Read users"}
         "authorizationUrl"
         "https://auth.example.org/oauth/authorize"}}}}
@@ -40,10 +40,10 @@ Some useful links:
     "requestBodies" {}}
 
    :openapi.v3/security
-   [{"oauth" ["read:actions" "write:actions"]}]
+   [{"oauth" ["read:operations" "write:operations"]}]
 
    :juxt.site/methods
-   {:get {:juxt.site/actions #{"https://auth.example.org/actions/get-openapi-document"}}}
+   {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-openapi-document"}}}
 
    :juxt.site/access-control-allow-origins
    [[".*" {:juxt.site/access-control-allow-origin "*"

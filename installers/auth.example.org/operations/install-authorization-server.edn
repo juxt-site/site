@@ -1,0 +1,37 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site.malli/input-schema
+   [:map
+    [:xt/id [:re "https://auth.example.org/.*"]]
+    [:juxt.site/session-scope {:optional true} [:re "https://auth.example.org/.*"]]]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [input (:juxt.site/received-representation *ctx*)
+          content-type (:juxt.http/content-type input)]
+      (case content-type
+        "application/edn"
+        (some->
+         input
+         :juxt.http/body
+         (String.)
+         clojure.edn/read-string
+         juxt.site.malli/validate-input
+         (assoc
+          :juxt.site/methods
+          {:get #:juxt.site{:operations #{"https://auth.example.org/operations/oauth/authorize"}}}))))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    [[:xtdb.api/put *prepare*]]}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [permission :juxt.site/subject subject]]]}}}

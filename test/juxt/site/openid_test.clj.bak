@@ -26,13 +26,13 @@
     :create (fn [{:keys [id]}]
               (openid/install-openid-issuer! id)
               ;; TODO: We should refresh this resource periodically by attaching the
-              ;; https://example.org/actions/openid/fetch-jwks action to a Site scheduler.
+              ;; https://example.org/operations/openid/fetch-jwks operation to a Site scheduler.
               (openid/fetch-jwks! id))}
 
    "https://example.org/openid/auth0/client"
    {:deps #{::init/system
             ISSUER
-            "https://example.org/actions/install-openid-client"
+            "https://example.org/operations/install-openid-client"
             "https://example.org/permissions/system/install-openid-client"}
     :create (fn [{:keys [id]}]
               (openid/install-openid-client
@@ -51,9 +51,9 @@
     :create (fn [{:keys [id]}]
               (eval
                (init/substitute-actual-base-uri
-                `(init/do-action
+                `(init/do-operation
                   "https://example.org/_site/subjects/system"
-                  "https://example.org/actions/put-session-scope"
+                  "https://example.org/operations/put-session-scope"
                   {:xt/id ~id
                    :juxt.site/cookie-name "sid"
                    :juxt.site/cookie-domain "https://example.org"
@@ -65,7 +65,7 @@
    {:deps #{::init/system
             "https://example.org/openid/auth0/client"
             "https://example.org/permissions/system/install-openid-login-endpoint"
-            "https://example.org/actions/login-with-openid"
+            "https://example.org/operations/login-with-openid"
             "https://example.org/session-scopes/openid"
             "https://example.org/permissions/login-with-openid"}
     :create (fn [{:keys [id]}]
@@ -78,7 +78,7 @@
    "https://example.org/openid/callback"
    {:deps #{::init/system
             "https://example.org/permissions/system/install-openid-callback-endpoint"
-            "https://example.org/actions/openid/exchange-code-for-id-token"
+            "https://example.org/operations/openid/exchange-code-for-id-token"
             "https://example.org/permissions/openid/exchange-code-for-id-token"
             "https://example.org/openid/auth0/client"}
     :create (fn [{:keys [id]}]
@@ -195,21 +195,21 @@
 
 #_(with-fixtures
     (with-resources
-      #{"https://site.test/actions/openid/exchange-code-for-id-token"
+      #{"https://site.test/operations/openid/exchange-code-for-id-token"
         "https://site.test/permissions/openid/exchange-code-for-id-token"}
 
       (let [xt-node *xt-node*
             db (xt/db xt-node)
             lookup #(xt/entity db %)
-            action-doc (lookup "https://site.test/actions/openid/exchange-code-for-id-token")]
+            operation-doc (lookup "https://site.test/operations/openid/exchange-code-for-id-token")]
         (do-prepare
          {::site/xt-node xt-node
           ::site/db db
           ::site/subject (xt/entity db "https://site.test/_site/subjects/system")
-          ::site/action "https://site.test/actions/openid/exchange-code-for-id-token"
+          ::site/operation "https://site.test/operations/openid/exchange-code-for-id-token"
           ::site/base-uri (init/base-uri)
           :ring.request/query "code=RyMRjiijG_zjlhKdFiLOHNkcsn1i1gDMRPQNGtteQ5Fx9&state=9e7d5227c7c818bc"}
-         action-doc
+         operation-doc
          nil
 
          ))

@@ -114,19 +114,19 @@ document references a particular individual, such that an individual can have
 multiple identities.
 
 The schema chosen for the `Identity` documents is important, because it will be
-coupled to the rules defined on each action.
+coupled to the rules defined on each operation.
 
-An action's rules might use facts in the documents referenced by the Identity
+An operation's rules might use facts in the documents referenced by the Identity
 document to make decisions, for example, to determine if the individual belongs
 to a particular group or has been assigned a particular role.
 
-Also, an action's rules might use facts in the `Subject` document directly, such
+Also, an operation's rules might use facts in the `Subject` document directly, such
 as the 'strength' of the login (whether the end-user used a second factor, or
 whether their email address was verified).
 
 For example, a particularly sensitive
-action might require that the end-user used a second-factor when they
-authenticated, or otherwise deny the action to the end-user.
+operation might require that the end-user used a second-factor when they
+authenticated, or otherwise deny the operation to the end-user.
 
 TIP: Information about the 'strength' of a user's login can be encoded in the
 `acr` property of an ID Token, which is copied into the `Subject` document.
@@ -159,36 +159,36 @@ In summary:
 == Preparing to create identities
 
 To allow the REPL to create the identities we require, we'll need to create an
-Action to create an identity and grant permission for the REPL user to invoke
+Operation to create an identity and grant permission for the REPL user to invoke
 it.
 
-This action should enforce the `juxt.site.alpha/type`, `juxt.pass.jwt/iss` and
+This operation should enforce the `juxt.site.alpha/type`, `juxt.pass.jwt/iss` and
 `juxt.pass.jwt/sub` attributes that we discussed in <<identities>>. But of
-course we are free to amend this action to more closely reflect our domain. For
+course we are free to amend this operation to more closely reflect our domain. For
 example, we might want to ensure that it has a reference to an individual.
 
-.Creating the `put-identity` action
-[[create-put-identity-action]]
+.Creating the `put-identity` operation
+[[create-put-identity-operation]]
 ====
-First we create the action:
+First we create the operation:
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-put-identity!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-put-identity!,indent=0]
 ----
 
 Next, we grant the permission:
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-action-put-identity!,indent=0]
+include::../../test/juxt/book.clj[tag=grant-permission-to-invoke-operation-put-identity!,indent=0]
 ----
 
-Finally, we create an action to get the identity.
+Finally, we create an operation to get the identity.
 
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-get-identity!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-get-identity!,indent=0]
 ----
 ====
 ////

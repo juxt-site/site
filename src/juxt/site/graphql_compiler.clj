@@ -7,7 +7,7 @@
    [juxt.grab.alpha.graphql :as-alias graphql]
    [juxt.grab.alpha.schema :as schema]))
 
-(defn selection->action-id
+(defn selection->operation-id
   [{::graphql/keys [name] ::document/keys [scoped-type-name] :as _selection} schema]
   (get-in schema [::schema/types-by-name
                   scoped-type-name
@@ -16,7 +16,7 @@
                   ::schema/directives-by-name
                   "site"
                   ::graphql/arguments
-                  "action"]))
+                  "operation"]))
 
 (declare build-query-for-selection-set)
 
@@ -26,19 +26,19 @@
       (get selection-set :juxt.grab.alpha.graphql/name)))
 
 (defn build-where-clause
-  [compiled-schema action-ids action-rules-map subquery-data incoming-resources? arguments]
+  [compiled-schema operation-ids operation-rules-map subquery-data incoming-resources? arguments]
   (let [entity-selection-clause (if incoming-resources? ['e :xt/id 'input-id] ['e :xt/id '_])
-        actions-ids-as-single-or-set (if (vector? action-ids)
-                                       (set action-ids)
-                                       action-ids)
+        operations-ids-as-single-or-set (if (vector? operation-ids)
+                                       (set operation-ids)
+                                       operation-ids)
         where-clause [entity-selection-clause
-                      ['action :juxt.site/type "https://meta.juxt.site/types/action"]
-                      ['action :xt/id actions-ids-as-single-or-set]
+                      ['operation :juxt.site/type "https://meta.juxt.site/types/operation"]
+                      ['operation :xt/id operations-ids-as-single-or-set]
                       ['permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                      ['permission :juxt.site/action actions-ids-as-single-or-set]
+                      ['permission :juxt.site/operation operations-ids-as-single-or-set]
                       '[permission :juxt.site/purpose purpose]
-                      '(allowed? permission subject action e)
-                      '(include? action e)]]
+                      '(allowed? permission subject operation e)
+                      '(include? operation e)]]
     (cond-> where-clause
       (seq subquery-data) (-> ;; Add the clause to pull the key into the query
                            (into (map #(vector
@@ -48,12 +48,12 @@
                                       subquery-data))
                            ;; Add a clause for the subquery
                            (into (map #(vector (list 'q
-                                                     (build-query-for-selection-set % compiled-schema action-rules-map true)
+                                                     (build-query-for-selection-set % compiled-schema operation-rules-map true)
                                                      'subject 'purpose (symbol (get-alias-or-name-from-selection-set %)))
                                                (symbol (str "inner-"(get-alias-or-name-from-selection-set %))))
 
                                       subquery-data)))
-      (seq arguments) (conj (list 'arguments-match? 'e 'action arguments)))))
+      (seq arguments) (conj (list 'arguments-match? 'e 'operation arguments)))))
 
 (defn build-find-clause
   [pull-fields subquery-data]
@@ -77,18 +77,18 @@
       incoming-resources? (conj 'input-id))))
 
 (defn build-query-xtdb
-  [compiled-schema action-ids fields-to-pull action-rules-map subquery-data incoming-resources? arguments]
+  [compiled-schema operation-ids fields-to-pull operation-rules-map subquery-data incoming-resources? arguments]
   (let [pull-fields (vec fields-to-pull)
-        where-clause (build-where-clause compiled-schema action-ids action-rules-map subquery-data incoming-resources? arguments)
+        where-clause (build-where-clause compiled-schema operation-ids operation-rules-map subquery-data incoming-resources? arguments)
         find-clause (build-find-clause pull-fields subquery-data)
         in-clause (build-in-clause incoming-resources?)]
     {:find find-clause
      :where where-clause
-     :rules action-rules-map
+     :rules operation-rules-map
      :in in-clause}))
 
 
-(defn name-scoped-name-pair->actions
+(defn name-scoped-name-pair->operations
   [{::graphql/keys [name] ::document/keys [scoped-type-name]} schema]
   (get-in schema [::schema/types-by-name
                   scoped-type-name
@@ -97,19 +97,19 @@
                   ::schema/directives-by-name
                   "site"
                   ::graphql/arguments
-                  "action"]))
+                  "operation"]))
 
 
 (defn build-query-for-selection-set
-  [selection-set compiled-schema action-rules incoming-resources?]
-  (let [actions (name-scoped-name-pair->actions selection-set compiled-schema)
+  [selection-set compiled-schema operation-rules incoming-resources?]
+  (let [operations (name-scoped-name-pair->operations selection-set compiled-schema)
         sel-set (:juxt.grab.alpha.graphql/selection-set selection-set)
         grouped-by-inners (group-by (comp some? :juxt.grab.alpha.graphql/selection-set) sel-set)]
     (build-query-xtdb
      compiled-schema
-     actions
+     operations
      (map (comp keyword :juxt.grab.alpha.graphql/name) (get grouped-by-inners false))
-     action-rules
+     operation-rules
      (get grouped-by-inners true)
      incoming-resources?
      (update-keys
@@ -130,7 +130,7 @@
         (distinct (concat inner-results current-level-entries)))
       current-level-entries)))
 
-(defn query-doc->actions
+(defn query-doc->operations
   [query-document schema]
   (let [root-selection-set
         (->
@@ -139,17 +139,17 @@
          first
          :juxt.grab.alpha.graphql/selection-set)
         name-scoped-name-pairs (selection-set->name-scoped-name-pair schema root-selection-set)]
-    (reduce (fn [acc n] (let [actions (name-scoped-name-pair->actions n schema)]
+    (reduce (fn [acc n] (let [operations (name-scoped-name-pair->operations n schema)]
                           (cond
-                            (vector? actions) (into acc actions)
-                            (some? actions) (conj acc actions)
+                            (vector? operations) (into acc operations)
+                            (some? operations) (conj acc operations)
                             :else (throw
                                       (ex-info
-                                       "Failed to find linked actions for field. Ensure @site directive is available in the schema for this field."
+                                       "Failed to find linked operations for field. Ensure @site directive is available in the schema for this field."
                                        {:target-pair n :schema schema})))
-                          (if (vector? actions)
-                            (into acc actions)
-                            (conj acc actions))))
+                          (if (vector? operations)
+                            (into acc operations)
+                            (conj acc operations))))
             #{}
             name-scoped-name-pairs)))
 

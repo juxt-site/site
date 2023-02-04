@@ -18,7 +18,7 @@ requested resource.
 --
 
 Although Basic HTTP Authentication is rarely used nowadays, it is useful to
-understand as it brings together concepts of User, User Identity, Action,
+understand as it brings together concepts of User, User Identity, Operation,
 Permission and Protection Space.
 
 These will be involved in the securing of APIs using HTTP Bearer Authentication
@@ -30,8 +30,8 @@ For the rest of this chapter we'll explore Basic Authentication by setting up
 the following resources:
 
 . A document at `+https://site.test/protected-by-basic-auth/document.html+`
-which requires the User can perform the Action
-`+https://site.test/actions/get-protected-resource+`. We'll called this the
+which requires the User can perform the Operation
+`+https://site.test/operations/get-protected-resource+`. We'll called this the
 _protected document_. This is explained in <<basic-create-protected-resource>>.
 
 . A Permission to allow Alice to access this protected document. This is added
@@ -60,7 +60,7 @@ database XTDB
 
 browser -> document: GET
 document <- XTDB: Lookup protection spaces\n(one is found for 'Basic' auth)
-document -> pass: Check permission to perform\nhttps://site.test/actions/get-protected-resource
+document -> pass: Check permission to perform\nhttps://site.test/operations/get-protected-resource
 document <- pass: Denied
 browser <- document: 401 Unauthorized\nwith WWW-Authenticate header\nincluding realm value 'Wonderland'
 
@@ -72,7 +72,7 @@ document -> pass: Match credentials
 pass <- XTDB: User Identity found
 pass -> XTDB: Create new Subject
 document <- pass: 'Alice' set as the Subject
-document -> pass: Check permission to perform\nhttps://site.test/actions/get-protected-resource
+document -> pass: Check permission to perform\nhttps://site.test/operations/get-protected-resource
 document <- pass: Allowed
 browser <- document: 200 OK
 ....
@@ -124,8 +124,8 @@ include::../../test/juxt/book.clj[tag=put-basic-protection-space!,indent=0]
 To login via Basic Authentication, Alice needs a password. We'll set her a
 password of `garden`.
 
-<<ex-put-basic-auth-user-identity>> demonstrates how we can call the Action we
-created in <<ex-create-action-put-user-identity>> to give Alice an extra
+<<ex-put-basic-auth-user-identity>> demonstrates how we can call the Operation we
+created in <<ex-create-operation-put-user-identity>> to give Alice an extra
 identity.
 
 [[ex-put-basic-auth-user-identity]]

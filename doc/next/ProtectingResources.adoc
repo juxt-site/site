@@ -5,33 +5,33 @@
 
 For many systems, it's necessary to protect resources from access and modification from unauthorized users.
 
-In this chapter we will create an Action for creating protected resources.
+In this chapter we will create an Operation for creating protected resources.
 These preliminaries will be useful later on as we explore different approaches to authentication.
 
 [[publishing-protected-resources]]
-== Create the Action to create a protected resource
+== Create the Operation to create a protected resource
 
-We'll need an Action to create a protected resource. This is demonstrated in
-<<creating-an-action-to-create-a-protected-resource>>.
+We'll need an Operation to create a protected resource. This is demonstrated in
+<<creating-an-operation-to-create-a-protected-resource>>.
 
-[[creating-an-action-to-create-a-protected-resource]]
-.Creating an Action to create a protected resource
+[[creating-an-operation-to-create-a-protected-resource]]
+.Creating an Operation to create a protected resource
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-put-immutable-protected-resource!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-put-immutable-protected-resource!,indent=0]
 ----
 
 <1> Users making a GET request to this resource will require a permission to
-perform the Action `+https://site.test/actions/get-protected-resource+`. This
-Action doesn't yet exist (but we'll create it in
-<<creating-action-get-protected-resource>>).
+perform the Operation `+https://site.test/operations/get-protected-resource+`. This
+Operation doesn't yet exist (but we'll create it in
+<<creating-operation-get-protected-resource>>).
 
-<2> We'll repeat our usual RBAC policy for this Action: we make this Action
+<2> We'll repeat our usual RBAC policy for this Operation: we make this Operation
 accessible if a Permission exists that permits Users in a particular role to
-perform this Action.
+perform this Operation.
 
-As per our Action's rules, we'll need to grant a Permission so that our REPL user can perform it:
+As per our Operation's rules, we'll need to grant a Permission so that our REPL user can perform it:
 
 [source,clojure]
 ----
@@ -42,23 +42,23 @@ include::../../test/juxt/book.clj[tag=grant-permission-to-put-immutable-protecte
 [IMPORTANT]
 --
 
-Copy the code snippets in <<creating-an-action-to-create-a-protected-resource>>
+Copy the code snippets in <<creating-an-operation-to-create-a-protected-resource>>
 into a REPL, edit as required and evaluate.
 
 --
 
-In <<creating-an-action-to-create-a-protected-resource>>, we restricted access
+In <<creating-an-operation-to-create-a-protected-resource>>, we restricted access
 to the resource to those Users who are authorized to perform the
-`+https://site.test/actions/get-protected-resource+`
-Action. <<creating-action-get-protected-resource>> demonstrates the creation
-this Action.
+`+https://site.test/operations/get-protected-resource+`
+Operation. <<creating-operation-get-protected-resource>> demonstrates the creation
+this Operation.
 
-[[creating-action-get-protected-resource]]
-.Creating the `get-protected-resource` Action
+[[creating-operation-get-protected-resource]]
+.Creating the `get-protected-resource` Operation
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-get-protected-resource!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-get-protected-resource!,indent=0]
 ----
 
 <1> The Permission must directly reference the User.
@@ -73,12 +73,12 @@ systems, but works for these authentication examples.
 [IMPORTANT]
 --
 
-Copy the code in <<creating-action-get-protected-resource>> into a REPL, edit as
+Copy the code in <<creating-operation-get-protected-resource>> into a REPL, edit as
 required and evaluate.
 
 --
 
-Now we have created the Actions necessary to protect resources from unauthorized
+Now we have created the Operations necessary to protect resources from unauthorized
 Users, we can illustrate different approaches to User authentication.
 
 

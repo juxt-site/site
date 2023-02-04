@@ -37,7 +37,7 @@ s|Required
 
 === Create a User
 
-Since an Action are performed by a *User*, we need to create a user to start
+Since an Operation are performed by a *User*, we need to create a user to start
 invoking our actions.
 
 <<example-put-user>> demonstrates how to create a user called "Alice".
@@ -55,7 +55,7 @@ include::../../test/juxt/book.clj[tag=put-repl-user!,indent=0]
 <2> Here, we'll assign Alice a couple of roles. These roles is arbitary data and
 _not_ built-in to Site. You can design whatever access control scheme fits your
 requirements, so long as you reference this data from Rules you write into the
-Actions.
+Operations.
 
 ====
 

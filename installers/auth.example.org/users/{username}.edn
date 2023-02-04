@@ -1,9 +1,9 @@
 {:deps
- ["https://auth.example.org/actions/put-user"
+ ["https://auth.example.org/operations/put-user"
   "https://auth.example.org/permissions/system/put-user"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/action-id "https://auth.example.org/actions/put-user"
+  :juxt.site/operation-id "https://auth.example.org/operations/put-user"
   :juxt.site/input
   {:xt/id "{{$id}}"
    :username "{{username}}"

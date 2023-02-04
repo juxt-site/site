@@ -10,8 +10,8 @@ protected resource.
 We'll need to create the following resources:
 
 . A document at `+https://site.test/protected-by-session-scope/document.html+`
-which requires the User can perform the Action
-`+https://site.test/actions/get-protected-resource+`. We'll called this the
+which requires the User can perform the Operation
+`+https://site.test/operations/get-protected-resource+`. We'll called this the
 _protected document_. This is explained in <<create-resource-protected-by-session-scope>>.
 
 . A Permission to allow Alice to access this protected document. This is added
@@ -22,12 +22,12 @@ added in <<create-session-scope>>.
 
 . A login form that will be shown to the User, allowing them to
 authenticate. We'll also want this resource to handle the POST request that
-occurs when a User submits the login formfootnote:[Keeping the resource the same is convenient because it means we don't have to worry about the value of the form's `action` attribute.]. This is created in
+occurs when a User submits the login formfootnote:[Keeping the resource the same is convenient because it means we don't have to worry about the value of the form's `operation` attribute.]. This is created in
 <<create-login-resource>>.
 
-. An Action that can be used when the POST request is received. This Action will
+. An Operation that can be used when the POST request is received. This Operation will
 attempt to find a User Identity that matches some received credentials. If one
-if found, the Action will create a Subject in the database.
+if found, the Operation will create a Subject in the database.
 
 . A User Identity for Alice, including a username/password pair, that Alice can use
 to authenticate using the form. This is added in <<session-scope-add-user-identity>>.
@@ -64,9 +64,9 @@ browser -> loginform: GET
 browser <- loginform: 200 OK\nwith HTML form in body
 user -> browser: Enter credentials,\nsubmit
 browser -> loginhandler: POST
-loginhandler -> pass: Check permission\nto perform action
+loginhandler -> pass: Check permission\nto perform operation
 loginhandler <- pass: Approved
-loginhandler -> pass: Perform login action
+loginhandler -> pass: Perform login operation
 pass -> loginproc: Submit\ntransaction\nfunction
 loginproc -> XTDB: Find identity\nwith credentials
 loginproc <- XTDB: Matched identity
@@ -88,9 +88,9 @@ In <<session-scope-flow>>, the following steps are illustrated:
 . The browser sends a GET request to the protected document:
 `+https://site.test/protected-by-session-scope/document.html+`.
 
-. The operation is associated with the Action
-`+https://site.test/actions/get-protected-resource+` and a check is made for a
-permission to perform this Action.
+. The operation is associated with the Operation
+`+https://site.test/operations/get-protected-resource+` and a check is made for a
+permission to perform this Operation.
 
 . No permission is matched, the request is denied.
 
@@ -105,26 +105,26 @@ the login form.
 previous response (in this case, `/login.html`).
 
 . The URI locates a resource which returns the HTML of a login form, with an
-`action` attribute containing the URI of a resource that will handle the
+`operation` attribute containing the URI of a resource that will handle the
 credentials (in this case, `/login`).
 
 . Alice enters her credentials and clicks btn:[Submit].
 
 . The browser makes a POST request to the resource identified by the form's
-`action` attribute, with a body that contains the credentials.
+`operation` attribute, with a body that contains the credentials.
 
-. The Action associated with the POST method on this resource is looked up
-(`+https://site.test/actions/login+`). The system searches for a permission to
-perform this Action.
+. The Operation associated with the POST method on this resource is looked up
+(`+https://site.test/operations/login+`). The system searches for a permission to
+perform this Operation.
 
 . Since the login form is intended as a public resource, a permission is found
 to exist and the request is allowed to proceed.
 
-. The `+https://site.test/actions/login+` Action is performed.
+. The `+https://site.test/operations/login+` Operation is performed.
 
 . All actions are run as transaction functions in XTDB in order to guarantee
 database consistency and preserve a deterministic log of serialized
-transactions. The `+https://site.test/actions/login+` Action contains a
+transactions. The `+https://site.test/operations/login+` Operation contains a
 procedural 'program' which is run inside the transaction function.
 
 . One of the first steps of the procedure is to find a User Identity that
@@ -195,22 +195,22 @@ include::../../test/juxt/book.clj[tag=create-login-resource!,indent=0]
 ----
 ====
 
-[[create-login-action]]
-== Create the login action
+[[create-login-operation]]
+== Create the login operation
 
-.Creating the login action
+.Creating the login operation
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=create-action-login!,indent=0]
+include::../../test/juxt/book.clj[tag=create-operation-login!,indent=0]
 ----
 ====
 
-.Granting permission for all to perform the login action
+.Granting permission for all to perform the login operation
 ====
 [source,clojure]
 ----
-include::../../test/juxt/book.clj[tag=permit-action-login!,indent=0]
+include::../../test/juxt/book.clj[tag=permit-operation-login!,indent=0]
 ----
 ====
 

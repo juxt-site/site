@@ -10,39 +10,39 @@
 (use-fixtures :each system-xt-fixture handler-fixture)
 
 (def dependency-graph
-  {"https://example.org/actions/get-graphql-type"
+  {"https://example.org/operations/get-graphql-type"
    {:create
     (fn [{:keys [id]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/_site/actions/create-action"
+       :juxt.site/operation-id "https://example.org/_site/operations/create-operation"
        :juxt.site/input
        {:xt/id id
         ;; TODO: Do a view
         :juxt.site/rules
         '[
-          [(allowed? subject action resource permission)
+          [(allowed? subject operation resource permission)
            [subject :juxt.site/user-identity id]
            [id :juxt.site/user user]
            [permission :juxt.site/user user]]]
         }})}
 
    "https://example.org/permissions/{username}/get-graphql-type"
-   {:deps #{"https://example.org/actions/get-graphql-type"}
+   {:deps #{"https://example.org/operations/get-graphql-type"}
     :create
     (fn [{:keys [id params]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/_site/actions/grant-permission"
+       :juxt.site/operation-id "https://example.org/_site/operations/grant-permission"
        :juxt.site/input
        {:xt/id id
-        :juxt.site/action "https://example.org/actions/get-graphql-type"
+        :juxt.site/operation "https://example.org/operations/get-graphql-type"
         :juxt.site/purpose nil
         :juxt.site/user (format "https://example.org/users/%s" (get params "username"))}})}
 
-   "https://example.org/actions/delete-graphql-type"
+   "https://example.org/operations/delete-graphql-type"
    {:create
     (fn [{:keys [id]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/_site/actions/create-action"
+       :juxt.site/operation-id "https://example.org/_site/operations/create-operation"
        :juxt.site/input
        {:xt/id id
         ;; TODO: The reason we want a transact here is so we can recompile the
@@ -59,7 +59,7 @@
                    _ (when-not schema-id
                        (throw
                         (ex-info
-                         "This action requires that the resource contain a :juxt.site/graphql-schema entry"
+                         "This operation requires that the resource contain a :juxt.site/graphql-schema entry"
                          {:resource *resource*})))
 
                    name-to-delete (get-in *resource* [:juxt.grab/type-definition :juxt.grab.alpha.graphql/name])
@@ -67,7 +67,7 @@
                    _ (when-not name-to-delete
                        (throw
                         (ex-info
-                         "This action requires that the resource contain a named type definition"
+                         "This operation requires that the resource contain a named type definition"
                          {:resource *resource*})))
 
                    types (->
@@ -90,28 +90,28 @@
 
         :juxt.site/rules
         '[
-          [(allowed? subject action resource permission)
+          [(allowed? subject operation resource permission)
            [subject :juxt.site/user-identity id]
            [id :juxt.site/user user]
            [permission :juxt.site/user user]]]}})}
 
    "https://example.org/permissions/{username}/delete-graphql-type"
-   {:deps #{"https://example.org/actions/delete-graphql-type"}
+   {:deps #{"https://example.org/operations/delete-graphql-type"}
     :create
     (fn [{:keys [id params]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/_site/actions/grant-permission"
+       :juxt.site/operation-id "https://example.org/_site/operations/grant-permission"
        :juxt.site/input
        {:xt/id id
-        :juxt.site/action "https://example.org/actions/delete-graphql-type"
+        :juxt.site/operation "https://example.org/operations/delete-graphql-type"
         :juxt.site/purpose nil
         :juxt.site/user (format "https://example.org/users/%s" (get params "username"))}})}
 
-   "https://example.org/actions/install-graphql-type"
+   "https://example.org/operations/install-graphql-type"
    {:create
     (fn [{:keys [id]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/_site/actions/create-action"
+       :juxt.site/operation-id "https://example.org/_site/operations/create-operation"
        :juxt.site/input
        {:xt/id id
 
@@ -126,8 +126,8 @@
                      {:xt/id (str (:xt/id *resource*) "types/" type-name)
                       :juxt.site/type "https://meta.juxt.site/types/graphql-type"
                       :juxt.site/methods
-                      {:get {:juxt.site/actions #{"https://example.org/actions/get-graphql-type"}}
-                       :delete {:juxt.site/actions #{"https://example.org/actions/delete-graphql-type"}}}
+                      {:get {:juxt.site/operations #{"https://example.org/operations/get-graphql-type"}}
+                       :delete {:juxt.site/operations #{"https://example.org/operations/delete-graphql-type"}}}
                       :juxt.site/graphql-schema (:xt/id *resource*)
                       :juxt.grab/type-definition typedef
                       ;; Inherit the protection space of the resource
@@ -164,20 +164,20 @@
 
         :juxt.site/rules
         '[
-          [(allowed? subject action resource permission)
+          [(allowed? subject operation resource permission)
            [subject :juxt.site/user-identity id]
            [id :juxt.site/user user]
            [permission :juxt.site/user user]]]}})}
 
    "https://example.org/permissions/{username}/install-graphql-type"
-   {:deps #{"https://example.org/actions/install-graphql-type"}
+   {:deps #{"https://example.org/operations/install-graphql-type"}
     :create
     (fn [{:keys [id params]}]
       {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/action-id "https://example.org/_site/actions/grant-permission"
+       :juxt.site/operation-id "https://example.org/_site/operations/grant-permission"
        :juxt.site/input
        {:xt/id id
-        :juxt.site/action "https://example.org/actions/install-graphql-type"
+        :juxt.site/operation "https://example.org/operations/install-graphql-type"
         :juxt.site/purpose nil
         :juxt.site/user (format "https://example.org/users/%s" (get params "username"))}})}
 
@@ -190,7 +190,7 @@
         :juxt.site/uri-template true
         :juxt.site/methods
         {:post
-         {:juxt.site/actions #{"https://example.org/actions/install-graphql-type"}
+         {:juxt.site/operations #{"https://example.org/operations/install-graphql-type"}
           :juxt.site/acceptable {"accept" "text/plain"}}}
         :juxt.site/protection-spaces #{"https://example.org/protection-spaces/bearer"}}})}
 
@@ -204,20 +204,20 @@
         :juxt.site/graphql-schema "https://example.org/graphql/schema/"
         :juxt.site/methods
         {:post
-         {:juxt.site/actions #{"https://example.org/actions/compile-graphql-schema"}}}
+         {:juxt.site/operations #{"https://example.org/operations/compile-graphql-schema"}}}
         :juxt.site/protection-spaces #{"https://example.org/protection-spaces/bearer"}}))}
 
 
 
    #_"https://example.org/graphql"
    #_{:deps #{:juxt.site.init/system
-              "https://example.org/actions/query-with-graphql"
+              "https://example.org/operations/query-with-graphql"
               "https://example.org/protection-spaces/bearer"}
       :create (fn [{:keys [id]}]
                 (init/put! ;; install-graphql-endpoint
                  {:xt/id id
                   :juxt.site/methods
-                  {:get {:juxt.site/actions #{"https://example.org/actions/whoami"}}}
+                  {:get {:juxt.site/operations #{"https://example.org/operations/whoami"}}}
                   :juxt.site/protection-spaces #{"https://example.org/protection-spaces/bearer"}}))}
 
    })
@@ -236,13 +236,13 @@
           "https://example.org/oauth/authorize" ; a way of authorizing the app
           "https://example.org/permissions/alice-can-authorize" ; which Alice can use
 
-          "https://example.org/actions/install-graphql-type"
+          "https://example.org/operations/install-graphql-type"
           "https://example.org/permissions/alice/install-graphql-type"
 
-          "https://example.org/actions/delete-graphql-type"
+          "https://example.org/operations/delete-graphql-type"
           "https://example.org/permissions/alice/delete-graphql-type"
 
-          "https://example.org/actions/get-graphql-type"
+          "https://example.org/operations/get-graphql-type"
           "https://example.org/permissions/alice/get-graphql-type"
 
           "https://example.org/graphql/schema/"}
