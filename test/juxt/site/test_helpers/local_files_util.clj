@@ -1,6 +1,6 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site.local-files-util
+(ns juxt.site.test-helpers.local-files-util
   (:require
    [clojure.edn :as edn]
    [juxt.site.test-helpers.install :as install]
