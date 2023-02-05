@@ -13,22 +13,32 @@
   {'juxt.pprint (fn [x] (with-out-str (pprint x)))
    'juxt.json (fn [x] (json/write-value-as-string x))})
 
+(defn unified-installer-files []
+  (let [root (io/file "installers")]
+    (for [installer-file (file-seq root)
+          :when (.isFile installer-file)
+          :let [filepath (.toPath installer-file)
+                relpath (.toString (.relativize (.toPath root) filepath))
+                [_ auth+path1 path2] (re-matches #"(.+?)(?:_index)?\.edn" relpath)
+                url (str "https://" auth+path1 path2)]]
+      {:url url
+       :filepath (.toString filepath)
+       :relpath relpath
+       :auth-path (str auth+path1 path2)
+       ;; TODO: Try using a delay for performance, but measure
+       :content (edn/read-string {:readers READERS} (slurp installer-file))})))
+
 (defn unified-installer-map
   "This converts the existing package structure into a unified map of
   installers."
   []
-  (let [root (io/file "installers")]
-    (into
-     {}
-     (for [installer-file (file-seq root)
-           :when (.isFile installer-file)
-           :let [filepath (.toPath installer-file)
-                 relpath (.toString (.relativize (.toPath root) filepath))
-                 [_ auth+path] (re-matches #"(.+)\.edn" relpath)
-                 url (str "https://" auth+path)]]
-       [url
-        ;; TODO: Try using a delay for performance, but measure
-        (edn/read-string {:readers READERS} (slurp installer-file))]))))
+  (into {} (map (juxt :url :content) (unified-installer-files))))
+
+#_(sort (keys (unified-installer-map)))
+
+#_(= unified-installer-map1 (unified-installer-map))
+
+#_(def unified-installer-map1 (unified-installer-map))
 
 (defn install-resource-groups!
   ([xt-node names uri-map parameter-map]
