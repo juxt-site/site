@@ -11,9 +11,7 @@
    [juxt.site.main :as main]
    [juxt.site.repl :as repl]
    [juxt.site.repl :refer :all]
-   [juxt.site.local-files-util :as local]
    ;; Push this into repl!
-   [juxt.site.install :as install]
    [malli.dev :as md]
    [xtdb.api :as xt]
    clojure.main

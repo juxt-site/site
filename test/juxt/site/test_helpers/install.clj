@@ -1,6 +1,6 @@
 ;; Copyright © 2022, JUXT LTD.
 
-(ns juxt.site.install
+(ns juxt.site.test-helpers.install
   (:require
    [clojure.pprint :refer [pprint]]
    [clojure.string :as str]

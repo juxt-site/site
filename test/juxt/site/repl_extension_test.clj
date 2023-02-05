@@ -9,6 +9,7 @@
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.oauth :as oauth]
+   [juxt.site.test-helpers.install :as install]
    [juxt.test.util
     :refer [system-xt-fixture with-session-token with-bearer-token
             *handler* handler-fixture
@@ -17,7 +18,7 @@
             converge!
             AUTH_SERVER]]
 
-   [juxt.site.install :as install]))
+   ))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 

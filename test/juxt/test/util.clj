@@ -6,7 +6,7 @@
    [juxt.site.handler :as h]
    [juxt.site.main :as main]
    [juxt.site.local-files-util :as local]
-   [juxt.site.install :as install]
+   [juxt.site.test-helpers.install :as install]
    [juxt.site.installer :as installer]
    [xtdb.api :as xt])
   (:import
