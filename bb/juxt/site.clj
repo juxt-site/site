@@ -107,10 +107,17 @@
 
   ;; 1. Ask tree to return an installer-seq
   (let [installers (resource-installers resources uri-map parameter-map)
-        existing (set (edn/read-string (push! `(~'find-resources ~(mapv :id installers)) {})))
+        existing (set (edn/read-string (push! `(~'find-resources ~(mapv :id installers)) {:title "Retrieving existing resources"})))
         remaining-installers (remove (comp existing :id) installers)]
 
-    (push! `(~'call-installers! (quote ~remaining-installers)) {}))
+    (cond
+      (pos? (count existing))
+      (when (confirm (format "%s\n\nOverwrite resources?\n" (str/join "\n" (sort existing))))
+        (push! `(~'call-installers! (quote ~installers)) {}))
+
+      :else
+      (when (confirm (format "%s\n\nInstall resources?\n" (str/join "\n" (map :id remaining-installers))))
+        (push! `(~'call-installers! (quote ~remaining-installers)) {}))))
 
   ;; TODO: 2. Exchange installer-seq with repl to enquire which resources have already installed.
   ;; (Perhaps we use a -f to 'force' a re-install, otherwise resources aren't overwritten)
@@ -252,11 +259,9 @@
          (mapv #(str/replace % "https://data.example.org" data-base-uri)))
 
         uri-map {"https://auth.example.org" auth-base-uri
-                 "https://data.example.org" data-base-uri}
+                 "https://data.example.org" data-base-uri}]
 
-        ]
-    (install! resources uri-map {} {:title "Installing System API"})
-    ))
+    (install! resources uri-map {} {:title "Installing System API"})))
 
 (defn auth-server []
   (let [auth-base-uri (input-auth-base-uri)
