@@ -622,10 +622,12 @@
               create-error-structure
               (fn create-error-structure [error]
                 (let [cause (.getCause error)]
-                  (cond-> {:message (.getMessage error)
-                           :ex-data (ex-data error)}
-                    cause (assoc :cause (create-error-structure cause)))))]
+                  (cond-> {:juxt.site/message (.getMessage error)
+                           :juxt.site/ex-data (ex-data error)}
+                    cause (assoc :juxt.site/cause (create-error-structure cause)))))]
           (log/errorf e "Error when performing operation: %s %s" operation event-id)
+
+          (log/errorf "Debugging error: %s" (pr-str e))
 
           [[::xt/put
             {:xt/id event-id
@@ -751,9 +753,9 @@
               (format
                "Transaction error performing operation %s: %s%s"
                operation
-               (:message error)
+               (:juxt.site/message error)
                (if status (format "(status: %s)" status) ""))
-              (:ex-data error)
+              {:juxt.site/error error}
               #_(into
                  (cond-> {:juxt.site/request-context ctx}
                    status (assoc :ring.response/status status))
