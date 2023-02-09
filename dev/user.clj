@@ -57,10 +57,10 @@
     (alter-var-root #'main/*system* (constantly system)))
 
   (println "Starting Malli development instrumentation")
-  (md/start!
+  #_(md/start!
    {:report
     (fn [type data]
-      (throw (ex-info (format "Malli validation failure: %s" type)
+      (throw (ex-info (format "(user) Malli validation failure: %s" type)
                       {:type type
                        ;; Sometimes this can include the whole db!
                        ;;:data data
