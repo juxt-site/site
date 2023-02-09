@@ -34,12 +34,6 @@
   []
   (into {} (map (juxt :url :content) (unified-installer-files))))
 
-#_(sort (keys (unified-installer-map)))
-
-#_(= unified-installer-map1 (unified-installer-map))
-
-#_(def unified-installer-map1 (unified-installer-map))
-
 (defn install-resource-groups!
   ([xt-node names uri-map parameter-map]
    (assert xt-node)
