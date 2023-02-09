@@ -618,7 +618,13 @@
           result-fx))
 
       (catch Throwable e
-        (let [event-id (str (:juxt.site/events-base-uri operation-doc) (::xt/tx-id tx))]
+        (let [event-id (str (:juxt.site/events-base-uri operation-doc) (::xt/tx-id tx))
+              create-error-structure
+              (fn create-error-structure [error]
+                (let [cause (.getCause error)]
+                  (cond-> {:message (.getMessage error)
+                           :ex-data (ex-data error)}
+                    cause (assoc :cause (create-error-structure cause)))))]
           (log/errorf e "Error when performing operation: %s %s" operation event-id)
 
           [[::xt/put
@@ -628,21 +634,8 @@
              :juxt.site/operation operation
              :juxt.site/resource resource
              :juxt.site/purpose purpose
-             :juxt.site/error {:message (.getMessage e)
-                               ;; ex-data is just too problematic to put into the
-                               ;; database as-is without some sanitization ensuring
-                               ;; it's nippyable.
-                               :ex-data (ex-data e)
-                               ;; The site db will not be nippyable
+             :juxt.site/error (create-error-structure e)}]])))))
 
-                               #_(dissoc (ex-data e) :env)
-                               ;; TODO: Ideally we'd like the environment in the
-                               ;; operation log for debugging purposes. But the below
-                               ;; stills fails with a nippy error, haven't
-                               ;; investigated thorougly enough.
-                               #_(let [ex-data (ex-data e)]
-                                   (cond-> ex-data
-                                     (:env ex-data) (dissoc :env)#_(update :env dissoc :juxt.site/db :juxt.site/xt-node)))}}]])))))
 
 ;; Remove anything in the ctx that will upset nippy. However, in the future
 ;; we'll definitely want to record all inputs to operations, so this is an
