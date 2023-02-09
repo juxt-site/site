@@ -93,7 +93,9 @@
                          (withIssuer issuer)
                          ;; 9. The current time MUST be before the time
                          ;; represented by the exp Claim.
-                         (acceptLeeway 1)
+
+                         ;; TODO: This should be passed in as an argument
+                         (acceptLeeway 30)
                          (build))]
         (try
           (let [verification (.verify verifier id-token)]
