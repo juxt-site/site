@@ -15,15 +15,7 @@
 
    :juxt.site/rules
    [
-    ;; Anyone get call this API, and some operations are public
+    ;; Anyone get call this API, as some operations are public. It
+    ;; will only show the operations available to the user, not all.
     [(allowed? subject operation resource permission)
-     [permission :xt/id]]
-
-    #_[(allowed? subject operation resource permission)
-       [subject :juxt.site/user-identity id]
-       [id :juxt.site/user user]
-       [permission :juxt.site/role role]
-       [role :juxt.site/type "https://auth.example.org/_site/types/role"]
-       [role-assignment :juxt.site/type "https://auth.example.org/_site/types/role-assignment"]
-       [role-assignment :juxt.site/role role]
-       [role-assignment :juxt.site/user user]]]}}}
+     [permission :xt/id]]]}}}
