@@ -161,15 +161,13 @@
         (recur (grab "Bad format. "))))))
 
 (defn input-auth-base-uri []
-  (input-uri {:prompt "Enter auth base URI"
-              :default "https://auth.site.test"}))
+  (input-uri {:prompt "Enter auth base URI"}))
 
 (defn input-data-base-uri []
-  (input-uri {:prompt "Enter data base URI"
-              :default "https://data.site.test"}))
+  (input-uri {:prompt "Enter data base URI"}))
 
-(defn bootstrap []
-  (let [auth-base-uri (input-auth-base-uri)
+(defn bootstrap [{:keys [auth-base-uri]}]
+  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         resources
         (->> ["https://auth.example.org/_site/do-operation"
               "https://auth.example.org/_site/subjects/system"
@@ -187,21 +185,14 @@
      {"https://auth.example.org" auth-base-uri}
      {}
      {:title "Bootstrapping"
-      :success-message "Bootstrap succeeded"})
-    #_(push!
-     `(~'converge!
-       ~resources
-       {"https://auth.example.org" ~auth-base-uri}
-       {})
-     {:title "Bootstrapping"
       :success-message "Bootstrap succeeded"})))
 
 (defn url-encode [s]
   (when s
     (java.net.URLEncoder/encode s)))
 
-(defn openid [{:keys [iss client-id client-secret]}]
-  (let [auth-base-uri (input-auth-base-uri)
+(defn openid [{:keys [auth-base-uri iss client-id client-secret]}]
+  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         params
         (into
          {}
@@ -236,9 +227,9 @@
      params
      {:title "Installing OpenAPI"})))
 
-(defn system-api []
-  (let [auth-base-uri (input-auth-base-uri)
-        data-base-uri (input-data-base-uri)
+(defn system-api [{:keys [auth-base-uri data-base-uri]}]
+  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+        data-base-uri (or data-base-uri (input-data-base-uri))
         resources
         (->>
          [ ;; API resources
@@ -265,9 +256,9 @@
 
     (install! resources uri-map {} {:title "Installing System API"})))
 
-(defn auth-server []
-  (let [auth-base-uri (input-auth-base-uri)
-        data-base-uri (input-data-base-uri)
+(defn auth-server [{:keys [auth-base-uri data-base-uri]}]
+  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+        data-base-uri (or data-base-uri (input-data-base-uri))
         resources
         (->>
          ["https://auth.example.org/oauth/authorize"
@@ -287,9 +278,9 @@
      {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
      {:title "Installing authorization server"})))
 
-(defn register-application [{:keys [client-id
-                                    redirect-uri]}]
-  (let [auth-base-uri (input-auth-base-uri)
+(defn register-application
+  [{:keys [auth-base-uri client-id redirect-uri]}]
+  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         client-id (input {:header "Client ID" :value client-id})
         redirect-uri (input {:header "Redirect URI" :value redirect-uri})
         resources [(format "%s/clients/%s" auth-base-uri client-id)]
@@ -300,8 +291,8 @@
       "redirect-uri" redirect-uri}
      {:title (format "Adding OAuth client: %s" client-id)})))
 
-(defn add-user [{:keys [username fullname iss nickname]}]
-  (let [auth-base-uri (input-auth-base-uri)
+(defn add-user [{:keys [auth-base-uri username fullname iss nickname]}]
+  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         username (input {:header "Username" :value username})
         user (format "%s/users/%s" auth-base-uri (url-encode username))
         fullname (input {:header "Full name" :value fullname})
@@ -327,8 +318,8 @@
       "fullname" fullname}
      {:title (format "Adding user: %s" username)})))
 
-(defn grant-role [{:keys [username rolename]}]
-  (let [auth-base-uri (input-auth-base-uri)
+(defn grant-role [{:keys [auth-base-uri username rolename]}]
+  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         username (input {:header "Username" :value username})
         user (format "%s/users/%s" auth-base-uri (url-encode username))
         rolename (input {:header "Role" :value rolename})
