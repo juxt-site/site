@@ -1,14 +1,44 @@
 = Site Principles
 
-== Open Source
+== Understandability
 
+Allow the system to be understood by someone prepared to study it.
 Always use open-source dependencies.
+Within the constraints of access controls, don't obscure workings.
 
 Linked value:: <<understanding,Understanding>>
 
 == Standards
 
-Try not to invent anything. Instead, use standards. When choosing standards, opt
-for the most established and widely adopted ones.
+Try not to invent anything.
+Instead, use standards. When choosing standards, opt for the most established and widely adopted ones.
 
 Linked value:: <<vision,Vision>>
+
+== Interactivity
+
+Bring old ideas of interactivity from Lisps and Smalltalk into the environment.
+
+== Discoverability
+
+Within the constraints of access controls, it should be possible for anyone to discover the data they need.
+
+== Addressability
+
+All data in the system should be addressable from outside the system, to a fine-grained degree.
+
+== Co-habitation
+
+Users don't have a choice but to work against production systems.
+Developers should live there too, supporting their systems, helping users and learning from them.
+Specifically, developers should not work in one environment and release into another, except for when a separate experimental environment is justified.
+
+== Auditability
+
+Every change in the system should be auditable, knowing who did what, when.
+
+== Linearizability
+
+It should be possible to understand the system as a linear set of changes, one following from another.
+
+See https://en.wikipedia.org/wiki/Linearizability
