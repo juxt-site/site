@@ -16,8 +16,10 @@
   ls {:task (juxt.site/ls)}
 
   openid {:task (juxt.site/openid {:auth-base-uri "https://auth.site.test"})}
-  system-api {:task (juxt.site/system-api {:auth-base-uri "https://auth.site.test"})}
-  auth-server {:task (juxt.site/auth-server {:auth-base-uri "https://auth.site.test"})}
+  system-api {:task (juxt.site/system-api {:auth-base-uri "https://auth.site.test"
+                                           :data-base-uri "https://data.site.test"})}
+  auth-server {:task (juxt.site/auth-server {:auth-base-uri "https://auth.site.test"
+                                             :data-base-uri "https://data.site.test"})}
   add-user {:task (juxt.site/add-user {:auth-base-uri "https://auth.site.test"
                                        :iss "https://juxt.eu.auth0.com"})}
   grant-role {:task (juxt.site/grant-role {:auth-base-uri "https://auth.site.test"})}
