@@ -26,7 +26,9 @@
     (let [qs (:ring.request/query *ctx*)
           _ (when-not qs
               (throw
-               (ex-info "No query string" {:ring.response/status 400})))
+               (ex-info
+                "No query string, client_id and response_type query parameters are required"
+                {:ring.response/status 400})))
 
           query (ring.util.codec/form-decode qs)
 
