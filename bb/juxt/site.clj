@@ -200,7 +200,7 @@
   (when s
     (java.net.URLEncoder/encode s)))
 
-(defn openid []
+(defn openid [{:keys [iss client-id client-secret]}]
   (let [auth-base-uri (input-auth-base-uri)
         params
         (into
@@ -212,7 +212,7 @@
                 (url-encode
                  (input
                   {:header "Issuer"
-                   :value "https://juxt.eu.auth0.com"})))]
+                   :value iss})))]
 
           ["client-configuration"
            (str auth-base-uri
@@ -220,12 +220,12 @@
                 (url-encode
                  (input
                   {:header "Client ID"
-                   :value "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"})))]
+                   :value client-id})))]
 
           ["client-secret"
            (input
             {:header "Client Secret"
-             :value "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})]
+             :value client-secret})]
 
           ["session-scope" (str auth-base-uri "/session-scopes/openid-login-session")]])]
 
@@ -287,35 +287,26 @@
      {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
      {:title "Installing authorization server"})))
 
-(defn register-swagger-ui []
+(defn register-application [{:keys [client-id
+                                    redirect-uri]}]
   (let [auth-base-uri (input-auth-base-uri)
-        client-id (input {:header "Client ID" :value "swagger-ui"})
+        client-id (input {:header "Client ID" :value client-id})
+        redirect-uri (input {:header "Redirect URI" :value redirect-uri})
         resources [(format "%s/clients/%s" auth-base-uri client-id)]
         uri-map {"https://auth.example.org" auth-base-uri}]
     (install!
      resources uri-map
      {"client-type" "public"
-      "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"}
+      "redirect-uri" redirect-uri}
      {:title (format "Adding OAuth client: %s" client-id)})))
 
-(defn register-hindsite []
+(defn add-user [{:keys [username fullname iss nickname]}]
   (let [auth-base-uri (input-auth-base-uri)
-        client-id (input {:header "Client ID" :value "hindsite"})
-        resources [(format "%s/clients/%s" auth-base-uri client-id)]
-        uri-map {"https://auth.example.org" auth-base-uri}]
-    (install!
-     resources uri-map
-     {"client-type" "public"
-      "redirect-uri" "https://hind.site.test/index.html"}
-     {:title (format "Adding OAuth client: %s" client-id)})))
-
-(defn add-user []
-  (let [auth-base-uri (input-auth-base-uri)
-        username (input {:header "Username" :value "mal"})
+        username (input {:header "Username" :value username})
         user (format "%s/users/%s" auth-base-uri (url-encode username))
-        fullname (input {:header "Full name" :value "Malcolm Sparks"})
-        iss (input {:header "Issuer" :value "https://juxt.eu.auth0.com"})
-        nickname (input {:header "Nick name" :value "malcolmsparks"})
+        fullname (input {:header "Full name" :value fullname})
+        iss (input {:header "Issuer" :value iss})
+        nickname (input {:header "Nick name" :value nickname})
         resources [user
                    (format "%s/openid/user-identities/%s/nickname/%s"
                            auth-base-uri (url-encode iss) (url-encode nickname))
@@ -336,13 +327,13 @@
       "fullname" fullname}
      {:title (format "Adding user: %s" username)})))
 
-(defn grant-role []
+(defn grant-role [{:keys [username rolename]}]
   (let [auth-base-uri (input-auth-base-uri)
-        username (input {:header "Username" :value "mal"})
+        username (input {:header "Username" :value username})
         user (format "%s/users/%s" auth-base-uri (url-encode username))
-        rolename (input {:header "Role" :value "SystemReadonly"})
+        rolename (input {:header "Role" :value rolename})
         role (format "%s/roles/%s" auth-base-uri rolename)
-        slug (input {:header "Slug" :value "xyz"})
+        slug (input {:header "Assignment name" :value (str username "-" rolename)})
         resources [(format "%s/role-assignments/%s" auth-base-uri slug)]
         uri-map {"https://auth.example.org" auth-base-uri}]
 

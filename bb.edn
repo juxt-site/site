@@ -26,13 +26,31 @@
   test {:task (do
                 (juxt.site/reset)
                 (juxt.site/bootstrap)
-                (juxt.site/openid)
+                (juxt.site/openid
+                 {:iss "https://juxt.eu.auth0.com"
+                  :client-id "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
+                  :client-secret "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
                 (juxt.site/system-api)
 
                 (juxt.site/auth-server)
-                (juxt.site/add-user)
-                (juxt.site/register-swagger-ui)
-                (juxt.site/register-hindsite)
+
+                (juxt.site/add-user
+                 {:username "mal"
+                  :fullname "Malcolm Sparks"
+                  :iss "https://juxt.eu.auth0.com"
+                  :nickname "malcolmsparks"})
+
+                (juxt.site/register-application
+                 {:client-id "swagger-ui"
+                  :redirect-uri "https://swagger-ui.site.test/oauth2-redirect.html"})
+
+                (juxt.site/register-application
+                 {:client-id "surveyor"
+                  :redirect-uri "https://surveyor.site.test/index.html"})
+
+                (juxt.site/grant-role
+                 {:username "mal"
+                  :rolename "SystemReadonly"})
                 )}
 
   installer-tree {:task (juxt.installer-tree/installer-tree)}
