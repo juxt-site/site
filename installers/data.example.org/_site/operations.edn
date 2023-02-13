@@ -1,5 +1,5 @@
 {:deps
- ["https://auth.example.org/operations/system-api/get-operations"
+ ["https://auth.example.org/operations/get-operations"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
  {:juxt.site/input
@@ -12,7 +12,7 @@
    :juxt.site/methods
    {:get
     {:juxt.site/description "Get all permitted operations"
-     :juxt.site/operations #{"https://auth.example.org/operations/system-api/get-operations"}
+     :juxt.site/operations #{"https://auth.example.org/operations/get-operations"}
      :openapi.v3/operation-id "getOperations"
      :openapi.v3/scope "read:operations"
      :openapi.v3/tags ["Operations"]}}

@@ -9,19 +9,19 @@
   [;; API resources
    "https://data.example.org/_site/openapi.json"
    ;; /operations
-   "https://auth.example.org/operations/system-api/get-operations"
-   "https://auth.example.org/permissions/system-api/get-operations"
+   "https://auth.example.org/operations/get-operations"
+   "https://auth.example.org/permissions/get-operations"
    "https://data.example.org/_site/operations"
    "https://data.example.org/_site/operations.html"
    "https://data.example.org/_site/operations.json"
    ;; /users
-   "https://auth.example.org/operations/system-api/get-users"
+   "https://auth.example.org/operations/get-users"
    "https://data.example.org/_site/users"
    "https://data.example.org/_site/users.html"
    "https://data.example.org/_site/users.json"
    ;; Roles
    "https://auth.example.org/roles/SystemReadonly"
-   "https://auth.example.org/permissions/by-role/SystemReadonly/system-api/get-users"]},
+   "https://auth.example.org/permissions/by-role/SystemReadonly/get-users"]},
 
  "juxt/site/sessions"
  {:juxt.site/description "Sessions",

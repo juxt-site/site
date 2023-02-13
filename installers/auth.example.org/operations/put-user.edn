@@ -1,4 +1,4 @@
-{:deps [#_"https://auth.example.org/operations/get-user"]
+{:deps ["https://auth.example.org/operations/get-user"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
@@ -20,29 +20,70 @@
                    :juxt.http/body)]
       (case content-type
         "application/edn"
-        (some->
-         body
-         (String.)
-         clojure.edn/read-string
-         juxt.site.malli/validate-input
-         (assoc
-          :juxt.site/type "https://meta.juxt.site/types/user"
-          :juxt.site/methods
-          {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}
-           :options {}}))))}
+        (let [edn (some->
+                   body
+                   (String.)
+                   clojure.edn/read-string
+                   juxt.site.malli/validate-input)
+              id (:xt/id edn)]
+          [[:xtdb.api/put
+            (assoc
+             edn
+             :juxt.site/type "https://meta.juxt.site/types/user"
+             :juxt.site/methods
+             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}
+              :options {}               ; TODO: needed?
+              }
+             :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+             :juxt.site/access-control-allow-origins
+             [[".*" {:juxt.site/access-control-allow-origin "*"
+                     :juxt.site/access-control-allow-methods [:get]
+                     :juxt.site/access-control-allow-headers ["authorization" "hx-current-url" "hx-request"]}]])]
+
+           ;; HTML version
+           [:xtdb.api/put
+            (assoc
+             edn
+             :xt/id (str id ".html")
+             :juxt.site/variant-of id
+             :juxt.http/content-type "text/html;charset=utf-8"
+             :juxt.site/methods
+             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}
+              :options {}               ; TODO: needed?
+              }
+             :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+             :juxt.site/access-control-allow-origins
+             [[".*" {:juxt.site/access-control-allow-origin "*"
+                     :juxt.site/access-control-allow-methods [:get]
+                     :juxt.site/access-control-allow-headers ["authorization" "hx-current-url" "hx-request"]}]]
+             :juxt.site/respond
+             {:juxt.site.sci/program
+              #juxt.pprint
+              (let [content
+                    (selmer/render
+                     "
+<div>
+  <dl>
+    <dt>Full name</dt>
+    <dd>{{user.fullname}}</dd>
+  </dl>
+</div>
+\n"
+                     {:user *state*}
+                     )]
+                (-> *ctx*
+                    (assoc :ring.response/body content)
+                    (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
+
+
+             )]])))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    [[:xtdb.api/put *prepare*]]}
+    *prepare*}
 
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)
-     [permission :juxt.site/subject subject]]
-
-    #_[(allowed? subject operation resource permission)
-     [subject :juxt.site/user-identity id]
-     [id :juxt.site/user user]
-     [user :role role]
-     [permission :role role]]]}}}
+     [permission :juxt.site/subject subject]]]}}}
