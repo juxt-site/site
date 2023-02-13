@@ -19,7 +19,9 @@
   system-api {:task (juxt.site/system-api)}
   auth-server {:task (juxt.site/auth-server)}
   add-user {:task (juxt.site/add-user)}
+  grant-role {:task (juxt.site/grant-role)}
   register-swagger-ui {:task (juxt.site/register-swagger-ui)}
+  register-hindsite {:task (juxt.site/register-hindsite)}
 
   test {:task (do
                 (juxt.site/reset)
@@ -30,6 +32,7 @@
                 (juxt.site/auth-server)
                 (juxt.site/add-user)
                 (juxt.site/register-swagger-ui)
+                (juxt.site/register-hindsite)
                 )}
 
   installer-tree {:task (juxt.installer-tree/installer-tree)}

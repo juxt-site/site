@@ -144,6 +144,8 @@
     (when-not (str/blank? (.toString sw))
       (let [{:keys [status result]}
             (b/gum {:cmd :filter
+                    :opts {:placeholder "Select resource"
+                           :fuzzy false}
                     :in (io/input-stream (.getBytes (.toString sw)))})]
         (when (zero? status)
           (let [expr `(~'e ~(first result))]
@@ -296,6 +298,17 @@
       "redirect-uri" "https://swagger-ui.site.test/oauth2-redirect.html"}
      {:title (format "Adding OAuth client: %s" client-id)})))
 
+(defn register-hindsite []
+  (let [auth-base-uri (input-auth-base-uri)
+        client-id (input {:header "Client ID" :value "hindsite"})
+        resources [(format "%s/clients/%s" auth-base-uri client-id)]
+        uri-map {"https://auth.example.org" auth-base-uri}]
+    (install!
+     resources uri-map
+     {"client-type" "public"
+      "redirect-uri" "https://hind.site.test/index.html"}
+     {:title (format "Adding OAuth client: %s" client-id)})))
+
 (defn add-user []
   (let [auth-base-uri (input-auth-base-uri)
         username (input {:header "Username" :value "mal"})
@@ -322,6 +335,22 @@
      {"user" user
       "fullname" fullname}
      {:title (format "Adding user: %s" username)})))
+
+(defn grant-role []
+  (let [auth-base-uri (input-auth-base-uri)
+        username (input {:header "Username" :value "mal"})
+        user (format "%s/users/%s" auth-base-uri (url-encode username))
+        rolename (input {:header "Role" :value "SystemReadonly"})
+        role (format "%s/roles/%s" auth-base-uri rolename)
+        slug (input {:header "Slug" :value "xyz"})
+        resources [(format "%s/role-assignments/%s" auth-base-uri slug)]
+        uri-map {"https://auth.example.org" auth-base-uri}]
+
+    (install!
+     resources uri-map
+     {"user" user
+      "role" role}
+     {:title (format "Granting role %s to %s" rolename username)})))
 
 (defn users []
   (println *command-line-args*)

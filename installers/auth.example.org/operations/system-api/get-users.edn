@@ -7,12 +7,11 @@
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.pprint
-    {:operations
-     (->> (xt/q
-           '{:find [(pull e [:xt/id :fullname])]
-             :where [[e :juxt.site/type "https://meta.juxt.site/types/user"]]})
-          (map first)
-          (sort-by :xt/id))}}
+    (->> (xt/q
+          '{:find [(pull e [:xt/id :fullname])]
+            :where [[e :juxt.site/type "https://meta.juxt.site/types/user"]]})
+         (map first)
+         (sort-by :xt/id))}
 
    :juxt.site/rules
    [
