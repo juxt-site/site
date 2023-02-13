@@ -18,4 +18,8 @@
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+   :juxt.site/access-control-allow-origins
+   [[".*" {:juxt.site/access-control-allow-origin "*"
+           :juxt.site/access-control-allow-methods [:get]
+           :juxt.site/access-control-allow-headers ["authorization"]}]]
    }}}
