@@ -216,7 +216,7 @@
         ;; results of every permitted operation? TODO: resolve this
         permitted-operation (:juxt.site/operation (first (:juxt.site/permitted-operations req)))]
 
-    (log/infof "Permitted operation is %s" permitted-operation)
+    ;;(log/debugf "Permitted operation is %s" (:xt/id permitted-operation))
 
     (cond
 
@@ -464,8 +464,8 @@
   (fn [{:ring.request/keys [method] :as req}]
 
     ;; Temporary assert while tracking down an issue
-    (assert (or (nil? (:juxt.site/subject req)) (map? (:juxt.site/subject req)))
-            (format "Subject must be a map, or nil: %s" (pr-str (:juxt.site/subject req))))
+    (assert (or (nil? (find req :juxt.site/subject)) (map? (:juxt.site/subject req)))
+            (format "Subject must be a map, or nil: %s" (pr-str (find req :juxt.site/subject))))
 
     (h (case method
          (:get :head) (GET req)
@@ -648,11 +648,11 @@
   (fn [req]
     (let [{:juxt.site/keys [resource] :as req} (h req)
 
-          _ (log/infof "(cors) resource is %s" (pr-str resource))
-
           ;; The access-control declarations will be on the main
-          ;; resource, not the variant.
-          resource (or (:juxt.site/variant-of resource) resource)
+          ;; resource, not the variant.  WARNING: If restoring this,
+          ;; make sure we look up the resource as a map from the id!!
+          ;; resource (or (:juxt.site/variant-of resource) resource)
+
 
           request-origin (get-in req [:ring.request/headers "origin"])
           {:juxt.site/keys [access-control-allow-origins]} resource
@@ -1190,6 +1190,7 @@
 
    ;; Authenticate, some clues will be on the resource
    session-scope/wrap-session-scope
+
    wrap-http-authenticate
 
    ;; 405

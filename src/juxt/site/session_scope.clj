@@ -4,10 +4,12 @@
   (:require
    [ring.middleware.cookies :refer [cookies-request]]
    [xtdb.api :as xt]
+   [juxt.site.repl :as repl]
    [clojure.tools.logging :as log]))
 
 (defn lookup-session-details [db session-token-id!]
-  (let [session-details
+  (let [lookup #(xt/entity db %)
+        session-details
         (first
          (xt/q db '{:find [(pull session-token [*])
                            (pull session [*])]
@@ -19,13 +21,13 @@
                      [session-token :juxt.site/session session]]
                     :in [token-id]}
                session-token-id!))
-        subject (some-> session-details :juxt.site/session :juxt.site/subject)]
+        subject (some-> session-details :juxt.site/session :juxt.site/subject lookup)]
 
     (cond-> session-details
       ;; Since subject is common and special, we promote it to the top-level
       ;; context. However, it is possible to have a session without having
       ;; established a subject (for example, while authenticating).
-      subject (assoc :juxt.site/subject (xt/entity db subject)))))
+      subject (assoc :juxt.site/subject subject))))
 
 (defn wrap-session-scope [h]
   (fn [{:juxt.site/keys [db uri resource] :as req}]

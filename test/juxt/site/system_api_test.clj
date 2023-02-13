@@ -13,7 +13,8 @@
             *handler* handler-fixture
             with-fixtures
             install-resource-groups! install-resource-with-operation! converge!
-            AUTH_SERVER RESOURCE_SERVER]]))
+            AUTH_SERVER RESOURCE_SERVER]]
+   [xtdb.api :as xt]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 

@@ -56,15 +56,16 @@
         system (ig/init system-config)]
     (alter-var-root #'main/*system* (constantly system)))
 
-  (println "Starting Malli development instrumentation")
-  #_(md/start!
-   {:report
-    (fn [type data]
-      (throw (ex-info (format "(user) Malli validation failure: %s" type)
-                      {:type type
-                       ;; Sometimes this can include the whole db!
-                       ;;:data data
-                       })))})
+  (comment
+    (println "Starting Malli development instrumentation")
+    (md/start!
+     {:report
+      (fn [type data]
+        (throw (ex-info (format "(user) Malli validation failure: %s" type)
+                        {:type type
+                         ;; Sometimes this can include the whole db!
+                         ;;:data data
+                         })))}))
 
   (log/info "System started and ready...")
 

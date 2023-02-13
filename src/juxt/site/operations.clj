@@ -763,13 +763,15 @@
                   (dissoc result :juxt.site/type :xt/id :juxt.site/error)
                   (:ex-data error)))))))
 
-        (cond-> ctx
-          result (assoc :juxt.site/operation-result result)
+        (do
+          (log/debugf "Result from operation %s: %s" operation result)
+          (cond-> ctx
+            result (assoc :juxt.site/operation-result result)
 
-          (seq (:juxt.site/response-fx result))
-          (apply-response-fx (:juxt.site/response-fx result))
+            (seq (:juxt.site/response-fx result))
+            (apply-response-fx (:juxt.site/response-fx result))
 
-          )))))
+            ))))))
 
 ;; TODO: Since it is possible that a permission is in the queue which might
 ;; grant or revoke an operation, it is necessary to run this check 'head-of-line'
@@ -791,8 +793,11 @@
 
           _ (doseq [operation operations]
               (when-not (xt/entity db operation)
-                (throw (ex-info (format "No such operation: %s" operation) {:juxt.site/request-context req
-                                                                      :missing-operation operation}))))
+                (throw
+                 (ex-info
+                  (format "No such operation: %s" operation)
+                  {:juxt.site/request-context req
+                   :missing-operation operation}))))
 
           _ (log/tracef "operations are %s" (pr-str {:operations operations}))
 
@@ -810,7 +815,6 @@
                resource (assoc :juxt.site/resource resource))))]
 
       #_(log/debugf "Permitted operations: %s" (pr-str permitted-operations))
-      (log/tracef "Subject is %s" (pr-str subject))
 
       (cond
         (seq permitted-operations)
