@@ -261,9 +261,8 @@
 
     (install! resources uri-map {} {:title "Installing System API"})))
 
-(defn auth-server [{:keys [auth-base-uri data-base-uri]}]
+(defn auth-server [{:keys [auth-base-uri]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        data-base-uri (or data-base-uri (input-data-base-uri))
         resources
         (->>
          ["https://auth.example.org/oauth/authorize"
@@ -271,11 +270,9 @@
           "https://auth.example.org/operations/install-authorization-server"
           "https://auth.example.org/permissions/system/install-authorization-server"
           "https://auth.example.org/permissions/system/register-client"]
-         (mapv #(str/replace % "https://auth.example.org" auth-base-uri))
-         (mapv #(str/replace % "https://data.example.org" data-base-uri)))
+         (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))
 
-        uri-map {"https://auth.example.org" auth-base-uri
-                 "https://data.example.org" data-base-uri}]
+        uri-map {"https://auth.example.org" auth-base-uri}]
 
     (install!
      resources

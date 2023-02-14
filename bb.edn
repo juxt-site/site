@@ -39,8 +39,7 @@
                   :data-base-uri "https://data.site.test"})
 
                 (juxt.site/auth-server
-                 {:auth-base-uri "https://auth.site.test"
-                  :data-base-uri "https://data.site.test"})
+                 {:auth-base-uri "https://auth.site.test"})
 
                 (juxt.site/add-user
                  {:auth-base-uri "https://auth.site.test"
