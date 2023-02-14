@@ -14,7 +14,7 @@ This is the same idealised constraint that any given file in a Linux filesystem 
 
 == auth.example.org
 
-Resources protected by sessions.
+Resources that should be protected by sessions.
 
 Sessions survive the usual request/response by use of cookies.
 
@@ -24,7 +24,7 @@ Sessions are established via a login process, such as form-based login or OpenID
 
 == data.example.org
 
-Resources protected by bearer tokens.
+Resources that should be protected by bearer tokens, e.g. API resources.
 
 Bearer tokens are transmitted with the `Authorization` header.
 
