@@ -236,45 +236,50 @@
       (-> resource :juxt.site/respond :juxt.site.sci/program)
       (let [state
             (when-let [program (-> permitted-operation :juxt.site/state :juxt.site.sci/program)]
-              (sci/eval-string
-               program
-               {:namespaces
-                (merge
-                 {'user {'*operation* permitted-operation
-                         '*resource* (:juxt.site/resource req)
-                         '*ctx* (dissoc req :juxt.site/xt-node)
-                         'logf (fn [& args] (eval `(log/debugf ~@args)))
-                         'log (fn [& args] (eval `(log/debug ~@args)))}
-                  'xt
-                  {'entity
-                   (fn [id] (xt/entity (:juxt.site/db req) id))
-                   'pull
-                   (fn [query eid]
-                     (xt/pull (:juxt.site/db req) query eid))
-                   'q
-                   (fn [query & args]
-                     (apply xt/q (:juxt.site/db req) query args))
-                   }
+              (sci/binding [sci/out *out*]
+                (sci/eval-string
+                 program
+                 {:namespaces
+                  (merge
+                   {'user {'*operation* permitted-operation
+                           '*resource* (:juxt.site/resource req)
+                           '*ctx* (dissoc req :juxt.site/xt-node)
+                           'log (fn [& message]
+                                  (eval `(log/info ~(str/join " " message))))
+                           'logf (fn [& args]
+                                   (eval `(log/infof ~@args)))}
+                    'xt
+                    {'entity
+                     (fn [id] (xt/entity (:juxt.site/db req) id))
+                     'pull
+                     (fn [query eid]
+                       (log/infof "Pull %s from %s" query eid)
+                       (log/infof "Result is: %s" (pr-str (xt/pull (:juxt.site/db req) query eid)))
+                       (xt/pull (:juxt.site/db req) query eid))
+                     'q
+                     (fn [query & args]
+                       (apply xt/q (:juxt.site/db req) query args))
+                     }
 
-                  'juxt.site
-                  {'pull-allowed-resources
-                   (fn [m]
-                     (operations/pull-allowed-resources
-                      (:juxt.site/db req)
-                      m
-                      {:juxt.site/subject subject
-                       ;; TODO: Don't forget purpose
-                       }))
-                   'allowed-operations
-                   (fn [m]
-                     (operations/allowed-operations
-                      (:juxt.site/db req)
-                      (merge {:juxt.site/subject subject} m)))}})
+                    'juxt.site
+                    {'pull-allowed-resources
+                     (fn [m]
+                       (operations/pull-allowed-resources
+                        (:juxt.site/db req)
+                        m
+                        {:juxt.site/subject subject
+                         ;; TODO: Don't forget purpose
+                         }))
+                     'allowed-operations
+                     (fn [m]
+                       (operations/allowed-operations
+                        (:juxt.site/db req)
+                        (merge {:juxt.site/subject subject} m)))}})
 
-                :classes
-                {'java.util.Date java.util.Date
-                 'java.time.Instant java.time.Instant
-                 'java.time.Duration java.time.Duration}}))
+                  :classes
+                  {'java.util.Date java.util.Date
+                   'java.time.Instant java.time.Instant
+                   'java.time.Duration java.time.Duration}})))
 
             respond-program
             (-> resource :juxt.site/respond :juxt.site.sci/program)
@@ -412,26 +417,18 @@
       (h req))))
 
 (defn wrap-negotiate-representation [h]
-  (fn [{original-resource :juxt.site/resource
+  (fn [{base-resource :juxt.site/resource
         cur-reps :juxt.site/current-representations
         :as req}]
-    (let [new-resource (when (seq cur-reps)
-                         (conneg/negotiate-representation req cur-reps))
-          new-resource
-          (when new-resource
-            ;; TODO: Why is this necessary? Won't the new-resource
-            ;; already have the :juxt.site/variant-of entry? If so, we
-            ;; don't need this logic here. However, we do want to
-            ;; distinguish between times when the resource is being
-            ;; served as a variant of another (where the URI targets
-            ;; the varying resource, e.g. for CORS
-            ;; determination). (Update: this juxt.site/variant-of is
-            ;; now a map, not a reference)
-            (cond-> new-resource
-              (not= new-resource original-resource)
-              (assoc :juxt.site/variant-of original-resource)))]
+    (let [variant (when (seq cur-reps)
+                    (conneg/negotiate-representation req cur-reps))
+          variant
+          (when variant
+            (cond-> variant
+              (not= (:xt/id variant) (:xt/id base-resource))
+              (assoc :juxt.site/variant-of (:xt/id base-resource))))]
       (h (cond-> req
-           new-resource (assoc :juxt.site/resource new-resource))))))
+           variant (assoc :juxt.site/resource variant))))))
 
 (defn wrap-http-authenticate [h]
   (fn [req]
