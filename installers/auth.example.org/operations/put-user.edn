@@ -31,26 +31,41 @@
              edn
              :juxt.site/type "https://meta.juxt.site/types/user"
              :juxt.site/methods
-             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}
-              :options {}               ; TODO: needed?
-              }
+             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}}
              :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
              :juxt.site/access-control-allow-origins
              [[".*" {:juxt.site/access-control-allow-origin "*"
                      :juxt.site/access-control-allow-methods [:get]
                      :juxt.site/access-control-allow-headers ["authorization" "hx-current-url" "hx-request"]}]])]
 
+           ;; JSON version
+           [:xtdb.api/put
+            {:xt/id (str id ".json")
+             :juxt.site/variant-of id
+             :juxt.http/content-type "application/json"
+             :juxt.site/methods
+             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}}
+             :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+             :juxt.site/access-control-allow-origins
+             [[".*" {:juxt.site/access-control-allow-origin "*"
+                     :juxt.site/access-control-allow-methods [:get]
+                     :juxt.site/access-control-allow-headers ["authorization"]}]]
+
+             :juxt.site/respond
+             {:juxt.site.sci/program
+              #juxt.pprint
+              (let [content (jsonista.core/write-value-as-string *state*)]
+                (-> *ctx*
+                    (assoc :ring.response/body content)
+                    (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}]
+
            ;; HTML version
            [:xtdb.api/put
-            (assoc
-             edn
-             :xt/id (str id ".html")
+            {:xt/id (str id ".html")
              :juxt.site/variant-of id
              :juxt.http/content-type "text/html;charset=utf-8"
              :juxt.site/methods
-             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}
-              :options {}               ; TODO: needed?
-              }
+             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}}
              :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
              :juxt.site/access-control-allow-origins
              [[".*" {:juxt.site/access-control-allow-origin "*"
@@ -66,6 +81,8 @@
   <dl>
     <dt>Full name</dt>
     <dd>{{user.fullname}}</dd>
+    <dt>All</td>
+    <dd>{{user}}</dd>
   </dl>
 </div>
 \n"
@@ -73,10 +90,7 @@
                      )]
                 (-> *ctx*
                     (assoc :ring.response/body content)
-                    (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
-
-
-             )]])))}
+                    (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}]])))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
