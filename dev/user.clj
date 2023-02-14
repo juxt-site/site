@@ -13,12 +13,12 @@
    [juxt.site.repl :refer :all]
    ;; Push this into repl!
    [malli.dev :as md]
-   [xtdb.api :as xt]
    clojure.main
    fipp.ednize
    juxt.site.schema
    malli.dev.pretty
-   xtdb.query))
+   xtdb.query
+   [xtdb.api :as xt]))
 
 (nippy/extend-freeze
  clojure.lang.Atom :juxt.site.nippy/atom [x data-output]
