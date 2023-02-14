@@ -1,6 +1,6 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site
+(ns juxt.tasks
   (:require
    [bblgum.core :as b]
    [clojure.java.io :as io]

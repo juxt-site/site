@@ -3,62 +3,62 @@
  :paths ["bb"]
  :deps {io.github.lispyclouds/bblgum {:git/sha "7ebae0e2231899fe2a6ad44bc9ef5fca64099fcd"}}
  :tasks
- {:requires (juxt.site
+ {:requires (juxt.tasks
              juxt.installer-tree
              [clojure.core.async :as async])
 
   reset {:doc "Factory reset"
-         :task (juxt.site/reset)}
+         :task (juxt.tasks/reset)}
 
   bootstrap {:doc "Bootstrap system"
-             :task (juxt.site/bootstrap)}
+             :task (juxt.tasks/bootstrap)}
 
-  ls {:task (juxt.site/ls)}
+  ls {:task (juxt.tasks/ls)}
 
-  openid {:task (juxt.site/openid {:auth-base-uri "https://auth.site.test"})}
-  system-api {:task (juxt.site/system-api {:auth-base-uri "https://auth.site.test"
+  openid {:task (juxt.tasks/openid {:auth-base-uri "https://auth.site.test"})}
+  system-api {:task (juxt.tasks/system-api {:auth-base-uri "https://auth.site.test"
                                            :data-base-uri "https://data.site.test"})}
-  auth-server {:task (juxt.site/auth-server {:auth-base-uri "https://auth.site.test"
+  auth-server {:task (juxt.tasks/auth-server {:auth-base-uri "https://auth.site.test"
                                              :data-base-uri "https://data.site.test"})}
-  add-user {:task (juxt.site/add-user {:auth-base-uri "https://auth.site.test"
+  add-user {:task (juxt.tasks/add-user {:auth-base-uri "https://auth.site.test"
                                        :iss "https://juxt.eu.auth0.com"})}
-  grant-role {:task (juxt.site/grant-role {:auth-base-uri "https://auth.site.test"})}
-  register-application {:task (juxt.site/register-application {:auth-base-uri "https://auth.site.test"})}
+  grant-role {:task (juxt.tasks/grant-role {:auth-base-uri "https://auth.site.test"})}
+  register-application {:task (juxt.tasks/register-application {:auth-base-uri "https://auth.site.test"})}
 
   test {:task (do
-                (juxt.site/reset)
-                (juxt.site/bootstrap {:auth-base-uri "https://auth.site.test"})
-                (juxt.site/openid
+                (juxt.tasks/reset)
+                (juxt.tasks/bootstrap {:auth-base-uri "https://auth.site.test"})
+                (juxt.tasks/openid
                  {:auth-base-uri "https://auth.site.test"
                   :iss "https://juxt.eu.auth0.com"
                   :client-id "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
                   :client-secret "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
 
-                (juxt.site/system-api
+                (juxt.tasks/system-api
                  {:auth-base-uri "https://auth.site.test"
                   :data-base-uri "https://data.site.test"})
 
-                (juxt.site/auth-server
+                (juxt.tasks/auth-server
                  {:auth-base-uri "https://auth.site.test"})
 
-                (juxt.site/add-user
+                (juxt.tasks/add-user
                  {:auth-base-uri "https://auth.site.test"
                   :username "mal"
                   :fullname "Malcolm Sparks"
                   :iss "https://juxt.eu.auth0.com"
                   :nickname "malcolmsparks"})
 
-                (juxt.site/register-application
+                (juxt.tasks/register-application
                  {:auth-base-uri "https://auth.site.test"
                   :client-id "swagger-ui"
                   :redirect-uri "https://swagger-ui.site.test/oauth2-redirect.html"})
 
-                (juxt.site/register-application
+                (juxt.tasks/register-application
                  {:auth-base-uri "https://auth.site.test"
                   :client-id "surveyor"
                   :redirect-uri "https://surveyor.site.test/index.html"})
 
-                (juxt.site/grant-role
+                (juxt.tasks/grant-role
                  {:auth-base-uri "https://auth.site.test"
                   :username "mal"
                   :rolename "SystemReadonly"})
@@ -66,5 +66,5 @@
 
   installer-tree {:task (juxt.installer-tree/installer-tree)}
 
-  ;;users {:task (juxt.site/users)}
+  ;;users {:task (juxt.tasks/users)}
   }}
