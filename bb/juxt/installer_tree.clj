@@ -84,13 +84,13 @@
      (str ns "/"))
    (name kw)))
 
-(defn render-with-required-check [template m]
+(defn render-with-required-check [template parameter-map]
   (when-let [missing (seq
                       (set/difference
                        (set (map namespaced-name (selmer/known-variables template)))
-                       (set (keys m))))]
-    (throw (ex-info (format "Required template variables missing: %s" (str/join ", " missing)) {:missing missing :all m :keys (set (keys m))})))
-  (selmer/render template m))
+                       (set (keys parameter-map))))]
+    (throw (ex-info (format "Required template variables missing: %s" (str/join ", " missing)) {:missing missing :all parameter-map :keys (set (keys parameter-map))})))
+  (selmer/render template parameter-map))
 
 (defn render-form-templates [form params]
   (->> form
