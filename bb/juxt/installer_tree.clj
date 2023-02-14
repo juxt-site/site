@@ -89,7 +89,12 @@
                       (set/difference
                        (set (map namespaced-name (selmer/known-variables template)))
                        (set (keys parameter-map))))]
-    (throw (ex-info (format "Required template variables missing: %s" (str/join ", " missing)) {:missing missing :all parameter-map :keys (set (keys parameter-map))})))
+    (throw
+     (ex-info
+      (format "Required template variables missing: %s" (str/join ", " missing))
+      {:missing missing
+       :all parameter-map
+       :keys (set (keys parameter-map))})))
   (selmer/render template parameter-map))
 
 (defn render-form-templates [form params]
