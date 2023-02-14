@@ -1,0 +1,31 @@
+= Installers
+
+Resources are divided into two hosts.
+
+Resources are installed into Site by one of two ways:
+
+- Calling an operation (preferred, auditable)
+- Direct put
+
+The EDN files in this part of the repository determine which operations are used to create each resource.
+
+It is intentional that any given URI is established via a particular operation.
+This is the same idealised constraint that any given file in a Linux filesystem should be traceable to a particular packages, and that there are no conflicting packages.
+
+== auth.example.org
+
+Resources protected by sessions.
+
+Sessions survive the usual request/response by use of cookies.
+
+Cookies are transmitted with the `Cookie` header.
+
+Sessions are established via a login process, such as form-based login or OpenID.
+
+== data.example.org
+
+Resources protected by bearer tokens.
+
+Bearer tokens are transmitted with the `Authorization` header.
+
+Bearer tokens are acquired from the authorization endpoint of the authorization server, e.g. `/oauth/authorize`
