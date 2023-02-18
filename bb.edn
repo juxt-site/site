@@ -11,7 +11,7 @@
          :task (juxt.tasks/reset)}
 
   bootstrap {:doc "Bootstrap system"
-             :task (juxt.tasks/bootstrap)}
+             :task (juxt.tasks/bootstrap {:auth-base-uri "https://auth.site.test"})}
 
   ls {:task (juxt.tasks/ls)}
 

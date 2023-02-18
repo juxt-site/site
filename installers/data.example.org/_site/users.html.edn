@@ -13,6 +13,7 @@
     #juxt.pprint
     (let [content
           (selmer/render
+           #juxt.template
            "
 <table>
 {% for u in users %}

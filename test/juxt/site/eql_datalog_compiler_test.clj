@@ -52,7 +52,7 @@
    ["juxt/site/example-users"
     "juxt/site/login-form"
     "juxt/site/protection-spaces"]
-   AUTH_SERVER {})
+   AUTH_SERVER {"session-scope" "https://auth.hospital.com/session-scopes/openid-login-session"})
 
   (install-resource-groups!
    ["juxt/site/hospital-demo"]

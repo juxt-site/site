@@ -317,7 +317,9 @@
     (install!
      resources uri-map
      {"user" user
-      "fullname" fullname}
+      "fullname" fullname
+      "session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
+
      {:title (format "Adding user: %s" username)})))
 
 (defn grant-role [{:keys [auth-base-uri username rolename]}]

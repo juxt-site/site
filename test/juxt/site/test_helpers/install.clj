@@ -12,12 +12,12 @@
    [juxt.site.installer :as installer]))
 
 (defn to-regex [uri-template]
-   (re-pattern
-    (str/replace
-     uri-template
-     #"\{([^\}]+)\}"
-     (fn replacer [[_ group]]
-       (format "(?<%s>[^/#\\?]+)" (str/replace group "-" ""))))))
+  (re-pattern
+   (str/replace
+    uri-template
+    #"\{([^\}]+)\}"
+    (fn replacer [[_ group]]
+      (format "(?<%s>[^/#\\?]+)" (str/replace group "-" ""))))))
 
 (defn lookup [id graph]
   (or
@@ -37,16 +37,6 @@
 ;; now. There must be a better way, but for now, wrapping the program
 ;; in a type will do.
 
-(defprotocol Unwrap
-  (unwrap [_]))
-
-(deftype DoNotRender [s]
-  Unwrap
-  (unwrap [_] s))
-
-(defn wrap-as-template [[k v]]
-  [k (->DoNotRender v)])
-
 (defn namespaced-name [kw]
   (str
    (when-let [ns (namespace kw)]
@@ -61,18 +51,48 @@
     (throw (ex-info (format "Required template variables missing: %s" (str/join ", " missing)) {:missing missing :all m :keys (set (keys m))})))
   (selmer/render template m))
 
+(defprotocol Unwrap
+  (unwrap [_]))
+
+(deftype Template [s]
+  Unwrap
+  (unwrap [_] s))
+
+(deftype Pretty [s]
+  Unwrap
+  (unwrap [_] s))
+
+(defn uri-map-replace
+  "Replace URIs in string, taking substitutions from the given uri-map."
+  [s uri-map]
+  (str/replace
+   s
+   #"(https://.*?example.org)(.*)"
+   (fn [[_ host path]] (str (get uri-map host host) path))))
+
+(defn make-uri-map-replace-walk-fn [uri-map]
+  (fn walk-fn [node]
+    (cond
+      (string? node) (uri-map-replace node uri-map)
+      (instance? Template node)
+      (->Template (uri-map-replace (unwrap node) uri-map))
+      (instance? Pretty node)
+      (->Pretty (postwalk walk-fn (unwrap node)))
+      :else node)))
+
 (defn render-form-templates [form params]
   (->> form
        (prewalk
         (fn [x]
           (cond-> x
-            (and (vector? x) (= (first x) :juxt.site.sci/program)) wrap-as-template
+            (instance? Pretty x) (-> unwrap (render-form-templates params) (->Pretty))
             (string? x) (render-with-required-check params))))
        ;; Unwrap the templates
        (postwalk
         (fn [x]
           (cond-> x
-            (instance? DoNotRender x) unwrap)))))
+            (instance? Template x) unwrap
+            (instance? Pretty x) (-> unwrap pprint with-out-str))))))
 
 (defn- node-dependencies
   "Return the dependency ids for the given node, with any parameters expanded

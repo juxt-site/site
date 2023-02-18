@@ -11,9 +11,20 @@
    [clojure.string :as str]
    [cheshire.core :as json]))
 
+(defprotocol Unwrap
+  (unwrap [_]))
+
+(deftype Template [s]
+  Unwrap
+  (unwrap [_] s))
+
+(deftype Pretty [s]
+  Unwrap
+  (unwrap [_] s))
+
 (def READERS
-  {'juxt.pprint (fn [x] (with-out-str (pprint x)))
-   'juxt.json (fn [x] (json/generate-string x))})
+  {'juxt.pprint (fn [x] (->Pretty x))
+   'juxt.template (fn [s] (->Template s))})
 
 (defn uri-map-replace
   "Replace URIs in string, taking substitutions from the given uri-map."
@@ -22,6 +33,15 @@
    s
    #"(https://.*?example.org)(.*)"
    (fn [[_ host path]] (str (get uri-map host host) path))))
+
+(defn make-uri-map-replace-walk-fn [uri-map]
+  (fn walk-fn [node]
+    (cond
+      (string? node) (uri-map-replace node uri-map)
+      (instance? Template node) (->Template (uri-map-replace (unwrap node) uri-map))
+      (instance? Pretty node) (->Pretty (postwalk walk-fn (unwrap node)))
+      :else node
+      )))
 
 ;; TODO: Could this be replaced with a lazy version that visited the files directly?
 (defn unified-installer-map
@@ -43,7 +63,8 @@
           ;; only transform installers that are in scope.
           (->>
            (edn/read-string {:readers READERS} (slurp installer-file))
-           (postwalk #(cond-> % (string? %) (uri-map-replace uri-map)))))]))))
+           (postwalk (make-uri-map-replace-walk-fn uri-map))
+           ))]))))
 
 (defn to-regex [uri-template]
    (re-pattern
@@ -68,16 +89,6 @@
                      (map #(java.net.URLDecoder/decode %) (next matches))))))
          graph)))
 
-(defprotocol Unwrap
-  (unwrap [_]))
-
-(deftype DoNotRender [s]
-  Unwrap
-  (unwrap [_] s))
-
-(defn wrap-as-template [[k v]]
-  [k (->DoNotRender v)])
-
 (defn namespaced-name [kw]
   (str
    (when-let [ns (namespace kw)]
@@ -85,6 +96,7 @@
    (name kw)))
 
 (defn render-with-required-check [template parameter-map]
+
   (when-let [missing (seq
                       (set/difference
                        (set (map namespaced-name (selmer/known-variables template)))
@@ -102,13 +114,14 @@
        (prewalk
         (fn [x]
           (cond-> x
-            (and (vector? x) (= (first x) :juxt.site.sci/program)) wrap-as-template
+            (instance? Pretty x) (-> unwrap (render-form-templates params) (->Pretty))
             (string? x) (render-with-required-check params))))
        ;; Unwrap the templates
        (postwalk
-        (fn [x]
+        (fn process [x]
           (cond-> x
-            (instance? DoNotRender x) unwrap)))))
+            (instance? Template x) unwrap
+            (instance? Pretty x) (-> unwrap pprint with-out-str))))))
 
 (defn installer-seq [ids graph parameter-map]
   (assert (every? some? ids) (format "Some ids were nil: %s" (pr-str ids)))
@@ -154,7 +167,9 @@
           (let [init-data (render-form-templates install (assoc (merge parameter-map params) "$id" id))]
             (when (nil? init-data)
               (throw (ex-info "Nil init data" {:id id})))
-            (conj acc (-> node (assoc :juxt.site/init-data init-data)))))
+            (conj acc (-> node
+                          (assoc :juxt.site/init-data init-data)
+                          (dissoc :install)))))
         [])))
 
 (defn normalize-uri-map [uri-map]

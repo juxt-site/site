@@ -400,7 +400,7 @@
     (doseq [installer installers]
       (try
         (installer/call-installer node installer)
-        (catch clojure.lang.ExceptionInfo e
+        (catch Throwable e
           (throw (ex-info (format "Failed to install %s" (:id installer)) {:installer (:id installer)} e)))))))
 
 (defn keyword-commands []

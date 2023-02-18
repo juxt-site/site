@@ -99,7 +99,7 @@
    ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
     "juxt/site/example-users" "juxt/site/protection-spaces"]
    AUTH_SERVER
-   {})
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   (install-resource-groups! ["juxt/site/whoami"] RESOURCE_SERVER {})
 

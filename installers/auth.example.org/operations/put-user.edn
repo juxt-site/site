@@ -33,10 +33,15 @@
              :juxt.site/methods
              {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}}
              :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+
              :juxt.site/access-control-allow-origins
              [[".*" {:juxt.site/access-control-allow-origin "*"
                      :juxt.site/access-control-allow-methods [:get]
-                     :juxt.site/access-control-allow-headers ["authorization" "hx-current-url" "hx-request"]}]])]
+                     :juxt.site/access-control-allow-headers ["authorization" "hx-current-url" "hx-request"]}]]
+
+             ;; It's nice to be able to access this resource via a browser
+             ;;:juxt.site/session-scope "{{session-scope}}"
+             )]
 
            ;; JSON version
            [:xtdb.api/put
@@ -50,6 +55,9 @@
              [[".*" {:juxt.site/access-control-allow-origin "*"
                      :juxt.site/access-control-allow-methods [:get]
                      :juxt.site/access-control-allow-headers ["authorization"]}]]
+
+             ;; It's nice to be able to access this resource via a browser
+             ;;:juxt.site/session-scope "{{session-scope}}"
 
              :juxt.site/respond
              {:juxt.site.sci/program
@@ -67,16 +75,21 @@
              :juxt.site/methods
              {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}}
              :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+
              :juxt.site/access-control-allow-origins
              [[".*" {:juxt.site/access-control-allow-origin "*"
                      :juxt.site/access-control-allow-methods [:get]
                      :juxt.site/access-control-allow-headers ["authorization" "hx-current-url" "hx-request"]}]]
+
+             ;; It's nice to be able to access this resource via a browser
+             :juxt.site/session-scope "{{session-scope}}"
+
              :juxt.site/respond
              {:juxt.site.sci/program
               #juxt.pprint
               (let [content
                     (selmer/render
-                     "
+                     #juxt.template "
 <div>
   <dl>
     <dt>Full name</dt>

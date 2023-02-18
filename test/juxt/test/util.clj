@@ -124,7 +124,7 @@
   (local/install-resource-groups! *xt-node* names uri-map parameter-map))
 
 (defn converge! [resources uri-map parameter-map]
-  (let [graph (install/map-uris (local/unified-installer-map) uri-map)]
+  (let [graph (local/unified-installer-map uri-map)]
     (install/converge! *xt-node* resources graph parameter-map)))
 
 ;; This are the uri-maps used by the tests
