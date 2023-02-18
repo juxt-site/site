@@ -1,11 +1,11 @@
 {:deps
  ["https://auth.example.org/operations/oauth/authorize"
-  "https://auth.example.org/users/{{username}}"]
+  "https://data.example.org/users/{{username}}"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "https://auth.example.org/permissions/{{username|lower}}-can-authorize"
    :juxt.site/operation "https://auth.example.org/operations/oauth/authorize"
-   :juxt.site/user "https://auth.example.org/users/{{username|lower}}"
+   :juxt.site/user "https://data.example.org/users/{{username|lower}}"
    :juxt.site/purpose nil}}}

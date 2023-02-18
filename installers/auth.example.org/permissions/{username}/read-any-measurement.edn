@@ -4,5 +4,5 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/operation "https://auth.example.org/operations/read-any-measurement"
-   :juxt.site/user "https://auth.example.org/users/{{username}}"
+   :juxt.site/user "https://data.example.org/users/{{username}}"
    :juxt.site/purpose nil}}}

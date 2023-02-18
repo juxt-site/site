@@ -133,10 +133,12 @@
             (when-not root
               (throw
                (ex-info
-                (format "Resource identified by '%s' could not be resolved" id)
+                (format "Resource not found: %s" id)
                 {:id id
-                 :ids ids
-                 :graph graph
+                 :keys (sort (keys graph))
+                 ;;:ids ids
+                 ;;:graph graph
+
                  :parameter-map parameter-map})))
             ;; From each id, find all descendants
             (reverse                    ; to get depth-first order

@@ -829,7 +829,7 @@
         subject
         (throw
          (ex-info
-          (format "Subject does not have permission to use any of these operations: %s" (pr-str operations))
+          (format "Subject (%s) does not have permission to use any of these operations: %s" (:xt/id subject) (pr-str operations))
           {:ring.response/status 403
            :juxt.site/request-context req}))
 

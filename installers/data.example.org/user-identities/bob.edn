@@ -1,5 +1,5 @@
 {:deps
- ["https://auth.example.org/users/alice"
+ ["https://data.example.org/users/bob"
   "https://auth.example.org/operations/register-password-based-user-identity"
   "https://auth.example.org/permissions/system/register-password-based-user-identity"]
  :install
@@ -7,6 +7,6 @@
   :juxt.site/operation-id "https://auth.example.org/operations/register-password-based-user-identity"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/user "https://auth.example.org/users/alice"
-   :juxt.site/username "alice"
-   :juxt.site/password "garden"}}}
+   :juxt.site/user "https://data.example.org/users/bob"
+   :juxt.site/username "bob"
+   :juxt.site/password "walrus"}}}

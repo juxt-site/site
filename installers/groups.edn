@@ -86,14 +86,14 @@
  "juxt/site/example-users"
  {:juxt.site/description "Example users",
   :juxt.site/resources
-  ["https://auth.example.org/users/alice"
-   "https://auth.example.org/user-identities/alice"
+  ["https://data.example.org/users/alice"
+   "https://data.example.org/user-identities/alice"
    "https://auth.example.org/permissions/alice-can-authorize"
-   "https://auth.example.org/users/bob"
-   "https://auth.example.org/user-identities/bob"
+   "https://data.example.org/users/bob"
+   "https://data.example.org/user-identities/bob"
    "https://auth.example.org/permissions/bob-can-authorize"
-   "https://auth.example.org/users/carlos"
-   "https://auth.example.org/user-identities/carlos"
+   "https://data.example.org/users/carlos"
+   "https://data.example.org/user-identities/carlos"
    "https://auth.example.org/permissions/carlos-can-authorize"]},
 
  "juxt/site/hospital-demo"

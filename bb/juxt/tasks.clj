@@ -112,11 +112,16 @@
 
     (cond
       (pos? (count existing))
-      (when (confirm (format "%s\n\nOverwrite resources?\n" (str/join "\n" (sort existing))))
+      (when (confirm (format "%s\n\nResources to overwrite\n\n%s\n\nResources to install\n\n%s\n\nGo ahead?\n"
+                             (:title install-opts "TITLE")
+                             (str/join "\n" (sort existing))
+                             (str/join "\n" (sort (map :id remaining-installers)))))
         (push! `(~'call-installers! (quote ~installers)) {}))
 
       :else
-      (when (confirm (format "%s\n\nInstall resources?\n" (str/join "\n" (map :id remaining-installers))))
+      (when (confirm (format "%s\n\n%s\n\nInstall these resources?\n"
+                             (:title install-opts "TITLE")
+                             (str/join "\n" (sort (map :id remaining-installers)))))
         (push! `(~'call-installers! (quote ~remaining-installers)) {}))))
 
   ;; TODO: 2. Exchange installer-seq with repl to enquire which resources have already installed.
@@ -293,16 +298,17 @@
       "redirect-uri" redirect-uri}
      {:title (format "Adding OAuth client: %s" client-id)})))
 
-(defn add-user [{:keys [auth-base-uri username fullname iss nickname]}]
+(defn add-user [{:keys [auth-base-uri data-base-uri username fullname iss nickname]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+        data-base-uri (or data-base-uri (input-data-base-uri))
         username (input {:header "Username" :value username})
-        user (format "%s/users/%s" auth-base-uri (url-encode username))
+        user (format "%s/users/%s" data-base-uri (url-encode username))
         fullname (input {:header "Full name" :value fullname})
         iss (input {:header "Issuer" :value iss})
         nickname (input {:header "Nick name" :value nickname})
         resources [user
                    (format "%s/openid/user-identities/%s/nickname/%s"
-                           auth-base-uri (url-encode iss) (url-encode nickname))
+                           data-base-uri (url-encode iss) (url-encode nickname))
 
                    ;; TODO: The grant-permission operation should not
                    ;; here, rather, create a new operation called
@@ -312,7 +318,8 @@
                    ;; grant-permission permission.
                    (format "%s/permissions/%s-can-authorize" auth-base-uri username)]
 
-        uri-map {"https://auth.example.org" auth-base-uri}]
+        uri-map {"https://auth.example.org" auth-base-uri
+                 "https://data.example.org" data-base-uri}]
 
     (install!
      resources uri-map
@@ -322,16 +329,17 @@
 
      {:title (format "Adding user: %s" username)})))
 
-(defn grant-role [{:keys [auth-base-uri username rolename]}]
+(defn grant-role [{:keys [auth-base-uri data-base-uri username rolename]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+        data-base-uri (or data-base-uri (input-data-base-uri))
         username (input {:header "Username" :value username})
-        user (format "%s/users/%s" auth-base-uri (url-encode username))
+        user (format "%s/users/%s" data-base-uri (url-encode username))
         rolename (input {:header "Role" :value rolename})
         role (format "%s/roles/%s" auth-base-uri rolename)
         slug (input {:header "Assignment name" :value (str username "-" rolename)})
         resources [(format "%s/role-assignments/%s" auth-base-uri slug)]
-        uri-map {"https://auth.example.org" auth-base-uri}]
-
+        uri-map {"https://auth.example.org" auth-base-uri
+                 "https://data.example.org" data-base-uri}]
     (install!
      resources uri-map
      {"user" user
