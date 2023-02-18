@@ -341,3 +341,10 @@
 (defn users []
   (println *command-line-args*)
   )
+
+(defn reinstall [{:keys [auth-base-uri resource]}]
+  (install!
+   [resource]
+   {"https://auth.example.org" auth-base-uri}
+   {}
+   {:title (format "Reinstalling %s" resource)}))

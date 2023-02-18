@@ -17,13 +17,17 @@
 
   openid {:task (juxt.tasks/openid {:auth-base-uri "https://auth.site.test"})}
   system-api {:task (juxt.tasks/system-api {:auth-base-uri "https://auth.site.test"
-                                           :data-base-uri "https://data.site.test"})}
+                                            :data-base-uri "https://data.site.test"})}
   auth-server {:task (juxt.tasks/auth-server {:auth-base-uri "https://auth.site.test"
-                                             :data-base-uri "https://data.site.test"})}
+                                              :data-base-uri "https://data.site.test"})}
   add-user {:task (juxt.tasks/add-user {:auth-base-uri "https://auth.site.test"
-                                       :iss "https://juxt.eu.auth0.com"})}
+                                        :iss "https://juxt.eu.auth0.com"})}
   grant-role {:task (juxt.tasks/grant-role {:auth-base-uri "https://auth.site.test"})}
   register-application {:task (juxt.tasks/register-application {:auth-base-uri "https://auth.site.test"})}
+
+  reinstall-openid (juxt.tasks/reinstall
+                    {:auth-base-uri "https://auth.site.test"
+                     :resource "https://auth.site.test/operations/openid/exchange-code-for-id-token"})
 
   test {:task (do
                 (juxt.tasks/reset)
