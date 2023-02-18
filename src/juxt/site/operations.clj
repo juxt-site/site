@@ -670,8 +670,10 @@
          {'user {'*operation* operation-doc
                  '*resource* resource
                  '*ctx* (sanitize-ctx ctx)
-                 'logf (fn [& args] (eval `(log/infof ~@args)))
-                 'log (fn [& args] (eval `(log/info ~@args)))}
+                 'logf (fn [fmt & fmt-args]
+                         (log/infof (apply format fmt fmt-args)))
+                 'log (fn [message]
+                        (log/info message))}
 
           'xt
           { ;; Unsafe due to violation of strict serializability, hence marked as
