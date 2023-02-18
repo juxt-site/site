@@ -325,7 +325,7 @@
         ;; need to call the response program, because it may set
         ;; various other response headers.
 
-        (log/infof "Response is: %s" (pr-str (select-keys response [:ring.response/status :ring.response/headers :ring.response/body])))
+        (log/tracef "Response is: %s" (pr-str (select-keys response [:ring.response/status :ring.response/headers :ring.response/body])))
         response)
 
       :else
