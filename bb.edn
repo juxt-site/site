@@ -30,46 +30,48 @@
                     {:auth-base-uri "https://auth.site.test"
                      :resource "https://auth.site.test/operations/openid/exchange-code-for-id-token"})
 
-  test {:task (do
-                (juxt.tasks/reset)
-                (juxt.tasks/bootstrap {:auth-base-uri "https://auth.site.test"})
-                (juxt.tasks/openid
-                 {:auth-base-uri "https://auth.site.test"
-                  :iss "https://juxt.eu.auth0.com"
-                  :client-id "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
-                  :client-secret "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
+  full-deploy
+  {:task
+   (do
+     (juxt.tasks/reset)
+     (juxt.tasks/bootstrap {:auth-base-uri "https://auth.site.test"})
+     (juxt.tasks/openid
+      {:auth-base-uri "https://auth.site.test"
+       :iss "https://juxt.eu.auth0.com"
+       :client-id "d8X0TfEIcTl5oaltA4oy9ToEPdn5nFUK"
+       :client-secret "gvk-mNdDmyaFsJwN_xVKHPH4pfrInYqJE1r8lRrn0gmoKI4us0Q5Eb7ULdruYZjD"})
 
-                (juxt.tasks/system-api
-                 {:auth-base-uri "https://auth.site.test"
-                  :data-base-uri "https://data.site.test"})
+     (juxt.tasks/system-api
+      {:auth-base-uri "https://auth.site.test"
+       :data-base-uri "https://data.site.test"})
 
-                (juxt.tasks/auth-server
-                 {:auth-base-uri "https://auth.site.test"})
+     (juxt.tasks/auth-server
+      {:auth-base-uri "https://auth.site.test"})
 
-                (juxt.tasks/add-user
-                 {:auth-base-uri "https://auth.site.test"
-                  :data-base-uri "https://data.site.test"
-                  :username "mal"
-                  :fullname "Malcolm Sparks"
-                  :iss "https://juxt.eu.auth0.com"
-                  :nickname "malcolmsparks"})
+     (juxt.tasks/add-user
+      {:auth-base-uri "https://auth.site.test"
+       :data-base-uri "https://data.site.test"
+       :username "mal"
+       :fullname "Malcolm Sparks"
+       :iss "https://juxt.eu.auth0.com"
+       :nickname "malcolmsparks"})
 
-                (juxt.tasks/register-application
-                 {:auth-base-uri "https://auth.site.test"
-                  :client-id "swagger-ui"
-                  :redirect-uri "https://swagger-ui.site.test/oauth2-redirect.html"})
+     (juxt.tasks/register-application
+      {:auth-base-uri "https://auth.site.test"
+       :client-id "swagger-ui"
+       :redirect-uri "https://swagger-ui.site.test/oauth2-redirect.html"})
 
-                (juxt.tasks/register-application
-                 {:auth-base-uri "https://auth.site.test"
-                  :client-id "surveyor"
-                  :redirect-uri "https://surveyor.site.test/index.html"})
+     (juxt.tasks/register-application
+      {:auth-base-uri "https://auth.site.test"
+       :client-id "surveyor"
+       :redirect-uri "https://surveyor.site.test/index.html"})
 
-                (juxt.tasks/grant-role
-                 {:auth-base-uri "https://auth.site.test"
-                  :data-base-uri "https://data.site.test"
-                  :username "mal"
-                  :rolename "SystemReadonly"})
-                )}
+     (juxt.tasks/grant-role
+      {:auth-base-uri "https://auth.site.test"
+       :data-base-uri "https://data.site.test"
+       :username "mal"
+       :rolename "SystemReadonly"})
+     )}
 
   installer-tree {:task (juxt.installer-tree/installer-tree)}
 
