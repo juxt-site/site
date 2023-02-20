@@ -64,10 +64,16 @@
        (ex-info "gum process exited with non-zero status" {:status status})))
     result))
 
-(defn input [opts]
+(def ^:dynamic *heading*)
+
+(defn input [{:keys [heading prompt header]
+              :or {heading *heading*}
+              :as opts}]
   (let [{:keys [status result]}
         (b/gum {:cmd :input
-                :opts opts})]
+                :opts (cond-> opts
+                        true (dissoc opts :heading :prompt)
+                        (nil? header) (assoc :header (str heading "\n\n" prompt)))})]
     (when-not (zero? status)
       (throw
        (ex-info "gum process exited with non-zero status" {:status status})))
@@ -108,19 +114,20 @@
   ;; 1. Ask tree to return an installer-seq
   (let [installers (resource-installers resources uri-map parameter-map)
         existing (set (edn/read-string (push! `(~'find-resources ~(mapv :id installers)) {:title "Retrieving existing resources"})))
-        remaining-installers (remove (comp existing :id) installers)]
+        remaining-installers (remove (comp existing :id) installers)
+        heading (or (:title install-opts) *heading* "TITLE")]
 
     (cond
       (pos? (count existing))
       (when (confirm (format "%s\n\nResources to overwrite\n\n%s\n\nResources to install\n\n%s\n\nGo ahead?\n"
-                             (:title install-opts "TITLE")
+                             heading
                              (str/join "\n" (sort existing))
                              (str/join "\n" (sort (map :id remaining-installers)))))
         (push! `(~'call-installers! (quote ~installers)) {}))
 
       :else
       (when (confirm (format "%s\n\n%s\n\nInstall these resources?\n"
-                             (:title install-opts "TITLE")
+                             heading
                              (str/join "\n" (sort (map :id remaining-installers)))))
         (push! `(~'call-installers! (quote ~remaining-installers)) {}))))
 
@@ -199,31 +206,32 @@
 (defn openid [{:keys [auth-base-uri iss client-id client-secret]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         params
-        (into
-         {}
-         [
-          ["issuer-configuration"
-           (str auth-base-uri
-                "/openid/issuers/"
-                (url-encode
-                 (input
-                  {:header "Issuer"
-                   :value iss})))]
+        (binding [*heading* "Register OpenID client"]
+          (into
+           {}
+           [
+            ["issuer-configuration"
+             (str auth-base-uri
+                  "/openid/issuers/"
+                  (url-encode
+                   (input
+                    {:prompt "Issuer"
+                     :value iss})))]
 
-          ["client-configuration"
-           (str auth-base-uri
-                "/openid/clients/"
-                (url-encode
-                 (input
-                  {:header "Client ID"
-                   :value client-id})))]
+            ["client-configuration"
+             (str auth-base-uri
+                  "/openid/clients/"
+                  (url-encode
+                   (input
+                    {:prompt "Client ID"
+                     :value client-id})))]
 
-          ["client-secret"
-           (input
-            {:header "Client Secret"
-             :value client-secret})]
+            ["client-secret"
+             (input
+              {:prompt "Client Secret"
+               :value client-secret})]
 
-          ["session-scope" (str auth-base-uri "/session-scopes/openid-login-session")]])]
+            ["session-scope" (str auth-base-uri "/session-scopes/openid-login-session")]]))]
 
     (install!
      [(str auth-base-uri "/login-with-openid")
@@ -278,7 +286,6 @@
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))
 
         uri-map {"https://auth.example.org" auth-base-uri}]
-
     (install!
      resources
      uri-map
@@ -287,68 +294,70 @@
 
 (defn register-application
   [{:keys [auth-base-uri client-id redirect-uri]}]
-  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        client-id (input {:header "Client ID" :value client-id})
-        redirect-uri (input {:header "Redirect URI" :value redirect-uri})
-        resources [(format "%s/clients/%s" auth-base-uri client-id)]
-        uri-map {"https://auth.example.org" auth-base-uri}]
-    (install!
-     resources uri-map
-     {"client-type" "public"
-      "redirect-uri" redirect-uri}
-     {:title (format "Adding OAuth client: %s" client-id)})))
+  (binding [*heading* "Register application"]
+    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          client-id (input {:prompt "Client ID" :value client-id})
+          redirect-uri (input {:prompt "Redirect URI" :value redirect-uri})
+          resources [(format "%s/clients/%s" auth-base-uri client-id)]
+          uri-map {"https://auth.example.org" auth-base-uri}]
+      (install!
+       resources uri-map
+       {"client-type" "public"
+        "redirect-uri" redirect-uri}
+       {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn add-user [{:keys [auth-base-uri data-base-uri username fullname iss nickname]}]
-  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        data-base-uri (or data-base-uri (input-data-base-uri))
-        username (input {:header "Username" :value username})
-        user (format "%s/users/%s" data-base-uri (url-encode username))
-        fullname (input {:header "Full name" :value fullname})
-        iss (input {:header "Issuer" :value iss})
-        nickname (input {:header "Nick name" :value nickname})
-        resources [user
-                   (format "%s/openid/user-identities/%s/nickname/%s"
-                           data-base-uri (url-encode iss) (url-encode nickname))
+  (binding [*heading* "Add user"]
+    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          data-base-uri (or data-base-uri (input-data-base-uri))
+          username (input {:prompt "Username" :value username})
+          user (format "%s/users/%s" data-base-uri (url-encode username))
+          fullname (input {:prompt "Full name" :value fullname})
+          iss (input {:prompt "Issuer" :value iss})
+          nickname (input {:prompt "Nick name" :value nickname})
+          resources [user
+                     (format "%s/openid/user-identities/%s/nickname/%s"
+                             data-base-uri (url-encode iss) (url-encode nickname))
 
-                   ;; TODO: The grant-permission operation should not
-                   ;; here, rather, create a new operation called
-                   ;; 'permit-user-to-authorize' which can take the
-                   ;; actual user, and this operation can be permitted to
-                   ;; others without granting them the all-powerful
-                   ;; grant-permission permission.
-                   (format "%s/permissions/%s-can-authorize" auth-base-uri username)]
+                     ;; TODO: The grant-permission operation should not
+                     ;; here, rather, create a new operation called
+                     ;; 'permit-user-to-authorize' which can take the
+                     ;; actual user, and this operation can be permitted to
+                     ;; others without granting them the all-powerful
+                     ;; grant-permission permission.
+                     (format "%s/permissions/%s-can-authorize" auth-base-uri username)]
 
-        uri-map {"https://auth.example.org" auth-base-uri
-                 "https://data.example.org" data-base-uri}]
+          uri-map {"https://auth.example.org" auth-base-uri
+                   "https://data.example.org" data-base-uri}]
 
-    (install!
-     resources uri-map
-     {"user" user
-      "fullname" fullname
-      "session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
+      (install!
+       resources uri-map
+       {"user" user
+        "fullname" fullname
+        "session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
 
-     {:title (format "Adding user: %s" username)})))
+       {:title (format "Adding user: %s" username)}))))
 
 (defn grant-role [{:keys [auth-base-uri data-base-uri username rolename]}]
-  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        data-base-uri (or data-base-uri (input-data-base-uri))
-        username (input {:header "Username" :value username})
-        user (format "%s/users/%s" data-base-uri (url-encode username))
-        rolename (input {:header "Role" :value rolename})
-        role (format "%s/roles/%s" auth-base-uri rolename)
-        slug (input {:header "Assignment name" :value (str username "-" rolename)})
-        resources [(format "%s/role-assignments/%s" auth-base-uri slug)]
-        uri-map {"https://auth.example.org" auth-base-uri
-                 "https://data.example.org" data-base-uri}]
-    (install!
-     resources uri-map
-     {"user" user
-      "role" role}
-     {:title (format "Granting role %s to %s" rolename username)})))
+  (binding [*heading* "Grant role to user"]
+    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          data-base-uri (or data-base-uri (input-data-base-uri))
+          username (input {:prompt "Username" :value username})
+          user (format "%s/users/%s" data-base-uri (url-encode username))
+          rolename (input {:prompt "Role" :value rolename})
+          role (format "%s/roles/%s" auth-base-uri rolename)
+          slug (input {:prompt "Assignment name" :value (str username "-" rolename)})
+          resources [(format "%s/role-assignments/%s" auth-base-uri slug)]
+          uri-map {"https://auth.example.org" auth-base-uri
+                   "https://data.example.org" data-base-uri}]
+      (install!
+       resources uri-map
+       {"user" user
+        "role" role}
+       {:title (format "Granting role %s to %s" rolename username)}))))
 
 (defn users []
-  (println *command-line-args*)
-  )
+  (println *command-line-args*))
 
 (defn reinstall [{:keys [auth-base-uri resource]}]
   (install!
