@@ -4,20 +4,22 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
 
-   ;; Eventually we should look up if there's a resource-owner decision in
-   ;; place to cover the application and scopes requested.  The decision
-   ;; should include details of what scope was requested by the application,
-   ;; and what scope was approved by the resource-owner (which may be the
-   ;; same). If additional scope is requested in a subsequent authorization
-   ;; request, then a new approval decision will then be sought from the
+   ;; Eventually we should look up if there's evidence of the
+   ;; resource-owner's consent in place to cover the application and
+   ;; scopes requested.  The consent should include details of what
+   ;; scope was requested by the application, and what scope was
+   ;; approved by the resource-owner (which may be the same). If
+   ;; additional scope is requested in a subsequent authorization
+   ;; request, then updated consent will then be sought from the
    ;; resource-owner.
    ;;
-   ;; If we can't find a decision, we create a new pending decision document
-   ;; containing the state, application and scope. We redirect to a trusted
-   ;; resource, within the same protection space or session scope,
-   ;; e.g. /approve. This is given the id of a pending approval as a request
-   ;; parameter, from which it can look up the pending approval document and
-   ;; render the form appropriately given the attributes therein.
+   ;; If we can't find the consent, we create a new pending consent
+   ;; document containing the state, application and scope. We
+   ;; redirect to a trusted resource, within the same protection space
+   ;; or session scope, e.g. /approve. This is given the id of a
+   ;; pending approval as a request parameter, from which it can look
+   ;; up the pending approval document and render the form
+   ;; appropriately given the attributes therein.
    ;;
 
    :juxt.site/prepare
