@@ -1,0 +1,75 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site.malli/input-schema
+   [:map
+    ["grant_type" [:enum "authorization_code"]]
+    ["code" :string]
+    ["client_id" :string]
+    ["redirect_uri" :string]
+    ["code_verifier" {:optional true} :string]]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [input (:juxt.site/received-representation *ctx*)
+          content-type (apply format "%s/%s"
+                              ((juxt :juxt.reap.alpha.rfc7231/type
+                                     :juxt.reap.alpha.rfc7231/subtype)
+                               (:juxt.reap.alpha.rfc7231/content-type input)))
+
+          {code "code"
+           code-verifier "code_verifier" :as form}
+          (case content-type
+            "application/x-www-form-urlencoded"
+            (some->
+             input
+             :juxt.http/body
+             (String.)
+             ring.util.codec/form-decode
+             juxt.site.malli/validate-input))]
+
+      {:code code
+       :code-verifier code-verifier
+       :access-token (juxt.site.util/make-nonce 16)})}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [{:keys [code code-verifier access-token scopes]} *prepare*
+          code-doc (juxt.site/lookup-authorization-code code)
+          verified?
+          juxt.site/verify-authorization-code
+          {:code-verifier code-verifier
+           :code-challenge (:juxt.site/code-challenge code-doc)
+           :code-challenge-method (:juxt.site/code-challenge-method code-doc)}]
+
+      (if verified?
+        (let [access-token-doc
+              (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" access-token)
+                       :juxt.site/type "https://meta.juxt.site/types/access-token"
+                       :juxt.site/subject (:juxt.site/subject code-doc)
+                       :juxt.site/application (:juxt.site/application code-doc)
+                       :juxt.site/token access-token}
+                scopes (assoc :juxt.site/scope scopes))]
+
+          [[:xtdb.api/put access-token-doc]
+           [:ring.response/status 201]
+           [:ring.response/headers
+            {"content-type" "application/json"
+             "access-control-allow-origin" "https://surveyor.site.test"
+             "access-control-allow-credentials" "true"}]
+           [:ring.response/body
+            (jsonista.core/write-value-as-string {"access_token" access-token})]])
+
+        (throw (ex-info "TODO: create and return error" {}))))}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/user-identity id]
+     [id :juxt.site/user user]
+     [permission :juxt.site/user user]]]}}}

@@ -63,51 +63,92 @@
           ;; value it issues." -- RFC 6749 Section 4.2.2
           access-token-length 16
 
-          access-token (juxt.site.util/make-nonce access-token-length)
-          ]
+          code-length 8]
 
-      {:client-id client-id
-       :query query
-       :access-token access-token
-       :subject (:xt/id subject)})}
+      (cond-> {:response-type response-type
+               :client-id client-id
+               :query query
+               :subject (:xt/id subject)}
+
+        (= response-type "code")
+        (into {:code (juxt.site.util/make-nonce code-length)})
+
+        (= response-type "token")
+        (into {:access-token (juxt.site.util/make-nonce access-token-length)})))}
+
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [{:keys [client-id query access-token subject]} *prepare*
+    (let [{:keys [response-type client-id subject query]} *prepare*
           application (juxt.site/lookup-client client-id)
           _ (when-not application
               (throw
                (ex-info
                 (format "No client found with client-id of %s" client-id)
-                {:client-id client-id})))
+                {:client-id client-id})))]
 
-          ;; Leave scope for now for tests to flush out
-          ;;scopes (some-> *prepare* (get-in [:query "scope"]) ring.util.codec/form-decode (clojure.string/split (re-pattern "\\s")) set)
-          ;;_ (doall (map juxt.site/lookup-scope scopes))
+      (case response-type
 
-          scopes nil
+        "code"
+        (let [{:keys [code]} *prepare*
 
-          access-token-doc
-          (cond->
-              {:xt/id (str "https://auth.example.org/access-tokens/" access-token)
-               :juxt.site/type "https://meta.juxt.site/types/access-token"
-               :juxt.site/subject subject
-               :juxt.site/application (:xt/id application)
-               :juxt.site/token access-token}
-              scopes (assoc :juxt.site/scope scopes))
+              scopes nil
 
-          fragment
-          (ring.util.codec/form-encode
-           {"access_token" access-token
-            "token_type" "bearer"
-            "state" (get query "state")})
+              code-challenge (get query "code_challenge")
+              code-challenge-method (get query "code_challenge_method")
 
-          location (format "%s#%s" (:juxt.site/redirect-uri application) fragment)]
+              code-doc
+              (cond->
+                  {:xt/id (str "https://auth.example.org/authorization-codes/" code)
+                   :juxt.site/type "https://meta.juxt.site/types/authorization-code"
+                   :juxt.site/subject subject
+                   :juxt.site/application (:xt/id application)
+                   :juxt.site/code code}
+                code-challenge (assoc :juxt.site/code-challenge code-challenge)
+                code-challenge-method (assoc :juxt.site/code-challenge-method code-challenge-method)
+                scopes (assoc :juxt.site/scope scopes))
 
-      [[:xtdb.api/put access-token-doc]
-       [:ring.response/status 303]
-       [:ring.response/headers {"location" location}]])}
+              query-component
+              (ring.util.codec/form-encode
+               {"code" code
+                "state" (get query "state")})
+
+              location (format "%s?%s" (:juxt.site/redirect-uri application) query-component)]
+
+          [[:xtdb.api/put code-doc]
+           [:ring.response/status 303]
+           [:ring.response/headers {"location" location}]])
+
+        "token" ;; implicit
+        (let [{:keys [access-token]} *prepare*
+
+              ;; Leave scope for now for tests to flush out
+              ;;scopes (some-> *prepare* (get-in [:query "scope"]) ring.util.codec/form-decode (clojure.string/split (re-pattern "\\s")) set)
+              ;;_ (doall (map juxt.site/lookup-scope scopes))
+
+              scopes nil
+
+              access-token-doc
+              (cond->
+                  {:xt/id (str "https://auth.example.org/access-tokens/" access-token)
+                   :juxt.site/type "https://meta.juxt.site/types/access-token"
+                   :juxt.site/subject subject
+                   :juxt.site/application (:xt/id application)
+                   :juxt.site/token access-token}
+                  scopes (assoc :juxt.site/scope scopes))
+
+              fragment
+              (ring.util.codec/form-encode
+               {"access_token" access-token
+                "token_type" "bearer"
+                "state" (get query "state")})
+
+              location (format "%s#%s" (:juxt.site/redirect-uri application) fragment)]
+
+          [[:xtdb.api/put access-token-doc]
+           [:ring.response/status 303]
+           [:ring.response/headers {"location" location}]])))}
 
    :juxt.site/rules
    [

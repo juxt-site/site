@@ -15,7 +15,8 @@
     ;; Our only constraint is that we always want the operation to be in a
     ;; /permissions/ context somewhere in the path (not necessarily at the root).
     [:xt/id [:re "https://.*?/permissions/.+"]]
-    [:juxt.site/operation [:re "https://.*?/operations/.+"]]
+    ;; TODO: Should allow sets of operations too!
+    ;;[:juxt.site/operation [:re "https://.*?/operations/.+"]]
     [:juxt.site/purpose [:maybe :string]]]
 
    :juxt.site/prepare

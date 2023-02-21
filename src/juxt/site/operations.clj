@@ -11,7 +11,7 @@
    [jsonista.core :as json]
    [juxt.site.http-authentication :as http-authn]
    [juxt.site.openid-connect :as openid-connect]
-   [juxt.site.util :refer [make-nonce]]
+   [juxt.site.util :refer [make-nonce as-b64-str sha]]
    [malli.core :as malli]
    [ring.util.codec :as codec]
    [sci.core :as sci]
@@ -347,7 +347,15 @@
     'read-value json/read-value}
 
    'juxt.site
-   {'decode-id-token juxt.site.openid-connect/decode-id-token}
+   {'decode-id-token juxt.site.openid-connect/decode-id-token
+    'verify-authorization-code
+    (fn [{:keys [code-verifier code-challenge code-challenge-method]}]
+      (assert code-verifier)
+      (assert code-challenge)
+      (assert code-challenge-method)
+      (case code-challenge-method
+        "S256" (let [new-code-challenge (as-b64-str (sha (.getBytes code-verifier) "SHA-256"))]
+                 (= code-challenge new-code-challenge))))}
 
    'juxt.site.malli
    {'validate (fn validate [schema value] (malli/validate schema value))
@@ -441,6 +449,7 @@
                       {'entity (fn [id] (xt/entity db id))
                        ;; Definitely can't do this! But we may be able to give access to an operation that can do it.
                        ;;'q (fn [& args] (apply xt/q db args))
+
                        }
 
                       'juxt.site
@@ -509,7 +518,14 @@
                                (throw
                                 (ex-info
                                  (format "No such scope: %s" scope)
-                                 {:error "invalid_scope"}))))))}
+                                 {:error "invalid_scope"}))))))
+
+                       'lookup-authorization-code
+                       (fn [code]
+                         (xt/q db '{:find [(pull e [*])]
+                                    :where [[e :juxt.site/code code]]
+                                    :in [code]}
+                               code))}
 
                       'grab
                       {'parsed-types

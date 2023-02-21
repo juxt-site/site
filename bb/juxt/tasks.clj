@@ -279,9 +279,13 @@
         resources
         (->>
          ["https://auth.example.org/oauth/authorize"
+          "https://auth.example.org/oauth/token"
           "https://auth.example.org/operations/oauth/authorize"
+          "https://auth.example.org/operations/oauth/get-token"
           "https://auth.example.org/operations/install-authorization-server"
+          "https://auth.example.org/operations/install-oauth-token-endpoint"
           "https://auth.example.org/permissions/system/install-authorization-server"
+          "https://auth.example.org/permissions/system/install-oauth-token-endpoint"
           "https://auth.example.org/permissions/system/register-client"]
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))
 
