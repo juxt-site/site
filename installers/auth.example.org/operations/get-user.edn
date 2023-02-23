@@ -26,11 +26,6 @@
                    [*]}]}]}]
         user-id)))}
 
-   #_{(:juxt.site/_user {:as :referenced-by})
-      [* {(:juxt.site/_user-identity {:as :referenced-by})
-          [* {(:juxt.site/_subject {:as :referenced-by})
-              [*]}]}]}
-
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)
