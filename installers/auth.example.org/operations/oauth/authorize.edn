@@ -61,7 +61,7 @@
 
           ;; "The authorization server SHOULD document the size of any
           ;; value it issues." -- RFC 6749 Section 4.2.2
-          access-token-length 16
+          jti-length 16
 
           code-length 8]
 
@@ -74,8 +74,8 @@
         (into {:code (juxt.site.util/make-nonce code-length)})
 
         (= response-type "token")
-        (into {:access-token (juxt.site.util/make-nonce access-token-length)})))}
-
+        (into {:jwt-claims {"iss" "https://auth.example.org"
+                            "jti" (juxt.site.util/make-nonce jti-length)}})))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
@@ -105,9 +105,9 @@
                    :juxt.site/subject subject
                    :juxt.site/application (:xt/id application)
                    :juxt.site/code code}
-                code-challenge (assoc :juxt.site/code-challenge code-challenge)
-                code-challenge-method (assoc :juxt.site/code-challenge-method code-challenge-method)
-                scopes (assoc :juxt.site/scope scopes))
+                  code-challenge (assoc :juxt.site/code-challenge code-challenge)
+                  code-challenge-method (assoc :juxt.site/code-challenge-method code-challenge-method)
+                  scopes (assoc :juxt.site/scope scopes))
 
               query-component
               (ring.util.codec/form-encode
@@ -121,17 +121,26 @@
            [:ring.response/headers {"location" location}]])
 
         "token" ;; implicit
-        (let [{:keys [access-token]} *prepare*
+        (let [{:keys [jwt-claims]} *prepare*
 
               ;; Leave scope for now for tests to flush out
-              ;;scopes (some-> *prepare* (get-in [:query "scope"]) ring.util.codec/form-decode (clojure.string/split (re-pattern "\\s")) set)
+              ;; scopes (some-> *prepare* (get-in [:query "scope"]) ring.util.codec/form-decode (clojure.string/split (re-pattern "\\s")) set)
               ;;_ (doall (map juxt.site/lookup-scope scopes))
 
               scopes nil
 
+              client (juxt.site/lookup-client client-id)
+
+              jwt-id (get jwt-claims "jti")
+
+              access-token (juxt.site/make-jwt
+                            (merge
+                             jwt-claims
+                             {"aud" (:juxt.site/resource-server client)}))
+
               access-token-doc
               (cond->
-                  {:xt/id (str "https://auth.example.org/access-tokens/" access-token)
+                  {:xt/id (str "https://auth.example.org/access-tokens/" jwt-id)
                    :juxt.site/type "https://meta.juxt.site/types/access-token"
                    :juxt.site/subject subject
                    :juxt.site/application (:xt/id application)

@@ -297,16 +297,20 @@
      {:title "Installing authorization server"})))
 
 (defn register-application
-  [{:keys [auth-base-uri client-id redirect-uri]}]
+  [{:keys [auth-base-uri client-id origin resource-server redirect-uri]}]
   (binding [*heading* "Register application"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           client-id (input {:prompt "Client ID" :value client-id})
-          redirect-uri (input {:prompt "Redirect URI" :value redirect-uri})
+          origin (input {:prompt "Origin (example: https://example.com)" :value (or origin "https://")})
+          resource-server (input {:prompt "Resource server (example: https://api.example.com)" :value (or resource-server "https://")})
+          redirect-uri (input {:prompt "Redirect URI" :value (or redirect-uri (str origin "/"))})
           resources [(format "%s/clients/%s" auth-base-uri client-id)]
           uri-map {"https://auth.example.org" auth-base-uri}]
       (install!
        resources uri-map
        {"client-type" "public"
+        "origin" origin
+        "resource-server" resource-server
         "redirect-uri" redirect-uri}
        {:title (format "Adding OAuth client: %s" client-id)}))))
 

@@ -11,7 +11,7 @@
    [jsonista.core :as json]
    [juxt.site.http-authentication :as http-authn]
    [juxt.site.openid-connect :as openid-connect]
-   [juxt.site.util :refer [make-nonce as-b64-str sha]]
+   [juxt.site.util :refer [make-nonce as-b64-str sha make-jwt]]
    [malli.core :as malli]
    [ring.util.codec :as codec]
    [sci.core :as sci]
@@ -347,7 +347,8 @@
     'read-value json/read-value}
 
    'juxt.site
-   {'decode-id-token juxt.site.openid-connect/decode-id-token
+   {'make-jwt make-jwt
+    'decode-id-token juxt.site.openid-connect/decode-id-token
     'verify-authorization-code
     (fn [{:keys [code-verifier code-challenge code-challenge-method]}]
       (assert code-verifier)
@@ -542,7 +543,9 @@
 
                     :classes
                     {'java.util.Date java.util.Date
-                     'java.time.Instant java.time.Instant}
+                     'java.time.Instant java.time.Instant
+                     'java.time.Duration java.time.Duration
+                     'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit}
 
                     ;; We can't allow random numbers to be computed as they
                     ;; won't be the same on each node. If this is a problem, we
@@ -682,7 +685,8 @@
       (sci/eval-string
        prepare-program
        {:namespaces
-        (merge
+        (merge-with
+         merge
          {'user {'*operation* operation-doc
                  '*resource* resource
                  '*ctx* (sanitize-ctx ctx)
@@ -698,11 +702,13 @@
            (fn [id] (xt/entity db id))}
 
           'juxt.site.util {'make-nonce make-nonce}}
+
          (common-sci-namespaces operation-doc))
         :classes
         {'java.util.Date java.util.Date
          'java.time.Instant java.time.Instant
-         'java.time.Duration java.time.Duration}})
+         'java.time.Duration java.time.Duration
+         'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit}})
       (catch clojure.lang.ExceptionInfo e
         (throw (ex-info "Failure during prepare" {:cause-ex-info (ex-data e)} e))))))
 

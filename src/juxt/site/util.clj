@@ -2,7 +2,10 @@
 
 (ns juxt.site.util
   (:require
-   [juxt.clojars-mirrors.nippy.v3v1v1.taoensso.nippy.utils :refer [freezable?]]))
+   [juxt.clojars-mirrors.nippy.v3v1v1.taoensso.nippy.utils :refer [freezable?]])
+  (:import
+   (com.auth0.jwt JWT)
+   (com.auth0.jwt.algorithms Algorithm)))
 
 (defn assoc-when-some [m k v]
   (cond-> m v (assoc k v)))
@@ -122,3 +125,39 @@
   and similar. For the size parameter, try 12."
   [size]
   (as-hex-str (random-bytes size)))
+
+;; TODO: Test me
+(defn make-jwt
+  [claims]
+  (->
+   (reduce-kv
+    (fn [acc n claim]
+      (if (nil? claim)
+        (.withNullClaim acc n)
+        (case n
+          "aud" (.withAudience acc (into-array String [claim]))
+          "exp" (.withExpiresAt acc claim)
+          "iat" (.withIssuedAt acc claim)
+          "iss" (.withIssuer acc claim)
+          "jti" (.withJWTId acc claim)
+          "kid" (.withKeyId acc claim)
+          "ntb" (.withNotBefore acc claim)
+          "sub" (.withSubject acc claim)
+          (if (sequential? claim)
+            (let [fc (first claim)]
+              (.withArrayClaim acc n (cond
+                                       (instance? Integer fc) (into-array Integer claim)
+                                       (instance? Long fc) (into-array Long claim)
+                                       :else (into-array String (map str claim)))))
+            (.withClaim acc n claim)))))
+    (JWT/create)
+    claims)
+   (.sign (Algorithm/none))))
+
+#_(comment
+  (let [jwt (make-jwt {"iss" "https://foo"
+                       "aud" "https://bar"
+                       "jti" "ABC"
+                       "foo" "bar"})]
+    (-> jwt JWT/decode (.getClaim "aud") (.asString))
+    ))

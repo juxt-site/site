@@ -59,11 +59,15 @@
      (juxt.tasks/register-application
       {:auth-base-uri "https://auth.site.test"
        :client-id "swagger-ui"
+       :origin "https://swagger-ui.site.test"
+       :resource-server "https://data.site.test"
        :redirect-uri "https://swagger-ui.site.test/oauth2-redirect.html"})
 
      (juxt.tasks/register-application
       {:auth-base-uri "https://auth.site.test"
        :client-id "surveyor"
+       :origin "https://surveyor.site.test"
+       :resource-server "https://data.site.test"
        :redirect-uri "https://surveyor.site.test/index.html"})
 
      (juxt.tasks/grant-role

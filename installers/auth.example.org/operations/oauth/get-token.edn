@@ -1,3 +1,4 @@
+;; TODO: Rename to exchange-code-for-token
 {:install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
@@ -21,8 +22,13 @@
                                      :juxt.reap.alpha.rfc7231/subtype)
                                (:juxt.reap.alpha.rfc7231/content-type input)))
 
-          {code "code"
-           code-verifier "code_verifier" :as form}
+          ;; "The authorization server SHOULD document the size of any
+          ;; value it issues." -- RFC 6749 Section 4.2.2
+          jti-length 16
+
+          {client-id "client_id" :as form
+           code "code"
+           code-verifier "code_verifier"}
           (case content-type
             "application/x-www-form-urlencoded"
             (some->
@@ -32,14 +38,16 @@
              ring.util.codec/form-decode
              juxt.site.malli/validate-input))]
 
-      {:code code
+      {:client-id client-id
+       :code code
        :code-verifier code-verifier
-       :access-token (juxt.site.util/make-nonce 16)})}
+       :jwt-claims {"iss" "https://auth.example.org"
+                    "jti" (juxt.site.util/make-nonce jti-length)}})}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [{:keys [code code-verifier access-token scopes]} *prepare*
+    (let [{:keys [client-id code code-verifier jwt-claims scopes]} *prepare*
           code-doc (juxt.site/lookup-authorization-code code)
           verified?
           juxt.site/verify-authorization-code
@@ -48,8 +56,29 @@
            :code-challenge-method (:juxt.site/code-challenge-method code-doc)}]
 
       (if verified?
-        (let [access-token-doc
-              (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" access-token)
+        (let [{:juxt.site/keys [origin resource-server]}
+              (juxt.site/lookup-client client-id)
+
+              _ (assert origin)
+              _ (assert resource-server)
+
+              jwt-id (get jwt-claims "jti")
+
+              access-token
+              (juxt.site/make-jwt
+               (merge
+                jwt-claims
+                {"aud" resource-server
+                 "iat" (java.util.Date.)
+                 "nbf" (let [now (.toInstant (java.util.Date.))
+                             expiry (.minus now 2 java.time.temporal.ChronoUnit/MINUTES)]
+                         (java.util.Date/from expiry))
+                 "exp" (let [now (.toInstant (java.util.Date.))
+                             expiry (.plus now 15 java.time.temporal.ChronoUnit/MINUTES)]
+                         (java.util.Date/from expiry))}))
+
+              access-token-doc
+              (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" jwt-id)
                        :juxt.site/type "https://meta.juxt.site/types/access-token"
                        :juxt.site/subject (:juxt.site/subject code-doc)
                        :juxt.site/application (:juxt.site/application code-doc)
@@ -60,11 +89,13 @@
            [:ring.response/status 201]
            [:ring.response/headers
             {"content-type" "application/json"
-             "access-control-allow-origin" "https://surveyor.site.test"
+             "access-control-allow-origin" origin
              "access-control-allow-credentials" "true"}]
            [:ring.response/body
             (jsonista.core/write-value-as-string {"access_token" access-token})]])
 
+        ;; TODO: Catch all exceptions too and implement appropriate
+        ;; error handling
         (throw (ex-info "TODO: create and return error" {}))))}
 
    :juxt.site/rules
