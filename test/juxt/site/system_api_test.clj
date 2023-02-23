@@ -43,6 +43,7 @@
    "https://auth.example.test/operations/register-client"
    {:juxt.site/client-id "test-app"
     :juxt.site/client-type "confidential"
+    :juxt.site/resource-server "https://data.example.test"
     :juxt.site/redirect-uri "https://test-app.example.test/callback"})
 
   (let [login-result

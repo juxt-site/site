@@ -66,16 +66,16 @@
 
               access-token
               (juxt.site/make-jwt
-               (merge
-                jwt-claims
-                {"aud" resource-server
-                 "iat" (java.util.Date.)
-                 "nbf" (let [now (.toInstant (java.util.Date.))
-                             expiry (.minus now 2 java.time.temporal.ChronoUnit/MINUTES)]
-                         (java.util.Date/from expiry))
-                 "exp" (let [now (.toInstant (java.util.Date.))
-                             expiry (.plus now 15 java.time.temporal.ChronoUnit/MINUTES)]
-                         (java.util.Date/from expiry))}))
+               (cond-> jwt-claims
+                 resource-server (assoc "aud" resource-server)
+                 true (merge
+                       {"iat" (java.util.Date.)
+                        "nbf" (let [now (.toInstant (java.util.Date.))
+                                    expiry (.minus now 2 java.time.temporal.ChronoUnit/MINUTES)]
+                                (java.util.Date/from expiry))
+                        "exp" (let [now (.toInstant (java.util.Date.))
+                                    expiry (.plus now 15 java.time.temporal.ChronoUnit/MINUTES)]
+                                (java.util.Date/from expiry))})))
 
               access-token-doc
               (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" jwt-id)
@@ -88,9 +88,9 @@
           [[:xtdb.api/put access-token-doc]
            [:ring.response/status 201]
            [:ring.response/headers
-            {"content-type" "application/json"
-             "access-control-allow-origin" origin
-             "access-control-allow-credentials" "true"}]
+            (cond-> {"content-type" "application/json"}
+              origin (assoc "access-control-allow-origin" origin
+                            "access-control-allow-credentials" "true"))]
            [:ring.response/body
             (jsonista.core/write-value-as-string {"access_token" access-token})]])
 

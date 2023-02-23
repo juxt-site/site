@@ -133,10 +133,20 @@
 
               jwt-id (get jwt-claims "jti")
 
-              access-token (juxt.site/make-jwt
-                            (merge
-                             jwt-claims
-                             {"aud" (:juxt.site/resource-server client)}))
+              resource-server (:juxt.site/resource-server client)
+
+              access-token
+              (juxt.site/make-jwt
+               (cond-> jwt-claims
+                 resource-server (assoc "aud" resource-server)
+                 true (merge
+                       {"iat" (java.util.Date.)
+                        "nbf" (let [now (.toInstant (java.util.Date.))
+                                    expiry (.minus now 2 java.time.temporal.ChronoUnit/MINUTES)]
+                                (java.util.Date/from expiry))
+                        "exp" (let [now (.toInstant (java.util.Date.))
+                                    expiry (.plus now 15 java.time.temporal.ChronoUnit/MINUTES)]
+                                (java.util.Date/from expiry))})))
 
               access-token-doc
               (cond->
