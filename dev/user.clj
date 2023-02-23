@@ -48,7 +48,7 @@
   (-edn [db] (pr-str db)))
 
 (defn start []
-  (println "Site by JUXT. Copyright (c) 2020-2022, JUXT LTD.")
+  (println "Site by JUXT. Copyright (c) 2020-2023, JUXT LTD.")
   (println "Compiling code, please wait...")
   (log/info "Starting development system")
   (alter-var-root #'main/profile (constantly :dev))
