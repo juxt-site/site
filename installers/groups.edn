@@ -6,7 +6,7 @@
  "juxt/site/system-api"
  {:juxt.site/description "Site System API",
   :juxt.site/resources
-  [;; API resources
+  [ ;; API resources
    "https://data.example.org/_site/openapi.json"
    ;; /operations
    "https://auth.example.org/operations/get-operations"
@@ -62,9 +62,9 @@
  ;; dependent OpenAPI resources
  #_"juxt/site/openapi"
  #_{:juxt.site/description "OpenAPI",
-  :juxt.site/resources
-  ["https://auth.example.org/operations/get-openapi-document"
-   "https://auth.example.org/permissions/get-openapi-document"]},
+    :juxt.site/resources
+    ["https://auth.example.org/operations/get-openapi-document"
+     "https://auth.example.org/permissions/get-openapi-document"]},
 
  "juxt/site/whoami"
  {:juxt.site/description "whoami resources",
@@ -94,7 +94,12 @@
    "https://auth.example.org/permissions/bob-can-authorize"
    "https://data.example.org/users/carlos"
    "https://data.example.org/user-identities/carlos"
-   "https://auth.example.org/permissions/carlos-can-authorize"]},
+   "https://auth.example.org/permissions/carlos-can-authorize"]}
+
+  "juxt/site/example-apps"
+ {:juxt.site/description "Example applications",
+  :juxt.site/resources
+  ["https://auth.example.org/clients/test-app"]}
 
  "juxt/site/hospital-demo"
  {:juxt.site/description "Hospital demo resources",

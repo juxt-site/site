@@ -38,13 +38,13 @@
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
-  (install-resource-with-operation!
-   "https://auth.example.test/_site/subjects/system"
-   "https://auth.example.test/operations/register-client"
-   {:juxt.site/client-id "test-app"
-    :juxt.site/client-type "confidential"
-    :juxt.site/resource-server "https://data.example.test"
-    :juxt.site/redirect-uri "https://test-app.example.test/callback"})
+  (install-resource-groups!
+   ["juxt/site/example-apps"]
+   AUTH_SERVER
+   {"client-type" "public"
+    "origin" "https://test-app.example.test"
+    "resource-server" "https://data.example.test"
+    "redirect-uri" "https://test-app.example.test/callback"})
 
   (let [login-result
         (login/login-with-form!
