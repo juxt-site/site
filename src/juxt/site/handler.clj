@@ -346,7 +346,8 @@
          (dissoc :ring.request/body)))))
 
 (defn POST [req]
-  (perform-unsafe-method req))
+  (perform-unsafe-method req)
+)
 
 (defn PUT [req]
   (perform-unsafe-method req))
@@ -619,7 +620,7 @@
         request-id
         (update :ring.response/headers assoc "Site-Request-Id" request-id)
 
-        resource
+        (and resource (#{:get :head} method))
         (update :ring.response/headers add-headers req body)
 
         (= method :head) (dissoc :ring.response/body))))
