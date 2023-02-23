@@ -21,6 +21,7 @@ Site is intended to handle the more complex projects which many BaaS products ca
 If you're really keen, you can try out Site and use Swagger UI as a test client.
 Follow these instructions:
 
+. Install https://github.com/babashka/babashka[Babashka], ensure you have v1.1.173 or later
 . Install nginx - see link:doc/next/Installation.adoc[]
 . `git clone https://github.com/juxt-site/swagger-ui`
 . Clone this repo: `git clone https://github.com/juxt-site/site`
