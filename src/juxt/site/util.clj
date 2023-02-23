@@ -153,11 +153,3 @@
     (JWT/create)
     claims)
    (.sign (Algorithm/none))))
-
-#_(comment
-  (let [jwt (make-jwt {"iss" "https://foo"
-                       "aud" "https://bar"
-                       "jti" "ABC"
-                       "foo" "bar"})]
-    (-> jwt JWT/decode (.getClaim "aud") (.asString))
-    ))
