@@ -76,10 +76,9 @@
           (is (= 403 (:ring.response/status response))))))
 
     (converge!
-     ["https://auth.example.test/role-assignments/XYZ"]
+     ["https://auth.example.test/role-assignments/alice-SystemReadonly"]
      AUTH_SERVER
-     {"user" "https://auth.example.test/users/alice"
-      "role" "https://auth.example.test/roles/SystemReadonly"})
+     {})
 
     (testing "Access achieved with correct permissions and role assignment"
       (with-bearer-token access-token

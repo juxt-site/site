@@ -354,8 +354,7 @@
           user (format "%s/users/%s" data-base-uri (url-encode username))
           rolename (input {:prompt "Role" :value rolename})
           role (format "%s/roles/%s" auth-base-uri rolename)
-          slug (input {:prompt "Assignment name" :value (str username "-" rolename)})
-          resources [(format "%s/role-assignments/%s" auth-base-uri slug)]
+          resources [(format "%s/role-assignments/%s-%s" auth-base-uri username rolename)]
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}]
       (install!

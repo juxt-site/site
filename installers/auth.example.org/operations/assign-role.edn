@@ -8,8 +8,7 @@
    :juxt.site.malli/input-schema
    [:map
     [:juxt.site/user [:re "https://.*?/.+"]]
-    [:juxt.site/role [:re "https://.*?/.+"]]
-    [:slug :string]]
+    [:juxt.site/role [:re "https://.*?/.+"]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
@@ -26,11 +25,13 @@
                    body
                    (String.)
                    clojure.edn/read-string
-                   juxt.site.malli/validate-input)]
+                   juxt.site.malli/validate-input)
+              [_ username] (re-matches (re-pattern "https://data.example.org/users/(.+)") (:juxt.site/user doc))
+              [_ rolename] (re-matches (re-pattern "https://auth.example.org/roles/(.+)") (:juxt.site/role doc))]
           (assoc doc
-           :xt/id (format "https://auth.example.org/role-assignments/%s" (:slug doc) #_(juxt.site.util/make-nonce 8))
-           :juxt.site/type "https://auth.example.org/_site/types/role-assignment"
-           :juxt.site/methods
+                 :xt/id (format "https://auth.example.org/role-assignments/%s-%s" username rolename)
+                 :juxt.site/type "https://auth.example.org/_site/types/role-assignment"
+                 :juxt.site/methods
            {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-role-assignment"}}}))))}
 
    :juxt.site/transact
