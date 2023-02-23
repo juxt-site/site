@@ -523,10 +523,12 @@
 
                        'lookup-authorization-code
                        (fn [code]
-                         (xt/q db '{:find [(pull e [*])]
-                                    :where [[e :juxt.site/code code]]
-                                    :in [code]}
-                               code))}
+                         (first
+                          (map first
+                               (xt/q db '{:find [(pull e [*])]
+                                          :where [[e :juxt.site/code code]]
+                                          :in [code]}
+                                     code))))}
 
                       'grab
                       {'parsed-types
