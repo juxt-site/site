@@ -223,15 +223,13 @@
       ;; It's rare but sometimes a GET will involve a transaction. For example,
       ;; the Authorization Request (RFC 6749 Section 4.2.1).
       (and permitted-operation (-> permitted-operation :juxt.site/transact))
-      (do
-        (log/infof "Permitted operation is transactable")
-        (operations/do-operation!
-         (cond-> req
-           permitted-operation (assoc :juxt.site/operation (:xt/id permitted-operation))
-           ;; A java.io.BufferedInputStream in the request can cause this error:
-           ;; "invalid tx-op: Unfreezable type: class
-           ;; java.io.BufferedInputStream".
-           (:ring.request/body req) (dissoc :ring.request/body))))
+      (operations/do-operation!
+       (cond-> req
+         permitted-operation (assoc :juxt.site/operation (:xt/id permitted-operation))
+         ;; A java.io.BufferedInputStream in the request can cause this error:
+         ;; "invalid tx-op: Unfreezable type: class
+         ;; java.io.BufferedInputStream".
+         (:ring.request/body req) (dissoc :ring.request/body)))
 
       (-> resource :juxt.site/respond :juxt.site.sci/program)
       (let [state
@@ -253,8 +251,6 @@
                      (fn [id] (xt/entity (:juxt.site/db req) id))
                      'pull
                      (fn [query eid]
-                       (log/infof "Pull %s from %s" query eid)
-                       (log/infof "Result is: %s" (pr-str (xt/pull (:juxt.site/db req) query eid)))
                        (xt/pull (:juxt.site/db req) query eid))
                      'q
                      (fn [query & args]
