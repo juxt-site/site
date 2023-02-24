@@ -349,6 +349,7 @@
    'juxt.site
    {'make-jwt make-jwt
     'decode-id-token juxt.site.openid-connect/decode-id-token
+    'decode-access-token juxt.site.util/decode-access-token
     'verify-authorization-code
     (fn [{:keys [code-verifier code-challenge code-challenge-method]}]
       (assert code-verifier)
@@ -526,9 +527,20 @@
                          (first
                           (map first
                                (xt/q db '{:find [(pull e [*])]
-                                          :where [[e :juxt.site/code code]]
+                                          :where [[e :juxt.site/code code]
+                                                  [e juxt.site/type "https://meta.juxt.site/types/authorization-code"]]
                                           :in [code]}
-                                     code))))}
+                                     code))))
+
+                       'lookup-access-token
+                       (fn [token]
+                         (first
+                          (map first
+                               (xt/q db '{:find [(pull e [*])]
+                                          :where [[e :juxt.site/token token]
+                                                  [e :juxt.site/type "https://meta.juxt.site/types/access-token"]]
+                                          :in [token]}
+                                     token))))}
 
                       'grab
                       {'parsed-types

@@ -48,6 +48,9 @@
      (juxt.tasks/auth-server
       {:auth-base-uri "https://auth.site.test"})
 
+     (juxt.tasks/install-token-introspector
+      {:auth-base-uri "https://auth.site.test"})
+
      (juxt.tasks/add-user
       {:auth-base-uri "https://auth.site.test"
        :data-base-uri "https://data.site.test"

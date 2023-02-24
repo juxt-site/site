@@ -1,0 +1,55 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site.malli/input-schema
+   [:map
+    ["token" :string]]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content-type (-> *ctx*
+                           :juxt.site/received-representation
+                           :juxt.http/content-type)
+          body (-> *ctx*
+                   :juxt.site/received-representation
+                   :juxt.http/body)]
+      (case content-type
+        "application/x-www-form-urlencoded"
+        (let [form (-> body (String.) ring.util.codec/form-decode juxt.site.malli/validate-input)
+              token (get form "token")]
+          {:token token
+           :decoded-jwt (juxt.site/decode-access-token token)})
+        ))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [{:juxt.site/keys [subject application scope] :as access-token-doc}
+          (juxt.site/lookup-access-token (:token *prepare*))
+          subject-doc (xt/entity subject)
+          username (some-> subject-doc :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
+          client-doc (xt/entity application)
+          client-id (:juxt.site/client-id client-doc)
+          decoded-jwt (:decoded-jwt *prepare*)]
+      [[:ring.response/status 200]
+       [:ring.response/headers
+        {"content-type" "application/json"}]
+       [:ring.response/body
+        (jsonista.core/write-value-as-string
+         (cond->
+             {"active" (some? access-token-doc)
+              "token_type" "bearer"}
+           client-id (assoc "client_id" client-id)
+           username (assoc "username" username)
+           subject (assoc "sub" subject)
+           scope (assoc "scope" scope)
+           decoded-jwt (merge decoded-jwt)))]])}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [subject :xt/id]]]}}}

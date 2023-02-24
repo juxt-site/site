@@ -1,0 +1,10 @@
+{:deps
+ ["https://auth.example.org/operations/install-token-introspection-endpoint"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/subject "https://auth.example.org/_site/subjects/system"
+   :juxt.site/operation "https://auth.example.org/operations/install-token-introspection-endpoint"
+   :juxt.site/purpose nil}}}

@@ -1,0 +1,7 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/operation "https://auth.example.org/operations/introspect-token"
+   :juxt.site/purpose nil}}}

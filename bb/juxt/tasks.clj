@@ -372,3 +372,18 @@
    {"https://auth.example.org" auth-base-uri}
    {}
    {:title (format "Reinstalling %s" resource)}))
+
+(defn install-token-introspector [{:keys [auth-base-uri ;;data-base-uri
+                                          ]}]
+  (binding [*heading* "Installing token introspector"]
+    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          ;;data-base-uri (or data-base-uri (input-data-base-uri))
+          resources [(format "%s/token-info" auth-base-uri)]
+          uri-map {"https://auth.example.org" auth-base-uri
+                   ;;"https://data.example.org" data-base-uri
+                   }]
+      (install!
+       resources
+       uri-map
+       {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
+       {}))))

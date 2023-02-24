@@ -153,3 +153,13 @@
     (JWT/create)
     claims)
    (.sign (Algorithm/none))))
+
+(defn decode-access-token [jwt]
+  (let [{:strs [exp iat nbf aud iss jti]} (-> jwt JWT/decode (.getClaims))]
+    (cond-> {}
+      exp (assoc "exp" (.asLong exp))
+      iat (assoc "iat" (.asLong iat))
+      nbf (assoc "nbf" (.asLong nbf))
+      aud (assoc "aud" (.asString aud))
+      iss (assoc "iss" (.asString iss))
+      jti (assoc "jti" (.asString jti)))))
