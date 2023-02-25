@@ -48,7 +48,8 @@
    "https://auth.hospital.com/operations/register-client"
    {:juxt.site/client-id "local-terminal"
     :juxt.site/client-type "confidential"
-    :juxt.site/redirect-uri "https://test-app.example.test/callback"})
+    :juxt.site/redirect-uri "https://test-app.example.test/callback"
+    :juxt.site/resource-server "https://hospital.com"})
 
   (install-resource-groups!
    ["juxt/site/example-users"

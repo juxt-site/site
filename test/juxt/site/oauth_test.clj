@@ -92,7 +92,8 @@
    "https://auth.example.test/operations/register-client"
    {:juxt.site/client-id "test-app"
     :juxt.site/client-type "confidential"
-    :juxt.site/redirect-uri "https://test-app.example.test/callback"})
+    :juxt.site/redirect-uri "https://test-app.example.test/callback"
+    :juxt.site/resource-server "https://data.example.test"})
 
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
