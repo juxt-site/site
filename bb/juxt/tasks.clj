@@ -291,8 +291,9 @@
 
     (install! resources uri-map {} {:title "Installing System API"})))
 
-(defn auth-server [{:keys [auth-base-uri]}]
+(defn auth-server [{:keys [auth-base-uri kid]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+        kid (or kid (input {:prompt "Key id" :value ""}))
         resources
         (->>
          ["https://auth.example.org/oauth/authorize"
@@ -303,14 +304,16 @@
           "https://auth.example.org/operations/install-oauth-token-endpoint"
           "https://auth.example.org/permissions/system/install-authorization-server"
           "https://auth.example.org/permissions/system/install-oauth-token-endpoint"
-          "https://auth.example.org/permissions/system/register-client"]
+          "https://auth.example.org/permissions/system/register-client"
+          (format "https://auth.example.org/keypairs/%s" kid)]
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))
 
         uri-map {"https://auth.example.org" auth-base-uri}]
     (install!
      resources
      uri-map
-     {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
+     {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")
+      "signing-keypair" (format "%s/keypairs/%s" auth-base-uri kid)}
      {:title "Installing authorization server"})))
 
 (defn register-application
@@ -380,9 +383,6 @@
         "role" role}
        {:title (format "Granting role %s to %s" rolename username)}))))
 
-(defn users []
-  (println *command-line-args*))
-
 (defn reinstall [{:keys [auth-base-uri resource]}]
   (install!
    [resource]
@@ -390,15 +390,11 @@
    {}
    {:title (format "Reinstalling %s" resource)}))
 
-(defn install-token-introspector [{:keys [auth-base-uri ;;data-base-uri
-                                          ]}]
+(defn install-token-introspector [{:keys [auth-base-uri]}]
   (binding [*heading* "Installing token introspector"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-          ;;data-base-uri (or data-base-uri (input-data-base-uri))
           resources [(format "%s/token-info" auth-base-uri)]
-          uri-map {"https://auth.example.org" auth-base-uri
-                   ;;"https://data.example.org" data-base-uri
-                   }]
+          uri-map {"https://auth.example.org" auth-base-uri}]
       (install!
        resources
        uri-map

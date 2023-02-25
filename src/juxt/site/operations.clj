@@ -347,8 +347,7 @@
     'read-value json/read-value}
 
    'juxt.site
-   {'make-jwt make-jwt
-    'decode-id-token juxt.site.openid-connect/decode-id-token
+   {'decode-id-token juxt.site.openid-connect/decode-id-token
     'decode-access-token juxt.site.util/decode-access-token
     'verify-authorization-code
     (fn [{:keys [code-verifier code-challenge code-challenge-method]}]
@@ -540,7 +539,28 @@
                                           :where [[e :juxt.site/token token]
                                                   [e :juxt.site/type "https://meta.juxt.site/types/access-token"]]
                                           :in [token]}
-                                     token))))}
+                                     token))))
+
+                       'make-access-token
+                       (fn [claims keypair-id]
+                         (let [keypair (xt/entity db keypair-id)
+                               ;; TODO: throw if not found
+                               _ (when-not keypair
+                                   (throw (ex-info "Keypair not found" {:keypair-id keypair-id})))
+                               encoded (:juxt.site/private-key keypair)
+                               _ (when-not encoded
+                                   (throw (ex-info "Keypair did not have private key" {:keypair-id keypair-id})))
+                               decoded (.decode (java.util.Base64/getDecoder) encoded)
+                               format (:juxt.site/private-key-format keypair)
+                               _ (when-not format
+                                   (throw (ex-info "No keypair format found" {:keypair-id keypair-id})))
+                               kf (java.security.KeyFactory/getInstance "RSA")
+                               key-spec (case format
+                                          "PKCS#8" (new java.security.spec.PKCS8EncodedKeySpec decoded)
+                                          (throw (ex-info "Unrecognised keyspec" {:format format})))
+                               restored-private-key (.generatePrivate kf key-spec)]
+
+                           (make-jwt {"typ" "at+jwt"} claims restored-private-key)))}
 
                       'grab
                       {'parsed-types
@@ -715,14 +735,28 @@
            'entity*
            (fn [id] (xt/entity db id))}
 
-          'juxt.site.util {'make-nonce make-nonce}}
+          'juxt.site.util
+          {'make-nonce make-nonce
+           }
+
+          'juxt.site
+          {'generate-key-pair
+           (fn [algo]
+             (.generateKeyPair (java.security.KeyPairGenerator/getInstance algo)))
+           'get-public-key (fn [kp] (.getPublic kp))
+           'get-private-key (fn [kp] (.getPrivate kp))
+           'get-encoded (fn [k] (as-b64-str (.getEncoded k)))
+           'get-key-format (fn [k] (.getFormat k))}}
 
          (common-sci-namespaces operation-doc))
+
         :classes
         {'java.util.Date java.util.Date
          'java.time.Instant java.time.Instant
          'java.time.Duration java.time.Duration
-         'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit}})
+         'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit
+         'java.security.KeyPairGenerator java.security.KeyPairGenerator
+         }})
       (catch clojure.lang.ExceptionInfo e
         (throw (ex-info "Failure during prepare" {:cause-ex-info (ex-data e)} e))))))
 

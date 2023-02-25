@@ -81,7 +81,8 @@
    "https://auth.example.org/operations/oauth/authorize"
    "https://auth.example.org/operations/install-authorization-server"
    "https://auth.example.org/permissions/system/install-authorization-server"
-   "https://auth.example.org/permissions/system/register-client"]},
+   "https://auth.example.org/permissions/system/register-client"
+   "https://auth.example.org/keypairs/test-kp-123"]},
 
  "juxt/site/example-users"
  {:juxt.site/description "Example users",

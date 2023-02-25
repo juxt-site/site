@@ -136,7 +136,7 @@
               resource-server (:juxt.site/resource-server client)
 
               access-token
-              (juxt.site/make-jwt
+              (juxt.site/make-access-token
                (cond-> jwt-claims
                  resource-server (assoc "aud" resource-server)
                  true (merge
@@ -146,7 +146,8 @@
                                 (java.util.Date/from expiry))
                         "exp" (let [now (.toInstant (java.util.Date.))
                                     expiry (.plus now 15 java.time.temporal.ChronoUnit/MINUTES)]
-                                (java.util.Date/from expiry))})))
+                                (java.util.Date/from expiry))}))
+               (:juxt.site/signing-keypair *resource*))
 
               access-token-doc
               (cond->

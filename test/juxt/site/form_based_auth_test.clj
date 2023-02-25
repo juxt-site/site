@@ -21,7 +21,8 @@
     "juxt/site/oauth-authorization-server"
     "juxt/site/example-users"]
    AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+    "signing-keypair" "https://auth.example.test/keypairs/test-kp-123"})
 
   (let [result (login/login-with-form!
                 *handler*

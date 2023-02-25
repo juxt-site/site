@@ -40,7 +40,8 @@
     "juxt/site/sessions"
     "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
-   {"session-scope" "https://auth.hospital.com/session-scopes/openid-login-session"})
+   {"session-scope" "https://auth.hospital.com/session-scopes/openid-login-session"
+    "signing-keypair" "https://auth.hospital.com/keypairs/test-kp-123"})
 
   (install-resource-with-operation!
    "https://auth.hospital.com/_site/subjects/system"
