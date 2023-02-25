@@ -129,33 +129,40 @@
 
               scopes nil
 
-              client (juxt.site/lookup-client client-id)
+              {:juxt.site/keys [origin resource-server]} (juxt.site/lookup-client client-id)
+              _ (assert resource-server)
 
-              jwt-id (get jwt-claims "jti")
+              now (.toInstant (java.util.Date.))
+              issued-at (java.util.Date/from now)
+              not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
+              expiry (java.util.Date/from (.plus now 15 java.time.temporal.ChronoUnit/MINUTES))
 
-              resource-server (:juxt.site/resource-server client)
+              jwt-claims
+              (into jwt-claims
+                    {"iat" issued-at
+                     "nbf" not-before
+                     "exp" expiry
+                     "aud" resource-server
+                     "sub" subject})
 
               access-token
               (juxt.site/make-access-token
-               (cond-> jwt-claims
-                 resource-server (assoc "aud" resource-server)
-                 true (merge
-                       {"iat" (java.util.Date.)
-                        "nbf" (let [now (.toInstant (java.util.Date.))
-                                    expiry (.minus now 2 java.time.temporal.ChronoUnit/MINUTES)]
-                                (java.util.Date/from expiry))
-                        "exp" (let [now (.toInstant (java.util.Date.))
-                                    expiry (.plus now 15 java.time.temporal.ChronoUnit/MINUTES)]
-                                (java.util.Date/from expiry))}))
+               jwt-claims
                (:juxt.site/signing-keypair *resource*))
 
               access-token-doc
               (cond->
-                  {:xt/id (str "https://auth.example.org/access-tokens/" jwt-id)
+                  {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
                    :juxt.site/type "https://meta.juxt.site/types/access-token"
                    :juxt.site/subject subject
+                   :juxt.site/issuer (get jwt-claims "issuer")
+                   :juxt.site/issued-at issued-at
+                   :juxt.site/not-before not-before
+                   :juxt.site/expiry expiry
+                   :juxt.site/audience resource-server
                    :juxt.site/application (:xt/id application)
-                   :juxt.site/token access-token}
+                   :juxt.site/token access-token
+                   :juxt.site/keypair (:juxt.site/signing-keypair *resource*)}
                   scopes (assoc :juxt.site/scope scopes))
 
               fragment
@@ -166,7 +173,7 @@
 
               location (format "%s#%s" (:juxt.site/redirect-uri application) fragment)]
 
-          [[:xtdb.api/put access-token-doc]
+          [[:xtdb.api/put access-token-doc issued-at expiry]
            [:ring.response/status 303]
            [:ring.response/headers {"location" location}]])))}
 

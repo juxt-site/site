@@ -23,7 +23,7 @@
 <p>This is a tool to help with debugging. It is an implementation of <a href='https://datatracker.ietf.org/doc/html/rfc7662'>RFC 7662</a>.</p>
 <form method='POST'>
 <label for='token'>Access Token (JWT)</label>
-<textarea id='token' name='token' rows=4 cols=50>
+<textarea id='token' name='token' rows=10 cols=80>
 </textarea>
 <input type='submit' value='Introspect'>
 </form>

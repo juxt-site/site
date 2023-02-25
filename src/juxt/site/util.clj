@@ -2,10 +2,7 @@
 
 (ns juxt.site.util
   (:require
-   [juxt.clojars-mirrors.nippy.v3v1v1.taoensso.nippy.utils :refer [freezable?]])
-  (:import
-   (com.auth0.jwt JWT)
-   (com.auth0.jwt.algorithms Algorithm)))
+   [juxt.clojars-mirrors.nippy.v3v1v1.taoensso.nippy.utils :refer [freezable?]]))
 
 (defn assoc-when-some [m k v]
   (cond-> m v (assoc k v)))
@@ -125,74 +122,3 @@
   and similar. For the size parameter, try 12."
   [size]
   (as-hex-str (random-bytes size)))
-
-;; TODO: Test me
-(defn make-jwt
-  "Create and sign a new JWT. See RFC 9068 for conformance details."
-  [header payload signing-key]
-  (let [signer (Algorithm/RSA256 signing-key)]
-    (->
-     (reduce-kv
-      (fn [acc n claim]
-        (if (nil? claim)
-          (.withNullClaim acc n)
-          (case n
-            "aud" (.withAudience acc (into-array String [claim]))
-            "exp" (.withExpiresAt acc claim)
-            "iat" (.withIssuedAt acc claim)
-            "iss" (.withIssuer acc claim)
-            "jti" (.withJWTId acc claim)
-            "kid" (.withKeyId acc claim)
-            "ntb" (.withNotBefore acc claim)
-            "sub" (.withSubject acc claim)
-            (if (sequential? claim)
-              (let [fc (first claim)]
-                (.withArrayClaim acc n (cond
-                                         (instance? Integer fc) (into-array Integer claim)
-                                         (instance? Long fc) (into-array Long claim)
-                                         :else (into-array String (map str claim)))))
-              (.withClaim acc n claim)))))
-      (->
-       (JWT/create)
-       (.withHeader header))
-      payload)
-     (.sign signer))))
-
-
-(comment
-  (let [make-keypair (fn [] (.generateKeyPair (java.security.KeyPairGenerator/getInstance "RSA")))
-        kp (make-keypair)
-        private-key (.getPrivate kp)
-        format (.getFormat private-key)
-        encoded (as-b64-str (.getEncoded private-key))
-        decoded (.decode (java.util.Base64/getDecoder) encoded)
-
-        ;;
-        ;;verification (JWT/require (Algorithm/RSA256 (.getPublic kp)))
-        ;;verifier (.build verification)
-
-        kf (java.security.KeyFactory/getInstance "RSA")
-        key-spec (case format
-                   "PKCS#8" (new java.security.spec.PKCS8EncodedKeySpec decoded))
-
-        restored-private-key (.generatePrivate kf key-spec)
-        jwt (make-jwt {"iss" "foo"} restored-private-key)]
-
-    jwt
-
-
-
-    ;;(.verify verifier jwt)
-    ))
-
-;;
-
-(defn decode-access-token [jwt]
-  (let [{:strs [exp iat nbf aud iss jti]} (-> jwt JWT/decode (.getClaims))]
-    (cond-> {}
-      exp (assoc "exp" (.asLong exp))
-      iat (assoc "iat" (.asLong iat))
-      nbf (assoc "nbf" (.asLong nbf))
-      aud (assoc "aud" (.asString aud))
-      iss (assoc "iss" (.asString iss))
-      jti (assoc "jti" (.asString jti)))))

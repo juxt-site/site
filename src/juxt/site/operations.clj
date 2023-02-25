@@ -11,12 +11,13 @@
    [jsonista.core :as json]
    [juxt.site.http-authentication :as http-authn]
    [juxt.site.openid-connect :as openid-connect]
-   [juxt.site.util :refer [make-nonce as-b64-str sha make-jwt]]
+   [juxt.site.util :refer [make-nonce as-b64-str sha]]
    [malli.core :as malli]
    [ring.util.codec :as codec]
    [sci.core :as sci]
    [xtdb.api :as xt]
-   juxt.site.schema))
+   juxt.site.schema
+   [juxt.site.jwt :as jwt]))
 
 (defn operations->rules
   "Determine rules for the given operation ids. Each rule is bound to the given
@@ -348,7 +349,6 @@
 
    'juxt.site
    {'decode-id-token juxt.site.openid-connect/decode-id-token
-    'decode-access-token juxt.site.util/decode-access-token
     'verify-authorization-code
     (fn [{:keys [code-verifier code-challenge code-challenge-method]}]
       (assert code-verifier)
@@ -543,24 +543,30 @@
 
                        'make-access-token
                        (fn [claims keypair-id]
-                         (let [keypair (xt/entity db keypair-id)
-                               ;; TODO: throw if not found
-                               _ (when-not keypair
-                                   (throw (ex-info "Keypair not found" {:keypair-id keypair-id})))
-                               encoded (:juxt.site/private-key keypair)
-                               _ (when-not encoded
-                                   (throw (ex-info "Keypair did not have private key" {:keypair-id keypair-id})))
-                               decoded (.decode (java.util.Base64/getDecoder) encoded)
-                               format (:juxt.site/private-key-format keypair)
-                               _ (when-not format
-                                   (throw (ex-info "No keypair format found" {:keypair-id keypair-id})))
-                               kf (java.security.KeyFactory/getInstance "RSA")
-                               key-spec (case format
-                                          "PKCS#8" (new java.security.spec.PKCS8EncodedKeySpec decoded)
-                                          (throw (ex-info "Unrecognised keyspec" {:format format})))
-                               restored-private-key (.generatePrivate kf key-spec)]
+                         (let [keypair (xt/entity db keypair-id)]
+                           (when-not keypair
+                             (throw (ex-info "Keypair not found" {:keypair-id keypair-id})))
+                           (jwt/create-jwt
+                            {"typ" "at+jwt"
+                             "kid" (:juxt.site/kid keypair)}
+                            claims
+                            keypair)))
 
-                           (make-jwt {"typ" "at+jwt"} claims restored-private-key)))}
+                       'decode-access-token
+                       (fn [access-token]
+                         (let [kid (jwt/get-kid access-token)
+                               _ (when-not kid
+                                   (throw (ex-info "No key id in access-token, should try all possible keypairs" {})))
+                               keypair (first
+                                        (map first
+                                             (xt/q db '{:find [(pull e [*])]
+                                                        :where [[e :juxt.site/type "https://meta.juxt.site/types/keypair"]
+                                                                [e :juxt.site/kid kid]]
+                                                        :in [kid]}
+                                                   kid)))]
+                           (when-not keypair
+                             (throw (ex-info "Keypair not found" {:kid kid})))
+                           (jwt/verify-jwt access-token keypair)))}
 
                       'grab
                       {'parsed-types
