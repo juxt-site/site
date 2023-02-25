@@ -44,7 +44,7 @@
 
   full-deploy
   {:task
-   (do
+   (try
      (juxt.tasks/reset)
      (juxt.tasks/bootstrap {:auth-base-uri "https://auth.site.test"})
      (juxt.tasks/openid
@@ -58,7 +58,8 @@
        :data-base-uri "https://data.site.test"})
 
      (juxt.tasks/auth-server
-      {:auth-base-uri "https://auth.site.test"})
+      {:auth-base-uri "https://auth.site.test"
+       :kid "testkp"})
 
      (juxt.tasks/install-token-introspector
       {:auth-base-uri "https://auth.site.test"})
@@ -90,7 +91,9 @@
        :data-base-uri "https://data.site.test"
        :username "mal"
        :rolename "SystemReadonly"})
-     )}
+
+     (catch clojure.lang.ExceptionInfo e
+       (System/exit 1)))}
 
   installer-tree {:task (juxt.installer-tree/installer-tree)}
 
