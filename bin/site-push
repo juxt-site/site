@@ -57,7 +57,8 @@
   (let [result (edn/read
                 {:readers
                  {'error (fn [x] x)
-                  'volatile (fn [x] (:val (first x)))}}
+                  'volatile (fn [x] (:val (first x)))
+                  'object (fn [x] (pr-str x))}}
                 reader)]
     (pprint result)
     (if (:error result)
