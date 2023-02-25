@@ -53,16 +53,24 @@
 
 (def eval-and-read! (connect "localhost" 50505))
 
-(defn confirm [prompt]
-  (let [{:keys [status result]}
-        (b/gum {:cmd :confirm
-                :as :bool
-                :args [prompt]
-                :opts {}})]
-    (when-not (zero? status)
-      (throw
-       (ex-info "gum process exited with non-zero status" {:status status})))
-    result))
+(defn confirm
+  ([prompt] (confirm prompt {}))
+  ([prompt opts]
+   (let [{:keys [status result]}
+         (b/gum {:cmd :confirm
+                 :as :bool
+                 :args [prompt]
+                 :opts (merge
+                        {:selected.background "#A51"
+                         ;; "affirmative" "Delete ALL"
+                         ;; "negative" "Cancel"
+                         }
+                        opts
+                        )})]
+     (when-not (zero? status)
+       (throw
+        (ex-info "gum process exited with non-zero status" {:status status})))
+     result)))
 
 (def ^:dynamic *heading*)
 
@@ -72,7 +80,8 @@
   (let [{:keys [status result]}
         (b/gum {:cmd :input
                 :opts (cond-> opts
-                        true (dissoc opts :heading :prompt)
+                        true (assoc :header.foreground "#C72" :prompt.foreground "#444" :width 60)
+                        true (dissoc :heading :prompt)
                         (nil? header) (assoc :header (str heading "\n\n" prompt)))})]
     (when-not (zero? status)
       (throw
@@ -97,7 +106,7 @@
                 :opts (->
                        (merge
                         {:spinner "points"
-                         :spinner.foreground "#A80"
+                         :spinner.foreground "#C72"
                          :show-output true
                          :title "Installing"}
                         (select-keys opts [:title]))
@@ -157,7 +166,10 @@
       (let [{:keys [status result]}
             (b/gum {:cmd :filter
                     :opts {:placeholder "Select resource"
-                           :fuzzy false}
+                           :fuzzy false
+                           :indicator "⮕"
+                           :indicator.foreground "#C72"
+                           :match.foreground "#C72"}
                     :in (io/input-stream (.getBytes (.toString sw)))})]
         (when (zero? status)
           (let [expr `(~'e ~(first result))]
