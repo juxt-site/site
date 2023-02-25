@@ -305,7 +305,9 @@
           "https://auth.example.org/permissions/system/install-authorization-server"
           "https://auth.example.org/permissions/system/install-oauth-token-endpoint"
           "https://auth.example.org/permissions/system/register-client"
-          (format "https://auth.example.org/keypairs/%s" kid)]
+          (format "https://auth.example.org/keypairs/%s" kid)
+          ;; Introspection endpoint - see RFC 7662
+          "https://auth.example.org/token-info"]
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))
 
         uri-map {"https://auth.example.org" auth-base-uri}]
@@ -389,14 +391,3 @@
    {"https://auth.example.org" auth-base-uri}
    {}
    {:title (format "Reinstalling %s" resource)}))
-
-(defn install-token-introspector [{:keys [auth-base-uri]}]
-  (binding [*heading* "Installing token introspector"]
-    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-          resources [(format "%s/token-info" auth-base-uri)]
-          uri-map {"https://auth.example.org" auth-base-uri}]
-      (install!
-       resources
-       uri-map
-       {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
-       {}))))
