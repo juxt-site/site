@@ -155,25 +155,30 @@
      (pr-str
       '(factory-reset!)))))
 
-(defn ls []
-  (let [resources (eval-and-read! (pr-str '(ls)))
-        sw (java.io.StringWriter.)]
-    (with-open [out (java.io.PrintWriter. sw)]
-      (binding [*out* out]
-        (doseq [res resources]
-          (println res))))
-    (when-not (str/blank? (.toString sw))
-      (let [{:keys [status result]}
-            (b/gum {:cmd :filter
-                    :opts {:placeholder "Select resource"
-                           :fuzzy false
-                           :indicator "⮕"
-                           :indicator.foreground "#C72"
-                           :match.foreground "#C72"}
-                    :in (io/input-stream (.getBytes (.toString sw)))})]
-        (when (zero? status)
-          (let [expr `(~'e ~(first result))]
-            (pprint (eval-and-read! (pr-str expr)))))))))
+(defn ls
+  ([] (ls '(ls)))
+  ([cmd]
+   (let [resources (eval-and-read! (pr-str cmd))
+         sw (java.io.StringWriter.)]
+     (with-open [out (java.io.PrintWriter. sw)]
+       (binding [*out* out]
+         (doseq [res resources]
+           (println res))))
+     (when-not (str/blank? (.toString sw))
+       (let [{:keys [status result]}
+             (b/gum {:cmd :filter
+                     :opts {:placeholder "Select resource"
+                            :fuzzy false
+                            :indicator "⮕"
+                            :indicator.foreground "#C72"
+                            :match.foreground "#C72"}
+                     :in (io/input-stream (.getBytes (.toString sw)))})]
+         (when (zero? status)
+           (let [expr `(~'e ~(first result))]
+             (pprint (eval-and-read! (pr-str expr))))))))))
+
+(defn ls-type [typ]
+  (ls `(~'ls-type ~(format "https://meta.juxt.site/types/%s" typ))))
 
 (defn input-uri [{:keys [prompt default]}]
   (let [grab (fn [prefix] (input
