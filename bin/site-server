@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Site by JUXT. Copyright (c) 2021, JUXT LTD."
+echo "Site by JUXT. Copyright (c) 2021-2023, JUXT LTD."
 
 cd $(dirname $0)/..;
 clojure \
