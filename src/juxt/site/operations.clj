@@ -344,7 +344,7 @@
    {'send hc/send}
 
    'jsonista.core
-   {'write-value-as-string json/write-value-as-string
+   {'write-value-as-string (fn [x] (json/write-value-as-string x (json/object-mapper {:pretty true})))
     'read-value json/read-value}
 
    'juxt.site

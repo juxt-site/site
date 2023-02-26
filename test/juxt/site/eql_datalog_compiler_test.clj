@@ -175,7 +175,7 @@
               {"authorization" (format "Bearer %s" alice-access-token)
                "accept" "application/json"}})]
 
-        (is (= (json/write-value-as-string {"name" "Angie Solis"})
+        (is (= (json/write-value-as-string {"name" "Angie Solis"} (json/object-mapper {:pretty true}))
                (String. (:ring.response/body response))))
         (is (= 200 (:ring.response/status response))))
 
