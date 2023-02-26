@@ -31,28 +31,21 @@
           {:juxt.site/keys [subject application scope] :as access-token-doc}
           (juxt.site/lookup-access-token token)
 
-          subject-doc (xt/entity subject)
-
-          ;; TODO: Perhaps this should all be in the token to begin with
-          username (some-> subject-doc :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
-          client-doc (xt/entity application)
-          client-id (:juxt.site/client-id client-doc)
-
-          jwt (juxt.site/decode-access-token token)]
+          jwt (try
+                (juxt.site/decode-access-token token)
+                (catch Exception _ nil))]
 
       [[:ring.response/status 200]
        [:ring.response/headers
         {"content-type" "application/json"}]
        [:ring.response/body
         (jsonista.core/write-value-as-string
-         (cond->
-             {"active" (some? access-token-doc)
-              "token_type" "bearer"}
-             client-id (assoc "client_id" client-id)
-             username (assoc "username" username)
-             subject (assoc "sub" subject)
-             scope (assoc "scope" scope)
-             jwt (merge {:decoded-jwt jwt})))]])}
+         (if jwt
+           (merge
+            {"active" true
+             "token_type" "bearer"}
+            (:claims jwt))
+           {"active" false}))]])}
 
    :juxt.site/rules
    [

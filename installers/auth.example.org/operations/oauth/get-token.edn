@@ -49,13 +49,15 @@
    {:juxt.site.sci/program
     #juxt.pprint
     (let [{:keys [client-id code code-verifier jwt-claims scopes]} *prepare*
-          code-doc (juxt.site/lookup-authorization-code code)
+
+          {:juxt.site/keys [code-challenge code-challenge-method subject]}
+          (juxt.site/lookup-authorization-code code)
 
           verified?
           juxt.site/verify-authorization-code
           {:code-verifier code-verifier
-           :code-challenge (:juxt.site/code-challenge code-doc)
-           :code-challenge-method (:juxt.site/code-challenge-method code-doc)}]
+           :code-challenge code-challenge
+           :code-challenge-method code-challenge-method}]
 
       (if verified?
         (let [{:juxt.site/keys [origin resource-server]} (juxt.site/lookup-client client-id)
@@ -67,13 +69,17 @@
               not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
               expiry (java.util.Date/from (.plus now 15 java.time.temporal.ChronoUnit/MINUTES))
 
+              username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
+
               jwt-claims
               (into jwt-claims
-                    {"iat" issued-at
-                     "nbf" not-before
-                     "exp" expiry
-                     "aud" resource-server
-                     "sub" subject})
+                    (cond-> {"iat" issued-at
+                             "nbf" not-before
+                             "exp" expiry
+                             "aud" resource-server
+                             "sub" subject
+                             "client_id" client-id}
+                      username (assoc "username" username)))
 
               access-token
               (juxt.site/make-access-token

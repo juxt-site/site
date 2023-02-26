@@ -129,7 +129,7 @@
 
               scopes nil
 
-              {:juxt.site/keys [origin resource-server]} (juxt.site/lookup-client client-id)
+              {:juxt.site/keys [origin resource-server]} application
               _ (assert resource-server)
 
               now (.toInstant (java.util.Date.))
@@ -137,13 +137,17 @@
               not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
               expiry (java.util.Date/from (.plus now 15 java.time.temporal.ChronoUnit/MINUTES))
 
+              username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
+
               jwt-claims
               (into jwt-claims
-                    {"iat" issued-at
-                     "nbf" not-before
-                     "exp" expiry
-                     "aud" resource-server
-                     "sub" subject})
+                    (cond-> {"iat" issued-at
+                             "nbf" not-before
+                             "exp" expiry
+                             "aud" resource-server
+                             "sub" subject
+                             "client_id" client-id}
+                      username (assoc "username" username)))
 
               access-token
               (juxt.site/make-access-token
@@ -160,10 +164,11 @@
                    :juxt.site/not-before not-before
                    :juxt.site/expiry expiry
                    :juxt.site/audience resource-server
-                   :juxt.site/application (:xt/id application)
+                   :juxt.site/application client-id
                    :juxt.site/token access-token
-                   :juxt.site/keypair (:juxt.site/signing-keypair *resource*)}
-                  scopes (assoc :juxt.site/scope scopes))
+                   :juxt.site/keypair (:juxt.site/signing-keypair *resource*)
+                   :juxt.site/username username}
+                scopes (assoc :juxt.site/scope scopes))
 
               fragment
               (ring.util.codec/form-encode
