@@ -76,6 +76,12 @@
        :iss "https://juxt.eu.auth0.com"
        :nickname "malcolmsparks"})
 
+     (juxt.tasks/grant-role
+      {:auth-base-uri "https://auth.site.test"
+       :data-base-uri "https://data.site.test"
+       :username "mal"
+       :rolename "SystemReadonly"})
+
      (juxt.tasks/register-application
       {:auth-base-uri "https://auth.site.test"
        :client-id "swagger-ui"
@@ -89,12 +95,6 @@
        :origin "https://surveyor.site.test"
        :resource-server "https://data.site.test"
        :redirect-uri "https://surveyor.site.test/index.html"})
-
-     (juxt.tasks/grant-role
-      {:auth-base-uri "https://auth.site.test"
-       :data-base-uri "https://data.site.test"
-       :username "mal"
-       :rolename "SystemReadonly"})
 
      (catch clojure.lang.ExceptionInfo e
        (System/exit 1)))}
