@@ -326,7 +326,7 @@
      resources
      uri-map
      {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")
-      "signing-keypair" (format "%s/keypairs/%s" auth-base-uri kid)}
+      "keypair" (format "%s/keypairs/%s" auth-base-uri kid)}
      {:title "Installing authorization server"})))
 
 (defn register-application

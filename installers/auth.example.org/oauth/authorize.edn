@@ -11,5 +11,5 @@
    :juxt.http/content-type "text/html;charset=utf-8"
    :juxt.http/content "<p>Welcome to the Site authorization server.</p>"
    :juxt.site/session-scope "{{session-scope}}"
-   :juxt.site/signing-keypair "{{signing-keypair}}"
+   :juxt.site/keypair "{{keypair}}"
    }}}

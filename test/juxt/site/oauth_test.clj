@@ -24,7 +24,7 @@
    ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "signing-keypair" "https://auth.example.test/keypairs/test-kp-123"})
+    "keypair" "https://auth.example.test/keypairs/test-kp-123"})
 
   (testing "Register client with generated client-id"
     (let [result
@@ -83,7 +83,7 @@
    ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "signing-keypair" "https://auth.example.test/keypairs/test-kp-123"})
+    "keypair" "https://auth.example.test/keypairs/test-kp-123"})
 
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg

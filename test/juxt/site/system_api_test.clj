@@ -37,7 +37,7 @@
     "juxt/site/example-users"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "signing-keypair" "https://auth.example.test/keypairs/test-kp-123"})
+    "keypair" "https://auth.example.test/keypairs/test-kp-123"})
 
   (install-resource-groups!
    ["juxt/site/example-apps"]

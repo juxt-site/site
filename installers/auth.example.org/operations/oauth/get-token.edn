@@ -84,7 +84,7 @@
               access-token
               (juxt.site/make-access-token
                jwt-claims
-               (:juxt.site/signing-keypair *resource*))
+               (:juxt.site/keypair *resource*))
 
               access-token-doc
               (cond->
@@ -98,7 +98,7 @@
                    :juxt.site/audience resource-server
                    :juxt.site/application (:xt/id application)
                    :juxt.site/token access-token
-                   :juxt.site/keypair (:juxt.site/signing-keypair *resource*)}
+                   :juxt.site/keypair (:juxt.site/keypair *resource*)}
                   scopes (assoc :juxt.site/scope scopes))]
 
           [[:xtdb.api/put access-token-doc]
