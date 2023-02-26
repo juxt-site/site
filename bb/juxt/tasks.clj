@@ -291,9 +291,20 @@
 
     (install! resources uri-map {} {:title "Installing System API"})))
 
-(defn auth-server [{:keys [auth-base-uri kid]}]
+(defn random-string [size]
+  (apply str
+       (map char
+            (repeatedly size
+                        (fn []
+                          (rand-nth
+                           (concat
+                            (range (int \A) (inc (int \Z)))
+                            (range (int \a) (inc (int \z)))
+                            (range (int \0) (inc (int \9))))))))))
+
+(defn auth-server [{:keys [auth-base-uri]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        kid (or kid (input {:prompt "Key id" :value ""}))
+        kid (random-string 8)
         resources
         (->>
          ["https://auth.example.org/oauth/authorize"

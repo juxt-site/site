@@ -27,8 +27,7 @@
                       :data-base-uri "https://data.site.test"})}
 
   auth-server {:task (juxt.tasks/auth-server
-                      {:auth-base-uri "https://auth.site.test"
-                       :kid "testkp"})}
+                      {:auth-base-uri "https://auth.site.test"})}
 
   add-user {:task (juxt.tasks/add-user
                    {:auth-base-uri "https://auth.site.test"
@@ -44,6 +43,12 @@
   reinstall-openid (juxt.tasks/reinstall
                     {:auth-base-uri "https://auth.site.test"
                      :resource "https://auth.site.test/operations/openid/exchange-code-for-id-token"})
+
+  test {:task (do
+                (let [bytes (byte-array 12)]
+                  (.nextBytes (java.security.SecureRandom/getInstanceStrong) bytes)
+                  (println (.encodeToString (java.util.Base64/getEncoder) bytes)))
+                )}
 
   full-deploy
   {:task
@@ -61,8 +66,7 @@
        :data-base-uri "https://data.site.test"})
 
      (juxt.tasks/auth-server
-      {:auth-base-uri "https://auth.site.test"
-       :kid "testkp"})
+      {:auth-base-uri "https://auth.site.test"})
 
      (juxt.tasks/add-user
       {:auth-base-uri "https://auth.site.test"
