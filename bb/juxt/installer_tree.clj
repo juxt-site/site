@@ -47,23 +47,23 @@
   "This converts the existing package structure into a unified map of
   installers."
   [uri-map]
-  (let [root (io/file "installers")]
-    (into
-     {}
-     (for [installer-file (file-seq root)
-           :when (.isFile installer-file)
-           :let [filepath (.toPath installer-file)
-                 relpath (.toString (.relativize (.toPath root) filepath))
-                 [_ auth+path] (re-matches #"(.+)\.edn" relpath)
-                 url (str "https://" auth+path)]]
-       [(uri-map-replace url uri-map)
-        (delay
-          ;; The delay here gives us a performance improvement. We
-          ;; only transform installers that are in scope.
-          (->>
-           (edn/read-string {:readers READERS} (slurp installer-file))
-           (postwalk (make-uri-map-replace-walk-fn uri-map))
-           ))]))))
+  (let [root (io/file (System/getenv "SITE_HOME") "installers")]
+      (into
+       {}
+       (for [installer-file (file-seq root)
+             :when (.isFile installer-file)
+             :let [filepath (.toPath installer-file)
+                   relpath (.toString (.relativize (.toPath root) filepath))
+                   [_ auth+path] (re-matches #"(.+)\.edn" relpath)
+                   url (str "https://" auth+path)]]
+         [(uri-map-replace url uri-map)
+          (delay
+            ;; The delay here gives us a performance improvement. We
+            ;; only transform installers that are in scope.
+            (->>
+             (edn/read-string {:readers READERS} (slurp installer-file))
+             (postwalk (make-uri-map-replace-walk-fn uri-map))
+             ))]))))
 
 (defn to-regex [uri-template]
    (re-pattern

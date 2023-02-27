@@ -102,7 +102,7 @@
 (defn push! [expr opts]
   (let [{:keys [status result]}
         (b/gum {:cmd :spin
-                :args ["/bin/bash" "bin/site-push" "-e" (pr-str expr)]
+                :args ["/bin/bash" (format "%s/bin/site-push" (System/getenv "SITE_HOME")) "-e" (pr-str expr)]
                 :opts (->
                        (merge
                         {:spinner "points"

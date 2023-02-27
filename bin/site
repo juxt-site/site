@@ -1,3 +1,6 @@
 #!/bin/bash
 
-cd $(dirname $0)/..; bb $*
+## cd $(dirname $0)/..; bb $*
+
+export SITE_HOME=$HOME/site
+bb --config $SITE_HOME/bb.edn $*
