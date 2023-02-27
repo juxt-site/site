@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Site by JUXT. Copyright (c) 2021-2023, JUXT LTD."
+echo "Site by JUXT. Copyright (c) 2020-2023, JUXT LTD."
 
 cd $(dirname $0)/..;
 clojure \
@@ -8,7 +8,6 @@ clojure \
   -J-XX:-OmitStackTraceInFastThrow \
   -J-Dclojure.server.site="{:port,50505,:accept,juxt.site.repl-server/repl,:address,\"localhost\"}" \
   -J-Dlogback.configurationFile=$HOME/.config/site/logback.xml \
-  -J-Dsite.config=$SITE_CONFIG \
   -J-Xms256m \
   -J-Xmx2400m \
   -Mprod \
