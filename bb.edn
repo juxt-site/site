@@ -44,12 +44,6 @@
                     {:auth-base-uri "https://auth.site.test"
                      :resource "https://auth.site.test/operations/openid/exchange-code-for-id-token"})
 
-  test {:task (do
-                (let [bytes (byte-array 12)]
-                  (.nextBytes (java.security.SecureRandom/getInstanceStrong) bytes)
-                  (println (.encodeToString (java.util.Base64/getEncoder) bytes)))
-                )}
-
   full-deploy
   {:task
    (try
