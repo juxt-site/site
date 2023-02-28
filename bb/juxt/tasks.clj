@@ -156,7 +156,10 @@
       '(factory-reset!)))))
 
 (defn ls
-  ([] (ls '(ls)))
+  ([]
+   (if-let [qualifier (first *command-line-args*)]
+     (ls `(~'ls ~qualifier))
+     (ls '(ls))))
   ([cmd]
    (let [resources (eval-and-read! (pr-str cmd))
          sw (java.io.StringWriter.)]
