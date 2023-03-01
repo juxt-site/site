@@ -66,6 +66,7 @@
     ["https://auth.example.org/operations/get-openapi-document"
      "https://auth.example.org/permissions/get-openapi-document"]},
 
+ ;; Tested in juxt.site.oauth-test
  "juxt/site/whoami"
  {:juxt.site/description "whoami resources",
   :juxt.site/resources
