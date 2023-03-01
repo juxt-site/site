@@ -1,0 +1,18 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site/state
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [a "foo"]
+      {:message "This is the JSON metadata we want"
+       :user "alex"}
+      )}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [permission :xt/id]]]}}}

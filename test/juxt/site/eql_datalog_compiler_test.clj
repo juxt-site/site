@@ -29,6 +29,8 @@
   {"https://auth.example.org" "https://auth.hospital.com"
    "https://data.example.org" "https://hospital.com"})
 
+
+
 (defn install-hospital! []
   (install-resource-groups!
    ["juxt/site/bootstrap"]
