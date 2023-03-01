@@ -1,5 +1,3 @@
-;; TODO: This is just installing the /oauth/authorize endpoint, not
-;; the *whole* authorization server. Should be renamed accordingly.
 {:install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"

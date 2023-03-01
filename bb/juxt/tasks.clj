@@ -314,9 +314,9 @@
           "https://auth.example.org/oauth/token"
           "https://auth.example.org/operations/oauth/authorize"
           "https://auth.example.org/operations/oauth/get-token"
-          "https://auth.example.org/operations/install-authorization-server"
+          "https://auth.example.org/operations/oauth/install-authorize-endpoint"
           "https://auth.example.org/operations/install-oauth-token-endpoint"
-          "https://auth.example.org/permissions/system/install-authorization-server"
+          "https://auth.example.org/permissions/system/oauth/install-authorize-endpoint"
           "https://auth.example.org/permissions/system/install-oauth-token-endpoint"
           "https://auth.example.org/permissions/system/register-client"
           (format "https://auth.example.org/keypairs/%s" kid)

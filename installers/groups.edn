@@ -80,8 +80,8 @@
   :juxt.site/resources
   ["https://auth.example.org/oauth/authorize"
    "https://auth.example.org/operations/oauth/authorize"
-   "https://auth.example.org/operations/install-authorization-server"
-   "https://auth.example.org/permissions/system/install-authorization-server"
+   "https://auth.example.org/operations/oauth/install-authorize-endpoint"
+   "https://auth.example.org/permissions/system/oauth/install-authorize-endpoint"
    "https://auth.example.org/permissions/system/register-client"
    "https://auth.example.org/keypairs/test-kp-123"
    ;; From https://www.rfc-editor.org/rfc/rfc8414#section-3

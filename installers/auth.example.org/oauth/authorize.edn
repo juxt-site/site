@@ -1,15 +1,15 @@
 {:deps
  ["{{session-scope}}"
-  "https://auth.example.org/operations/install-authorization-server"
-  "https://auth.example.org/permissions/system/install-authorization-server"
+  "https://auth.example.org/operations/oauth/install-authorize-endpoint"
+  "https://auth.example.org/permissions/system/oauth/install-authorize-endpoint"
   "https://auth.example.org/operations/oauth/authorize"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-id "https://auth.example.org/operations/install-authorization-server"
+  :juxt.site/operation-id "https://auth.example.org/operations/oauth/install-authorize-endpoint"
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.http/content-type "text/html;charset=utf-8"
-   :juxt.http/content "<p>Welcome to the Site authorization server.</p>"
+   :juxt.http/content "<p>Welcome to the Site authorize endpoint.</p>"
    :juxt.site/session-scope "{{session-scope}}"
    :juxt.site/keypair "{{keypair}}"
    }}}
