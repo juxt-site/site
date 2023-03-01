@@ -1,6 +1,6 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site.auth-server-metadata-test
+(ns juxt.site.auth-server-test
   (:require
    [jsonista.core :as json]
    [juxt.site.logging :refer [with-logging]]
@@ -20,7 +20,8 @@
 
 ;;deftest introspection-test
 
-(with-fixtures
+;; Use this to test CORS headers with an authorization-server
+#_(with-fixtures
   (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
 
   (install-resource-groups!
@@ -56,10 +57,6 @@
            "https://auth.example.test/oauth/authorize"
            {"client_id" "test-app"}))]
 
-    access-token
-
-    (repl/ls)
-
     (*handler* {:juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"
                 :ring.request/method :get})
 
@@ -69,16 +66,30 @@
 
   )
 
-(with-fixtures(install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
+;; Metadata test
+;;with-fixtures
 
+(with-fixtures
+  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
   (install-resource-groups!
    ["juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" "https://auth.example.test/keypairs/test-kp-123"})
+    "keypair" "https://auth.example.test/keypairs/test-kp-123"}
+   )
 
   (let [{:ring.response/keys [status headers body]}
         (*handler* {:juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"
-                    :ring.request/method :get})]
-    {:status 200
-     :body body}))
+                    :ring.request/method :get})
+        json (json/read-value body)]
+
+    (assert (is (= 200 status)))
+
+    #_(assert
+     (is (=
+          {"issuer" "https://auth.example.test"}
+          json)))
+
+    json
+
+    ))

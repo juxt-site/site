@@ -7,10 +7,29 @@
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [a "foo"]
-      {:message "This is the JSON metadata we want"
-       :user "alex"}
-      )}
+    {"issuer" "https://auth.example.org"
+     "authorization_endpoint" "TODO"
+     "token_endpoint" "TODO"
+     "jwks_uri" "TODO"
+     "registration_endpoint" "TODO"
+     "scopes_supported" "TODO"
+     "response_types_supported" "TODO"
+     "response_modes_supported" "TODO"
+     "grant_types_supported" "TODO"
+     "token_endpoint_auth_methods_supported" "TODO"
+     "token_endpoint_auth_signing_alg_values_supported" "TODO"
+     "service_documentation" "TODO"
+     "ui_locales_supported" "TODO"
+     "op_policy_uri" "TODO"
+     "op_tos_uri" "TODO"
+     "revocation_endpoint" "TODO"
+     "revocation_endpoint_auth_methods_supported" "TODO"
+     "revocation_endpoint_auth_signing_alg_values_supported" "TODO"
+     "introspection_endpoint" "TODO"
+     "introspection_endpoint_auth_methods_supported" "TODO"
+     "introspection_endpoint_auth_signing_alg_values_supported" "TODO"
+     "code_challenge_methods_supported" "TODO"
+     }}
 
    :juxt.site/rules
    [
