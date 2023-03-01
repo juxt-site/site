@@ -25,9 +25,7 @@
          (assoc
           :juxt.site/methods
           {:post
-           ;; TODO: It's confusing that this is called 'get-token'
-           ;; when it's not a GET request
-           {:juxt.site/operations #{"https://auth.example.org/operations/oauth/get-token"}
+           {:juxt.site/operations #{"https://auth.example.org/operations/oauth/create-access-token"}
             :juxt.site/acceptable {"accept" "application/x-www-form-urlencoded"}}}))))}
 
    :juxt.site/transact

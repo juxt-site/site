@@ -7,6 +7,6 @@
   :juxt.site/input
   {:xt/id "https://auth.example.org/permissions/{{username|lower}}-can-authorize"
    :juxt.site/operation #{"https://auth.example.org/operations/oauth/authorize"
-                          "https://auth.example.org/operations/oauth/get-token"}
+                          "https://auth.example.org/operations/oauth/create-access-token"}
    :juxt.site/user "https://data.example.org/users/{{username|lower}}"
    :juxt.site/purpose nil}}}
