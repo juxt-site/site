@@ -10,9 +10,10 @@
     {"issuer" "https://auth.example.org"
      "authorization_endpoint" "https://auth.example.org/oauth/authorize"
      "token_endpoint" "https://auth.example.org/oauth/token"
+     "jwks_uri" "https://auth.example.org/.well-known/jwks.json"
 
      }
-    #_{"jwks_uri" "TODO"
+    #_{
        "registration_endpoint" "TODO"
        "scopes_supported" "TODO"
        "response_types_supported" "TODO"

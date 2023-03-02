@@ -321,7 +321,10 @@
           "https://auth.example.org/permissions/system/register-client"
           (format "https://auth.example.org/keypairs/%s" kid)
           ;; Introspection endpoint - see RFC 7662
-          "https://auth.example.org/token-info"]
+          "https://auth.example.org/token-info"
+          ;; Metadata endpoint -see RFC 8414
+          "https://auth.example.org/.well-known/oauth-authorization-server"
+          "https://auth.example.org/.well-known/jwks.json"]
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))
 
         uri-map {"https://auth.example.org" auth-base-uri}]

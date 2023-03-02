@@ -117,8 +117,7 @@
         _ (assert session-token)
 
         {access-token "access_token"}
-        (with-session-token
-          session-token
+        (with-session-token session-token
           (oauth/authorize!
            "https://auth.example.test/oauth/authorize"
            {"client_id" "test-app"}))]
