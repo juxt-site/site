@@ -14,6 +14,7 @@
            "juxt.site.eql-datalog-compiler-test"
            "juxt.site.oauth-test"
            "juxt.site.openid-test"
-           "juxt.site.system-api-test"]}]
+           "juxt.site.system-api-test"
+           "juxt.site.auth-server-test"]}]
 
  :reporter kaocha.report/documentation}

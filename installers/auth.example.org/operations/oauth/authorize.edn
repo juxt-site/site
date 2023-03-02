@@ -81,7 +81,7 @@
    {:juxt.site.sci/program
     #juxt.pprint
     (let [{:keys [response-type client-id subject query]} *prepare*
-          application (juxt.site/lookup-client client-id)
+          {:juxt.site/keys [origin] :as application} (juxt.site/lookup-client client-id)
           _ (when-not application
               (throw
                (ex-info
@@ -118,7 +118,11 @@
 
           [[:xtdb.api/put code-doc]
            [:ring.response/status 303]
-           [:ring.response/headers {"location" location}]])
+           [:ring.response/headers
+            (cond-> {"location" location
+                     "content-type" "application/json"}
+              origin (assoc "access-control-allow-origin" origin
+                            "access-control-allow-credentials" "true"))]])
 
         "token" ;; implicit
         (let [{:keys [jwt-claims]} *prepare*
@@ -180,7 +184,10 @@
 
           [[:xtdb.api/put access-token-doc issued-at expiry]
            [:ring.response/status 303]
-           [:ring.response/headers {"location" location}]])))}
+           [:ring.response/headers
+            (cond-> {"location" location}
+              origin (assoc "access-control-allow-origin" origin
+                            "access-control-allow-credentials" "true"))]])))}
 
    :juxt.site/rules
    [
