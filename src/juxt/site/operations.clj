@@ -918,7 +918,8 @@
             (format "No anonymous permission for operations (try authenticating!): %s" (pr-str operations))
             {:ring.response/status 401
              :ring.response/headers
-             {"www-authenticate" (http-authn/www-authenticate-header db protection-spaces)}
+             {"www-authenticate" (http-authn/www-authenticate-header db protection-spaces)
+              "access-control-allow-origin" "*"}
              :juxt.site/request-context req}))
 
           ;; We are outside a protection space, there is nothing we can do
