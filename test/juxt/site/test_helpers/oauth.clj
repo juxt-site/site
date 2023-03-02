@@ -9,24 +9,26 @@
    [malli.core :as malli]
    [ring.util.codec :as codec]))
 
+(defn authorization-request
+  "Create a request that can be sent to the authorization_endpoint of an
+  authorization server"
+  [uri {client-id "client_id"
+        scope "scope"
+        state :state}]
+  {:ring.request/method :get
+   :juxt.site/uri uri
+   :ring.request/query
+   (codec/form-encode
+    (cond->
+        {"response_type" "token"
+         "client_id" client-id
+         "state" state}
+        scope (assoc "scope" (codec/url-encode (str/join " " scope)))))})
+
 (defn authorize-response!
   "Authorize response"
-  [uri
-   {:juxt.site/keys [session-token]
-    client-id "client_id"
-    scope "scope"}]
-  (let [state (make-nonce 10)
-        request
-        {:ring.request/method :get
-         :juxt.site/uri uri
-         :ring.request/headers {"cookie" (format "id=%s" session-token)}
-         :ring.request/query
-         (codec/form-encode
-          (cond->
-              {"response_type" "token"
-               "client_id" client-id
-               "state" state}
-              scope (assoc "scope" (codec/url-encode (str/join " " scope)))))}]
+  [uri args]
+  (let [request (authorization-request uri (assoc args :state (make-nonce 10)))]
     (*handler* request)))
 
 (malli/=>
