@@ -86,6 +86,7 @@
     (assoc-in req [:ring.request/headers "cookie"] (format "%s=%s" cookie-name session-token))))
 
 (defmacro with-session-token [token & body]
+  (assert token)
   `(let [dlg# *handler*
          token# ~token]
      (when-not token#
