@@ -29,7 +29,6 @@
           :juxt.http/content-type "application/json"
           :juxt.site/respond
           {:juxt.site.sci/program
-           ;; TODO: Will this work?
            #juxt.pprint
            (let [content (jsonista.core/write-value-as-string *state*)]
              (-> *ctx*
