@@ -18,6 +18,7 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.test.util :refer [system-xt-fixture
                            handler-fixture *handler* *xt-node*
+                           with-session-token
                            with-fixtures
                            install-resource-groups! install-resource-with-operation!]]
    [xtdb.api :as xt]))
@@ -28,8 +29,6 @@
 (def RESOURCE_SERVER
   {"https://auth.example.org" "https://auth.hospital.com"
    "https://data.example.org" "https://hospital.com"})
-
-
 
 (defn install-hospital! []
   (install-resource-groups!
@@ -106,7 +105,7 @@
 
   ;; Fails because add-implicit-dependencies doesn't cope with :deps being a fn
 
-  (let [alice-session-token
+  (let [{alice-session-token :juxt.site/session-token}
         (login/login-with-form!
          *handler*
          :juxt.site/uri "https://auth.hospital.com/login-with-form"
@@ -114,16 +113,15 @@
          "password" "garden")
 
         {alice-access-token "access_token" error "error"}
-        (oauth/authorize!
-         "https://auth.hospital.com/oauth/authorize"
-         (merge
-          alice-session-token
-          {"client_id" "local-terminal"
-           ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
-           }))
+        (with-session-token alice-session-token
+          (oauth/authorize!
+           "https://auth.hospital.com/oauth/authorize"
+           {"client_id" "local-terminal"
+            ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
+            }))
         _ (is (nil? error) (format "OAuth2 grant error: %s" error))
 
-        bob-session-token
+        {bob-session-token :juxt.site/session-token}
         (login/login-with-form!
          *handler*
          :juxt.site/uri "https://auth.hospital.com/login-with-form"
@@ -131,14 +129,13 @@
          "password" "walrus")
         {bob-access-token "access_token"
          error "error"}
-        (oauth/authorize!
-         "https://auth.hospital.com/oauth/authorize"
-         (merge
-          bob-session-token
-          {"client_id" "local-terminal"
-           ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
-           })
-         )
+        (with-session-token bob-session-token
+          (oauth/authorize!
+           "https://auth.hospital.com/oauth/authorize"
+           {"client_id" "local-terminal"
+            ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
+            }
+           ))
         _ (is (nil? error) (format "OAuth2 grant error: %s" error))]
 
     ;; Add a /patient/XXX resource to serve an individual patient.
@@ -652,35 +649,33 @@
 
 (deftest graphql-test
 
-  (let [alice-session-token
+  (let [{alice-session-token :juxt.site/session-token}
         (login/login-with-form!
          *handler*
          :juxt.site/uri "https://auth.hospital.com/login-with-form"
          "username" "alice"
          "password" "garden")
         {alice-access-token "access_token"}
-        (oauth/authorize!
-         "https://auth.hospital.com/oauth/authorize"
-         (merge
-          alice-session-token
-          {"client_id" "local-terminal"
-           ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
-           }))
+        (with-session-token alice-session-token
+          (oauth/authorize!
+           "https://auth.hospital.com/oauth/authorize"
+           {"client_id" "local-terminal"
+            ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
+            }))
 
-        bob-session-token
+        {bob-session-token :juxt.site/session-token}
         (login/login-with-form!
          *handler*
          :juxt.site/uri "https://auth.hospital.com/login-with-form"
          "username" "bob"
          "password" "walrus")
         {bob-access-token "access_token"}
-        (oauth/authorize!
-         "https://auth.hospital.com/oauth/authorize"
-         (merge
-          bob-session-token
-          {"client_id" "local-terminal"
-           ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
-           }))
+        (with-session-token bob-session-token
+          (oauth/authorize!
+           "https://auth.hospital.com/oauth/authorize"
+           {"client_id" "local-terminal"
+            ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
+            }))
 
         db (xt/db *xt-node*)
 
@@ -766,3 +761,12 @@
                   :xt/id "https://hospital.com/patients/010",
                   :readings nil}]}}
              (eqlc/prune-result (xt/q db q bob nil)))))))
+
+#_(with-fixtures
+  (let [session-token (login/login-with-form!
+                       *handler*
+                       :juxt.site/uri "https://auth.hospital.com/login-with-form"
+                       "username" "alice"
+                       "password" "garden")]
+    (juxt.test.util/lookup-session-details (:juxt.site/session-token session-token))
+    ))
