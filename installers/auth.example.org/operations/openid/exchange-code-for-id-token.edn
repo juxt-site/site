@@ -267,7 +267,7 @@
                cookie-path (or (:juxt.site/cookie-path session-scope) "/")]
            (cond-> {}
              true (assoc "set-cookie"
-                         (format "%s=%s; Path=%s; Secure; HttpOnly; SameSite=Lax"
+                         (format "%s=%s; Path=%s; Secure; HttpOnly; SameSite=None"
                                  cookie-name
                                  new-session-token
                                  cookie-path))
