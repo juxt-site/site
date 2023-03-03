@@ -96,13 +96,13 @@
                    :juxt.site/not-before not-before
                    :juxt.site/expiry expiry
                    :juxt.site/audience resource-server
-                   :juxt.site/application (:xt/id application)
+                   :juxt.site/application client-id
                    :juxt.site/token access-token
                    :juxt.site/keypair (:juxt.site/keypair *resource*)}
                   scopes (assoc :juxt.site/scope scopes))]
 
           [[:xtdb.api/put access-token-doc]
-           [:ring.response/status 201]
+           [:ring.response/status 200]
            [:ring.response/headers
             (cond-> {"content-type" "application/json"}
               origin (assoc "access-control-allow-origin" origin

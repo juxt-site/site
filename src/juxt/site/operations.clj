@@ -482,12 +482,18 @@
 
                        'lookup-client
                        (fn [client-id]
-                         (let [results (xt/q
-                                        db
-                                        '{:find [(pull e [*])]
-                                          :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
-                                                  [e :juxt.site/client-id client-id]]
-                                          :in [client-id]} client-id)]
+                         (let [results (try
+                                         (xt/q
+                                          db
+                                          '{:find [(pull e [*])]
+                                            :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
+                                                    [e :juxt.site/client-id client-id]]
+                                            :in [client-id]} client-id)
+                                         (catch Exception cause
+                                           (throw
+                                            (ex-info
+                                             (format "Failed to lookup client: %s" client-id)
+                                             {:client-id client-id} cause))))]
                            (if (= 1 (count results))
                              (ffirst results)
                              (if (seq results)
@@ -527,7 +533,7 @@
                           (map first
                                (xt/q db '{:find [(pull e [*])]
                                           :where [[e :juxt.site/code code]
-                                                  [e juxt.site/type "https://meta.juxt.site/types/authorization-code"]]
+                                                  [e :juxt.site/type "https://meta.juxt.site/types/authorization-code"]]
                                           :in [code]}
                                      code))))
 
