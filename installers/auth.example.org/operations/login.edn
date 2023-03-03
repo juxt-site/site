@@ -85,7 +85,7 @@
           (conj [:ring.response/headers
                  { ;;"location" return-to
                   "set-cookie"
-                  (format "%s=%s; Path=%s; Secure; HttpOnly; SameSite=Lax"
+                  (format "%s=%s; Path=%s; Secure; HttpOnly; SameSite=None"
                           cookie-name session-token cookie-path)}])
           #_true #_(conj [:xtdb.api/put
                           {:xt/id :result
