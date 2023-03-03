@@ -49,7 +49,7 @@
                     {:auth-base-uri "https://auth.site.test"
                      :resource "https://auth.site.test/operations/openid/exchange-code-for-id-token"})
 
-  init
+  apply
   {:task
    (let [spec {:alias {:c :config}
                :require [:config]
