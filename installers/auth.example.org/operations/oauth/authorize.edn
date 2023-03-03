@@ -116,7 +116,8 @@
 
               location (format "%s?%s" (:juxt.site/redirect-uri application) query-component)]
 
-          [[:xtdb.api/put code-doc]
+          [
+           [:xtdb.api/put code-doc] ; TODO: add an expiry, see token below
            [:ring.response/status 303]
            [:ring.response/headers
             (cond-> {"location" location
