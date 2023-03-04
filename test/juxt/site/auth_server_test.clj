@@ -60,197 +60,177 @@
 
     ;; Subsequent tests require a login
     (let [login-result
-            (login/login-with-form!
-             *handler*
-             "username" "alice"
-             "password" "garden"
-             :juxt.site/uri "https://auth.example.test/login-with-form")
+          (login/login-with-form!
+           *handler*
+           "username" "alice"
+           "password" "garden"
+           :juxt.site/uri "https://auth.example.test/login-with-form")
 
-            session-token (:juxt.site/session-token login-result)
-            _ (assert session-token)]
+          session-token (:juxt.site/session-token login-result)
+          _ (assert session-token)]
 
-        (testing "token response"
-          (let [state (make-nonce 10)
+      (testing "token response"
+        (let [state (make-nonce 10)
 
-                authorization-request
-                {:ring.request/method :get
-                 :juxt.site/uri "https://auth.example.test/oauth/authorize"
-                 :ring.request/query
-                 (codec/form-encode
-                  {"response_type" "token"
-                   "client_id" "test-app"
-                   "state" state
-                   })}
+              authorization-request
+              {:ring.request/method :get
+               :juxt.site/uri "https://auth.example.test/oauth/authorize"
+               :ring.request/query
+               (codec/form-encode
+                {"response_type" "token"
+                 "client_id" "test-app"
+                 "state" state
+                 })}
 
-                {:ring.response/keys [status headers]}
-                (with-session-token session-token
-                  (*handler* authorization-request))
+              {:ring.response/keys [status headers]}
+              (with-session-token session-token
+                (*handler* authorization-request))
 
-                _ (assert (is (= 303 status)))
-                _ (assert (is (= "https://test-app.test.com" (get headers "access-control-allow-origin"))))
+              _ (assert (is (= 303 status)))
+              _ (assert (is (= "https://test-app.test.com" (get headers "access-control-allow-origin"))))
 
-                {:strs [location]} headers
+              {:strs [location]} headers
 
-                [_ location-uri fragment] (re-matches #"(https://.+?)#(.*)" location)
+              [_ location-uri fragment] (re-matches #"(https://.+?)#(.*)" location)
 
-                _ (assert (is (= redirect-uri location-uri)))
+              _ (assert (is (= redirect-uri location-uri)))
 
-                fragment-params (codec/form-decode fragment)
+              fragment-params (codec/form-decode fragment)
 
-                _ (assert (is (= state (get fragment-params "state"))))
-                _ (assert (is (= "bearer" (get fragment-params "token_type"))))
+              _ (assert (is (= state (get fragment-params "state"))))
+              _ (assert (is (= "bearer" (get fragment-params "token_type"))))
 
-                access-token (get fragment-params "access_token")
-                _ (assert (is access-token))
+              access-token (get fragment-params "access_token")
+              _ (assert (is access-token))
 
-                db (xt/db *xt-node*)
+              db (xt/db *xt-node*)
 
-                _ (assert (is (= init-kid (jwt/get-kid access-token))))
+              _ (assert (is (= init-kid (jwt/get-kid access-token))))
 
-                kp (jwt/lookup-keypair db init-kid)
-                _ (assert (is (:xt/id kp)))
+              kp (jwt/lookup-keypair db init-kid)
+              _ (assert (is (:xt/id kp)))
 
-                jwt (jwt/verify-jwt access-token kp)
+              jwt (jwt/verify-jwt access-token kp)
 
-                {:strs [alg kid typ]} (:header jwt)
-                _ (assert (is (= "RS256" alg)))
-                _ (assert (is (= init-kid kid)))
-                _ (assert (is (= "at+jwt" typ)))
+              {:strs [alg kid typ]} (:header jwt)
+              _ (assert (is (= "RS256" alg)))
+              _ (assert (is (= init-kid kid)))
+              _ (assert (is (= "at+jwt" typ)))
 
-                {:strs [aud iss]
-                 client-id "client_id"} (:claims jwt)
+              {:strs [aud iss]
+               client-id "client_id"} (:claims jwt)
 
-                _ (assert (is (= "https://auth.example.test" iss)))
-                _ (assert (is (= "https://data.example.test" aud)))
-                _ (assert (is (= "test-app" client-id)))]
+              _ (assert (is (= "https://auth.example.test" iss)))
+              _ (assert (is (= "https://data.example.test" aud)))
+              _ (assert (is (= "test-app" client-id)))]
 
-            ;; TODO: Test against token-info
+          ;; TODO: Test against token-info
 
-            ))
+          ))
 
-        (testing "code response"
-          (let [state (make-nonce 10)
+      (testing "code response"
+        (let [state (make-nonce 10)
 
-                authorization-request
-                {:ring.request/method :get
-                 :juxt.site/uri "https://auth.example.test/oauth/authorize"
-                 :ring.request/query
-                 (codec/form-encode
-                  {"response_type" "code"
-                   "client_id" "test-app"
-                   "state" state})}
+              authorization-request
+              {:ring.request/method :get
+               :juxt.site/uri "https://auth.example.test/oauth/authorize"
+               :ring.request/query
+               (codec/form-encode
+                {"response_type" "code"
+                 "client_id" "test-app"
+                 "state" state})}
 
-                {:ring.response/keys [status headers]}
-                (with-session-token session-token
-                  (*handler* authorization-request))
+              {:ring.response/keys [status headers]}
+              (with-session-token session-token
+                (*handler* authorization-request))
 
-                _ (assert (is (= 303 status)))
-                _ (assert (is (= "https://test-app.test.com" (get headers "access-control-allow-origin"))))
+              _ (assert (is (= 303 status)))
+              _ (assert (is (= "https://test-app.test.com" (get headers "access-control-allow-origin"))))
 
-                {:strs [location]} headers
+              {:strs [location]} headers
 
-                [_ location-uri query-string] (re-matches #"(https://.+?)\?(.*)" location)
+              [_ location-uri query-string] (re-matches #"(https://.+?)\?(.*)" location)
 
-                _ (assert (is (= redirect-uri location-uri)))
+              _ (assert (is (= redirect-uri location-uri)))
 
-                query-params (codec/form-decode query-string)
+              query-params (codec/form-decode query-string)
 
-                _ (assert (is (= state (get query-params "state"))))
+              _ (assert (is (= state (get query-params "state"))))
 
-                code (get query-params "state")
-                _ (assert (is code))
+              code (get query-params "state")
+              _ (assert (is code))
 
-                ;; TODO: Test various combinations to tease out all the possible errors
+              ;; TODO: Test various combinations to tease out all the possible errors
 
-                token-request-payload
-                (codec/form-encode
-                 {"grant_type" "authorization_code"
-                  "code" code
-                  "redirect_uri" redirect-uri
-                  "client_id" "test-app"})
+              token-request-payload
+              (codec/form-encode
+               {"grant_type" "authorization_code"
+                "code" code
+                "redirect_uri" redirect-uri
+                "client_id" "test-app"})
 
-                token-request
-                {:ring.request/method :post
-                 :juxt.site/uri "https://auth.example.test/oauth/token"
-                 :ring.request/headers
-                 {"content-type" "application/x-www-form-urlencoded"
-                  "content-length" (str (count (.getBytes token-request-payload)))}
-                 :ring.request/body (io/input-stream (.getBytes token-request-payload))
-                 }
+              token-request
+              {:ring.request/method :post
+               :juxt.site/uri "https://auth.example.test/oauth/token"
+               :ring.request/headers
+               {"content-type" "application/x-www-form-urlencoded"
+                "content-length" (str (count (.getBytes token-request-payload)))}
+               :ring.request/body (io/input-stream (.getBytes token-request-payload))
+               }
 
-                {:ring.response/keys [status headers body]}
-                (with-session-token session-token
-                  (*handler* token-request))
+              {:ring.response/keys [status headers body]}
+              (with-session-token session-token
+                (*handler* token-request))
 
-                _ (assert (is (= "https://test-app.test.com" (get headers "access-control-allow-origin"))))
+              _ (assert (is (= "https://test-app.test.com" (get headers "access-control-allow-origin"))))
 
-                _ (assert (is (= 200 status)))
+              _ (assert (is (= 200 status)))
 
-                token-response-payload-as-json (json/read-value body)
-                _ (assert (is (map? token-response-payload-as-json)))
+              token-response-payload-as-json (json/read-value body)
+              _ (assert (is (map? token-response-payload-as-json)))
 
-                access-token (get token-response-payload-as-json "access_token")
-                _ (assert (is access-token))
+              access-token (get token-response-payload-as-json "access_token")
+              _ (assert (is access-token))
 
-                db (xt/db *xt-node*)
+              db (xt/db *xt-node*)
 
-                _ (assert (is (= init-kid (jwt/get-kid access-token))))
+              _ (assert (is (= init-kid (jwt/get-kid access-token))))
 
-                kp (jwt/lookup-keypair db init-kid)
-                _ (assert (is (:xt/id kp)))
+              kp (jwt/lookup-keypair db init-kid)
+              _ (assert (is (:xt/id kp)))
 
-                decoded-jwt (jwt/verify-jwt access-token kp)
+              decoded-jwt (jwt/verify-jwt access-token kp)
 
-                {:strs [alg kid typ]} (:header decoded-jwt)
-                _ (assert (is (= "RS256" alg)))
-                _ (assert (is (= init-kid kid)))
-                _ (assert (is (= "at+jwt" typ)))
+              {:strs [alg kid typ]} (:header decoded-jwt)
+              _ (assert (is (= "RS256" alg)))
+              _ (assert (is (= init-kid kid)))
+              _ (assert (is (= "at+jwt" typ)))
 
-                {:strs [aud iss]
-                 client-id "client_id"} (:claims decoded-jwt)
+              {:strs [aud iss]
+               client-id "client_id"} (:claims decoded-jwt)
 
-                _ (assert (is (= "https://auth.example.test" iss)))
-                _ (assert (is (= "https://data.example.test" aud)))
-                _ (assert (is (= "test-app" client-id)))]
+              _ (assert (is (= "https://auth.example.test" iss)))
+              _ (assert (is (= "https://data.example.test" aud)))
+              _ (assert (is (= "test-app" client-id)))]
 
-            decoded-jwt)))))
+          (testing "token-info endpoint"
+            (let [{:ring.response/keys [status headers body]}
+                  (with-session-token session-token
+                    (*handler*
+                     (let [body (codec/form-encode {"token" access-token})]
+                       {:ring.request/method :post
+                        :juxt.site/uri "https://auth.example.test/token-info"
+                        :ring.request/headers
+                        {"content-type" "application/x-www-form-urlencoded"
+                         "content-length" (str (count (.getBytes body)))}
+                        :ring.request/body (io/input-stream (.getBytes body))})))
 
-;; Metadata test
-
-;;deftest introspection-test
-
-#_(with-fixtures
-    (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
-    (install-resource-groups!
-     ["juxt/site/oauth-authorization-server"]
-     AUTH_SERVER
-     {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-      "keypair" "https://auth.example.test/keypairs/test-kp-123"}
-     )
-
-    (let [{:ring.response/keys [status headers body]}
-          (*handler* {:juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"
-                      :ring.request/method :get})
-          json (json/read-value body)]
-
-      (assert (is (= 200 status)))
-
-      #_(assert
-         (is (=
-              {"issuer" "https://auth.example.test"}
-              json)))
-
-      json
-
-
-
-      )
-
-    (let [{:ring.response/keys [status headers body]}
-          (*handler* {:juxt.site/uri  "https://auth.example.test/.well-known/jwks.json"
-                      :ring.request/method :get})
-          json (json/read-value body)]
-      (assert (is (= 200 status)))
-      json
-
-      ))
+                  _ (assert (is (= 200 status)))
+                  _ (assert (is (= "application/json" (get headers "content-type"))))
+                  {:strs [iss aud active]
+                   client-id "client_id"} (json/read-value body)
+                  _ (assert active)
+                  _ (assert (is (= "https://auth.example.test" iss)))
+                  _ (assert (is (= "https://data.example.test" aud)))
+                  _ (assert (is (= "https://data.example.test" aud)))
+                  _ (assert (is (= "test-app" client-id)))])))))))
