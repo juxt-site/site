@@ -95,5 +95,5 @@
 
           (let [json (some-> response :ring.response/body json/read-value)]
             (is json)
-            (is (<= 2 (count json) 10))
+            (is (<= 8 (count json)))
             json))))))

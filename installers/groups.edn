@@ -79,14 +79,22 @@
  {:juxt.site/description "OAuth2 Authorization Server",
   :juxt.site/resources
   ["https://auth.example.org/oauth/authorize"
+   "https://auth.example.org/oauth/token"
    "https://auth.example.org/operations/oauth/authorize"
+   "https://auth.example.org/operations/oauth/create-access-token"
    "https://auth.example.org/operations/oauth/install-authorize-endpoint"
+   "https://auth.example.org/operations/install-oauth-token-endpoint"
    "https://auth.example.org/permissions/system/oauth/install-authorize-endpoint"
+   "https://auth.example.org/permissions/system/install-oauth-token-endpoint"
    "https://auth.example.org/permissions/system/register-client"
    "https://auth.example.org/keypairs/test-kp-123"
-   ;; From https://www.rfc-editor.org/rfc/rfc8414#section-3
+   ;; Introspection endpoint - see RFC 7662
+   "https://auth.example.org/token-info"
+   ;; Metadata endpoint -see RFC 8414
    "https://auth.example.org/.well-known/oauth-authorization-server"
-   "https://auth.example.org/.well-known/jwks.json"]},
+   "https://auth.example.org/.well-known/jwks.json"
+   ;; From https://www.rfc-editor.org/rfc/rfc8414#section-3
+   ]}
 
  "juxt/site/example-users"
  {:juxt.site/description "Example users",

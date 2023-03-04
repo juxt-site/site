@@ -563,13 +563,7 @@
                          (let [kid (jwt/get-kid access-token)
                                _ (when-not kid
                                    (throw (ex-info "No key id in access-token, should try all possible keypairs" {})))
-                               keypair (first
-                                        (map first
-                                             (xt/q db '{:find [(pull e [*])]
-                                                        :where [[e :juxt.site/type "https://meta.juxt.site/types/keypair"]
-                                                                [e :juxt.site/kid kid]]
-                                                        :in [kid]}
-                                                   kid)))]
+                               keypair (jwt/lookup-keypair db kid)]
                            (when-not keypair
                              (throw (ex-info "Keypair not found" {:kid kid})))
                            (jwt/verify-jwt access-token keypair)))}

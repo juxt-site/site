@@ -108,3 +108,13 @@
 
 (defn get-kid [jwt]
   (.asString (.getHeaderClaim (JWT/decode jwt) "kid")))
+
+(defn lookup-keypair [db kid]
+  (assert kid)
+  (first
+   (map first
+        (xt/q db '{:find [(pull e [*])]
+                   :where [[e :juxt.site/type "https://meta.juxt.site/types/keypair"]
+                           [e :juxt.site/kid kid]]
+                   :in [kid]}
+              kid))))
