@@ -7,46 +7,16 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.walk :refer [postwalk]]
-   [crypto.password.bcrypt :as password]
    [juxt.site.main :as main]
    [juxt.site.operations :as operations]
    [juxt.site.cache :as cache]
    [juxt.site.installer :as installer]
-   [juxt.site.util :as util]
-   [xtdb.api :as xt])
-  (:import (java.util Date)))
+   [xtdb.api :as xt]))
 
 (defn system [] main/*system*)
 
 (defn xt-node []
   (:juxt.site.db/xt-node (system)))
-
-(defn grab-input! [args]
-  (reduce
-   (fn [acc [k {:keys [description default type]}]]
-     (print (if (some? default)
-              (format "%s [%s] (%s): " description k default)
-              (format "%s [%s]: " description k)))
-     (flush)
-     (let [v (read-line)
-           v (cond (str/blank? v) default :else v)
-           v (case type
-               ;; TODO: could use a multimethod here
-               :dir (let [dir (io/file v)]
-                      (when-not (.isDirectory dir)
-                        (throw (ex-info (format "%s should be a directory" dir) {})))
-                      dir)
-               v)]
-       (assoc acc k v)))
-   {}
-   args))
-
-(defn confirm! [m]
-  (print "Confirm? (y/n) ")
-  (flush)
-  (let [input (read-line)]
-    (when (contains? #{"y" "yes"} (str/lower-case input))
-      m)))
 
 (defn base64-reader [form]
   {:pre [(string? form)]}
@@ -318,21 +288,6 @@
 (defn requests-cache []
   cache/requests-cache)
 
-(defn gc
-  "Remove request data that is older than an hour."
-  ([] (gc (* 1 60 60)))
-  ([seconds]
-   (let [records (map first
-                      (q '{:find [e]
-                           :where [[e :juxt.site/type "Request"]
-                                   [e :juxt.site/end-date ended]
-                                   [(< ended checkpoint)]]
-                           :in [checkpoint]}
-                         (Date. (- (.getTime (Date.)) (* seconds 1000)))))]
-     (doseq [batch (partition-all 100 records)]
-       (println "Evicting" (count batch) "records")
-       (println (apply evict! batch))))))
-
 (defn check-permissions [operations options]
   (operations/check-permissions (db) operations options))
 
@@ -347,14 +302,6 @@
         (q '{:find [(pull e [* {:juxt.site/session [* {:juxt.site/subject [* {:juxt.site/user-identity [* {:juxt.site/user [*]}]}]}]}])]
              :where [[e :xt/id]
                      [e :juxt.site/type "https://meta.juxt.site/types/session-token"]]})))
-
-(defn access-token [tok]
-  (mapv first
-        (q '{:find [(pull e [* {:juxt.site/subject [* {:juxt.site/user-identity [* {:juxt.site/user [*]}]}]}])]
-             :where [[e :xt/id]
-                     [e :juxt.site/type "https://meta.juxt.site/types/access-token"]
-                     [e :juxt.site/token tok]]
-             :in [tok]} tok)))
 
 (defn evict-all-sessions! []
   (let [db (db)]
@@ -372,21 +319,6 @@
        (remove nil? [tok session-id subject]))
      (mapcat seq)
      (apply evict!))))
-
-(defn ^:deprecated random-bytes [size]
-  (util/random-bytes size))
-
-(defn ^:deprecated as-hex-str [bytes]
-  (util/as-hex-str bytes))
-
-(defn ^:deprecated encrypt-password [password]
-  (password/encrypt password))
-
-;; Demote to tests
-#_(defn install-resource-groups!
-  "Install local resource-groups from local filesystem"
-  [names uri-map parameter-map]
-  (local/install-resource-groups! (xt-node) names uri-map parameter-map))
 
 (defn find-resources [resources]
   (keep :xt/id (xt/pull-many (db) [:xt/id] resources)))
