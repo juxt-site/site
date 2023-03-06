@@ -552,11 +552,7 @@
                          (let [keypair (xt/entity db keypair-id)]
                            (when-not keypair
                              (throw (ex-info "Keypair not found" {:keypair-id keypair-id})))
-                           (jwt/create-jwt
-                            {"typ" "at+jwt"
-                             "kid" (:juxt.site/kid keypair)}
-                            claims
-                            keypair)))
+                           (jwt/new-access-token claims keypair)))
 
                        'decode-access-token
                        (fn [access-token]

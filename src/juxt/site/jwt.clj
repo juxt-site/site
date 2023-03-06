@@ -74,7 +74,7 @@
               {}
               (.getClaims decoded-jwt))}))
 
-(defn create-jwt [header payload keypair]
+(defn new-jwt [header payload keypair]
   (assert (map? header))
   (assert (map? payload))
   (assert (map? keypair))
@@ -89,6 +89,14 @@
         private-key (.generatePrivate kf key-spec)]
     (make-jwt header payload private-key)))
 
+(defn new-access-token [claims keypair]
+  (assert (map? keypair))
+  (new-jwt
+   {"typ" "at+jwt"
+    "kid" (:juxt.site/kid keypair)}
+   claims
+   keypair))
+
 (defn verify-jwt [jwt keypair]
   (assert (string? jwt))
   (assert (map? keypair))
@@ -101,7 +109,7 @@
 
 (comment
   (let [kp (xt/entity (repl/db) "https://auth.site.test/keypairs/testkp")
-        jwt (create-jwt {"typ" "at+jwt"} {"iss" "foo"} kp)
+        jwt (new-jwt {"typ" "at+jwt"} {"iss" "foo"} kp)
         ]
     (time
      (verify-jwt jwt kp))))
