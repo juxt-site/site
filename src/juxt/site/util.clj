@@ -41,9 +41,11 @@
      (. hash update bytes)
      (.digest hash))))
 
+(def SECURE_RANDOM (java.security.SecureRandom/getInstanceStrong))
+
 (defn random-bytes [size]
   (let [result (byte-array size)]
-    (.nextBytes (java.security.SecureRandom/getInstanceStrong) result)
+    (.nextBytes SECURE_RANDOM result)
     result))
 
 (defn as-hex-str
