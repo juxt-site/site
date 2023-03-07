@@ -9,6 +9,8 @@
    [clojure.string :as str]
    [juxt.installer-tree :refer [resource-installers]]))
 
+(def ^:dynamic *no-confirm* nil)
+
 (defn read-line* [r]
   (let [sb (java.lang.StringBuilder.)]
     (loop [c (.read r)]
@@ -56,47 +58,53 @@
 (defn confirm
   ([prompt] (confirm prompt {}))
   ([prompt opts]
-   (let [{:keys [status result]}
-         (b/gum {:cmd :confirm
-                 :as :bool
-                 :args [prompt]
-                 :opts (merge
-                        {:selected.background "#A51"
-                         ;; "affirmative" "Delete ALL"
-                         ;; "negative" "Cancel"
-                         }
-                        opts
-                        )})]
-     (when-not (zero? status)
-       (throw
-        (ex-info "gum process exited with non-zero status" {:status status})))
-     result)))
+   (if *no-confirm*
+     true
+     (let [{:keys [status result]}
+           (b/gum {:cmd :confirm
+                   :as :bool
+                   :args [prompt]
+                   :opts (merge
+                          {:selected.background "#A51"
+                           ;; "affirmative" "Delete ALL"
+                           ;; "negative" "Cancel"
+                           }
+                          opts
+                          )})]
+       (when-not (zero? status)
+         (throw
+          (ex-info "gum process exited with non-zero status" {:status status})))
+       result))))
 
 (def ^:dynamic *heading*)
 
-(defn input [{:keys [heading prompt header]
+(defn input [{:keys [heading prompt header value]
               :or {heading *heading*}
               :as opts}]
-  (let [{:keys [status result]}
-        (b/gum {:cmd :input
-                :opts (cond-> opts
-                        true (assoc :header.foreground "#C72" :prompt.foreground "#444" :width 60)
-                        true (dissoc :heading :prompt)
-                        (nil? header) (assoc :header (str heading "\n\n" prompt)))})]
-    (when-not (zero? status)
-      (throw
-       (ex-info "gum process exited with non-zero status" {:status status})))
-    (first result)))
+  (if (and *no-confirm* value)
+    value
+    (let [{:keys [status result]}
+          (b/gum {:cmd :input
+                  :opts (cond-> opts
+                          true (assoc :header.foreground "#C72" :prompt.foreground "#444" :width 60)
+                          true (dissoc :heading :prompt)
+                          (nil? header) (assoc :header (str heading "\n\n" prompt)))})]
+      (when-not (zero? status)
+        (throw
+         (ex-info "gum process exited with non-zero status" {:status status})))
+      (first result))))
 
 (defn choose [choices opts]
-  (let [{:keys [status result]}
-        (b/gum {:cmd :choose
-                :args choices
-                :opts (or opts {})})]
-    (when-not (zero? status)
-      (throw
-       (ex-info "gum process exited with non-zero status" {:status status})))
-    (first result)))
+  (if (and *no-confirm* (:value opts))
+    (:value opts)
+    (let [{:keys [status result]}
+          (b/gum {:cmd :choose
+                  :args choices
+                  :opts (or opts {})})]
+      (when-not (zero? status)
+        (throw
+         (ex-info "gum process exited with non-zero status" {:status status})))
+      (first result))))
 
 ;; Use site-push as a command in order to show a spinner
 (defn push! [expr opts]

@@ -51,20 +51,23 @@
 
   apply
   {:task
-   (let [spec {:alias {:c :config}
+   (let [spec {:alias {:c :config
+                       :a :no-confirm}
                :require [:config]
                :coerce {:config (fn [x] (when x (io/file x)))}
                :validate {:config {:pred (fn [x] (when x (.exists x)))
                                    :ex-msg (fn [x] (format "File must exist: %s" x))}}}
-         {config-file :config}
+         {config-file :config
+          no-confirm :no-confirm}
          (cli/parse-opts *command-line-args* spec)
 
          config (edn/read-string (slurp config-file))]
 
-     (doseq [[task-kw args] config
-             :let [task (ns-resolve 'juxt.tasks (symbol task-kw))]]
-       (if args
-         (task args)
-         (task))))}
+     (binding [juxt.tasks/*no-confirm* no-confirm]
+       (doseq [[task-kw args] config
+               :let [task (ns-resolve 'juxt.tasks (symbol task-kw))]]
+         (if args
+           (task args)
+           (task)))))}
 
   installer-tree {:task (juxt.installer-tree/installer-tree)}}}
