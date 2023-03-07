@@ -192,7 +192,7 @@
 
    :juxt.site/rules
    [
+    ;; Any who is logged in can authorize
     [(allowed? subject operation resource permission)
-     [subject :juxt.site/user-identity id]
-     [id :juxt.site/user user]
-     [permission :juxt.site/user user]]]}}}
+     [permission :xt/id]
+     [subject :xt/id]]]}}}

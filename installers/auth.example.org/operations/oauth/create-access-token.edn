@@ -116,7 +116,8 @@
 
    :juxt.site/rules
    [
+    ;; Publicly available. This is often required to be accessible by
+    ;; browser-based scripts, e.g. for the authorization code with
+    ;; PKCE OAuth2 flow.
     [(allowed? subject operation resource permission)
-     [subject :juxt.site/user-identity id]
-     [id :juxt.site/user user]
-     [permission :juxt.site/user user]]]}}}
+     [permission :xt/id]]]}}}

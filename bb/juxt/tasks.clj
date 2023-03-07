@@ -319,6 +319,8 @@
           "https://auth.example.org/permissions/system/oauth/install-authorize-endpoint"
           "https://auth.example.org/permissions/system/install-oauth-token-endpoint"
           "https://auth.example.org/permissions/system/register-client"
+          "https://auth.example.org/permissions/oauth/authorize"
+          "https://auth.example.org/permissions/oauth/create-access-token"
           (format "https://auth.example.org/keypairs/%s" kid)
           ;; Introspection endpoint - see RFC 7662
           "https://auth.example.org/token-info"
@@ -364,15 +366,7 @@
           nickname (input {:prompt "Nick name" :value nickname})
           resources [user
                      (format "%s/openid/user-identities/%s/nickname/%s"
-                             data-base-uri (url-encode iss) (url-encode nickname))
-
-                     ;; TODO: The grant-permission operation should not
-                     ;; here, rather, create a new operation called
-                     ;; 'permit-user-to-authorize' which can take the
-                     ;; actual user, and this operation can be permitted to
-                     ;; others without granting them the all-powerful
-                     ;; grant-permission permission.
-                     (format "%s/permissions/%s-can-authorize" auth-base-uri username)]
+                             data-base-uri (url-encode iss) (url-encode nickname))]
 
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}]

@@ -234,7 +234,6 @@
           "https://example.org/login"   ; a way Alice can identity herself
           "https://example.org/applications/test-app" ; an app
           "https://example.org/oauth/authorize" ; a way of authorizing the app
-          "https://example.org/permissions/alice-can-authorize" ; which Alice can use
 
           "https://example.org/operations/install-graphql-type"
           "https://example.org/permissions/alice/install-graphql-type"
