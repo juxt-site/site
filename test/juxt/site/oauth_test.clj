@@ -101,7 +101,6 @@
 
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
-
   (install-resource-groups!
    ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
     "juxt/site/example-users" "juxt/site/protection-spaces"]
@@ -184,13 +183,13 @@
       (let [{:ring.response/keys [status headers body]}
             (*handler* {:ring.request/method :get
                         :juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"})]
-        (assert (is (= 200 status)))
-        (assert (is (= "application/json" (get headers "content-type"))))
-        (assert (is (= {"issuer" "https://auth.example.test",
-                        "authorization_endpoint" "https://auth.example.test/oauth/authorize",
-                        "token_endpoint" "https://auth.example.test/oauth/token",
-                        "jwks_uri" "https://auth.example.test/.well-known/jwks.json"}
-                       (json/read-value body))))))
+        (is (= 200 status))
+        (is (= "application/json" (get headers "content-type")))
+        (is (= {"issuer" "https://auth.example.test",
+                "authorization_endpoint" "https://auth.example.test/oauth/authorize",
+                "token_endpoint" "https://auth.example.test/oauth/token",
+                "jwks_uri" "https://auth.example.test/.well-known/jwks.json"}
+               (json/read-value body)))))
 
     ;; TODO: Errors
 
@@ -203,7 +202,7 @@
            :juxt.site/uri "https://auth.example.test/login-with-form")
 
           session-token (:juxt.site/session-token login-result)
-          _ (assert session-token)]
+          _ (is session-token)]
 
       (testing "token response"
         (let [state (make-nonce 10)
@@ -222,43 +221,43 @@
               (with-session-token session-token
                 (*handler* authorization-request))
 
-              _ (assert (is (= 303 status)))
-              _ (assert (is (= "https://test-app.test.com" (get headers "access-control-allow-origin"))))
+              _ (is (= 303 status))
+              _ (is (= "https://test-app.test.com" (get headers "access-control-allow-origin")))
 
               {:strs [location]} headers
 
               [_ location-uri fragment] (re-matches #"(https://.+?)#(.*)" location)
 
-              _ (assert (is (= redirect-uri location-uri)))
+              _ (is (= redirect-uri location-uri))
 
               fragment-params (codec/form-decode fragment)
 
-              _ (assert (is (= state (get fragment-params "state"))))
-              _ (assert (is (= "bearer" (get fragment-params "token_type"))))
+              _ (is (= state (get fragment-params "state")))
+              _ (is (= "bearer" (get fragment-params "token_type")))
 
               access-token (get fragment-params "access_token")
-              _ (assert (is access-token))
+              _ (is access-token)
 
               db (xt/db *xt-node*)
 
-              _ (assert (is (= init-kid (jwt/get-kid access-token))))
+              _ (is (= init-kid (jwt/get-kid access-token)))
 
               kp (jwt/lookup-keypair db init-kid)
-              _ (assert (is (:xt/id kp)))
+              _ (is (:xt/id kp))
 
               jwt (jwt/verify-jwt access-token kp)
 
               {:strs [alg kid typ]} (:header jwt)
-              _ (assert (is (= "RS256" alg)))
-              _ (assert (is (= init-kid kid)))
-              _ (assert (is (= "at+jwt" typ)))
+              _ (is (= "RS256" alg))
+              _ (is (= init-kid kid))
+              _ (is (= "at+jwt" typ))
 
               {:strs [aud iss]
                client-id "client_id"} (:claims jwt)
 
-              _ (assert (is (= "https://auth.example.test" iss)))
-              _ (assert (is (= "https://data.example.test" aud)))
-              _ (assert (is (= "test-app" client-id)))]))
+              _ (is (= "https://auth.example.test" iss))
+              _ (is (= "https://data.example.test" aud))
+              _ (is (= "test-app" client-id))]))
 
       (testing "code response"
         (let [state (make-nonce 10)
@@ -276,21 +275,21 @@
               (with-session-token session-token
                 (*handler* authorization-request))
 
-              _ (assert (is (= 303 status)))
-              _ (assert (is (= "https://test-app.test.com" (get headers "access-control-allow-origin"))))
+              _ (is (= 303 status))
+              _ (is (= "https://test-app.test.com" (get headers "access-control-allow-origin")))
 
               {:strs [location]} headers
 
               [_ location-uri query-string] (re-matches #"(https://.+?)\?(.*)" location)
 
-              _ (assert (is (= redirect-uri location-uri)))
+              _ (is (= redirect-uri location-uri))
 
               query-params (codec/form-decode query-string)
 
-              _ (assert (is (= state (get query-params "state"))))
+              _ (is (= state (get query-params "state")))
 
               code (get query-params "state")
-              _ (assert (is code))
+              _ (is code)
 
               ;; TODO: Test various combinations to tease out all the possible errors
 
@@ -314,40 +313,43 @@
               (with-session-token session-token
                 (*handler* token-request))
 
-              _ (assert (is (= "https://test-app.test.com" (get headers "access-control-allow-origin"))))
+              _ (is (= "https://test-app.test.com" (get headers "access-control-allow-origin")))
 
-              _ (assert (is (= 200 status)))
+              _ (is (= 200 status))
 
               token-response-payload-as-json (json/read-value body)
-              _ (assert (is (map? token-response-payload-as-json)))
+              _ (is (map? token-response-payload-as-json))
 
               access-token (get token-response-payload-as-json "access_token")
-              _ (assert (is access-token))
+              _ (is access-token)
+
+              refresh-token (get token-response-payload-as-json "refresh_token")
+              _ (is refresh-token)
 
               expires-in (get token-response-payload-as-json "expires_in")
-              _ (assert (is expires-in))
-              _ (assert (is (= (* 15 60) expires-in)))
+              _ (is expires-in)
+              _ (is (= (* 15 60) expires-in))
 
               db (xt/db *xt-node*)
 
-              _ (assert (is (= init-kid (jwt/get-kid access-token))))
+              _ (is (= init-kid (jwt/get-kid access-token)))
 
               kp (jwt/lookup-keypair db init-kid)
-              _ (assert (is (:xt/id kp)))
+              _ (is (:xt/id kp))
 
               decoded-jwt (jwt/verify-jwt access-token kp)
 
               {:strs [alg kid typ]} (:header decoded-jwt)
-              _ (assert (is (= "RS256" alg)))
-              _ (assert (is (= init-kid kid)))
-              _ (assert (is (= "at+jwt" typ)))
+              _ (is (= "RS256" alg))
+              _ (is (= init-kid kid))
+              _ (is (= "at+jwt" typ))
 
               {:strs [aud iss]
                client-id "client_id"} (:claims decoded-jwt)
 
-              _ (assert (is (= "https://auth.example.test" iss)))
-              _ (assert (is (= "https://data.example.test" aud)))
-              _ (assert (is (= "test-app" client-id)))]
+              _ (is (= "https://auth.example.test" iss))
+              _ (is (= "https://data.example.test" aud))
+              _ (is (= "test-app" client-id))]
 
           (testing "token-info endpoint"
             (let [{:ring.response/keys [status headers body]}
@@ -361,12 +363,12 @@
                          "content-length" (str (count (.getBytes body)))}
                         :ring.request/body (io/input-stream (.getBytes body))})))
 
-                  _ (assert (is (= 200 status)))
-                  _ (assert (is (= "application/json" (get headers "content-type"))))
+                  _ (is (= 200 status))
+                  _ (is (= "application/json" (get headers "content-type")))
                   {:strs [iss aud active]
                    client-id "client_id"} (json/read-value body)
-                  _ (assert active)
-                  _ (assert (is (= "https://auth.example.test" iss)))
-                  _ (assert (is (= "https://data.example.test" aud)))
-                  _ (assert (is (= "https://data.example.test" aud)))
-                  _ (assert (is (= "test-app" client-id)))])))))))
+                  _ (is active)
+                  _ (is (= "https://auth.example.test" iss))
+                  _ (is (= "https://data.example.test" aud))
+                  _ (is (= "https://data.example.test" aud))
+                  _ (is (= "test-app" client-id))])))))))

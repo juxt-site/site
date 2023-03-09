@@ -43,12 +43,13 @@
        :code code
        :code-verifier code-verifier
        :jwt-claims {"iss" "https://auth.example.org"
-                    "jti" (juxt.site.util/make-nonce jti-length)}})}
+                    "jti" (juxt.site.util/make-nonce jti-length)}
+       :refresh-token (juxt.site.util/make-nonce 16)})}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [{:keys [client-id code code-verifier jwt-claims scopes]} *prepare*
+    (let [{:keys [client-id code code-verifier jwt-claims scopes refresh-token]} *prepare*
 
           {:juxt.site/keys [code-challenge code-challenge-method subject]}
           (juxt.site/lookup-authorization-code code)
@@ -67,9 +68,10 @@
               now (java.time.Instant/now)
               issued-at (java.util.Date/from now)
               not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
+
               ;; TODO: How to best make this configurable?
-              expires-in (java.time.Duration/parse "PT15M")
-              expiry (java.util.Date/from (.plus now expires-in))
+              access-token-expires-in (java.time.Duration/parse "PT15M")
+              access-token-expiry (java.util.Date/from (.plus now access-token-expires-in))
 
               username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
 
@@ -77,7 +79,7 @@
               (into jwt-claims
                     (cond-> {"iat" issued-at
                              "nbf" not-before
-                             "exp" expiry
+                             "exp" access-token-expiry
                              "aud" resource-server
                              "sub" subject
                              "client_id" client-id}
@@ -95,24 +97,38 @@
                        :juxt.site/issuer (get jwt-claims "issuer")
                        :juxt.site/issued-at issued-at
                        :juxt.site/not-before not-before
-                       :juxt.site/expiry expiry
+                       :juxt.site/expiry access-token-expiry
                        :juxt.site/audience resource-server
                        :juxt.site/application client-id
                        :juxt.site/token access-token
                        :juxt.site/keypair (:juxt.site/keypair *resource*)}
                 scopes (assoc :juxt.site/scope scopes)
-                username (assoc :juxt.site/username username))]
+                username (assoc :juxt.site/username username))
 
-          [[:xtdb.api/put access-token-doc issued-at expiry]
+              refresh-token-expires-in (java.time.Duration/parse "PT6H")
+              refresh-token-expiry (java.util.Date/from (.plus now refresh-token-expires-in))
+
+              refresh-token-doc
+              (into access-token-doc
+                    {:xt/id (str "https://auth.example.org/refresh-tokens/" refresh-token)
+                     :juxt.site/type "https://meta.juxt.site/types/refresh-token"
+                     :juxt.site/expiry refresh-token-expiry
+                     :juxt.site/token refresh-token})]
+
+          [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
+           [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
            [:ring.response/status 200]
            [:ring.response/headers
-            (cond-> {"content-type" "application/json"}
+            (cond-> {"content-type" "application/json"
+                     "cache-control" "no-store"
+                     "pragma" "no-cache"}
               origin (assoc "access-control-allow-origin" origin
                             "access-control-allow-credentials" "true"))]
            [:ring.response/body
             (jsonista.core/write-value-as-string
              {"access_token" access-token
-              "expires_in" (.getSeconds expires-in)})]])
+              "expires_in" (.getSeconds access-token-expires-in)
+              "refresh_token" refresh-token})]])
 
         ;; TODO: Catch all exceptions too and implement appropriate
         ;; error handling
