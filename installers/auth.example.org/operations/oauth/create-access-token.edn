@@ -64,7 +64,7 @@
               _ (assert origin)
               _ (assert resource-server)
 
-              now (.toInstant (java.util.Date.))
+              now (java.time.Instant/now)
               issued-at (java.util.Date/from now)
               not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
               ;; TODO: How to best make this configurable?
@@ -89,19 +89,19 @@
                (:juxt.site/keypair *resource*))
 
               access-token-doc
-              (cond->
-                  {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
-                   :juxt.site/type "https://meta.juxt.site/types/access-token"
-                   :juxt.site/subject subject
-                   :juxt.site/issuer (get jwt-claims "issuer")
-                   :juxt.site/issued-at issued-at
-                   :juxt.site/not-before not-before
-                   :juxt.site/expiry expiry
-                   :juxt.site/audience resource-server
-                   :juxt.site/application client-id
-                   :juxt.site/token access-token
-                   :juxt.site/keypair (:juxt.site/keypair *resource*)}
-                  scopes (assoc :juxt.site/scope scopes))]
+              (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
+                       :juxt.site/type "https://meta.juxt.site/types/access-token"
+                       :juxt.site/subject subject
+                       :juxt.site/issuer (get jwt-claims "issuer")
+                       :juxt.site/issued-at issued-at
+                       :juxt.site/not-before not-before
+                       :juxt.site/expiry expiry
+                       :juxt.site/audience resource-server
+                       :juxt.site/application client-id
+                       :juxt.site/token access-token
+                       :juxt.site/keypair (:juxt.site/keypair *resource*)}
+                scopes (assoc :juxt.site/scope scopes)
+                username (assoc :juxt.site/username username))]
 
           [[:xtdb.api/put access-token-doc issued-at expiry]
            [:ring.response/status 200]

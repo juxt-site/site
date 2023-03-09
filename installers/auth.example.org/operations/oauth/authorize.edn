@@ -98,6 +98,10 @@
               code-challenge (get query "code_challenge")
               code-challenge-method (get query "code_challenge_method")
 
+              now (java.time.Instant/now)
+              code-doc-expires-in (java.time.Duration/parse "PT15M")
+              code-doc-expiry (java.util.Date/from (.plus now code-doc-expires-in))
+
               code-doc
               (cond->
                   {:xt/id (str "https://auth.example.org/authorization-codes/" code)
@@ -117,7 +121,7 @@
               location (format "%s?%s" (:juxt.site/redirect-uri application) query-component)]
 
           [
-           [:xtdb.api/put code-doc] ; TODO: add an expiry, see token below
+           [:xtdb.api/put code-doc (java.util.Date/from now) code-doc-expiry]
            [:ring.response/status 303]
            [:ring.response/headers
             (cond-> {"location" location
@@ -137,10 +141,11 @@
               {:juxt.site/keys [origin resource-server]} application
               _ (assert resource-server)
 
-              now (.toInstant (java.util.Date.))
+              now (java.time.Instant/now)
               issued-at (java.util.Date/from now)
               not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
-              expiry (java.util.Date/from (.plus now 15 java.time.temporal.ChronoUnit/MINUTES))
+              expires-in (java.time.Duration/parse "PT15M")
+              expiry (java.util.Date/from (.plus now expires-in))
 
               username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
 
