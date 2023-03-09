@@ -11,27 +11,28 @@
      "authorization_endpoint" "https://auth.example.org/oauth/authorize"
      "token_endpoint" "https://auth.example.org/oauth/token"
      "jwks_uri" "https://auth.example.org/.well-known/jwks.json"
-
-     }
-    #_{
-       "registration_endpoint" "TODO"
-       "scopes_supported" "TODO"
-       "response_types_supported" "TODO"
-       "response_modes_supported" "TODO"
-       "grant_types_supported" "TODO"
-       "token_endpoint_auth_methods_supported" "TODO"
-       "token_endpoint_auth_signing_alg_values_supported" "TODO"
-       "service_documentation" "TODO"
-       "ui_locales_supported" "TODO"
-       "op_policy_uri" "TODO"
-       "op_tos_uri" "TODO"
-       "revocation_endpoint" "TODO"
-       "revocation_endpoint_auth_methods_supported" "TODO"
-       "revocation_endpoint_auth_signing_alg_values_supported" "TODO"
-       "introspection_endpoint" "TODO"
-       "introspection_endpoint_auth_methods_supported" "TODO"
-       "introspection_endpoint_auth_signing_alg_values_supported" "TODO"
-       "code_challenge_methods_supported" "TODO"}}
+     ;; "registration_endpoint" "TODO"
+     ;; "scopes_supported" "TODO"
+     "response_types_supported" ["code" "token"]
+     "response_modes_supported" ["query" "fragment"]
+     "grant_types_supported" ["authorization_code" "implicit" "refresh_token"]
+     "token_endpoint_auth_methods_supported" ["none"
+                                              "client_secret_post"
+                                              ;; TODO:
+                                              ;; "client_secret_basic"
+                                              ]
+     "token_endpoint_auth_signing_alg_values_supported" ["RS256"]
+     ;; "service_documentation" "TODO"
+     ;; "ui_locales_supported" "TODO"
+     ;; "op_policy_uri" "TODO"
+     ;; "op_tos_uri" "TODO"
+     ;; "revocation_endpoint" "TODO"
+     ;; "revocation_endpoint_auth_methods_supported" "TODO"
+     ;; "revocation_endpoint_auth_signing_alg_values_supported" "TODO"
+     ;; "introspection_endpoint" "TODO"
+     ;; "introspection_endpoint_auth_methods_supported" "TODO"
+     ;; "introspection_endpoint_auth_signing_alg_values_supported"
+     "code_challenge_methods_supported" ["S256"]}}
 
    :juxt.site/rules
    [
