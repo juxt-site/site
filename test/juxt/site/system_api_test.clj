@@ -45,7 +45,8 @@
    {"client-type" "public"
     "origin" "https://test-app.example.test"
     "resource-server" "https://data.example.test"
-    "redirect-uri" "https://test-app.example.test/callback"})
+    "redirect-uri" "https://test-app.example.test/callback"
+    "authorization-server" "https://auth.example.test"})
 
   (let [login-result
         (login/login-with-form!

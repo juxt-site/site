@@ -176,6 +176,7 @@
      {"client-type" "public"
       "origin" "https://test-app.test.com"
       "resource-server" "https://data.example.test"
+      "authorization-server" "https://auth.example.test"
       "redirect-uri" redirect-uri})
 
     ;; token-info is public
