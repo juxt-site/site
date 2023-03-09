@@ -103,15 +103,14 @@
               code-doc-expiry (java.util.Date/from (.plus now code-doc-expires-in))
 
               code-doc
-              (cond->
-                  {:xt/id (str "https://auth.example.org/authorization-codes/" code)
-                   :juxt.site/type "https://meta.juxt.site/types/authorization-code"
-                   :juxt.site/subject subject
-                   :juxt.site/application (:xt/id application)
-                   :juxt.site/code code}
-                  code-challenge (assoc :juxt.site/code-challenge code-challenge)
-                  code-challenge-method (assoc :juxt.site/code-challenge-method code-challenge-method)
-                  scopes (assoc :juxt.site/scope scopes))
+              (cond-> {:xt/id (str "https://auth.example.org/authorization-codes/" code)
+                       :juxt.site/type "https://meta.juxt.site/types/authorization-code"
+                       :juxt.site/subject subject
+                       :juxt.site/application (:xt/id application)
+                       :juxt.site/code code}
+                code-challenge (assoc :juxt.site/code-challenge code-challenge)
+                code-challenge-method (assoc :juxt.site/code-challenge-method code-challenge-method)
+                scopes (assoc :juxt.site/scope scopes))
 
               query-component
               (ring.util.codec/form-encode
@@ -178,7 +177,7 @@
                    :juxt.site/token access-token
                    :juxt.site/keypair (:juxt.site/keypair *resource*)
                    :juxt.site/username username}
-                scopes (assoc :juxt.site/scope scopes))
+                  scopes (assoc :juxt.site/scope scopes))
 
               fragment
               (ring.util.codec/form-encode
