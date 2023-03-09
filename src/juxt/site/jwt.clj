@@ -2,10 +2,13 @@
 
 (ns juxt.site.jwt
   (:require
-   [xtdb.api :as xt])
+   [xtdb.api :as xt]
+   [juxt.site.util :as util])
   (:import
    (com.auth0.jwt JWT)
-   (com.auth0.jwt.algorithms Algorithm)))
+   (com.auth0.jwt.algorithms Algorithm)
+   (java.time Instant Duration)
+   (java.util Date)))
 
 (memoize
  (defn get-algorithm [key]
@@ -126,3 +129,96 @@
                            [e :juxt.site/kid kid]]
                    :in [kid]}
               kid))))
+
+(defn make-access-token! [xt-node {:keys [authorization-server user client-id duration]}]
+  (let [db (xt/db xt-node)
+        client (ffirst
+                (xt/q
+                 db
+                 '{:find [(pull e [*])]
+                   :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
+                           [e :juxt.site/authorization-server issuer]
+                           [e :juxt.site/client-id client-id]]
+                   :in [issuer client-id]} authorization-server client-id))
+
+        _ (when-not client
+            (throw (ex-info "No client found" {:authorization-server authorization-server
+                                               :client-id client-id})))
+
+        kps
+        (map first
+             (xt/q
+              db
+              '{:find [(pull kp [*])]
+                :where [[kp :juxt.site/type "https://meta.juxt.site/types/keypair"]
+                        [kp :juxt.site/issuer issuer]]
+                :in [issuer]} authorization-server))
+
+        [keypair another-keypair] kps
+
+        _ (when another-keypair
+            (throw
+             (ex-info
+              "More than one keypair installed for authorization-server, need to specify kid."
+              {:keypairs (mapv :juxt.site/kid kps)
+               :authorization-server authorization-server})))
+
+        jti (util/make-nonce 16)
+        aud (:juxt.site/resource-server client)
+
+        iat (Instant/now)
+        nbf iat
+
+        exp (.plus iat (Duration/parse duration))
+
+        iat (Date/from iat)
+        exp (Date/from exp)
+
+        _ (when-not (xt/entity db user)
+            (throw (ex-info "User not found" {:user user})))
+
+        user-identity (juxt.site.util/make-nonce 10)
+        user-identity-doc {:xt/id (str "https://auth.example.org/user-identities/%s" user-identity)
+                           :juxt.site/user user
+                           :juxt.site/issued-date iat
+                           :juxt.site/expiry-date exp}
+
+        subject (juxt.site.util/make-nonce 10)
+        subject-doc {:xt/id (str "https://auth.example.org/subjects/" subject)
+                     :juxt.site/type "https://meta.juxt.site/types/subject"
+                     :juxt.site/issued-date iat
+                     :juxt.site/expiry-date exp
+                     :juxt.site/user-identity user-identity}
+
+        claims {"iss" authorization-server
+                "jti" jti
+                "iat" iat
+                "nbf" nbf
+                "exp" exp
+                "aud" aud
+                "sub" subject
+                "client_id" client-id}
+
+        access-token (new-access-token claims keypair)
+
+        access-token-doc
+        {:xt/id (str "https://auth.example.org/access-tokens/" jti)
+         :juxt.site/type "https://meta.juxt.site/types/access-token"
+         :juxt.site/jwt-id jti
+         :juxt.site/subject subject
+         :juxt.site/issuer authorization-server
+         :juxt.site/issued-at iat
+         :juxt.site/not-before nbf
+         :juxt.site/expiry exp
+         :juxt.site/audience aud
+         :juxt.site/application (:xt/id client)
+         :juxt.site/token access-token
+         :juxt.site/keypair (:xt/id keypair)}]
+
+    (xt/submit-tx
+     xt-node
+     [[:xtdb.api/put access-token-doc iat exp]
+      [:xtdb.api/put subject-doc iat exp]
+      [:xtdb.api/put user-identity-doc iat exp]])
+
+    {:access-token access-token}))

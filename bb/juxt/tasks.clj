@@ -359,6 +359,7 @@
        resources uri-map
        {"client-type" "public"
         "origin" origin
+        "authorization-server" auth-base-uri
         "resource-server" resource-server
         "redirect-uri" redirect-uri}
        {:title (format "Adding OAuth client: %s" client-id)}))))
@@ -403,6 +404,22 @@
        {"user" user
         "role" role}
        {:title (format "Granting role %s to %s" rolename username)}))))
+
+(defn request-access-token
+  [{:keys [auth-base-uri data-base-uri username client-id duration]}]
+  (binding [*heading* "Requesting access token"]
+    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          data-base-uri (or data-base-uri (input-data-base-uri))
+          username (input {:prompt "Username" :value username})
+          client-id (input {:prompt "Client-id" :value client-id})
+          duration (input {:prompt "Duration" :value duration})]
+      (push!
+       `(~'make-access-token!
+         {:authorization-server ~auth-base-uri
+          :user ~(format "%s/users/%s" data-base-uri username)
+          :client-id ~client-id
+          :duration ~duration})
+       {}))))
 
 (defn reinstall [{:keys [auth-base-uri resource]}]
   (install!

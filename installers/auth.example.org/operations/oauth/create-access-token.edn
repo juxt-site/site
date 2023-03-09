@@ -101,7 +101,7 @@
                    :juxt.site/keypair (:juxt.site/keypair *resource*)}
                   scopes (assoc :juxt.site/scope scopes))]
 
-          [[:xtdb.api/put access-token-doc]
+          [[:xtdb.api/put access-token-doc issued-at expiry]
            [:ring.response/status 200]
            [:ring.response/headers
             (cond-> {"content-type" "application/json"}

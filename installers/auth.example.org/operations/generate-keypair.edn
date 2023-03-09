@@ -32,6 +32,7 @@
             public-key (juxt.site/get-public-key kp)
             private-key (juxt.site/get-private-key kp)
             doc (assoc doc
+                       :juxt.site/issuer "https://auth.example.org"
                        :juxt.site/public-key (juxt.site/get-encoded public-key)
                        :juxt.site/public-key-format (juxt.site/get-key-format public-key)
                        :juxt.site/private-key (juxt.site/get-encoded private-key)

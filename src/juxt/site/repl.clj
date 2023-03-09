@@ -11,7 +11,10 @@
    [juxt.site.operations :as operations]
    [juxt.site.cache :as cache]
    [juxt.site.installer :as installer]
-   [xtdb.api :as xt]))
+   [juxt.site.jwt :as jwt]
+   [juxt.site.util :as util]
+   [xtdb.api :as xt])
+  )
 
 (defn system [] main/*system*)
 
@@ -334,6 +337,17 @@
         (installer/call-installer node installer)
         (catch Throwable e
           (throw (ex-info (format "Failed to install %s" (:id installer)) {:installer (:id installer)} e)))))))
+
+(defn make-access-token!
+  [m]
+  (jwt/make-access-token! (xt-node) m))
+
+(comment
+  (make-access-token!
+   {:authorization-server "https://auth.site.test"
+    :user "https://data.site.test/users/mal"
+    :client-id "swagger-ui"
+    :duration "PT15M"}))
 
 (defn keyword-commands []
   (concat

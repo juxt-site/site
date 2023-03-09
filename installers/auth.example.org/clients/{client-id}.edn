@@ -8,5 +8,6 @@
   {:juxt.site/client-id "{{client-id}}"
    :juxt.site/client-type "{{client-type}}"
    :juxt.site/origin "{{origin}}"
+   :juxt.site/authorization-server "{{authorization-server}}"
    :juxt.site/resource-server "{{resource-server}}"
    :juxt.site/redirect-uri "{{redirect-uri}}"}}}

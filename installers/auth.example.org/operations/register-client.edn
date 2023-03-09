@@ -57,6 +57,14 @@
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
+
+    ;; TODO: We should consider whether/when it's appropriate to
+    ;; re-register a client. This might be a security risk, since
+    ;; currently we allow client-ids to be provided. Perhaps once
+    ;; answer is to allow remote and/or dynamic registration, but not
+    ;; one that can re-register. That leaves the system user as the
+    ;; only user that can register named clients.
+
     (if-let [existing (xt/entity (:xt/id *prepare*))]
       (throw (ex-info "Cannot overwrite an existing client" {:id (:xt/id *prepare*)}))
       [[:xtdb.api/put *prepare*]])}
