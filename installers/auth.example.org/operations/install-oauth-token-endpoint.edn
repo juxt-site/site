@@ -1,4 +1,4 @@
-{#_#_:deps
+{#_#_:deps ;; TODO
  ["https://auth.example.org/operations/oauth/create-access-token"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
@@ -8,9 +8,7 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:xt/id [:re "https://auth.example.org/.*"]]
-    ;;[:juxt.site/session-scope {:optional true} [:re "https://auth.example.org/.*"]]
-    ]
+    [:xt/id [:re "https://auth.example.org/.*"]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program

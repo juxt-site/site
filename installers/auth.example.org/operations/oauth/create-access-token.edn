@@ -67,7 +67,9 @@
               now (.toInstant (java.util.Date.))
               issued-at (java.util.Date/from now)
               not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
-              expiry (java.util.Date/from (.plus now 15 java.time.temporal.ChronoUnit/MINUTES))
+              ;; TODO: How to best make this configurable?
+              expires-in (java.time.Duration/parse "PT15M")
+              expiry (java.util.Date/from (.plus now expires-in))
 
               username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
 
@@ -108,7 +110,9 @@
               origin (assoc "access-control-allow-origin" origin
                             "access-control-allow-credentials" "true"))]
            [:ring.response/body
-            (jsonista.core/write-value-as-string {"access_token" access-token})]])
+            (jsonista.core/write-value-as-string
+             {"access_token" access-token
+              "expires_in" (.getSeconds expires-in)})]])
 
         ;; TODO: Catch all exceptions too and implement appropriate
         ;; error handling

@@ -258,11 +258,7 @@
 
               _ (assert (is (= "https://auth.example.test" iss)))
               _ (assert (is (= "https://data.example.test" aud)))
-              _ (assert (is (= "test-app" client-id)))]
-
-          ;; TODO: Test against token-info
-
-          ))
+              _ (assert (is (= "test-app" client-id)))]))
 
       (testing "code response"
         (let [state (make-nonce 10)
@@ -327,6 +323,10 @@
 
               access-token (get token-response-payload-as-json "access_token")
               _ (assert (is access-token))
+
+              expires-in (get token-response-payload-as-json "expires_in")
+              _ (assert (is expires-in))
+              _ (assert (is (= (* 15 60) expires-in)))
 
               db (xt/db *xt-node*)
 
