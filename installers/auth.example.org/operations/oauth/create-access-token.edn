@@ -1,4 +1,3 @@
-;; TODO: Rename to exchange-code-for-token
 {:install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
@@ -6,13 +5,18 @@
   {:xt/id "{{$id}}"
 
    :juxt.site.malli/input-schema
-   [:map
-    ["grant_type" [:enum "authorization_code"]]
-    ["code" :string]
-    ;; TODO: Read https://www.rfc-editor.org/rfc/rfc6749#section-4.1.3
-    ["redirect_uri" {:optional true} :string]
-    ["client_id" :string]
-    ["code_verifier" {:optional true} :string]]
+   [:or
+    [:map
+     ["grant_type" [:enum "authorization_code"]]
+     ["code" :string]
+     ;; TODO: Read https://www.rfc-editor.org/rfc/rfc6749#section-4.1.3
+     ["redirect_uri" {:optional true} :string]
+     ["client_id" :string]
+     ["code_verifier" {:optional true} :string]]
+    [:map
+     ["grant_type" [:enum "refresh_token"]]
+     ["refresh_token" :string]
+     ["scope" {:optional true} :string]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
@@ -23,13 +27,13 @@
                                      :juxt.reap.alpha.rfc7231/subtype)
                                (:juxt.reap.alpha.rfc7231/content-type input)))
 
+
+
           ;; "The authorization server SHOULD document the size of any
           ;; value it issues." -- RFC 6749 Section 4.2.2
           jti-length 16
 
-          {client-id "client_id" :as form
-           code "code"
-           code-verifier "code_verifier"}
+          {grant-type "grant_type" :as form}
           (case content-type
             "application/x-www-form-urlencoded"
             (some->
@@ -39,17 +43,29 @@
              ring.util.codec/form-decode
              juxt.site.malli/validate-input))]
 
-      {:client-id client-id
-       :code code
-       :code-verifier code-verifier
-       :jwt-claims {"iss" "https://auth.example.org"
-                    "jti" (juxt.site.util/make-nonce jti-length)}
-       :refresh-token (juxt.site.util/make-nonce 16)})}
+      (case grant-type
+
+        "authorization_code"
+        {:grant-type "authorization_code"
+         :client-id (get form "client_id")
+         :code (get form "code")
+         :code-verifier (get form "code_verifier")
+         :jwt-claims {"iss" "https://auth.example.org"
+                      "jti" (juxt.site.util/make-nonce jti-length)}
+         :new-refresh-token (juxt.site.util/make-nonce 16)}
+
+        "refresh_token"
+        {:grant-type "refresh_token"
+         :refresh-token (get form "refresh_token")
+         :scope (get form "scope")
+         :jwt-claims {"iss" "https://auth.example.org"
+                      "jti" (juxt.site.util/make-nonce jti-length)}
+         :new-refresh-token (juxt.site.util/make-nonce 16)}))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [{:keys [client-id code code-verifier jwt-claims scopes refresh-token]} *prepare*
+    (let [{:keys [client-id code code-verifier jwt-claims scopes new-refresh-token]} *prepare*
 
           {:juxt.site/keys [code-challenge code-challenge-method subject]}
           (juxt.site/lookup-authorization-code code)
@@ -110,10 +126,10 @@
 
               refresh-token-doc
               (into access-token-doc
-                    {:xt/id (str "https://auth.example.org/refresh-tokens/" refresh-token)
+                    {:xt/id (str "https://auth.example.org/refresh-tokens/" new-refresh-token)
                      :juxt.site/type "https://meta.juxt.site/types/refresh-token"
                      :juxt.site/expiry refresh-token-expiry
-                     :juxt.site/token refresh-token})]
+                     :juxt.site/token new-refresh-token})]
 
           [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
            [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
@@ -128,7 +144,7 @@
             (jsonista.core/write-value-as-string
              {"access_token" access-token
               "expires_in" (.getSeconds access-token-expires-in)
-              "refresh_token" refresh-token})]])
+              "refresh_token" new-refresh-token})]])
 
         ;; TODO: Catch all exceptions too and implement appropriate
         ;; error handling

@@ -154,6 +154,8 @@
         (is (= 200 status))
         (is (= "text/html;charset=utf-8" (get headers "content-type")))))))
 
+;; with-fixtures
+
 (deftest access-token-grants-test
 
   (let [redirect-uri "https://test-app.test.com/redirect.html"
@@ -185,10 +187,16 @@
                         :juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"})]
         (is (= 200 status))
         (is (= "application/json" (get headers "content-type")))
-        (is (= {"issuer" "https://auth.example.test",
-                "authorization_endpoint" "https://auth.example.test/oauth/authorize",
-                "token_endpoint" "https://auth.example.test/oauth/token",
-                "jwks_uri" "https://auth.example.test/.well-known/jwks.json"}
+        (is (= {"issuer" "https://auth.example.test"
+                "authorization_endpoint" "https://auth.example.test/oauth/authorize"
+                "token_endpoint" "https://auth.example.test/oauth/token"
+                "jwks_uri" "https://auth.example.test/.well-known/jwks.json"
+                "response_types_supported" ["code" "token"]
+                "response_modes_supported" ["query" "fragment"]
+	        "grant_types_supported" ["authorization_code" "implicit" "refresh_token"]
+                "token_endpoint_auth_signing_alg_values_supported" ["RS256"]
+	        "token_endpoint_auth_methods_supported" ["none" "client_secret_post"]
+                "code_challenge_methods_supported" ["S256"]}
                (json/read-value body)))))
 
     ;; TODO: Errors
@@ -306,12 +314,10 @@
                :ring.request/headers
                {"content-type" "application/x-www-form-urlencoded"
                 "content-length" (str (count (.getBytes token-request-payload)))}
-               :ring.request/body (io/input-stream (.getBytes token-request-payload))
-               }
+               :ring.request/body (io/input-stream (.getBytes token-request-payload))}
 
-              {:ring.response/keys [status headers body]}
-              (with-session-token session-token
-                (*handler* token-request))
+              {:ring.response/keys [status headers body] :as response}
+              (*handler* token-request)
 
               _ (is (= "https://test-app.test.com" (get headers "access-control-allow-origin")))
 
@@ -371,4 +377,20 @@
                   _ (is (= "https://auth.example.test" iss))
                   _ (is (= "https://data.example.test" aud))
                   _ (is (= "https://data.example.test" aud))
-                  _ (is (= "test-app" client-id))])))))))
+                  _ (is (= "test-app" client-id))]))
+
+          (testing "refresh-token"
+            (let [token-request-payload
+                  (codec/form-encode
+                   {"grant_type" "refresh_token"
+                    "refresh_token" refresh-token})
+                  token-request
+                  {:ring.request/method :post
+                   :juxt.site/uri "https://auth.example.test/oauth/token"
+                   :ring.request/headers
+                   {"content-type" "application/x-www-form-urlencoded"
+                    "content-length" (str (count (.getBytes token-request-payload)))}
+                   :ring.request/body (io/input-stream (.getBytes token-request-payload))}]
+
+              {:ring.response/keys [status headers body]}
+              (*handler* token-request))))))))
