@@ -99,7 +99,11 @@
               code-challenge-method (get query "code_challenge_method")
 
               now (java.time.Instant/now)
-              code-doc-expires-in (java.time.Duration/parse "PT15M")
+
+              ;; "A maximum authorization code lifetime of 10 minutes
+              ;; is RECOMMENDED" --
+              ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2
+              code-doc-expires-in (java.time.Duration/parse "PT10M")
               code-doc-expiry (java.util.Date/from (.plus now code-doc-expires-in))
 
               code-doc
