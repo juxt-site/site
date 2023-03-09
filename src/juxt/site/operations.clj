@@ -547,6 +547,16 @@
                                           :in [token]}
                                      token))))
 
+                       'lookup-refresh-token
+                       (fn [token]
+                         (first
+                          (map first
+                               (xt/q db '{:find [(pull e [*])]
+                                          :where [[e :juxt.site/token token]
+                                                  [e :juxt.site/type "https://meta.juxt.site/types/refresh-token"]]
+                                          :in [token]}
+                                     token))))
+
                        'make-access-token
                        (fn [claims keypair-id]
                          (let [keypair (xt/entity db keypair-id)]

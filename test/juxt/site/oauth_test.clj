@@ -154,8 +154,6 @@
         (is (= 200 status))
         (is (= "text/html;charset=utf-8" (get headers "content-type")))))))
 
-;; with-fixtures
-
 (deftest access-token-grants-test
 
   (let [redirect-uri "https://test-app.test.com/redirect.html"
@@ -390,7 +388,43 @@
                    :ring.request/headers
                    {"content-type" "application/x-www-form-urlencoded"
                     "content-length" (str (count (.getBytes token-request-payload)))}
-                   :ring.request/body (io/input-stream (.getBytes token-request-payload))}]
+                   :ring.request/body (io/input-stream (.getBytes token-request-payload))}
 
-              {:ring.response/keys [status headers body]}
-              (*handler* token-request))))))))
+                  {:ring.response/keys [status headers body]}
+                  (*handler* token-request)
+
+                  _ (is (= 200 status))
+
+                  _ (is (= "application/json" (get headers "content-type")))
+                  _ (is body)
+
+                  token-response-payload-as-json (json/read-value body)
+                  _ (is (map? token-response-payload-as-json))
+
+                  access-token (get token-response-payload-as-json "access_token")
+                  _ (is access-token)
+
+                  expires-in (get token-response-payload-as-json "expires_in")
+                  _ (is expires-in)
+                  _ (is (= (* 15 60) expires-in))
+
+                  db (xt/db *xt-node*)
+
+                  _ (is (= init-kid (jwt/get-kid access-token)))
+
+                  kp (jwt/lookup-keypair db init-kid)
+                  _ (is (:xt/id kp))
+
+                  decoded-jwt (jwt/verify-jwt access-token kp)
+
+                  {:strs [alg kid typ]} (:header decoded-jwt)
+                  _ (is (= "RS256" alg))
+                  _ (is (= init-kid kid))
+                  _ (is (= "at+jwt" typ))
+
+                  {:strs [aud iss]
+                   client-id "client_id"} (:claims decoded-jwt)
+
+                  _ (is (= "https://auth.example.test" iss))
+                  _ (is (= "https://data.example.test" aud))
+                  _ (is (= "test-app" client-id))])))))))

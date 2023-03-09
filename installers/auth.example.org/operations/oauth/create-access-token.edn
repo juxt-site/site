@@ -65,90 +65,182 @@
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [{:keys [client-id code code-verifier jwt-claims scopes new-refresh-token]} *prepare*
+    (let [{:keys [grant-type jwt-claims new-refresh-token]} *prepare*]
+      (case grant-type
+        "authorization_code"
+        (let [{:keys [client-id code code-verifier scopes]} *prepare*
 
-          {:juxt.site/keys [code-challenge code-challenge-method subject]}
-          (juxt.site/lookup-authorization-code code)
+              {:juxt.site/keys [code-challenge code-challenge-method subject]}
+              (juxt.site/lookup-authorization-code code)
 
-          verified?
-          juxt.site/verify-authorization-code
-          {:code-verifier code-verifier
-           :code-challenge code-challenge
-           :code-challenge-method code-challenge-method}]
+              verified?
+              juxt.site/verify-authorization-code
+              {:code-verifier code-verifier
+               :code-challenge code-challenge
+               :code-challenge-method code-challenge-method}]
 
-      (if verified?
-        (let [{:juxt.site/keys [origin resource-server]} (juxt.site/lookup-client client-id)
-              _ (assert origin)
-              _ (assert resource-server)
+          (if verified?
+            (let [{:juxt.site/keys [origin resource-server]} (juxt.site/lookup-client client-id)
+                  _ (assert origin)
+                  _ (assert resource-server)
 
-              now (java.time.Instant/now)
-              issued-at (java.util.Date/from now)
-              not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
+                  now (java.time.Instant/now)
+                  issued-at (java.util.Date/from now)
+                  not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
 
-              ;; TODO: How to best make this configurable?
-              access-token-expires-in (java.time.Duration/parse "PT15M")
-              access-token-expiry (java.util.Date/from (.plus now access-token-expires-in))
+                  ;; TODO: How to best make this configurable?
+                  access-token-expires-in (java.time.Duration/parse "PT15M")
+                  access-token-expiry (java.util.Date/from (.plus now access-token-expires-in))
 
-              username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
+                  username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
 
-              jwt-claims
-              (into jwt-claims
-                    (cond-> {"iat" issued-at
-                             "nbf" not-before
-                             "exp" access-token-expiry
-                             "aud" resource-server
-                             "sub" subject
-                             "client_id" client-id}
-                      username (assoc "username" username)))
+                  jwt-claims
+                  (into jwt-claims
+                        (cond-> {"iat" issued-at
+                                 "nbf" not-before
+                                 "exp" access-token-expiry
+                                 "aud" resource-server
+                                 "sub" subject
+                                 "client_id" client-id}
+                          username (assoc "username" username)))
 
-              access-token
-              (juxt.site/make-access-token
-               jwt-claims
-               (:juxt.site/keypair *resource*))
+                  access-token
+                  (juxt.site/make-access-token
+                   jwt-claims
+                   (:juxt.site/keypair *resource*))
 
-              access-token-doc
-              (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
-                       :juxt.site/type "https://meta.juxt.site/types/access-token"
-                       :juxt.site/subject subject
-                       :juxt.site/issuer (get jwt-claims "issuer")
-                       :juxt.site/issued-at issued-at
-                       :juxt.site/not-before not-before
-                       :juxt.site/expiry access-token-expiry
-                       :juxt.site/audience resource-server
-                       :juxt.site/application client-id
-                       :juxt.site/token access-token
-                       :juxt.site/keypair (:juxt.site/keypair *resource*)}
-                scopes (assoc :juxt.site/scope scopes)
-                username (assoc :juxt.site/username username))
+                  access-token-doc
+                  (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
+                           :juxt.site/type "https://meta.juxt.site/types/access-token"
+                           :juxt.site/subject subject
+                           :juxt.site/issuer (get jwt-claims "issuer")
+                           :juxt.site/issued-at issued-at
+                           :juxt.site/not-before not-before
+                           :juxt.site/expiry access-token-expiry
+                           :juxt.site/audience resource-server
+                           :juxt.site/application client-id
+                           :juxt.site/token access-token
+                           :juxt.site/keypair (:juxt.site/keypair *resource*)}
+                    scopes (assoc :juxt.site/scope scopes)
+                    username (assoc :juxt.site/username username))
 
-              refresh-token-expires-in (java.time.Duration/parse "PT6H")
-              refresh-token-expiry (java.util.Date/from (.plus now refresh-token-expires-in))
+                  refresh-token-expires-in (java.time.Duration/parse "PT6H")
+                  refresh-token-expiry (java.util.Date/from (.plus now refresh-token-expires-in))
 
-              refresh-token-doc
-              (into access-token-doc
-                    {:xt/id (str "https://auth.example.org/refresh-tokens/" new-refresh-token)
-                     :juxt.site/type "https://meta.juxt.site/types/refresh-token"
-                     :juxt.site/expiry refresh-token-expiry
-                     :juxt.site/token new-refresh-token})]
+                  refresh-token-doc
+                  (into {:xt/id (str "https://auth.example.org/refresh-tokens/" new-refresh-token)
+                         :juxt.site/type "https://meta.juxt.site/types/refresh-token"
+                         :juxt.site/expiry refresh-token-expiry
+                         :juxt.site/token new-refresh-token}
+                        (cond-> (select-keys
+                                 access-token-doc
+                                 [:juxt.site/subject
+                                  :juxt.site/issuer
+                                  :juxt.site/issued-at
+                                  :juxt.site/application
+                                  :juxt.site/keypair])
+                          scopes (assoc :juxt.site/scope scopes)
+                          username (assoc :juxt.site/username username)))]
 
-          [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
-           [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
-           [:ring.response/status 200]
-           [:ring.response/headers
-            (cond-> {"content-type" "application/json"
-                     "cache-control" "no-store"
-                     "pragma" "no-cache"}
-              origin (assoc "access-control-allow-origin" origin
-                            "access-control-allow-credentials" "true"))]
-           [:ring.response/body
-            (jsonista.core/write-value-as-string
-             {"access_token" access-token
-              "expires_in" (.getSeconds access-token-expires-in)
-              "refresh_token" new-refresh-token})]])
+              [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
+               [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
+               [:ring.response/status 200]
+               [:ring.response/headers
+                (cond-> {"content-type" "application/json"
+                         "cache-control" "no-store"
+                         "pragma" "no-cache"}
+                  origin (assoc "access-control-allow-origin" origin
+                                "access-control-allow-credentials" "true"))]
+               [:ring.response/body
+                (jsonista.core/write-value-as-string
+                 {"access_token" access-token
+                  "expires_in" (.getSeconds access-token-expires-in)
+                  "refresh_token" new-refresh-token})]])
 
-        ;; TODO: Catch all exceptions too and implement appropriate
-        ;; error handling
-        (throw (ex-info "TODO: create and return error" {}))))}
+            ;; TODO: Catch all exceptions too and implement appropriate
+            ;; error handling
+            (throw (ex-info "TODO: create and return error" {}))))
+
+        "refresh_token"
+        (if-let [{:juxt.site/keys [subject application keypair]} (juxt.site/lookup-refresh-token (:refresh-token *prepare*))]
+          (let [client-id application ;; TODO: Consider a rename
+
+                {:juxt.site/keys [origin resource-server]} (juxt.site/lookup-client client-id)
+                _ (assert origin)
+                _ (assert resource-server)
+
+                now (java.time.Instant/now)
+                issued-at (java.util.Date/from now)
+                not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
+
+                access-token-expires-in (java.time.Duration/parse "PT15M")
+                access-token-expiry (java.util.Date/from (.plus now access-token-expires-in))
+
+                username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
+
+                jwt-claims
+                (into jwt-claims
+                      (cond-> {"iat" issued-at
+                               "nbf" not-before
+                               "exp" access-token-expiry
+                               "aud" resource-server
+                               "sub" subject
+                               "client_id" client-id}
+                        username (assoc "username" username)))
+
+                access-token
+                (juxt.site/make-access-token
+                 jwt-claims
+                 keypair)
+
+                access-token-doc
+                (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
+                         :juxt.site/type "https://meta.juxt.site/types/access-token"
+                         :juxt.site/subject subject
+                         :juxt.site/issuer (get jwt-claims "issuer")
+                         :juxt.site/issued-at issued-at
+                         :juxt.site/not-before not-before
+                         :juxt.site/expiry access-token-expiry
+                         :juxt.site/audience resource-server
+                         :juxt.site/application client-id
+                         :juxt.site/token access-token
+                         :juxt.site/keypair keypair}
+                  ;;scopes (assoc :juxt.site/scope scopes)
+                  username (assoc :juxt.site/username username))
+
+                refresh-token-expires-in (java.time.Duration/parse "PT6H")
+                refresh-token-expiry (java.util.Date/from (.plus now refresh-token-expires-in))
+
+                refresh-token-doc
+                (into {:xt/id (str "https://auth.example.org/refresh-tokens/" new-refresh-token)
+                       :juxt.site/type "https://meta.juxt.site/types/refresh-token"
+                       :juxt.site/expiry refresh-token-expiry
+                       :juxt.site/token new-refresh-token}
+                      (cond-> (select-keys
+                               access-token-doc
+                               [:juxt.site/subject
+                                :juxt.site/issuer
+                                :juxt.site/issued-at
+                                :juxt.site/application
+                                :juxt.site/keypair])
+                        ;;scopes (assoc :juxt.site/scope scopes)
+                        username (assoc :juxt.site/username username)))]
+
+
+            [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
+             [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
+             [:ring.response/status 200]
+             [:ring.response/headers
+              (cond-> {"content-type" "application/json"
+                       "cache-control" "no-store"
+                       "pragma" "no-cache"}
+                origin (assoc "access-control-allow-origin" origin
+                              "access-control-allow-credentials" "true"))]
+             [:ring.response/body
+              (jsonista.core/write-value-as-string
+               {"access_token" access-token
+                "expires_in" (.getSeconds access-token-expires-in)
+                "refresh_token" new-refresh-token})]]))))}
 
    :juxt.site/rules
    [
