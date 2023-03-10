@@ -1,6 +1,6 @@
 ;; Copyright © 2022, JUXT LTD.
 
-(ns juxt.site.authorization-test
+(ns juxt.site.permission-test
   (:require
    [clojure.set :as set]
    [clojure.test :refer [deftest is are use-fixtures testing] :as t]
