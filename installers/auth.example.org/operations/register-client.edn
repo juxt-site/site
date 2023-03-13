@@ -76,9 +76,12 @@
     ;; one that can re-register. That leaves the system user as the
     ;; only user that can register named clients.
 
-    (if-let [existing (xt/entity (:xt/id *prepare*))]
+    #_(if-let [existing (xt/entity (:xt/id *prepare*))]
       (throw (ex-info "Cannot overwrite an existing client" {:id (:xt/id *prepare*)}))
-      [[:xtdb.api/put *prepare*]])}
+      [[:xtdb.api/put *prepare*]]
+      )
+
+    [[:xtdb.api/put *prepare*]]}
 
    :juxt.site/rules
    [[(allowed? subject operation resource permission)
