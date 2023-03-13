@@ -62,6 +62,10 @@
   Unwrap
   (unwrap [_] s))
 
+(deftype ParameterReference [s]
+  Unwrap
+  (unwrap [_] s))
+
 (defn uri-map-replace
   "Replace URIs in string, taking substitutions from the given uri-map."
   [s uri-map]
@@ -92,7 +96,8 @@
         (fn [x]
           (cond-> x
             (instance? Template x) unwrap
-            (instance? Pretty x) (-> unwrap pprint with-out-str))))))
+            (instance? Pretty x) (-> unwrap pprint with-out-str)
+            (instance? ParameterReference x) (-> unwrap params))))))
 
 (defn- node-dependencies
   "Return the dependency ids for the given node, with any parameters expanded

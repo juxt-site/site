@@ -11,7 +11,8 @@
 
 (def READERS
   {'juxt.pprint (fn [x] (install/->Pretty x))
-   'juxt.template (fn [s] (install/->Template s))})
+   'juxt.template (fn [s] (install/->Template s))
+   'juxt.param (fn [p] (install/->ParameterReference p))})
 
 (defn unified-installer-files [uri-map]
   (let [root (io/file "installers")]

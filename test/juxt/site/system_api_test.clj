@@ -14,7 +14,8 @@
             with-fixtures
             install-resource-groups! install-resource-with-operation! converge!
             AUTH_SERVER RESOURCE_SERVER]]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [clojure.string :as str]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
@@ -47,7 +48,7 @@
    {"client-type" "public"
     "origin" "https://test-app.example.test"
     "resource-server" "https://data.example.test"
-    "redirect-uris-as-csv" "https://test-app.example.test/callback"
+    "redirect-uris" ["https://test-app.example.test/callback"]
     "authorization-server" "https://auth.example.test"})
 
   (let [login-result

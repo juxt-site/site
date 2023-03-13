@@ -21,9 +21,14 @@
   Unwrap
   (unwrap [_] s))
 
+(deftype ParameterReference [s]
+  Unwrap
+  (unwrap [_] s))
+
 (def READERS
   {'juxt.pprint (fn [x] (->Pretty x))
-   'juxt.template (fn [s] (->Template s))})
+   'juxt.template (fn [s] (->Template s))
+   'juxt.param (fn [s] (->ParameterReference s))})
 
 (defn uri-map-replace
   "Replace URIs in string, taking substitutions from the given uri-map."
@@ -120,7 +125,8 @@
         (fn process [x]
           (cond-> x
             (instance? Template x) unwrap
-            (instance? Pretty x) (-> unwrap pprint with-out-str))))))
+            (instance? Pretty x) (-> unwrap pprint with-out-str)
+            (instance? ParameterReference x) (-> unwrap params))))))
 
 (defn installer-seq [ids graph parameter-map]
   (assert (every? some? ids) (format "Some ids were nil: %s" (pr-str ids)))

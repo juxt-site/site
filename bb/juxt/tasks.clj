@@ -348,13 +348,21 @@
      {:title "Installing authorization server"})))
 
 (defn register-application
-  [{:keys [auth-base-uri client-id origin resource-server redirect-uris-as-csv]}]
+  [{:keys [auth-base-uri client-id origin resource-server redirect-uris]}]
   (binding [*heading* "Register application"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           client-id (input {:prompt "Client ID" :value client-id})
           origin (input {:prompt "Origin (example: https://example.com)" :value (or origin "https://")})
-          resource-server (input {:prompt "Resource server (example: https://api.example.com)" :value (or resource-server "https://")})
-          redirect-uris-as-csv (input {:prompt "Redirect URIs (comma separated)" :value (or redirect-uris-as-csv (str origin "/redirect.html"))})
+          resource-server (input {:prompt "Resource server (example: https://api.example.com)"
+                                  :value (or resource-server "https://")})
+          redirect-uris-as-csv
+          (input {:prompt "Redirect URIs (comma separated)"
+                  :value (or (str/join "," redirect-uris) (str origin "/redirect.html"))})
+
+          _ (println "redirect-uris-as-csv" redirect-uris-as-csv)
+          _ (println "redirect-uris-as-csv type" (type redirect-uris-as-csv))
+          _ (println "processed" (str/split redirect-uris-as-csv #","))
+
           resources [(format "%s/clients/%s" auth-base-uri client-id)]
           uri-map {"https://auth.example.org" auth-base-uri}]
       (install!
@@ -363,7 +371,7 @@
         "origin" origin
         "authorization-server" auth-base-uri
         "resource-server" resource-server
-        "redirect-uris-as-csv" redirect-uris-as-csv}
+        "redirect-uris" (str/split redirect-uris-as-csv #",")}
        {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn add-user [{:keys [auth-base-uri data-base-uri username fullname iss nickname]}]

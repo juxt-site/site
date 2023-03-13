@@ -24,6 +24,24 @@
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
+(with-fixtures
+  (install-resource-groups!
+   ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+    "keypair" "https://auth.example.test/keypairs/test-kp-123"
+    "authorization-code-length" 12
+    "jti-length" 12})
+
+  (install-resource-with-operation!
+   "https://auth.example.test/_site/subjects/system"
+   "https://auth.example.test/operations/register-client"
+   {:juxt.site/client-id "test"
+    :juxt.site/client-type "public"
+    :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
+
+  (repl/e "https://auth.example.test/clients/test"))
+
 (deftest register-client-test
   (install-resource-groups!
    ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
@@ -39,7 +57,7 @@
            "https://auth.example.test/_site/subjects/system"
            "https://auth.example.test/operations/register-client"
            {:juxt.site/client-type "public"
-            :juxt.site/redirect-uris-as-csv "https://test-app.example.test/callback"})
+            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
@@ -51,7 +69,7 @@
            "https://auth.example.test/_site/subjects/system"
            "https://auth.example.test/operations/register-client"
            {:juxt.site/client-type "confidential"
-            :juxt.site/redirect-uris-as-csv "https://test-app.example.test/callback"})
+            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
@@ -62,7 +80,7 @@
   (testing "Re-registering the same client-id will succeed"
     (let [input {:juxt.site/client-id "test-app"
                  :juxt.site/client-type "public"
-                 :juxt.site/redirect-uris-as-csv "https://test-app.example.test/callback"}]
+                 :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}]
       (install-resource-with-operation!
        "https://auth.example.test/_site/subjects/system"
        "https://auth.example.test/operations/register-client"
@@ -73,7 +91,7 @@
         {:juxt.site/type "https://meta.juxt.site/types/client"
          :juxt.site/client-id "test-app"
          :juxt.site/client-type "public"
-         :juxt.site/redirect-uris #{"https://test-app.example.test/callback"}
+         :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
          :xt/id "https://auth.example.test/clients/test-app"}
         (xt/entity (xt/db *xt-node*) "https://auth.example.test/clients/test-app")))
 
@@ -100,7 +118,7 @@
    "https://auth.example.test/operations/register-client"
    {:juxt.site/client-id "test-app"
     :juxt.site/client-type "confidential"
-    :juxt.site/redirect-uris-as-csv "https://test-app.example.test/callback"
+    :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
     :juxt.site/resource-server "https://data.example.test"})
 
   ;; Now we need some mechanism to authenticate with the authorization server in
@@ -179,7 +197,7 @@
     "origin" "https://test-app.test.com"
     "resource-server" "https://data.example.test"
     "authorization-server" "https://auth.example.test"
-    "redirect-uris-as-csv" "https://test-app.test.com/redirect.html"})
+    "redirect-uris" ["https://test-app.test.com/redirect.html"]})
 
   ;; token-info is public
   (testing "RFC 8414: Authorization Server Metadata"
@@ -432,32 +450,6 @@
                 _ (is (= "https://data.example.test" aud))
                 _ (is (= "test-app" client-id))]))))))
 
-
-#_(with-fixtures
-  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
-
-  (install-resource-groups!
-   ["juxt/site/oauth-authorization-server"
-    "juxt/site/login-form"
-    "juxt/site/example-users"]
-   AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" (str "https://auth.example.test/keypairs/" "test-kp-123")})
-
-  (install-resource-groups!
-   ["juxt/site/example-apps"]
-   AUTH_SERVER
-   {"client-type" "public"
-    "origin" "https://test-app.test.com"
-    "resource-server" "https://data.example.test"
-    "authorization-server" "https://auth.example.test"
-    "redirect-uris-as-csv" "https://test-app.test.com/redirect.html,https://test-app.example.com/oauth-redirect.html"})
-
-  (repl/e "https://auth.example.test/clients/test-app"))
-
-
-;;with-fixtures
-
 (deftest oauth-errors-test
 
   (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
@@ -481,7 +473,7 @@
     "origin" "https://public-app.test.com"
     "resource-server" "https://data.example.test"
     "authorization-server" "https://auth.example.test"
-    "redirect-uris-as-csv" "https://public-app.test.com/redirect.html"})
+    "redirect-uris" ["https://public-app.test.com/redirect.html"]})
 
   (let [login-result
         (login/login-with-form!

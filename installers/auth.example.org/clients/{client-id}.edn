@@ -10,4 +10,4 @@
    :juxt.site/origin "{{origin}}"
    :juxt.site/authorization-server "{{authorization-server}}"
    :juxt.site/resource-server "{{resource-server}}"
-   :juxt.site/redirect-uris-as-csv "{{redirect-uris-as-csv}}"}}}
+   :juxt.site/redirect-uris #juxt.param "redirect-uris"}}}

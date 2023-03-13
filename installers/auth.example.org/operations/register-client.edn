@@ -21,7 +21,7 @@
     ;; their redirection endpoint prior to utilizing the authorization endpoint."
     ;;
     ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.2
-    [:juxt.site/redirect-uris-as-csv [:re "http[s]?://(,http[s]?://)*"]]]
+    [:juxt.site/redirect-uris [:sequential [:re "http[s]?://(,http[s]?://)*"]]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
@@ -50,7 +50,7 @@
               (when (= (:juxt.site/client-type input) "confidential")
                 (juxt.site.util/make-nonce 20))
 
-              redirect-uris-as-csv (:juxt.site/redirect-uris-as-csv input)]
+              redirect-uris (:juxt.site/redirect-uris input)]
 
           (cond-> (into input
                         {:xt/id (format "https://auth.example.org/clients/%s" client-id)
@@ -60,9 +60,6 @@
             ;; In case the client-secret has been provided in the input
             (not client-secret) (dissoc :juxt.site/client-secret)
 
-            redirect-uris-as-csv (dissoc :juxt.site/redirect-uris-as-csv)
-            redirect-uris-as-csv (assoc :juxt.site/redirect-uris
-                                        (set (clojure.string/split redirect-uris-as-csv (re-pattern ","))))
             ))))}
 
    :juxt.site/transact
