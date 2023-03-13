@@ -93,6 +93,7 @@
     (make-jwt header payload private-key)))
 
 (defn new-access-token [claims keypair]
+  (assert (map? claims))
   (assert (map? keypair))
   (new-jwt
    {"typ" "at+jwt"

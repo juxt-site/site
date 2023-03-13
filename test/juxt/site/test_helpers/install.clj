@@ -145,7 +145,14 @@
        ;; work)
        (reduce
         (fn [acc {:keys [id install params] :as node}]
-          (let [init-data (render-form-templates install (assoc (merge parameter-map params) "$id" id))]
+          (let [init-data
+                (try
+                  (render-form-templates install (assoc (merge parameter-map params) "$id" id))
+                  (catch clojure.lang.ExceptionInfo cause
+                    (throw
+                     (ex-info
+                      (format "Failed to render init-data for '%s'" id)
+                      {:id id} cause))))]
             (when (nil? init-data)
               (throw (ex-info "Nil init data" {:id id})))
             (conj acc (-> node (assoc :juxt.site/init-data init-data)))))
@@ -167,7 +174,6 @@
   [xt-node ids graph parameter-map]
 
   (assert (map? parameter-map) "Parameter map arg must be a map")
-  (assert (every? (fn [[k v]] (and (string? k) (string? v))) parameter-map) "All keys in parameter map must be strings")
 
   (->> (installer-graph ids graph parameter-map)
        (mapv #(installer/call-installer xt-node %))))

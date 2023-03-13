@@ -37,7 +37,9 @@
     "juxt/site/example-users"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" "https://auth.example.test/keypairs/test-kp-123"})
+    "keypair" "https://auth.example.test/keypairs/test-kp-123"
+    "authorization-code-length" 12
+    "jti-length" 12})
 
   (install-resource-groups!
    ["juxt/site/example-apps"]
@@ -45,7 +47,7 @@
    {"client-type" "public"
     "origin" "https://test-app.example.test"
     "resource-server" "https://data.example.test"
-    "redirect-uri" "https://test-app.example.test/callback"
+    "redirect-uris-as-csv" "https://test-app.example.test/callback"
     "authorization-server" "https://auth.example.test"})
 
   (let [login-result

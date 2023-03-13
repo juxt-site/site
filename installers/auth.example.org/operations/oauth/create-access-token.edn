@@ -80,7 +80,7 @@
                :code-challenge-method code-challenge-method}]
 
           (if verified?
-            (let [{:juxt.site/keys [origin resource-server]} (juxt.site/lookup-client client-id)
+            (let [[{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-client client-id)
                   _ (assert origin)
                   _ (assert resource-server)
 
@@ -165,7 +165,7 @@
         (if-let [{:juxt.site/keys [subject application keypair]} (juxt.site/lookup-refresh-token (:refresh-token *prepare*))]
           (let [client-id application ;; TODO: Consider a rename
 
-                {:juxt.site/keys [origin resource-server]} (juxt.site/lookup-client client-id)
+                [{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-client client-id)
                 _ (assert origin)
                 _ (assert resource-server)
 

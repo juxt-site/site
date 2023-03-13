@@ -16,7 +16,12 @@
      [:re "[a-z-]{3,}"]]
 
     [:juxt.site/client-type [:enum "confidential" "public"]]
-    [:juxt.site/redirect-uri [:re "http[s]?://"]]]
+
+    ;; "The authorization server SHOULD require all clients to register
+    ;; their redirection endpoint prior to utilizing the authorization endpoint."
+    ;;
+    ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.2
+    [:juxt.site/redirect-uris-as-csv [:re "http[s]?://(,http[s]?://)*"]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
@@ -43,16 +48,22 @@
 
               client-secret
               (when (= (:juxt.site/client-type input) "confidential")
-                (juxt.site.util/make-nonce 20))]
+                (juxt.site.util/make-nonce 20))
 
-          (into
-           input
-           (cond-> {:xt/id (format "https://auth.example.org/clients/%s" client-id)
-                    :juxt.site/type "https://meta.juxt.site/types/client"
-                    :juxt.site/client-id client-id}
-             client-secret (assoc :juxt.site/client-secret client-secret)
-             ;; In case the client-secret has been provided in the input
-             (not client-secret) (dissoc :juxt.site/client-secret))))))}
+              redirect-uris-as-csv (:juxt.site/redirect-uris-as-csv input)]
+
+          (cond-> (into input
+                        {:xt/id (format "https://auth.example.org/clients/%s" client-id)
+                         :juxt.site/type "https://meta.juxt.site/types/client"
+                         :juxt.site/client-id client-id})
+            client-secret (assoc :juxt.site/client-secret client-secret)
+            ;; In case the client-secret has been provided in the input
+            (not client-secret) (dissoc :juxt.site/client-secret)
+
+            redirect-uris-as-csv (dissoc :juxt.site/redirect-uris-as-csv)
+            redirect-uris-as-csv (assoc :juxt.site/redirect-uris
+                                        (set (clojure.string/split redirect-uris-as-csv (re-pattern ","))))
+            ))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

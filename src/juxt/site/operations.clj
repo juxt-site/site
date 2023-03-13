@@ -482,30 +482,19 @@
 
                        'lookup-client
                        (fn [client-id]
-                         (let [results (try
-                                         (xt/q
-                                          db
-                                          '{:find [(pull e [*])]
-                                            :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
-                                                    [e :juxt.site/client-id client-id]]
-                                            :in [client-id]} client-id)
-                                         (catch Exception cause
-                                           (throw
-                                            (ex-info
-                                             (format "Failed to lookup client: %s" client-id)
-                                             {:client-id client-id} cause))))]
-                           (if (= 1 (count results))
-                             (ffirst results)
-                             (if (seq results)
-                               (throw
-                                (ex-info
-                                 (format "Too many clients for client-id: %s" client-id)
-                                 {:client-id client-id
-                                  :clients results}))
-                               (throw
-                                (ex-info
-                                 (format "No client with client-id: %s" client-id)
-                                 {:client-id client-id}))))))
+                         (map first
+                              (try
+                                (xt/q
+                                 db
+                                 '{:find [(pull e [*])]
+                                   :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
+                                           [e :juxt.site/client-id client-id]]
+                                   :in [client-id]} client-id)
+                                (catch Exception cause
+                                  (throw
+                                   (ex-info
+                                    (format "Failed to lookup client: %s" client-id)
+                                    {:client-id client-id} cause))))))
 
                        'lookup-scope
                        (fn [scope]
@@ -562,7 +551,15 @@
                          (let [keypair (xt/entity db keypair-id)]
                            (when-not keypair
                              (throw (ex-info "Keypair not found" {:keypair-id keypair-id})))
-                           (jwt/new-access-token claims keypair)))
+                           (try
+                             (jwt/new-access-token claims keypair)
+                             (catch Exception cause
+                               (throw
+                                (ex-info
+                                 "Failed to make access token"
+                                 {:claims claims
+                                  :keypair-id keypair-id}
+                                 cause))))))
 
                        'decode-access-token
                        (fn [access-token]
@@ -608,7 +605,7 @@
                     ;; The sci.impl/callstack contains a volatile which isn't freezable.
                     ;; Also, we want to unwrap the original cause exception.
                     ;; Possibly, in future, we should get the callstack
-                    (throw (ex-info (.getMessage e) (or (ex-data (.getCause e)) {}) (.getCause e)))))
+                    (throw (or (.getCause e) e))))
 
                 ;; There might be other strategies in the future (although the
                 ;; fewer the better really)
@@ -689,19 +686,23 @@
                 (let [cause (.getCause error)]
                   (cond-> {:juxt.site/message (.getMessage error)
                            :juxt.site/ex-data (ex-data error)}
-                    cause (assoc :juxt.site/cause (create-error-structure cause)))))]
+                    cause (assoc :juxt.site/cause (create-error-structure cause)))))
+
+              error-record
+              {:xt/id event-id
+               :juxt.site/type "https://meta.juxt.site/types/event"
+               :juxt.site/subject subject
+               :juxt.site/operation operation
+               :juxt.site/resource resource
+               :juxt.site/purpose purpose
+               :juxt.site/error (create-error-structure e)}
+              ]
+
           (log/errorf e "Error when performing operation: %s %s" operation event-id)
 
-          (log/errorf "Debugging error: %s" (pr-str e))
+          #_(log/errorf "Debugging error: %s" (pr-str error-record))
 
-          [[::xt/put
-            {:xt/id event-id
-             :juxt.site/type "https://meta.juxt.site/types/event"
-             :juxt.site/subject subject
-             :juxt.site/operation operation
-             :juxt.site/resource resource
-             :juxt.site/purpose purpose
-             :juxt.site/error (create-error-structure e)}]])))))
+          [[::xt/put error-record]])))))
 
 
 ;; Remove anything in the ctx that will upset nippy. However, in the future
@@ -770,7 +771,9 @@
          'java.security.KeyPairGenerator java.security.KeyPairGenerator
          }})
       (catch clojure.lang.ExceptionInfo e
-        (throw (ex-info "Failure during prepare" {:cause-ex-info (ex-data e)} e))))))
+        ;; Ignore and unwrap the SCI error
+        (throw (.getCause e))))))
+
 
 (defn do-operation!
   [ ;; TODO: Arguably operation should passed as a map
@@ -830,34 +833,30 @@
           (xt/entity
            (xt/db xt-node)
            (str events-base-uri tx-id))]
-      (if-let [error (:juxt.site/error result)]
+
+      (log/debugf "Result from operation %s: %s" operation result)
+
+      (if-let [{:juxt.site/keys [message ex-data]
+                :as error} (:juxt.site/error result)]
+
+        ;; This might just be an exit, which we can recover from.  The
+        ;; transact is allowed to influence ring.response/status,
+        ;; ring.response/headers and ring.response/body.
         (do
-          (log/errorf "Transaction error: %s" error)
-          (let [status (:ring.response/status (:ex-data error))]
-            (throw
-             (ex-info
-              (format
-               "Transaction error performing operation %s: %s%s"
-               operation
-               (:juxt.site/message error)
-               (if status (format "(status: %s)" status) ""))
-              {:juxt.site/error error}
-              #_(into
-                 (cond-> {:juxt.site/request-context ctx}
-                   status (assoc :ring.response/status status))
-                 (merge
-                  (dissoc result :juxt.site/type :xt/id :juxt.site/error)
-                  (:ex-data error)))))))
+          (log/infof "Error during transaction: %s" (pr-str error))
 
-        (do
-          (log/debugf "Result from operation %s: %s" operation result)
-          (cond-> ctx
-            result (assoc :juxt.site/operation-result result)
+          (when-let [status (:ring.response/status ex-data)]
+            (when (>= status 500)
+              (log/errorf "Transaction error: %s" error)))
 
-            (seq (:juxt.site/response-fx result))
-            (apply-response-fx (:juxt.site/response-fx result))
+          (throw
+           (ex-info message (into {:juxt.site/request-context ctx} ex-data))))
 
-            ))))))
+        (cond-> ctx
+          result (assoc :juxt.site/operation-result result)
+
+          (seq (:juxt.site/response-fx result))
+          (apply-response-fx (:juxt.site/response-fx result)))))))
 
 ;; TODO: Since it is possible that a permission is in the queue which might
 ;; grant or revoke an operation, it is necessary to run this check 'head-of-line'

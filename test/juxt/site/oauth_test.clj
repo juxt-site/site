@@ -17,6 +17,7 @@
             with-fixtures *handler* *xt-node* handler-fixture
             install-resource-groups!
             install-resource-with-operation!
+            converge!
             AUTH_SERVER RESOURCE_SERVER]]
    [ring.util.codec :as codec]
    [xtdb.api :as xt]))
@@ -28,7 +29,9 @@
    ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" "https://auth.example.test/keypairs/test-kp-123"})
+    "keypair" "https://auth.example.test/keypairs/test-kp-123"
+    "authorization-code-length" 12
+    "jti-length" 12})
 
   (testing "Register client with generated client-id"
     (let [result
@@ -36,7 +39,7 @@
            "https://auth.example.test/_site/subjects/system"
            "https://auth.example.test/operations/register-client"
            {:juxt.site/client-type "public"
-            :juxt.site/redirect-uri "https://test-app.example.test/callback"})
+            :juxt.site/redirect-uris-as-csv "https://test-app.example.test/callback"})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
@@ -48,16 +51,18 @@
            "https://auth.example.test/_site/subjects/system"
            "https://auth.example.test/operations/register-client"
            {:juxt.site/client-type "confidential"
-            :juxt.site/redirect-uri "https://test-app.example.test/callback"})
+            :juxt.site/redirect-uris-as-csv "https://test-app.example.test/callback"})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
       (is (:juxt.site/client-secret doc))))
 
+  ;; TODO: Test with multiple redirect-uris
+
   (testing "Re-registering the same client-id will fail"
     (let [input {:juxt.site/client-id "test-app"
                  :juxt.site/client-type "public"
-                 :juxt.site/redirect-uri "https://test-app.example.test/callback"}]
+                 :juxt.site/redirect-uris-as-csv "https://test-app.example.test/callback"}]
       (install-resource-with-operation!
        "https://auth.example.test/_site/subjects/system"
        "https://auth.example.test/operations/register-client"
@@ -68,7 +73,7 @@
         {:juxt.site/type "https://meta.juxt.site/types/client"
          :juxt.site/client-id "test-app"
          :juxt.site/client-type "public"
-         :juxt.site/redirect-uri "https://test-app.example.test/callback"
+         :juxt.site/redirect-uris #{"https://test-app.example.test/callback"}
          :xt/id "https://auth.example.test/clients/test-app"}
         (xt/entity (xt/db *xt-node*) "https://auth.example.test/clients/test-app")))
 
@@ -87,7 +92,9 @@
    ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" "https://auth.example.test/keypairs/test-kp-123"})
+    "keypair" "https://auth.example.test/keypairs/test-kp-123"
+    "authorization-code-length" 12
+    "jti-length" 12})
 
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
@@ -96,7 +103,7 @@
    "https://auth.example.test/operations/register-client"
    {:juxt.site/client-id "test-app"
     :juxt.site/client-type "confidential"
-    :juxt.site/redirect-uri "https://test-app.example.test/callback"
+    :juxt.site/redirect-uris-as-csv "https://test-app.example.test/callback"
     :juxt.site/resource-server "https://data.example.test"})
 
   ;; Now we need some mechanism to authenticate with the authorization server in
@@ -164,7 +171,9 @@
     "juxt/site/example-users"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" (str "https://auth.example.test/keypairs/" "test-kp-123")})
+    "keypair" (str "https://auth.example.test/keypairs/" "test-kp-123")
+    "authorization-code-length" 12
+    "jti-length" 12})
 
   (install-resource-groups!
    ["juxt/site/example-apps"]
@@ -173,7 +182,7 @@
     "origin" "https://test-app.test.com"
     "resource-server" "https://data.example.test"
     "authorization-server" "https://auth.example.test"
-    "redirect-uri" "https://test-app.test.com/redirect.html"})
+    "redirect-uris-as-csv" "https://test-app.test.com/redirect.html"})
 
   ;; token-info is public
   (testing "RFC 8414: Authorization Server Metadata"
@@ -425,3 +434,134 @@
                 _ (is (= "https://auth.example.test" iss))
                 _ (is (= "https://data.example.test" aud))
                 _ (is (= "test-app" client-id))]))))))
+
+
+#_(with-fixtures
+  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
+
+  (install-resource-groups!
+   ["juxt/site/oauth-authorization-server"
+    "juxt/site/login-form"
+    "juxt/site/example-users"]
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+    "keypair" (str "https://auth.example.test/keypairs/" "test-kp-123")})
+
+  (install-resource-groups!
+   ["juxt/site/example-apps"]
+   AUTH_SERVER
+   {"client-type" "public"
+    "origin" "https://test-app.test.com"
+    "resource-server" "https://data.example.test"
+    "authorization-server" "https://auth.example.test"
+    "redirect-uris-as-csv" "https://test-app.test.com/redirect.html,https://test-app.example.com/oauth-redirect.html"})
+
+  (repl/e "https://auth.example.test/clients/test-app"))
+
+
+;;with-fixtures
+
+(deftest oauth-errors-test
+
+  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
+
+  (install-resource-groups!
+   ["juxt/site/oauth-authorization-server"
+    "juxt/site/login-form"
+    "juxt/site/example-users"]
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+    "keypair" (str "https://auth.example.test/keypairs/" "test-kp-123")
+    ;; "The authorization server SHOULD document the size of any
+    ;; value it issues." — RFC 6749 Section 4.2.2
+    "jti-length" 16
+    "authorization-code-length" 10})
+
+  (converge!
+   ["https://auth.example.test/clients/public-app"]
+   AUTH_SERVER
+   {"client-type" "public"
+    "origin" "https://public-app.test.com"
+    "resource-server" "https://data.example.test"
+    "authorization-server" "https://auth.example.test"
+    "redirect-uris-as-csv" "https://public-app.test.com/redirect.html"})
+
+  (let [login-result
+        (login/login-with-form!
+         *handler*
+         "username" "alice"
+         "password" "garden"
+         :juxt.site/uri "https://auth.example.test/login-with-form")
+
+        session-token (:juxt.site/session-token login-result)
+        _ (is session-token)
+
+        state (make-nonce 10)
+
+        authorization-request
+        (fn [m]
+          {:ring.request/method :get
+           :juxt.site/uri "https://auth.example.test/oauth/authorize"
+           :ring.request/query
+           (codec/form-encode
+            (assoc m "state" state)
+            )})]
+
+    #_(testing "good implicit"
+      (let [{:ring.response/keys [status headers]}
+            (with-session-token session-token
+              (*handler*
+               (authorization-request
+                {"response_type" "token"
+                 "client_id" "public-app"})))
+
+            _ (is (= 303 status))
+
+            {:strs [location access-control-allow-origin]} headers
+
+            _ (is (= "https://public-app.test.com" access-control-allow-origin))
+            [_ location-uri fragment] (re-matches #"(https://.+?)#(.*)" location)
+            _ (is (= "https://public-app.test.com/redirect.html" location-uri))]
+
+        (is fragment)))
+
+    #_(testing "good authorization_code"
+      (let [{:ring.response/keys [status headers body] :as response}
+            (with-session-token session-token
+              (*handler*
+               (authorization-request
+                {"response_type" "code"
+                 "client_id" "public-app"
+                 })))
+
+            {:strs [location access-control-allow-origin]} headers
+            _ (is (= "https://public-app.test.com" access-control-allow-origin))
+
+            [_ location-uri query] (re-matches #"(https://.+?)\?(.*)" location)
+            query-params (codec/form-decode query)
+            ]
+
+
+        (is (= state (get query-params "state")))
+        (is (= 20 (count (get query-params "code"))))
+        (is (= "https://public-app.test.com/redirect.html" location-uri))
+        ))
+
+    (testing "client-not-registered"
+      (let [{:ring.response/keys [status headers body]}
+            (with-session-token session-token
+              (*handler*
+               (authorization-request
+                {"response_type" "foo"
+                 "client_id" "public-app2"
+                 })))]
+        (is (= 400 status))
+        ;; Why is this not HTML?
+        (is (= "text/plain;charset=utf-8" (get headers "content-type")))
+        ;; Is there no description or hint we could add here?
+        (is (= "Bad Request\r\n" (String. body)))
+        ))
+
+    ;; Test for bad response-type, bad redirect-uri, bad scope
+
+    ))
