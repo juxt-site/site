@@ -59,7 +59,7 @@
 
   ;; TODO: Test with multiple redirect-uris
 
-  (testing "Re-registering the same client-id will fail"
+  (testing "Re-registering the same client-id will succeed"
     (let [input {:juxt.site/client-id "test-app"
                  :juxt.site/client-type "public"
                  :juxt.site/redirect-uris-as-csv "https://test-app.example.test/callback"}]
@@ -77,13 +77,10 @@
          :xt/id "https://auth.example.test/clients/test-app"}
         (xt/entity (xt/db *xt-node*) "https://auth.example.test/clients/test-app")))
 
-      (is
-       (thrown?
-        clojure.lang.ExceptionInfo
-        (install-resource-with-operation!
-         "https://auth.example.test/_site/subjects/system"
-         "https://auth.example.test/operations/register-client"
-         input))))))
+      (install-resource-with-operation!
+       "https://auth.example.test/_site/subjects/system"
+       "https://auth.example.test/operations/register-client"
+       input))))
 
 (deftest get-subject-test
 
