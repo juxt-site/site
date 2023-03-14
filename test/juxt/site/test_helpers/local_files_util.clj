@@ -43,10 +43,9 @@
    (assert xt-node)
    (let [graph (unified-installer-map uri-map)
          groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
-     (doall
-      (for [n names
-            :let [resources (some-> groups (get n) :juxt.site/resources)]]
-        (install/converge!
-         xt-node
-         (install/map-uris resources uri-map)
-         graph parameter-map))))))
+     (doseq [n names
+             :let [resources (some-> groups (get n) :juxt.site/resources)]]
+       (install/converge!
+        xt-node
+        (install/map-uris resources uri-map)
+        graph parameter-map)))))
