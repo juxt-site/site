@@ -1,7 +1,7 @@
-{:deps ["https://auth.example.org/operations/get-introspect-token-form"
-        "https://auth.example.org/permissions/get-introspect-token-form"
-        "https://auth.example.org/operations/introspect-token"
-        "https://auth.example.org/permissions/introspect-token"]
+{:deps ["https://auth.example.org/operations/oauth/get-introspect-token-form"
+        "https://auth.example.org/permissions/oauth/get-introspect-token-form"
+        "https://auth.example.org/operations/oauth/introspect-token"
+        "https://auth.example.org/permissions/oauth/introspect-token"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
@@ -31,9 +31,9 @@
          (assoc
           :juxt.site/methods
           {:get
-           {:juxt.site/operations #{"https://auth.example.org/operations/get-introspect-token-form"}}
+           {:juxt.site/operations #{"https://auth.example.org/operations/oauth/get-introspect-token-form"}}
            :post
-           {:juxt.site/operations #{"https://auth.example.org/operations/introspect-token"}
+           {:juxt.site/operations #{"https://auth.example.org/operations/oauth/introspect-token"}
             :juxt.site/acceptable {"accept" "application/x-www-form-urlencoded"}}}))))}
 
    :juxt.site/transact

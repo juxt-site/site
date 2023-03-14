@@ -48,7 +48,7 @@
 
   (install-resource-with-operation!
    "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/operations/register-client"
+   "https://auth.hospital.com/operations/oauth/register-client"
    {:juxt.site/client-id "local-terminal"
     :juxt.site/client-type "confidential"
     :juxt.site/redirect-uris ["https://test-app.example.test/callback"]

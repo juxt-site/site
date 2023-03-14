@@ -35,7 +35,7 @@
 
   (install-resource-with-operation!
    "https://auth.example.test/_site/subjects/system"
-   "https://auth.example.test/operations/register-client"
+   "https://auth.example.test/operations/oauth/register-client"
    {:juxt.site/client-id "test"
     :juxt.site/client-type "public"
     :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
@@ -55,7 +55,7 @@
     (let [result
           (install-resource-with-operation!
            "https://auth.example.test/_site/subjects/system"
-           "https://auth.example.test/operations/register-client"
+           "https://auth.example.test/operations/oauth/register-client"
            {:juxt.site/client-type "public"
             :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
           doc-id (some-> result :juxt.site/puts first)
@@ -67,7 +67,7 @@
     (let [result
           (install-resource-with-operation!
            "https://auth.example.test/_site/subjects/system"
-           "https://auth.example.test/operations/register-client"
+           "https://auth.example.test/operations/oauth/register-client"
            {:juxt.site/client-type "confidential"
             :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
           doc-id (some-> result :juxt.site/puts first)
@@ -83,7 +83,7 @@
                  :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}]
       (install-resource-with-operation!
        "https://auth.example.test/_site/subjects/system"
-       "https://auth.example.test/operations/register-client"
+       "https://auth.example.test/operations/oauth/register-client"
        input)
 
       (is
@@ -97,7 +97,7 @@
 
       (install-resource-with-operation!
        "https://auth.example.test/_site/subjects/system"
-       "https://auth.example.test/operations/register-client"
+       "https://auth.example.test/operations/oauth/register-client"
        input))))
 
 (deftest get-subject-test
@@ -115,7 +115,7 @@
   ;; TODO: Only temporary while moving init below pkg
   (install-resource-with-operation!
    "https://auth.example.test/_site/subjects/system"
-   "https://auth.example.test/operations/register-client"
+   "https://auth.example.test/operations/oauth/register-client"
    {:juxt.site/client-id "test-app"
     :juxt.site/client-type "confidential"
     :juxt.site/redirect-uris ["https://test-app.example.test/callback"]

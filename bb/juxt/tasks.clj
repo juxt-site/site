@@ -323,7 +323,7 @@
           "https://auth.example.org/operations/oauth/authorize"
           "https://auth.example.org/operations/oauth/create-access-token"
           "https://auth.example.org/operations/oauth/install-authorize-endpoint"
-          "https://auth.example.org/operations/install-oauth-token-endpoint"
+          "https://auth.example.org/operations/oauth/install-token-endpoint"
           "https://auth.example.org/permissions/system/oauth/install-authorize-endpoint"
           "https://auth.example.org/permissions/system/install-oauth-token-endpoint"
           "https://auth.example.org/permissions/system/register-client"

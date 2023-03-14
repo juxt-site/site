@@ -3,5 +3,5 @@
   :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/operation "https://auth.example.org/operations/get-introspect-token-form"
+   :juxt.site/operation "https://auth.example.org/operations/oauth/introspect-token"
    :juxt.site/purpose nil}}}

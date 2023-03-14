@@ -1,10 +1,10 @@
 {:deps
- ["https://auth.example.org/operations/register-client"]
+ ["https://auth.example.org/operations/oauth/register-client"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/subject "https://auth.example.org/_site/subjects/system"
-   :juxt.site/operation "https://auth.example.org/operations/register-client"
+   :juxt.site/operation "https://auth.example.org/operations/oauth/register-client"
    :juxt.site/purpose nil}}}
