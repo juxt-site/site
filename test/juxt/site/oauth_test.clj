@@ -554,3 +554,21 @@
     ;; Test for bad response-type, bad redirect-uri, bad scope
 
     ))
+
+(deftest scope-test
+  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
+
+  (install-resource-groups!
+   ["juxt/site/oauth-authorization-server"]
+
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+    "keypair" "https://auth.example.test/keypairs/test-kp-123"
+    "jti-length" 16
+    "authorization-code-length" 10})
+
+  (is (converge!
+      ["https://auth.example.test/scopes/system-info/read"]
+      AUTH_SERVER {"operations-in-scope" #{}}))
+
+  )
