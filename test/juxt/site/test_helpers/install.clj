@@ -84,6 +84,12 @@
       (->Pretty (postwalk walk-fn (unwrap node)))
       :else node)))
 
+
+(defn deref-param [param params]
+  (if-let [val (params param)]
+    val
+    (throw (ex-info "No such parameter" {:parameter param}))))
+
 (defn render-form-templates [form params]
   (->> form
        (prewalk
@@ -97,7 +103,7 @@
           (cond-> x
             (instance? Template x) unwrap
             (instance? Pretty x) (-> unwrap pprint with-out-str)
-            (instance? ParameterReference x) (-> unwrap params))))))
+            (instance? ParameterReference x) (-> unwrap (deref-param params)))))))
 
 (defn- node-dependencies
   "Return the dependency ids for the given node, with any parameters expanded
