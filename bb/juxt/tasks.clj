@@ -359,10 +359,6 @@
           (input {:prompt "Redirect URIs (comma separated)"
                   :value (or (str/join "," redirect-uris) (str origin "/redirect.html"))})
 
-          _ (println "redirect-uris-as-csv" redirect-uris-as-csv)
-          _ (println "redirect-uris-as-csv type" (type redirect-uris-as-csv))
-          _ (println "processed" (str/split redirect-uris-as-csv #","))
-
           resources [(format "%s/clients/%s" auth-base-uri client-id)]
           uri-map {"https://auth.example.org" auth-base-uri}]
       (install!
