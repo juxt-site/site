@@ -18,8 +18,7 @@
 
   bootstrap
   {:doc "Bootstrap system"
-   :task (juxt.tasks/bootstrap
-          {:auth-base-uri "https://auth.site.test"})}
+   :task (juxt.tasks/bootstrap {})}
 
   ls {:task (juxt.tasks/ls)}
   ls-type {:task (juxt.tasks/ls-type (first *command-line-args*))}
@@ -27,44 +26,28 @@
   access-tokens {:task (juxt.tasks/ls-type "access-token")}
 
   openid
-  {:task (juxt.tasks/openid
-          {:auth-base-uri "https://auth.site.test"})}
+  {:task (juxt.tasks/openid {})}
 
   system-api
-  {:task (juxt.tasks/system-api
-          {:auth-base-uri "https://auth.site.test"
-           :data-base-uri "https://data.site.test"})}
+  {:task (juxt.tasks/system-api {})}
 
   auth-server
-  {:task (juxt.tasks/auth-server
-          {:auth-base-uri "https://auth.site.test"})}
+  {:task (juxt.tasks/auth-server {})}
 
   add-user
-  {:task (juxt.tasks/add-user
-          {:auth-base-uri "https://auth.site.test"
-           :data-base-uri "https://data.site.test"
-           :iss "https://juxt.eu.auth0.com"})}
+  {:task (juxt.tasks/add-user {})}
 
   grant-role
-  {:task (juxt.tasks/grant-role
-          {:auth-base-uri "https://auth.site.test"})}
+  {:task (juxt.tasks/grant-role {})}
 
   register-application
-  {:task (juxt.tasks/register-application
-          {:auth-base-uri "https://auth.site.test"})}
+  {:task (juxt.tasks/register-application {})}
 
-  reinstall-openid
-  (juxt.tasks/reinstall
-   {:auth-base-uri "https://auth.site.test"
-    :resource "https://auth.site.test/operations/openid/exchange-code-for-id-token"})
+  register-scope
+  {:task (juxt.tasks/register-scope {})}
 
   request-access-token
-  (juxt.tasks/request-access-token
-   {:auth-base-uri "https://auth.site.test"
-    :data-base-uri "https://data.site.test"
-    :username "mal"
-    :client-id "surveyor"
-    :duration "PT2M"})
+  (juxt.tasks/request-access-token {})
 
   apply
   {:task
