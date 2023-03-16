@@ -158,6 +158,55 @@
         (is (= 200 status))
         (is (= "text/html;charset=utf-8" (get headers "content-type")))))))
 
+(deftest authorization-server-metadata
+  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
+
+  (install-resource-groups!
+   ["juxt/site/oauth-authorization-server"]
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+    "keypair" (str "https://auth.example.test/keypairs/" "test-kp-123")
+    "authorization-code-length" 12
+    "jti-length" 12})
+
+  (converge!
+   ["https://auth.example.test/scopes/system/read"]
+   AUTH_SERVER
+   {"operations-in-scope"
+    #{"https://auth.example.test/operations/get-users"
+      "https://auth.example.test/operations/get-operations"}})
+
+  (converge!
+   ["https://auth.example.test/scopes/system/write"]
+   AUTH_SERVER
+   {"operations-in-scope"
+    #{"https://auth.example.test/operations/put-users"
+      "https://auth.example.test/operations/put-role"
+      "https://auth.example.test/operations/put-session-scope"
+      "https://auth.example.test/operations/put-protection-space"}})
+
+  ;; token-info is public
+  (testing "RFC 8414: Authorization Server Metadata"
+    (let [{:ring.response/keys [status headers body]}
+          (*handler* {:ring.request/method :get
+                      :juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"})]
+      (is (= 200 status))
+      (is (= "application/json" (get headers "content-type")))
+      (is (= {"issuer" "https://auth.example.test"
+              "authorization_endpoint" "https://auth.example.test/oauth/authorize"
+              "token_endpoint" "https://auth.example.test/oauth/token"
+              "jwks_uri" "https://auth.example.test/.well-known/jwks.json"
+              "scopes_supported"
+	      ["https://auth.example.test/scopes/system/read"
+	       "https://auth.example.test/scopes/system/write"]
+              "response_types_supported" ["code" "token"]
+              "response_modes_supported" ["query" "fragment"]
+	      "grant_types_supported" ["authorization_code" "implicit" "refresh_token"]
+              "token_endpoint_auth_signing_alg_values_supported" ["RS256"]
+	      "token_endpoint_auth_methods_supported" ["none" "client_secret_post"]
+              "code_challenge_methods_supported" ["S256"]}
+             (json/read-value body))))))
+
 (deftest access-token-grants-test
 
   (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
@@ -180,25 +229,6 @@
     "resource-server" "https://data.example.test"
     "authorization-server" "https://auth.example.test"
     "redirect-uris" ["https://test-app.test.com/redirect.html"]})
-
-  ;; token-info is public
-  (testing "RFC 8414: Authorization Server Metadata"
-    (let [{:ring.response/keys [status headers body]}
-          (*handler* {:ring.request/method :get
-                      :juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"})]
-      (is (= 200 status))
-      (is (= "application/json" (get headers "content-type")))
-      (is (= {"issuer" "https://auth.example.test"
-              "authorization_endpoint" "https://auth.example.test/oauth/authorize"
-              "token_endpoint" "https://auth.example.test/oauth/token"
-              "jwks_uri" "https://auth.example.test/.well-known/jwks.json"
-              "response_types_supported" ["code" "token"]
-              "response_modes_supported" ["query" "fragment"]
-	      "grant_types_supported" ["authorization_code" "implicit" "refresh_token"]
-              "token_endpoint_auth_signing_alg_values_supported" ["RS256"]
-	      "token_endpoint_auth_methods_supported" ["none" "client_secret_post"]
-              "code_challenge_methods_supported" ["S256"]}
-             (json/read-value body)))))
 
   ;; TODO: Errors
 
