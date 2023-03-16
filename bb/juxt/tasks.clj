@@ -201,10 +201,12 @@
         (recur (grab "Bad format. "))))))
 
 (defn input-auth-base-uri []
-  (input-uri {:prompt "Enter auth base URI"}))
+  (input-uri {:prompt "Enter auth base URI"
+              :default "https://"}))
 
 (defn input-data-base-uri []
-  (input-uri {:prompt "Enter data base URI"}))
+  (input-uri {:prompt "Enter data base URI"
+              :default "https://"}))
 
 (defn bootstrap [{:keys [auth-base-uri]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
