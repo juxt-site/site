@@ -24,24 +24,6 @@
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
-(with-fixtures
-  (install-resource-groups!
-   ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
-   AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" "https://auth.example.test/keypairs/test-kp-123"
-    "authorization-code-length" 12
-    "jti-length" 12})
-
-  (install-resource-with-operation!
-   "https://auth.example.test/_site/subjects/system"
-   "https://auth.example.test/operations/oauth/register-client"
-   {:juxt.site/client-id "test"
-    :juxt.site/client-type "public"
-    :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
-
-  (repl/e "https://auth.example.test/clients/test"))
-
 (deftest register-client-test
   (install-resource-groups!
    ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
@@ -567,8 +549,17 @@
     "jti-length" 16
     "authorization-code-length" 10})
 
-  (is (converge!
-      ["https://auth.example.test/scopes/system-info/read"]
-      AUTH_SERVER {"operations-in-scope" #{}}))
+  (converge!
+   ["https://auth.example.test/scopes/system/read"]
+   AUTH_SERVER
+   {"operations-in-scope"
+    #{"https://auth.example.test/operations/get-users"
+      "https://auth.example.test/operations/get-operations"}})
 
-  )
+  (is (=
+       {:juxt.site/operations
+        #{"https://auth.example.test/operations/get-users"
+          "https://auth.example.test/operations/get-operations"},
+        :juxt.site/type "https://meta.juxt.site/types/scope",
+        :xt/id "https://auth.example.test/scopes/system/read"}
+       (repl/e "https://auth.example.test/scopes/system/read"))))
