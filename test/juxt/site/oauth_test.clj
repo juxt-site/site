@@ -22,17 +22,23 @@
    [ring.util.codec :as codec]
    [xtdb.api :as xt]))
 
-(use-fixtures :each system-xt-fixture handler-fixture)
 
-(deftest register-client-test
+(defn bootstrap []
   (install-resource-groups!
    ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
     "keypair" "https://auth.example.test/keypairs/test-kp-123"
     "authorization-code-length" 12
-    "jti-length" 12})
+    "jti-length" 12}))
 
+(defn bootstrap-fixture [f]
+  (bootstrap)
+  (f))
+
+(use-fixtures :each system-xt-fixture handler-fixture bootstrap-fixture)
+
+(deftest register-client-test
   (testing "Register client with generated client-id"
     (let [result
           (install-resource-with-operation!
@@ -87,16 +93,6 @@
        input))))
 
 (deftest get-subject-test
-
-  ;; Build the authorization server (https://auth.example.test)
-  (install-resource-groups!
-   ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
-   AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" "https://auth.example.test/keypairs/test-kp-123"
-    "authorization-code-length" 12
-    "jti-length" 12})
-
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
   (install-resource-with-operation!
@@ -164,16 +160,6 @@
         (is (= "text/html;charset=utf-8" (get headers "content-type")))))))
 
 (deftest authorization-server-metadata
-  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
-
-  (install-resource-groups!
-   ["juxt/site/oauth-authorization-server"]
-   AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" (str "https://auth.example.test/keypairs/" "test-kp-123")
-    "authorization-code-length" 12
-    "jti-length" 12})
-
   (converge!
    ["https://auth.example.test/scopes/system/read"]
    AUTH_SERVER
@@ -213,18 +199,11 @@
              (json/read-value body))))))
 
 (deftest access-token-grants-test
-
-  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
-
   (install-resource-groups!
-   ["juxt/site/oauth-authorization-server"
-    "juxt/site/login-form"
+   ["juxt/site/login-form"
     "juxt/site/example-users"]
    AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" (str "https://auth.example.test/keypairs/" "test-kp-123")
-    "authorization-code-length" 12
-    "jti-length" 12})
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   (install-resource-groups!
    ["juxt/site/example-apps"]
@@ -469,20 +448,11 @@
                 _ (is (= "test-app" client-id))]))))))
 
 (deftest oauth-errors-test
-
-  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
-
   (install-resource-groups!
-   ["juxt/site/oauth-authorization-server"
-    "juxt/site/login-form"
+   ["juxt/site/login-form"
     "juxt/site/example-users"]
    AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" (str "https://auth.example.test/keypairs/" "test-kp-123")
-    ;; "The authorization server SHOULD document the size of any
-    ;; value it issues." — RFC 6749 Section 4.2.2
-    "jti-length" 16
-    "authorization-code-length" 10})
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   (converge!
    ["https://auth.example.test/clients/public-app"]
@@ -575,17 +545,6 @@
     ))
 
 (deftest scope-test
-  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
-
-  (install-resource-groups!
-   ["juxt/site/oauth-authorization-server"]
-
-   AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" "https://auth.example.test/keypairs/test-kp-123"
-    "jti-length" 16
-    "authorization-code-length" 10})
-
   (converge!
    ["https://auth.example.test/scopes/system/read"]
    AUTH_SERVER

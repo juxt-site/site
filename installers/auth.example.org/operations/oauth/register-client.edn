@@ -27,7 +27,7 @@
 
     [:juxt.site/scope
      [:sequential
-      [:re "https://auth.example.org/scope/.+?(,https://auth.example.org/scope/.+?)*"]]]]
+      [:re "https://auth.example.org/scopes/.+?(,https://auth.example.org/scopes/.+?)*"]]]]
 
    ;; TODO: Check that scope actually exists
 
