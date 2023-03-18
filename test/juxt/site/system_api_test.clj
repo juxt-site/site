@@ -49,7 +49,8 @@
     "origin" "https://test-app.example.test"
     "resource-server" "https://data.example.test"
     "redirect-uris" ["https://test-app.example.test/callback"]
-    "authorization-server" "https://auth.example.test"})
+    "authorization-server" "https://auth.example.test"
+    "scope" []})
 
   (let [login-result
         (login/login-with-form!

@@ -39,7 +39,8 @@
            "https://auth.example.test/_site/subjects/system"
            "https://auth.example.test/operations/oauth/register-client"
            {:juxt.site/client-type "public"
-            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
+            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
+            :juxt.site/scope []})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
@@ -51,7 +52,8 @@
            "https://auth.example.test/_site/subjects/system"
            "https://auth.example.test/operations/oauth/register-client"
            {:juxt.site/client-type "confidential"
-            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
+            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
+            :juxt.site/scope []})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
@@ -62,7 +64,8 @@
   (testing "Re-registering the same client-id will succeed"
     (let [input {:juxt.site/client-id "test-app"
                  :juxt.site/client-type "public"
-                 :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}]
+                 :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
+                 :juxt.site/scope []}]
       (install-resource-with-operation!
        "https://auth.example.test/_site/subjects/system"
        "https://auth.example.test/operations/oauth/register-client"
@@ -70,11 +73,12 @@
 
       (is
        (=
-        {:juxt.site/type "https://meta.juxt.site/types/client"
+        {:xt/id "https://auth.example.test/clients/test-app"
+         :juxt.site/type "https://meta.juxt.site/types/client"
          :juxt.site/client-id "test-app"
          :juxt.site/client-type "public"
          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-         :xt/id "https://auth.example.test/clients/test-app"}
+         :juxt.site/scope []}
         (xt/entity (xt/db *xt-node*) "https://auth.example.test/clients/test-app")))
 
       (install-resource-with-operation!
@@ -100,8 +104,9 @@
    "https://auth.example.test/operations/oauth/register-client"
    {:juxt.site/client-id "test-app"
     :juxt.site/client-type "confidential"
+    :juxt.site/resource-server "https://data.example.test"
     :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-    :juxt.site/resource-server "https://data.example.test"})
+    :juxt.site/scope []})
 
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
@@ -228,7 +233,8 @@
     "origin" "https://test-app.test.com"
     "resource-server" "https://data.example.test"
     "authorization-server" "https://auth.example.test"
-    "redirect-uris" ["https://test-app.test.com/redirect.html"]})
+    "redirect-uris" ["https://test-app.test.com/redirect.html"]
+    "scope" []})
 
   ;; TODO: Errors
 
@@ -485,7 +491,8 @@
     "origin" "https://public-app.test.com"
     "resource-server" "https://data.example.test"
     "authorization-server" "https://auth.example.test"
-    "redirect-uris" ["https://public-app.test.com/redirect.html"]})
+    "redirect-uris" ["https://public-app.test.com/redirect.html"]
+    "scope" []})
 
   (let [login-result
         (login/login-with-form!

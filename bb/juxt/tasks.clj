@@ -350,7 +350,7 @@
      {:title "Installing authorization server"})))
 
 (defn register-application
-  [{:keys [auth-base-uri client-id origin resource-server redirect-uris]}]
+  [{:keys [auth-base-uri client-id origin resource-server redirect-uris scope]}]
   (binding [*heading* "Register application"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           client-id (input {:prompt "Client ID" :value client-id})
@@ -361,6 +361,10 @@
           (input {:prompt "Redirect URIs (comma separated)"
                   :value (or (str/join "," redirect-uris) (str origin "/redirect.html"))})
 
+          scope-as-csv
+          (input {:prompt "Scope (comma separated)"
+                  :value (if scope (str/join "," scope) "")})
+
           resources [(format "%s/clients/%s" auth-base-uri client-id)]
           uri-map {"https://auth.example.org" auth-base-uri}]
       (install!
@@ -369,7 +373,8 @@
         "origin" origin
         "authorization-server" auth-base-uri
         "resource-server" resource-server
-        "redirect-uris" (str/split redirect-uris-as-csv #",")}
+        "redirect-uris" (vec (filter seq (clojure.string/split (or redirect-uris-as-csv "") #",")))
+        "scope" (vec (filter seq (clojure.string/split (or scope-as-csv "") #",")))}
        {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn add-user [{:keys [auth-base-uri data-base-uri username fullname iss nickname]}]

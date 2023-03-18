@@ -10,4 +10,5 @@
    :juxt.site/origin "{{origin}}"
    :juxt.site/authorization-server "{{authorization-server}}"
    :juxt.site/resource-server "{{resource-server}}"
-   :juxt.site/redirect-uris #juxt.param "redirect-uris"}}}
+   :juxt.site/redirect-uris #juxt.param "redirect-uris"
+   :juxt.site/scope #juxt.param "scope"}}}

@@ -21,7 +21,15 @@
     ;; their redirection endpoint prior to utilizing the authorization endpoint."
     ;;
     ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.2
-    [:juxt.site/redirect-uris [:sequential [:re "http[s]?://(,http[s]?://)*"]]]]
+    [:juxt.site/redirect-uris
+     [:sequential
+      [:re "http[s]?://(,http[s]?://)*"]]]
+
+    [:juxt.site/scope
+     [:sequential
+      [:re "https://auth.example.org/scope/.+?(,https://auth.example.org/scope/.+?)*"]]]]
+
+   ;; TODO: Check that scope actually exists
 
    :juxt.site/prepare
    {:juxt.site.sci/program
