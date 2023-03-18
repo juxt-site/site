@@ -35,7 +35,7 @@
   [s uri-map]
   (str/replace
    s
-   #"(https://.*?example.org)(.*)"
+   #"(https://.*?example.org)([\p{Alnum}-]+)*"
    (fn [[_ host path]] (str (get uri-map host host) path))))
 
 (defn make-uri-map-replace-walk-fn [uri-map]
