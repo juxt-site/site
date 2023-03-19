@@ -45,6 +45,8 @@
                  ;; Only consider given operations
                  [(contains? operations operation)]
 
+                 ;; TODO: Constrain with scope
+
                  ;; Only consider a permitted operation
                  [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
                  [permission :juxt.site/operation operation]

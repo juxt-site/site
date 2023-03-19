@@ -90,7 +90,20 @@
       (install-resource-with-operation!
        "https://auth.example.test/_site/subjects/system"
        "https://auth.example.test/operations/oauth/register-client"
-       input))))
+       input)))
+
+  (testing "Registration succeeds even if no such scope"
+    ;; We limit scope to existing ones upon use, rather than
+    ;; up-front. This is a common pattern with XT and Site. We don't
+    ;; force upon the user the task of sorting the insertion of
+    ;; resources in topographical dependency order.
+    (is
+     (install-resource-with-operation!
+      "https://auth.example.test/_site/subjects/system"
+      "https://auth.example.test/operations/oauth/register-client"
+      {:juxt.site/client-type "public"
+       :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
+       :juxt.site/scope ["https://auth.example.test/scopes/dummy"]}))))
 
 (deftest get-subject-test
   ;; Register an application
