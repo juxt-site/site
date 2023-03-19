@@ -96,6 +96,10 @@
    "https://auth.example.org/.well-known/oauth-authorization-server"
    "https://auth.example.org/.well-known/jwks.json"
    ;; From https://www.rfc-editor.org/rfc/rfc8414#section-3
+
+   ;; Scopes
+   "https://auth.example.org/scopes/system/read"
+   "https://auth.example.org/scopes/system/write"
    ]}
 
  "juxt/site/example-users"

@@ -6,5 +6,9 @@
   :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-scope"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/description "{{description}}"
-   :juxt.site/operations #juxt.param "operations-in-scope"}}}
+   :juxt.site/description "Administer system"
+   :juxt.site/operations
+   #{"https://auth.example.org/operations/put-users"
+     "https://auth.example.org/operations/put-role"
+     "https://auth.example.org/operations/put-session-scope"
+     "https://auth.example.org/operations/put-protection-space"}}}}

@@ -22,7 +22,6 @@
    [ring.util.codec :as codec]
    [xtdb.api :as xt]))
 
-
 (defn bootstrap []
   (install-resource-groups!
    ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
@@ -561,7 +560,8 @@
       "https://auth.example.test/operations/get-operations"}})
 
   (is (=
-       {:juxt.site/operations
+       {:juxt.site/description "Read system info"
+        :juxt.site/operations
         #{"https://auth.example.test/operations/get-users"
           "https://auth.example.test/operations/get-operations"},
         :juxt.site/type "https://meta.juxt.site/types/scope",

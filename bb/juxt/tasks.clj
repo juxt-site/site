@@ -435,11 +435,15 @@
        {}))))
 
 (defn register-scope
-  [{:keys [auth-base-uri scope operations]}]
+  [{:keys [auth-base-uri scope description operations]}]
   (binding [*heading* "Register scope"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
 
           scope (input {:prompt "Scope" :value (or scope (str auth-base-uri "/scopes/"))})
+
+          description
+          (input {:prompt "Description"
+                  :value (or description "")})
 
           operations-as-csv
           (input {:prompt "Operations (comma separated)"
@@ -450,7 +454,8 @@
 
       (install!
        resources uri-map
-       {"operations-in-scope" (set (map str/trim (str/split operations-as-csv #",")))}
+       {"operations-in-scope" (set (map str/trim (str/split operations-as-csv #",")))
+        "description" description}
        {:title (format "Adding scope: %s" scope)}))))
 
 (defn reinstall [{:keys [auth-base-uri resource]}]

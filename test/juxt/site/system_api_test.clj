@@ -17,20 +17,38 @@
    [xtdb.api :as xt]
    [clojure.string :as str]))
 
-(use-fixtures :each system-xt-fixture handler-fixture)
-
-(deftest system-api-test
-
+(defn bootstrap []
   (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
-  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER {})
+  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER {}))
+
+(defn bootstrap-fixture [f]
+  (bootstrap)
+  (f))
+
+(use-fixtures :each system-xt-fixture handler-fixture bootstrap-fixture)
+
+
+;; deftest openapi-json-test
+
+#_(with-fixtures
 
   (testing "Users API endpoint cannot be accessed anonymously"
-    (let [response
-          (*handler*
-           {:juxt.site/uri "https://data.example.test/_site/users"
-            :ring.request/method :get})]
-      (is (= 401 (:ring.response/status response)))
-      (is (= "Bearer" (get-in response [:ring.response/headers "www-authenticate"])))))
+      (let [response
+            (*handler*
+             {:juxt.site/uri "https://data.example.test/_site/users"
+              :ring.request/method :get})]
+        (is (= 401 (:ring.response/status response)))
+        (is (= "Bearer" (get-in response [:ring.response/headers "www-authenticate"])))))
+
+  ;;
+
+  (repl/ls)
+
+  #_(repl/q '{:find [e]
+            :where [[e :juxt.site.type ""]]})
+  )
+
+(deftest system-api-test
 
   (install-resource-groups!
    ["juxt/site/oauth-authorization-server"
