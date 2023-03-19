@@ -25,10 +25,10 @@
      [:sequential
       [:re "https://.+"]]]
 
-    ;; Scope is optional, but can be nil. Both cases mean the scope
-    ;; must be requested dynamically in the authorization request. An
-    ;; empty scope is legal but effectively disables the client as it
-    ;; restricts it to zero operations.
+    ;; In the case that scope is not provided, or provided but nil,
+    ;; the scope MUST be requested dynamically in the authorization
+    ;; request. An empty scope is legal but effectively disables the
+    ;; client as it restricts it to zero operations.
     [:juxt.site/scope
      {:optional true}
      [:maybe
