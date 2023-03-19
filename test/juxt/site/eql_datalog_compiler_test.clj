@@ -52,8 +52,7 @@
    {:juxt.site/client-id "local-terminal"
     :juxt.site/client-type "confidential"
     :juxt.site/resource-server "https://hospital.com"
-    :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-    :juxt.site/scope []})
+    :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
 
   (install-resource-groups!
    ["juxt/site/example-users"

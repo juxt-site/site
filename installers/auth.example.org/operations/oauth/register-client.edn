@@ -23,11 +23,17 @@
     ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.2
     [:juxt.site/redirect-uris
      [:sequential
-      [:re "http[s]?://(,http[s]?://)*"]]]
+      [:re "https://.+"]]]
 
+    ;; Scope is optional, but can be nil. Both cases mean the scope
+    ;; must be requested dynamically in the authorization request. An
+    ;; empty scope is legal but effectively disables the client as it
+    ;; restricts it to zero operations.
     [:juxt.site/scope
-     [:sequential
-      [:re "https://auth.example.org/scopes/.+?(,https://auth.example.org/scopes/.+?)*"]]]]
+     {:optional true}
+     [:maybe
+      [:sequential
+       [:re "https://auth.example.org/scopes/.+?(,https://auth.example.org/scopes/.+?)*"]]]]]
 
    ;; TODO: Check that scope actually exists
 
@@ -82,9 +88,9 @@
     ;; only user that can register named clients.
 
     #_(if-let [existing (xt/entity (:xt/id *prepare*))]
-      (throw (ex-info "Cannot overwrite an existing client" {:id (:xt/id *prepare*)}))
-      [[:xtdb.api/put *prepare*]]
-      )
+        (throw (ex-info "Cannot overwrite an existing client" {:id (:xt/id *prepare*)}))
+        [[:xtdb.api/put *prepare*]]
+        )
 
     [[:xtdb.api/put *prepare*]]}
 

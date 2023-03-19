@@ -50,7 +50,7 @@
     "resource-server" "https://data.example.test"
     "redirect-uris" ["https://test-app.example.test/callback"]
     "authorization-server" "https://auth.example.test"
-    "scope" []})
+    "scope" nil})
 
   (let [login-result
         (login/login-with-form!

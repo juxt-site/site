@@ -84,9 +84,8 @@
       (->Pretty (postwalk walk-fn (unwrap node)))
       :else node)))
 
-
 (defn deref-param [param params]
-  (if-let [val (params param)]
+  (if-let [[_ val] (find params param)]
     val
     (throw (ex-info "No such parameter" {:parameter param}))))
 

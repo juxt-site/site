@@ -45,8 +45,7 @@
            "https://auth.example.test/_site/subjects/system"
            "https://auth.example.test/operations/oauth/register-client"
            {:juxt.site/client-type "public"
-            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-            :juxt.site/scope []})
+            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
@@ -58,8 +57,7 @@
            "https://auth.example.test/_site/subjects/system"
            "https://auth.example.test/operations/oauth/register-client"
            {:juxt.site/client-type "confidential"
-            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-            :juxt.site/scope []})
+            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
@@ -70,8 +68,7 @@
   (testing "Re-registering the same client-id will succeed"
     (let [input {:juxt.site/client-id "test-app"
                  :juxt.site/client-type "public"
-                 :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-                 :juxt.site/scope []}]
+                 :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}]
       (install-resource-with-operation!
        "https://auth.example.test/_site/subjects/system"
        "https://auth.example.test/operations/oauth/register-client"
@@ -83,8 +80,7 @@
          :juxt.site/type "https://meta.juxt.site/types/client"
          :juxt.site/client-id "test-app"
          :juxt.site/client-type "public"
-         :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-         :juxt.site/scope []}
+         :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}
         (xt/entity (xt/db *xt-node*) "https://auth.example.test/clients/test-app")))
 
       (install-resource-with-operation!
@@ -114,8 +110,7 @@
    {:juxt.site/client-id "test-app"
     :juxt.site/client-type "confidential"
     :juxt.site/resource-server "https://data.example.test"
-    :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-    :juxt.site/scope []})
+    :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
 
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
@@ -226,7 +221,7 @@
     "resource-server" "https://data.example.test"
     "authorization-server" "https://auth.example.test"
     "redirect-uris" ["https://test-app.test.com/redirect.html"]
-    "scope" []})
+    "scope" nil})
 
   ;; TODO: Errors
 
@@ -475,7 +470,7 @@
     "resource-server" "https://data.example.test"
     "authorization-server" "https://auth.example.test"
     "redirect-uris" ["https://public-app.test.com/redirect.html"]
-    "scope" []})
+    "scope" nil})
 
   (let [login-result
         (login/login-with-form!
@@ -499,44 +494,44 @@
             )})]
 
     #_(testing "good implicit"
-      (let [{:ring.response/keys [status headers]}
-            (with-session-token session-token
-              (*handler*
-               (authorization-request
-                {"response_type" "token"
-                 "client_id" "public-app"})))
+        (let [{:ring.response/keys [status headers]}
+              (with-session-token session-token
+                (*handler*
+                 (authorization-request
+                  {"response_type" "token"
+                   "client_id" "public-app"})))
 
-            _ (is (= 303 status))
+              _ (is (= 303 status))
 
-            {:strs [location access-control-allow-origin]} headers
+              {:strs [location access-control-allow-origin]} headers
 
-            _ (is (= "https://public-app.test.com" access-control-allow-origin))
-            [_ location-uri fragment] (re-matches #"(https://.+?)#(.*)" location)
-            _ (is (= "https://public-app.test.com/redirect.html" location-uri))]
+              _ (is (= "https://public-app.test.com" access-control-allow-origin))
+              [_ location-uri fragment] (re-matches #"(https://.+?)#(.*)" location)
+              _ (is (= "https://public-app.test.com/redirect.html" location-uri))]
 
-        (is fragment)))
+          (is fragment)))
 
     #_(testing "good authorization_code"
-      (let [{:ring.response/keys [status headers body] :as response}
-            (with-session-token session-token
-              (*handler*
-               (authorization-request
-                {"response_type" "code"
-                 "client_id" "public-app"
-                 })))
+        (let [{:ring.response/keys [status headers body] :as response}
+              (with-session-token session-token
+                (*handler*
+                 (authorization-request
+                  {"response_type" "code"
+                   "client_id" "public-app"
+                   })))
 
-            {:strs [location access-control-allow-origin]} headers
-            _ (is (= "https://public-app.test.com" access-control-allow-origin))
+              {:strs [location access-control-allow-origin]} headers
+              _ (is (= "https://public-app.test.com" access-control-allow-origin))
 
-            [_ location-uri query] (re-matches #"(https://.+?)\?(.*)" location)
-            query-params (codec/form-decode query)
-            ]
+              [_ location-uri query] (re-matches #"(https://.+?)\?(.*)" location)
+              query-params (codec/form-decode query)
+              ]
 
 
-        (is (= state (get query-params "state")))
-        (is (= 20 (count (get query-params "code"))))
-        (is (= "https://public-app.test.com/redirect.html" location-uri))
-        ))
+          (is (= state (get query-params "state")))
+          (is (= 20 (count (get query-params "code"))))
+          (is (= "https://public-app.test.com/redirect.html" location-uri))
+          ))
 
     (testing "client-not-registered"
       (let [{:ring.response/keys [status headers body]}
