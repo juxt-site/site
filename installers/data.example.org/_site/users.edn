@@ -14,7 +14,7 @@
      :juxt.site/operations #{"https://auth.example.org/operations/get-users"}
 
      :openapi.v3/operation-id "getUsers"
-     :openapi.v3/scope "read:users"
+     :openapi.v3/scope "https://auth.example.org/scopes/system/read"
      :openapi.v3/tags ["Users"]}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}

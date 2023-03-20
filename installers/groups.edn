@@ -97,7 +97,7 @@
    "https://auth.example.org/.well-known/jwks.json"
    ;; From https://www.rfc-editor.org/rfc/rfc8414#section-3
 
-   ;; Scopes
+   ;; Scopes - TODO: do they belong here?
    "https://auth.example.org/scopes/system/read"
    "https://auth.example.org/scopes/system/write"
    ]}

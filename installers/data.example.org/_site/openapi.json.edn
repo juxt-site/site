@@ -32,8 +32,8 @@ Some useful links:
       "flows"
       {"implicit"
        {"scopes"
-        {"read:operations" "Read operations"
-         "read:users" "Read users"}
+        {"https://auth.example.org/scopes/system/read" "Read system info"
+         "https://auth.example.org/scopes/system/write" "Administer system"}
         "authorizationUrl"
         "https://auth.example.org/oauth/authorize"}}}}
     "schemas" {}
