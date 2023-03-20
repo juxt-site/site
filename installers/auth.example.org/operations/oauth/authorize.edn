@@ -300,7 +300,7 @@
                     {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
                      :juxt.site/type "https://meta.juxt.site/types/access-token"
                      :juxt.site/subject subject
-                     :juxt.site/issuer (get jwt-claims "issuer")
+                     :juxt.site/issuer (get jwt-claims "iss")
                      :juxt.site/issued-at issued-at
                      :juxt.site/not-before not-before
                      :juxt.site/expiry expiry
