@@ -13,6 +13,7 @@
            "juxt.site.form-based-auth-test"
            "juxt.site.eql-datalog-compiler-test"
            "juxt.site.oauth-test"
+           "juxt.site.oauth-grants-test"
            "juxt.site.openid-test"
            "juxt.site.system-api-test"]}]
 

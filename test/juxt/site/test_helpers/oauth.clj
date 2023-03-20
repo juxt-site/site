@@ -9,7 +9,7 @@
    [malli.core :as malli]
    [ring.util.codec :as codec]))
 
-(defn authorization-request
+(defn implicit-authorization-request
   "Create a request that can be sent to the authorization_endpoint of an
   authorization server"
   [uri {client-id "client_id"
@@ -25,14 +25,14 @@
          "state" state}
         scope (assoc "scope" (codec/url-encode (str/join " " scope)))))})
 
-(defn authorize-response!
+(defn implicit-authorization-response!
   "Authorize response"
   [uri args]
-  (let [request (authorization-request uri (assoc args :state (make-nonce 10)))]
+  (let [request (implicit-authorization-request uri (assoc args :state (make-nonce 10)))]
     (*handler* request)))
 
 (malli/=>
- authorize-response!
+ implicit-authorization-response!
  [:=> [:cat
        [:string]
        [:map
@@ -42,10 +42,10 @@
    ["access_token" {:optional true} :string]
    ["error" {:optional true} :string]]])
 
-(defn authorize!
+(defn implicit-authorize!
   "Authorize a client, and return decoded fragment parameters as a string->string map"
   [uri args]
-  (let [response (authorize-response! uri args)
+  (let [response (implicit-authorization-response! uri args)
         _ (case (:ring.response/status response)
             (302 303) :ok
             400 (throw (ex-info "Client error" (assoc args :response response)))

@@ -83,7 +83,7 @@
         {access-token "access_token"}
         (with-session-token
           session-token
-          (oauth/authorize!
+          (oauth/implicit-authorize!
            "https://auth.example.test/oauth/authorize"
            {"client_id" "test-app"}))]
 

@@ -116,7 +116,7 @@
 
         {alice-access-token "access_token" error "error"}
         (with-session-token alice-session-token
-          (oauth/authorize!
+          (oauth/implicit-authorize!
            "https://auth.hospital.com/oauth/authorize"
            {"client_id" "local-terminal"
             ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
@@ -132,7 +132,7 @@
         {bob-access-token "access_token"
          error "error"}
         (with-session-token bob-session-token
-          (oauth/authorize!
+          (oauth/implicit-authorize!
            "https://auth.hospital.com/oauth/authorize"
            {"client_id" "local-terminal"
             ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
@@ -659,7 +659,7 @@
          "password" "garden")
         {alice-access-token "access_token"}
         (with-session-token alice-session-token
-          (oauth/authorize!
+          (oauth/implicit-authorize!
            "https://auth.hospital.com/oauth/authorize"
            {"client_id" "local-terminal"
             ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
@@ -673,7 +673,7 @@
          "password" "walrus")
         {bob-access-token "access_token"}
         (with-session-token bob-session-token
-          (oauth/authorize!
+          (oauth/implicit-authorize!
            "https://auth.hospital.com/oauth/authorize"
            {"client_id" "local-terminal"
             ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
