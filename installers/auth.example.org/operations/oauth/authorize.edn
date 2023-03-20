@@ -329,18 +329,15 @@
         (catch clojure.lang.ExceptionInfo cause
           (let [state (get query "state")
                 query-component
-                (cond (:oauth-redirect cause)
-                      (ring.util.codec/form-encode
-                       (cond->
-                           (cond
-                             (:oauth-redirect cause)
-                             (-> cause
-                                 ex-data
-                                 (dissoc :oauth-redirect))
-                             :else
-                             {"error" "server_error"
-                              "error_description" (.getMessage cause)})
-                           state (assoc "state" state))))
+                (ring.util.codec/form-encode
+                 (cond->
+                     (cond
+                       (:oauth-redirect (ex-data cause))
+                       (-> cause ex-data (dissoc :oauth-redirect))
+                       :else
+                       {"error" "server_error"
+                        "error_description" (.getMessage cause)})
+                   state (assoc "state" state)))
                 location (format "%s?%s" redirect-uri query-component)]
 
             [[:ring.response/status 303]

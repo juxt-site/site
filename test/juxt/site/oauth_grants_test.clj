@@ -290,6 +290,31 @@
     ;; Why is this not HTML?
     (is (= "text/plain;charset=utf-8" (get headers "content-type")))
     ;; Is there no description or hint we could add here?
-    (is (= "Bad Request\r\n" (String. body)))
-    )
-  )
+    (is (= "Bad Request\r\n" (String. body)))))
+
+(deftest missing-response-type-error-test
+  (let [session-token (login "alice" "garden")
+        response
+        (with-session-token session-token
+          (*handler*
+           (authorization-request
+            {"client_id" "test-app"})))
+        location (get-in response [:ring.response/headers "location"])]
+
+    (is (= 303 (:ring.response/status response)))
+
+    (is (=
+         "https://test-app.test.com/redirect.html?error=invalid_request&error_description=A+response_type+query+parameter+is+required."
+         (get-in response [:ring.response/headers "location"])))
+
+    (condp re-matches location
+      #"https://test-app.test.com/redirect.html\?(.*)"
+      :>>
+      (fn [[_ query] ]
+        (let [form (codec/form-decode query)]
+          (is (=  "invalid_request" (get form "error")))
+          (is (= "A response_type query parameter is required." (get form "error_description") ))))
+      (is false (str "Location wasn't correctly formed: " location)))))
+
+
+;; Are refresh tokens working?
