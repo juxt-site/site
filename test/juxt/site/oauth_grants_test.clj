@@ -65,8 +65,7 @@
          (codec/form-encode
           {"response_type" "token"
            "client_id" "test-app"
-           "state" state
-           })}
+           "state" state})}
 
         {:ring.response/keys [status headers]}
         (with-session-token session-token
@@ -210,7 +209,6 @@
           (is (= "A state query parameter is required." (get form "error_description")))))
       (is false (str "Location wasn't correctly formed: " location)))))
 
-;;with-fixtures
 (deftest full-authorization-code-grant-with-pkce-test
   (let [code-verifier (util/make-code-verifier 64)
         code-challenge (util/code-challenge code-verifier)
