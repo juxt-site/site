@@ -15,6 +15,7 @@
             with-session-token
             with-fixtures *handler* *xt-node* handler-fixture
             install-resource-groups!
+            converge!
             AUTH_SERVER
             authorization-request]]
    [juxt.site.repl :as repl]
@@ -27,8 +28,8 @@
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
-  (install-resource-groups!
-   ["juxt/site/example-apps"]
+  (converge!
+   ["https://auth.example.test/clients/test-app"]
    AUTH_SERVER
    {"client-type" "public"
     "origin" "https://test-app.test.com"
