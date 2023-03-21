@@ -3,6 +3,7 @@
 (ns juxt.test.util
   (:require
    [clojure.pprint :refer [pprint]]
+   [ring.util.codec :as codec]
    [juxt.site.handler :as h]
    [juxt.site.main :as main]
    [juxt.site.test-helpers.local-files-util :as local]
@@ -134,3 +135,9 @@
 
 (def RESOURCE_SERVER {"https://auth.example.org" "https://auth.example.test"
                       "https://data.example.org" "https://data.example.test"})
+
+(defn authorization-request [m]
+  {:ring.request/method :get
+   :juxt.site/uri "https://auth.example.test/oauth/authorize"
+   :ring.request/query
+   (codec/form-encode m)})
