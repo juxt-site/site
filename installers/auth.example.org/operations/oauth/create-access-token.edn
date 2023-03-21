@@ -145,7 +145,8 @@
                   (into {:xt/id (str "https://auth.example.org/refresh-tokens/" new-refresh-token)
                          :juxt.site/type "https://meta.juxt.site/types/refresh-token"
                          :juxt.site/expiry refresh-token-expiry
-                         :juxt.site/token new-refresh-token}
+                         :juxt.site/token new-refresh-token
+                         :juxt.site/access-token (:xt/id access-token-doc)}
                         (cond-> (select-keys
                                  access-token-doc
                                  [:juxt.site/subject
@@ -174,7 +175,8 @@
                   "refresh_token" new-refresh-token})]]))
 
           "refresh_token"
-          (if-let [{:juxt.site/keys [subject application keypair]} (juxt.site/lookup-refresh-token (:refresh-token *prepare*))]
+          (if-let [{:juxt.site/keys [subject application keypair] :as existing-refresh-token-doc}
+                   (juxt.site/lookup-refresh-token (:refresh-token *prepare*))]
             (let [client-id application ;; TODO: Consider a rename
 
                   [{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-client client-id)
@@ -227,7 +229,8 @@
                   (into {:xt/id (str "https://auth.example.org/refresh-tokens/" new-refresh-token)
                          :juxt.site/type "https://meta.juxt.site/types/refresh-token"
                          :juxt.site/expiry refresh-token-expiry
-                         :juxt.site/token new-refresh-token}
+                         :juxt.site/token new-refresh-token
+                         :juxt.site/access-token (:xt/id access-token-doc)}
                         (cond-> (select-keys
                                  access-token-doc
                                  [:juxt.site/subject
@@ -241,6 +244,9 @@
 
               [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
                [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
+               ;; Delete the old refresh-token and access-token
+               [:xtdb.api/delete (:xt/id existing-refresh-token-doc)]
+               [:xtdb.api/delete (:juxt.site/access-token existing-refresh-token-doc)]
                ;; See https://www.rfc-editor.org/rfc/rfc6749#section-5.1
                [:ring.response/status 200]
                [:ring.response/headers

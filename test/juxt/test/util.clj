@@ -2,6 +2,7 @@
 
 (ns juxt.test.util
   (:require
+   [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
    [ring.util.codec :as codec]
    [juxt.site.handler :as h]
@@ -62,7 +63,10 @@
     :juxt.site/input document}))
 
 (defmacro with-fixtures [& body]
-  `((clojure.test/join-fixtures (-> *ns* meta :clojure.test/each-fixtures))
+  `((clojure.test/join-fixtures
+     (concat
+      (-> *ns* meta :clojure.test/each-fixtures)
+      (-> *ns* meta :clojure.test/once-fixtures)))
     (fn [] ~@body)))
 
 (defn lookup-session-details [session-token]
@@ -136,8 +140,26 @@
 (def RESOURCE_SERVER {"https://auth.example.org" "https://auth.example.test"
                       "https://data.example.org" "https://data.example.test"})
 
-(defn authorization-request [m]
+(defn make-authorization-request [m]
   {:ring.request/method :get
    :juxt.site/uri "https://auth.example.test/oauth/authorize"
    :ring.request/query
    (codec/form-encode m)})
+
+(defn make-token-request [params]
+  (let [payload (codec/form-encode params)]
+    {:ring.request/method :post
+     :juxt.site/uri "https://auth.example.test/oauth/token"
+     :ring.request/headers
+     {"content-type" "application/x-www-form-urlencoded"
+      "content-length" (str (count (.getBytes payload)))}
+     :ring.request/body (io/input-stream (.getBytes payload))}))
+
+(defn make-token-info-request [params]
+  (let [payload (codec/form-encode params)]
+    {:ring.request/method :post
+     :juxt.site/uri "https://auth.example.test/token-info"
+     :ring.request/headers
+     {"content-type" "application/x-www-form-urlencoded"
+      "content-length" (str (count (.getBytes payload)))}
+     :ring.request/body (io/input-stream (.getBytes payload))}))

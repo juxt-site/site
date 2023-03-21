@@ -17,7 +17,8 @@
             install-resource-groups!
             converge!
             AUTH_SERVER
-            authorization-request]]
+            make-authorization-request make-token-request
+            make-token-info-request]]
    [juxt.site.repl :as repl]
    [juxt.site.util :as util]))
 
@@ -117,7 +118,7 @@
         {:ring.response/keys [status headers body]}
         (with-session-token session-token
           (*handler*
-           (authorization-request
+           (make-authorization-request
             {"response_type" "foo"
              "client_id" "public-app2"
              "state" state})))]
@@ -137,7 +138,7 @@
         response
         (with-session-token session-token
           (*handler*
-           (authorization-request
+           (make-authorization-request
             {"client_id" "test-app"})))
         location (get-in response [:ring.response/headers "location"])]
 
@@ -192,7 +193,7 @@
         response
         (with-session-token session-token
           (*handler*
-           (authorization-request
+           (make-authorization-request
             {"response_type" "code"
              "client_id" "test-app"})))
         location (get-in response [:ring.response/headers "location"])]
@@ -209,6 +210,7 @@
           (is (= "A state query parameter is required." (get form "error_description")))))
       (is false (str "Location wasn't correctly formed: " location)))))
 
+;;with-fixtures
 (deftest full-authorization-code-grant-with-pkce-test
   (let [code-verifier (util/make-code-verifier 64)
         code-challenge (util/code-challenge code-verifier)
@@ -217,7 +219,7 @@
         {:ring.response/keys [status headers]}
         (with-session-token session-token
           (*handler*
-           (authorization-request
+           (make-authorization-request
             {"response_type" "code"
              "client_id" "test-app"
              "state" "123"
@@ -237,21 +239,13 @@
 
         _ (is (re-matches #"[a-z0-9]{5,40}" code))
 
-        token-request-payload
-        (codec/form-encode
+        token-request
+        (make-token-request
          {"grant_type" "authorization_code"
           "code" code
           "redirect_uri" "https://test-app.test.com/redirect.html"
           "client_id" "test-app"
           "code_verifier" code-verifier})
-
-        token-request
-        {:ring.request/method :post
-         :juxt.site/uri "https://auth.example.test/oauth/token"
-         :ring.request/headers
-         {"content-type" "application/x-www-form-urlencoded"
-          "content-length" (str (count (.getBytes token-request-payload)))}
-         :ring.request/body (io/input-stream (.getBytes token-request-payload))}
 
         {:ring.response/keys [status headers body]}
         (*handler* token-request)
@@ -271,7 +265,6 @@
 
         _ (is access-token)
         _ (is refresh-token)
-
         _ (is expires-in)
         _ (is (= (* 15 60) expires-in))
 
@@ -297,17 +290,11 @@
         _ (is (= "test-app" client-id))]
 
     ;; TODO: Add an equivalent test for the implicit flow
-    (testing "token-info endpoint"
+    (testing "access token-info endpoint"
       (let [{:ring.response/keys [status headers body]}
             (with-session-token session-token
               (*handler*
-               (let [body (codec/form-encode {"token" access-token})]
-                 {:ring.request/method :post
-                  :juxt.site/uri "https://auth.example.test/token-info"
-                  :ring.request/headers
-                  {"content-type" "application/x-www-form-urlencoded"
-                   "content-length" (str (count (.getBytes body)))}
-                  :ring.request/body (io/input-stream (.getBytes body))})))
+               (make-token-info-request {"token" access-token})))
 
             _ (is (= 200 status))
             _ (is (= "application/json" (get headers "content-type")))
@@ -319,51 +306,66 @@
             _ (is (= "https://data.example.test" aud))
             _ (is (= "test-app" client-id))]))
 
+    (testing "use refresh token"
+      (let [{:ring.response/keys [status headers body] :as response}
+            (with-session-token session-token
+              (*handler*
+               (make-token-request
+                {"grant_type" "refresh_token"
+                 "refresh_token" refresh-token})))
+            _ (is (= 200 status))
 
-    ))
+            {:strs [access-control-allow-origin]} headers
+            _ (is (= "https://test-app.test.com" access-control-allow-origin))
 
-#_(with-fixtures ;; refresh-tokens
-    (let [session-token (login "alice" "garden")
-          response
-          (with-session-token session-token
-            (*handler*
-             (authorization-request
-              {"client_id" "test-app"
-               ;;  "The implicit grant type is used to obtain access
-               ;;  tokens (it does not support the issuance of refresh
-               ;;  tokens)"
-               ;;
-               ;;  https://www.rfc-editor.org/rfc/rfc6749#section-4.2
-               "response_type" "code"
-               "state" "123"})))
-          location (get-in response [:ring.response/headers "location"])
-          [_ _ query-string] (re-matches #"(https://.+?)\?(.*)" location)
-          {:strs [code]} (codec/form-decode query-string)
+            token-response-payload-as-json (json/read-value body)
+            _ (is (map? token-response-payload-as-json))
 
-          token-request-payload
-          (codec/form-encode
-           {"grant_type" "authorization_code"
-            "code" "123sef"
-            "redirect_uri" "https://test-app.test.com/redirect.html"
-            "client_id" "test-app"})
+            {new-access-token "access_token"
+             new-refresh-token "refresh_token"
+             new-expires-in "expires_in"} token-response-payload-as-json
 
-          token-request
-          {:ring.request/method :post
-           :juxt.site/uri "https://auth.example.test/oauth/token"
-           :ring.request/headers
-           {"content-type" "application/x-www-form-urlencoded"
-            "content-length" (str (count (.getBytes token-request-payload)))}
-           :ring.request/body (io/input-stream (.getBytes token-request-payload))}
+            _ (is new-access-token)
+            _ (is new-refresh-token)
+            _ (is new-expires-in)
+            _ (is (= (* 15 60) new-expires-in))
 
-          {:ring.response/keys [status headers body] :as response}
-          (*handler* token-request)
+            _ (is (not= access-token new-access-token))
 
-          token-response-payload-as-json (json/read-value body)]
+            _ (Thread/sleep 100)
 
-      token-response-payload-as-json
+            db (xt/db *xt-node*)
 
-      ))
+            _ (is (= #{} (xt/q db '{:find [(pull e [*])]
+                                    :where [[e :juxt.site/type "https://meta.juxt.site/types/access-token"]
+                                            [e :juxt.site/token token]]
+                                    :in [token]} access-token))
+                  "The original access-token should be gone")
 
-;; Are refresh tokens working?
+            _ (is
+               (= #{} (xt/q db '{:find [(pull e [*])]
+                                 :where [[e :juxt.site/type "https://meta.juxt.site/types/refresh-token"]
+                                         [e :juxt.site/token token]]
+                                 :in [token]} refresh-token))
+               "The old refresh-token should be gone")
+
+            _ (is (= 1 (count (xt/q db '{:find [(pull e [*])]
+                                         :where [[e :juxt.site/type "https://meta.juxt.site/types/access-token"]
+                                                 [e :juxt.site/token token]]
+                                         :in [token]} new-access-token)))
+                  "The new access-token should exist")
+
+            ;;
+            _ (is
+               (= 1 (count (xt/q db '{:find [(pull e [*])]
+                                      :where [[e :juxt.site/type "https://meta.juxt.site/types/refresh-token"]
+                                              [e :juxt.site/token token]]
+                                      :in [token]} new-refresh-token)))
+               "The new refresh-token should exist")]))))
+
+
+;; What if we fake a refresh token?
+
 ;; Scopes
 ;; Put scope in token-info
+;; Try different combinations of redirects
