@@ -2,25 +2,21 @@
 
 (ns juxt.site.oauth-grants-test
   (:require
-   [clojure.test :refer [deftest is use-fixtures testing]]
    [clojure.java.io :as io]
+   [clojure.test :refer [deftest is use-fixtures testing]]
    [jsonista.core :as json]
-   [juxt.site.oauth-test :as oauth-test]
    [juxt.site.jwt :as jwt]
-   [juxt.site.test-helpers.login :as login]
-   [ring.util.codec :as codec]
-   [xtdb.api :as xt]
-   [juxt.test.util
-    :refer [system-xt-fixture
-            with-session-token
-            with-fixtures *handler* *xt-node* handler-fixture
-            install-resource-groups!
-            converge!
-            AUTH_SERVER
-            make-authorization-request make-token-request
-            make-token-info-request]]
+   [juxt.site.oauth-test :as oauth-test]
    [juxt.site.repl :as repl]
-   [juxt.site.util :as util]))
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
+   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
+   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
+   [juxt.site.test-helpers.login :as login :refer [with-session-token]]
+   [juxt.site.test-helpers.oauth :as oauth :refer [AUTH_SERVER]]
+   [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
+   [juxt.site.util :as util]
+   [ring.util.codec :as codec]
+   [xtdb.api :as xt]))
 
 (defn bootstrap-fixture [f]
   (install-resource-groups!
@@ -117,7 +113,7 @@
         {:ring.response/keys [status headers body]}
         (with-session-token session-token
           (*handler*
-           (make-authorization-request
+           (oauth/make-authorization-request
             {"response_type" "foo"
              "client_id" "public-app2"
              "state" state})))]
@@ -137,7 +133,7 @@
         response
         (with-session-token session-token
           (*handler*
-           (make-authorization-request
+           (oauth/make-authorization-request
             {"client_id" "test-app"})))
         location (get-in response [:ring.response/headers "location"])]
 
@@ -192,7 +188,7 @@
         response
         (with-session-token session-token
           (*handler*
-           (make-authorization-request
+           (oauth/make-authorization-request
             {"response_type" "code"
              "client_id" "test-app"})))
         location (get-in response [:ring.response/headers "location"])]
@@ -217,7 +213,7 @@
         {:ring.response/keys [status headers]}
         (with-session-token session-token
           (*handler*
-           (make-authorization-request
+           (oauth/make-authorization-request
             {"response_type" "code"
              "client_id" "test-app"
              "state" "123"
@@ -238,7 +234,7 @@
         _ (is (re-matches #"[a-z0-9]{5,40}" code))
 
         token-request
-        (make-token-request
+        (oauth/make-token-request
          {"grant_type" "authorization_code"
           "code" code
           "redirect_uri" "https://test-app.test.com/redirect.html"
@@ -292,7 +288,7 @@
       (let [{:ring.response/keys [status headers body]}
             (with-session-token session-token
               (*handler*
-               (make-token-info-request {"token" access-token})))
+               (oauth/make-token-info-request {"token" access-token})))
 
             _ (is (= 200 status))
             _ (is (= "application/json" (get headers "content-type")))
@@ -305,10 +301,10 @@
             _ (is (= "test-app" client-id))]))
 
     (testing "use refresh token"
-      (let [{:ring.response/keys [status headers body] :as response}
+      (let [{:ring.response/keys [status headers body]}
             (with-session-token session-token
               (*handler*
-               (make-token-request
+               (oauth/make-token-request
                 {"grant_type" "refresh_token"
                  "refresh_token" refresh-token})))
             _ (is (= 200 status))

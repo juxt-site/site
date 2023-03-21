@@ -6,16 +6,12 @@
    [juxt.site.logging :refer [with-logging]]
    [clojure.test :refer [deftest is use-fixtures testing]]
    [juxt.site.repl :as repl]
-   [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.oauth :as oauth]
-   [juxt.test.util
-    :refer [system-xt-fixture with-session-token with-bearer-token
-            *handler* handler-fixture
-            with-fixtures
-            install-resource-groups! install-resource-with-operation! converge!
-            AUTH_SERVER RESOURCE_SERVER]]
-   [xtdb.api :as xt]
-   [clojure.string :as str]))
+   [juxt.site.test-helpers.login :refer [with-session-token] :as login]
+   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
+   [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
+   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
+   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
 
 (defn bootstrap []
   (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
@@ -88,7 +84,7 @@
            {"client_id" "test-app"}))]
 
     (testing "Permissions are required for access"
-      (with-bearer-token access-token
+      (oauth/with-bearer-token access-token
         (let [response
               (*handler*
                {:juxt.site/uri "https://data.example.test/_site/users"
@@ -105,7 +101,7 @@
      {})
 
     (testing "Access achieved with correct permissions and role assignment"
-      (with-bearer-token access-token
+      (oauth/with-bearer-token access-token
         (let [response
               (*handler*
                {:juxt.site/uri "https://data.example.test/_site/operations"

@@ -3,24 +3,24 @@
 (ns juxt.site.eql-datalog-compiler-test
   (:require
    [clojure.java.io :as io]
-   [clojure.tools.logging :as log]
    [clojure.test :refer [deftest is testing use-fixtures] :as t]
+   [clojure.tools.logging :as log]
    [edn-query-language.core :as eql]
    [jsonista.core :as json]
-   [juxt.site.repl :as repl]
-   [juxt.site.test-helpers.oauth :as oauth]
-   [juxt.site.test-helpers.login :as login]
    [juxt.grab.alpha.document :as grab.document]
    [juxt.grab.alpha.parser :as grab.parser]
    [juxt.grab.alpha.schema :as grab.schema]
    [juxt.site.eql-datalog-compiler :as eqlc]
    [juxt.site.graphql-eql-compiler :refer [graphql->eql-ast]]
+   [juxt.site.installer :refer [call-operation-with-init-data!]]
    [juxt.site.logging :refer [with-logging]]
-   [juxt.test.util :refer [system-xt-fixture
-                           handler-fixture *handler* *xt-node*
-                           with-session-token
-                           with-fixtures
-                           install-resource-groups! install-resource-with-operation!]]
+   [juxt.site.repl :as repl]
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
+   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
+   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups!]]
+   [juxt.site.test-helpers.login :as login :refer [with-session-token]]
+   [juxt.site.test-helpers.oauth :as oauth]
+   [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [xtdb.api :as xt]))
 
 (def AUTH_SERVER
@@ -46,13 +46,14 @@
     "authorization-code-length" 12
     "jti-length" 12})
 
-  (install-resource-with-operation!
-   "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/operations/oauth/register-client"
-   {:juxt.site/client-id "local-terminal"
-    :juxt.site/client-type "confidential"
-    :juxt.site/resource-server "https://hospital.com"
-    :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
+  (call-operation-with-init-data!
+   *xt-node*
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-id "https://auth.hospital.com/operations/oauth/register-client"
+    :juxt.site/input {:juxt.site/client-id "local-terminal"
+                      :juxt.site/client-type "confidential"
+                      :juxt.site/resource-server "https://hospital.com"
+                      :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
 
   (install-resource-groups!
    ["juxt/site/example-users"
@@ -73,37 +74,41 @@
 
 (deftest eql-with-acl-test
   ;; Create some measurements
-  (install-resource-with-operation!
-   "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/operations/register-patient-measurement"
-   {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
-    :patient "https://hospital.com/patients/004"
-    :reading {"heartRate" "120"
-              "bloodPressure" "137/80"}})
+  (call-operation-with-init-data!
+   *xt-node*
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
+    :juxt.site/input {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
+                      :patient "https://hospital.com/patients/004"
+                      :reading {"heartRate" "120"
+                                "bloodPressure" "137/80"}}})
 
-  (install-resource-with-operation!
-   "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/operations/register-patient-measurement"
-   {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
-    :patient "https://hospital.com/patients/006"
-    :reading {"heartRate" "82"
-              "bloodPressure" "198/160"}})
+  (call-operation-with-init-data!
+   *xt-node*
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
+    :juxt.site/input {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
+                      :patient "https://hospital.com/patients/006"
+                      :reading {"heartRate" "82"
+                                "bloodPressure" "198/160"}}})
 
-  (install-resource-with-operation!
-   "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/operations/register-patient-measurement"
-   {:xt/id "https://hospital.com/measurements/eeda3b49-2e96-42fc-9e6a-e89e2eb68c24"
-    :patient "https://hospital.com/patients/010"
-    :reading {"heartRate" "85"
-              "bloodPressure" "120/80"}})
+  (call-operation-with-init-data!
+   *xt-node*
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
+    :juxt.site/input {:xt/id "https://hospital.com/measurements/eeda3b49-2e96-42fc-9e6a-e89e2eb68c24"
+                      :patient "https://hospital.com/patients/010"
+                      :reading {"heartRate" "85"
+                                "bloodPressure" "120/80"}}})
 
-  (install-resource-with-operation!
-   "https://auth.hospital.com/_site/subjects/system"
-   "https://auth.hospital.com/operations/register-patient-measurement"
-   {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1d"
-    :patient "https://hospital.com/patients/010"
-    :reading {"heartRate" "87"
-              "bloodPressure" "127/80"}})
+  (call-operation-with-init-data!
+   *xt-node*
+   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
+    :juxt.site/input {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1d"
+                      :patient "https://hospital.com/patients/010"
+                      :reading {"heartRate" "87"
+                                "bloodPressure" "127/80"}}})
 
   ;; Fails because add-implicit-dependencies doesn't cope with :deps being a fn
 
@@ -763,12 +768,3 @@
                   :xt/id "https://hospital.com/patients/010",
                   :readings nil}]}}
              (eqlc/prune-result (xt/q db q bob nil)))))))
-
-#_(with-fixtures
-  (let [session-token (login/login-with-form!
-                       *handler*
-                       :juxt.site/uri "https://auth.hospital.com/login-with-form"
-                       "username" "alice"
-                       "password" "garden")]
-    (juxt.test.util/lookup-session-details (:juxt.site/session-token session-token))
-    ))

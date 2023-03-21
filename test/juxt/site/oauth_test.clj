@@ -6,15 +6,13 @@
    [jsonista.core :as json]
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
-   [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.oauth :as oauth]
-   [juxt.test.util
-    :refer [system-xt-fixture
-            with-session-token with-bearer-token
-            with-fixtures *handler* *xt-node* handler-fixture
-            install-resource-groups!
-            install-resource-with-operation!
-            AUTH_SERVER RESOURCE_SERVER]]
+   [juxt.site.installer :refer [call-operation-with-init-data!]]
+   [juxt.site.test-helpers.login :as login :refer [with-session-token]]
+   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups!]]
+   [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
+   [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
+   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [xtdb.api :as xt]))
 
 (defn bootstrap []
@@ -35,11 +33,12 @@
 (deftest register-client-test
   (testing "Register client with generated client-id"
     (let [result
-          (install-resource-with-operation!
-           "https://auth.example.test/_site/subjects/system"
-           "https://auth.example.test/operations/oauth/register-client"
-           {:juxt.site/client-type "public"
-            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
+          (call-operation-with-init-data!
+           *xt-node*
+           {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
+            :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
+            :juxt.site/input {:juxt.site/client-type "public"
+                              :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
@@ -47,11 +46,12 @@
 
   (testing "Register client with generated client-id and client-secret"
     (let [result
-          (install-resource-with-operation!
-           "https://auth.example.test/_site/subjects/system"
-           "https://auth.example.test/operations/oauth/register-client"
-           {:juxt.site/client-type "confidential"
-            :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
+          (call-operation-with-init-data!
+           *xt-node*
+           {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
+            :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
+            :juxt.site/input {:juxt.site/client-type "confidential"
+                              :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
           doc-id (some-> result :juxt.site/puts first)
           doc (when doc-id (xt/entity (xt/db *xt-node*) doc-id))]
       (is doc)
@@ -63,10 +63,11 @@
     (let [input {:juxt.site/client-id "test-app"
                  :juxt.site/client-type "public"
                  :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}]
-      (install-resource-with-operation!
-       "https://auth.example.test/_site/subjects/system"
-       "https://auth.example.test/operations/oauth/register-client"
-       input)
+      (call-operation-with-init-data!
+       *xt-node*
+       {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
+        :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
+        :juxt.site/input input})
 
       (is
        (=
@@ -77,10 +78,11 @@
          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}
         (xt/entity (xt/db *xt-node*) "https://auth.example.test/clients/test-app")))
 
-      (install-resource-with-operation!
-       "https://auth.example.test/_site/subjects/system"
-       "https://auth.example.test/operations/oauth/register-client"
-       input)))
+      (call-operation-with-init-data!
+       *xt-node*
+       {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
+        :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
+        :juxt.site/input input})))
 
   (testing "Registration succeeds even if no such scope"
     ;; We limit scope to existing ones upon use, rather than
@@ -88,12 +90,13 @@
     ;; force upon the user the task of sorting the insertion of
     ;; resources in topographical dependency order.
     (is
-     (install-resource-with-operation!
-      "https://auth.example.test/_site/subjects/system"
-      "https://auth.example.test/operations/oauth/register-client"
-      {:juxt.site/client-type "public"
-       :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-       :juxt.site/scope ["https://auth.example.test/scopes/dummy"]}))))
+     (call-operation-with-init-data!
+      *xt-node*
+      {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
+       :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
+       :juxt.site/input {:juxt.site/client-type "public"
+                         :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
+                         :juxt.site/scope ["https://auth.example.test/scopes/dummy"]}}))))
 
 (deftest authorization-server-metadata
   ;; token-info is public
@@ -132,13 +135,14 @@
 (deftest get-subject-test
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
-  (install-resource-with-operation!
-   "https://auth.example.test/_site/subjects/system"
-   "https://auth.example.test/operations/oauth/register-client"
-   {:juxt.site/client-id "test-app"
-    :juxt.site/client-type "confidential"
-    :juxt.site/resource-server "https://data.example.test"
-    :juxt.site/redirect-uris ["https://test-app.example.test/callback"]})
+  (call-operation-with-init-data!
+   *xt-node*
+   {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
+    :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
+    :juxt.site/input {:juxt.site/client-id "test-app"
+                      :juxt.site/client-type "confidential"
+                      :juxt.site/resource-server "https://data.example.test"
+                      :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
 
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
@@ -166,7 +170,7 @@
            "https://auth.example.test/oauth/authorize"
            {"client_id" "test-app"}))]
 
-    (with-bearer-token access-token
+    (oauth/with-bearer-token access-token
       (let [{:ring.response/keys [headers body]}
             (*handler*
              {:juxt.site/uri "https://data.example.test/whoami"

@@ -5,7 +5,8 @@
    [clojure.set :as set]
    [clojure.test :refer [deftest is are use-fixtures testing] :as t]
    [juxt.site.operations :as authz]
-   [juxt.test.util :refer [xt-fixture submit-and-await! *xt-node* with-fixtures]]
+   [juxt.site.test-helpers.xt :refer [*xt-node* xt-fixture submit-and-await!]]
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [xtdb.api :as xt]))
 
 (use-fixtures :each xt-fixture)

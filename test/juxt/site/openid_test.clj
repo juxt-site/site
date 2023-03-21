@@ -5,10 +5,11 @@
    [clojure.test :refer [deftest is use-fixtures]]
    [juxt.site.repl :as repl]
    [ring.util.codec :as codec]
-   [juxt.test.util
-    :refer [*handler* system-xt-fixture with-fixtures
-            install-resource-groups!
-            handler-fixture lookup-session-details]]))
+   [juxt.site.test-helpers.login :refer [lookup-session-details]]
+   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups!]]
+   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
+   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
@@ -24,7 +25,7 @@
            "client-secret" "REDACTED"
            "redirect-uri" "https://example.org/openid/callback"}]
 
-      (install-resource-groups! ["juxt/site/bootstrap" "juxt/site/core" "juxt/site/openid"] {})
+      (install-resource-groups! ["juxt/site/bootstrap" "juxt/site/core" "juxt/site/openid"] {} {})
 
       (repl/ls)
       (repl/e "https://site.test/login")

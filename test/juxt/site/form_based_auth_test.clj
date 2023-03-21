@@ -6,8 +6,11 @@
    [malli.core :as malli]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
-   [juxt.test.util
-    :refer [*handler* system-xt-fixture handler-fixture install-resource-groups! AUTH_SERVER]]))
+   [juxt.site.test-helpers.oauth :refer [AUTH_SERVER]]
+   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups!]]
+   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
+   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 

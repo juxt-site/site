@@ -4,10 +4,10 @@
   (:require
    [clojure.edn :as edn]
    [juxt.site.test-helpers.install :as install]
+   [juxt.site.test-helpers.xt :refer [*xt-node*]]
    [clojure.pprint :refer [pprint]]
    [clojure.java.io :as io]
-   [clojure.walk :refer [postwalk]]
-   [clojure.string :as str]))
+   [clojure.walk :refer [postwalk]]))
 
 (def READERS
   {'juxt.pprint (fn [x] (install/->Pretty x))
@@ -39,13 +39,16 @@
   (into {} (map (juxt :url :content) (unified-installer-files uri-map))))
 
 (defn install-resource-groups!
-  ([xt-node names uri-map parameter-map]
-   (assert xt-node)
+  ([names uri-map parameter-map]
    (let [graph (unified-installer-map uri-map)
          groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
      (doseq [n names
              :let [resources (some-> groups (get n) :juxt.site/resources)]]
        (install/converge!
-        xt-node
+        *xt-node*
         (install/map-uris resources uri-map)
         graph parameter-map)))))
+
+(defn converge! [resources uri-map parameter-map]
+  (let [graph (unified-installer-map uri-map)]
+    (install/converge! *xt-node* resources graph parameter-map)))

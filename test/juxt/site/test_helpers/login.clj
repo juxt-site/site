@@ -4,7 +4,10 @@
   (:require
    [clojure.java.io :as io]
    [malli.core :as malli]
-   [ring.util.codec :as codec]))
+   [juxt.site.test-helpers.xt :refer [*xt-node*]]
+   [juxt.site.test-helpers.handler :refer [*handler*]]
+   [ring.util.codec :as codec]
+   [xtdb.api :as xt]))
 
 (defn login-with-form!
   "Return a session id (or nil) given a map of fields."
@@ -32,3 +35,35 @@
         {:args args
          :response response})))
     {:juxt.site/session-token id}))
+
+(defn lookup-session-details [session-token]
+  (when session-token
+    (let [db (xt/db *xt-node*)]
+      (first
+       (xt/q db '{:find [(pull session [*]) (pull scope [*])]
+                  :keys [session scope]
+                  :where [[e :juxt.site/type "https://meta.juxt.site/types/session-token"]
+                          [e :juxt.site/session-token session-token]
+                          [e :juxt.site/session session]
+                          [session :juxt.site/session-scope scope]]
+                  :in [session-token]}
+             session-token)))))
+
+(defn assoc-session-token [req session-token]
+  (let [{:keys [scope]}
+        (lookup-session-details session-token)
+        {:juxt.site/keys [cookie-name]} scope]
+    (when-not cookie-name
+      (throw (ex-info "No cookie name determined for session-token" {:session-token session-token})))
+    (assoc-in req [:ring.request/headers "cookie"] (format "%s=%s" cookie-name session-token))))
+
+(defmacro with-session-token [token & body]
+  (assert token)
+  `(let [dlg# *handler*
+         token# ~token]
+     (when-not token#
+       (throw (ex-info "with-session-token called without a valid session token" {})))
+     (binding [*handler*
+               (fn [req#]
+                 (dlg# (assoc-session-token req# token#)))]
+       ~@body)))

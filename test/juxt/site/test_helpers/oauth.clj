@@ -2,12 +2,20 @@
 
 (ns juxt.site.test-helpers.oauth
   (:require
+   [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.pprint :refer [pprint]]
    [juxt.site.util :refer [make-nonce]]
-   [juxt.test.util :refer [*handler*]]
+   [juxt.site.test-helpers.handler :refer [*handler*]]
    [malli.core :as malli]
    [ring.util.codec :as codec]))
+
+;; This are the uri-maps used by the tests
+
+(def AUTH_SERVER {"https://auth.example.org" "https://auth.example.test"})
+
+(def RESOURCE_SERVER {"https://auth.example.org" "https://auth.example.test"
+                      "https://data.example.org" "https://data.example.test"})
 
 (defn implicit-authorization-request
   "Create a request that can be sent to the authorization_endpoint of an
@@ -73,3 +81,51 @@
   [:map
    ["access_token" {:optional true} :string]
    ["error" {:optional true} :string]]])
+
+(defn make-authorization-request [m]
+  {:ring.request/method :get
+   :juxt.site/uri "https://auth.example.test/oauth/authorize"
+   :ring.request/query
+   (codec/form-encode m)})
+
+(defn make-token-request [params]
+  (let [payload (codec/form-encode params)]
+    {:ring.request/method :post
+     :juxt.site/uri "https://auth.example.test/oauth/token"
+     :ring.request/headers
+     {"content-type" "application/x-www-form-urlencoded"
+      "content-length" (str (count (.getBytes payload)))}
+     :ring.request/body (io/input-stream (.getBytes payload))}))
+
+(defn make-token-info-request [params]
+  (let [payload (codec/form-encode params)]
+    {:ring.request/method :post
+     :juxt.site/uri "https://auth.example.test/token-info"
+     :ring.request/headers
+     {"content-type" "application/x-www-form-urlencoded"
+      "content-length" (str (count (.getBytes payload)))}
+     :ring.request/body (io/input-stream (.getBytes payload))}))
+
+(defn assoc-bearer-token [req token]
+  (update-in
+   req
+   [:ring.request/headers "authorization"]
+   (fn [existing-value]
+     (let [new-value (format "Bearer %s" token)]
+       (when (and existing-value (not= existing-value new-value))
+         (throw
+          (ex-info
+           "To avoid confusion when debugging, assoc-bearer-token will not override an already set authorization header"
+           {:new-value {"authorization" new-value}
+            :existing-value {"authorization" existing-value}})))
+       new-value))))
+
+(defmacro with-bearer-token [token & body]
+  `(let [dlg# *handler*
+         token# ~token]
+     (when-not token#
+       (throw (ex-info "with-bearer-token called without a bearer token" {})))
+     (binding [*handler*
+               (fn [req#]
+                 (dlg# (assoc-bearer-token req# token#)))]
+       ~@body)))
