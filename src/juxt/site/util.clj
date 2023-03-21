@@ -124,3 +124,18 @@
   and similar. For the size parameter, try 12."
   [size]
   (as-hex-str (random-bytes size)))
+
+(defn make-code-verifier [size]
+  (assert (<= 43 size 128) "Invalid size")
+  (apply str
+         (map char
+              (repeatedly size
+                          #(rand-nth
+                            (concat
+                             (range (int \A) (inc (int \Z)))
+                             (range (int \a) (inc (int \z)))
+                             (range (int \0) (inc (int \9)))
+                             [\- \. \_ \~]))))))
+
+(defn code-challenge [code-verifier]
+  (as-b64-str (sha (.getBytes code-verifier) "SHA-256")))

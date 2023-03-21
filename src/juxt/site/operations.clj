@@ -358,7 +358,12 @@
       (assert code-challenge-method)
       (case code-challenge-method
         "S256" (let [new-code-challenge (as-b64-str (sha (.getBytes code-verifier) "SHA-256"))]
-                 (= code-challenge new-code-challenge))))}
+                 {:verified? (= code-challenge new-code-challenge)
+                  :code-challenge code-challenge
+                  :code-verifier code-verifier
+                  :new-code-challenge new-code-challenge
+                  }
+                 )))}
 
    'juxt.site.malli
    {'validate (fn validate [schema value] (malli/validate schema value))

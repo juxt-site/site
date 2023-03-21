@@ -16,7 +16,9 @@
             with-session-token
             with-fixtures *handler* *xt-node* handler-fixture
             install-resource-groups!
-            AUTH_SERVER]]))
+            AUTH_SERVER]]
+   [juxt.site.repl :as repl]
+   [juxt.site.util :as util]))
 
 (defn bootstrap-fixture [f]
   (install-resource-groups!
@@ -49,7 +51,7 @@
 
 (use-fixtures :once system-xt-fixture handler-fixture oauth-test/bootstrap-fixture bootstrap-fixture)
 
-(deftest authorization-code-grant-test
+#_(deftest authorization-code-grant-test
   (let [session-token (login "alice" "garden")
         state (make-nonce 10)
         authorization-request
@@ -78,7 +80,7 @@
 
         _ (is (= state (get query-params "state")))
 
-        code (get query-params "state")
+        code (get query-params "code")
         _ (is code)
 
         ;; TODO: Test various combinations to tease out all the possible errors
@@ -213,6 +215,69 @@
             _ (is (= "https://data.example.test" aud))
             _ (is (= "test-app" client-id))]))))
 
+#_(with-fixtures
+  (let [session-token (login "alice" "garden")
+        state (make-nonce 10)
+        authorization-request
+        {:ring.request/method :get
+         :juxt.site/uri "https://auth.example.test/oauth/authorize"
+         :ring.request/query
+         (codec/form-encode
+          {"response_type" "code"
+           "client_id" "test-app"
+           "state" state})}
+
+        {:ring.response/keys [status headers]}
+        (with-session-token session-token
+          (*handler* authorization-request))
+
+        _ (is (= 303 status))
+        _ (is (= "https://test-app.test.com" (get headers "access-control-allow-origin")))
+
+        {:strs [location]} headers
+
+        [_ location-uri query-string] (re-matches #"(https://.+?)\?(.*)" location)
+
+        _ (is (= "https://test-app.test.com/redirect.html" location-uri))
+
+        query-params (codec/form-decode query-string)
+
+        _ (is (= state (get query-params "state")))
+
+        code (get query-params "code")
+        _ (is code)
+
+        ;; TODO: Test various combinations to tease out all the possible errors
+
+        token-request-payload
+        (codec/form-encode
+         {"grant_type" "authorization_code"
+          "code" code
+          "redirect_uri" "https://test-app.test.com/redirect.html"
+          "client_id" "test-app"})
+
+        token-request
+        {:ring.request/method :post
+         :juxt.site/uri "https://auth.example.test/oauth/token"
+         :ring.request/headers
+         {"content-type" "application/x-www-form-urlencoded"
+          "content-length" (str (count (.getBytes token-request-payload)))}
+         :ring.request/body (io/input-stream (.getBytes token-request-payload))}
+
+        {:ring.response/keys [status headers body] :as response}
+        (*handler* token-request)
+
+        _ (is (= "https://test-app.test.com" (get headers "access-control-allow-origin")))
+
+        _ (is (= 200 status))
+
+        ]
+
+    ;;response
+    (repl/e (str "https://auth.example.test/authorization-codes/" code))
+
+    ))
+
 (deftest implicit-grant-test
   (let [session-token (login "alice" "garden")
 
@@ -292,6 +357,11 @@
     ;; Is there no description or hint we could add here?
     (is (= "Bad Request\r\n" (String. body)))))
 
+;; If an authorization request is missing the "response_type"
+;; parameter, or if the response type is not understood, the
+;; authorization server MUST return an error response.
+;;
+;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.1
 (deftest missing-response-type-error-test
   (let [session-token (login "alice" "garden")
         response
@@ -303,10 +373,6 @@
 
     (is (= 303 (:ring.response/status response)))
 
-    (is (=
-         "https://test-app.test.com/redirect.html?error=invalid_request&error_description=A+response_type+query+parameter+is+required."
-         (get-in response [:ring.response/headers "location"])))
-
     (condp re-matches location
       #"https://test-app.test.com/redirect.html\?(.*)"
       :>>
@@ -316,5 +382,169 @@
           (is (= "A response_type query parameter is required." (get form "error_description") ))))
       (is false (str "Location wasn't correctly formed: " location)))))
 
+;; TODO: Test different combinations, including errors
+
+;; TODO: Group tests by grant-type.
+
+(deftest invalid-authorization-code-test
+  (let [token-request-payload
+        (codec/form-encode
+         {"grant_type" "authorization_code"
+          "code" "fake"
+          "redirect_uri" "https://test-app.test.com/redirect.html"
+          "client_id" "test-app"})
+
+        token-request
+        {:ring.request/method :post
+         :juxt.site/uri "https://auth.example.test/oauth/token"
+         :ring.request/headers
+         {"content-type" "application/x-www-form-urlencoded"
+          "content-length" (str (count (.getBytes token-request-payload)))}
+         :ring.request/body (io/input-stream (.getBytes token-request-payload))}
+
+        {:ring.response/keys [status headers body]}
+        (*handler* token-request)
+
+        _ (is 400 status)
+        _ (is (= "application/json" (get headers "content-type")))
+        token-response-payload-as-json (json/read-value body)
+
+        {error "error" error-description "error_description"}
+        token-response-payload-as-json
+
+        _ (is (= "invalid_grant" error))
+        _ (is (= "Code invalid or expired" error-description))
+        ]))
+
+;; State is mandatory
+(deftest authorization-missing-state-test
+  (let [session-token (login "alice" "garden")
+        response
+        (with-session-token session-token
+          (*handler*
+           (authorization-request
+            {"response_type" "code"
+             "client_id" "test-app"})))
+        location (get-in response [:ring.response/headers "location"])]
+
+    (is (= 303 (:ring.response/status response)))
+    (is location)
+
+    (condp re-matches location
+      #"https://test-app.test.com/redirect.html\?(.*)"
+      :>>
+      (fn [[_ query] ]
+        (let [form (codec/form-decode query)]
+          (is (=  "invalid_request" (get form "error")))
+          (is (= "A state query parameter is required." (get form "error_description")))))
+      (is false (str "Location wasn't correctly formed: " location)))))
+
+(deftest full-authorization-code-grant-with-pkce-test
+  (let [code-verifier (util/make-code-verifier 64)
+        code-challenge (util/code-challenge code-verifier)
+
+        session-token (login "alice" "garden")
+        {:ring.response/keys [status headers] :as response}
+        (with-session-token session-token
+          (*handler*
+           (authorization-request
+            {"response_type" "code"
+             "client_id" "test-app"
+             "state" "123"
+             "code_challenge" code-challenge
+             ;; TODO: Should we also support plain?
+             "code_challenge_method" "S256"})))
+        {:strs [location access-control-allow-origin]} headers
+
+        _ (is (= 303 status))
+        _ (is (= "https://test-app.test.com" access-control-allow-origin))
+
+        [_ location-uri query-string] (re-matches #"(https://.+?)\?(.*)" location)
+        _ (is (= "https://test-app.test.com/redirect.html" location-uri))
+
+        {:strs [code state]} (codec/form-decode query-string)
+        _ (is (= "123" state))
+
+        _ (is (re-matches #"[a-z0-9]{5,40}" code))
+
+        token-request-payload
+        (codec/form-encode
+         {"grant_type" "authorization_code"
+          "code" code
+          "redirect_uri" "https://test-app.test.com/redirect.html"
+          "client_id" "test-app"
+          "code_verifier" code-verifier
+          })
+
+        token-request
+        {:ring.request/method :post
+         :juxt.site/uri "https://auth.example.test/oauth/token"
+         :ring.request/headers
+         {"content-type" "application/x-www-form-urlencoded"
+          "content-length" (str (count (.getBytes token-request-payload)))}
+         :ring.request/body (io/input-stream (.getBytes token-request-payload))}
+
+        {:ring.response/keys [status headers body]}
+        (*handler* token-request)
+
+        {:strs [access-control-allow-origin]} headers
+
+        _ (is (= 200 status))
+        _ (is (= "https://test-app.test.com" access-control-allow-origin))
+
+        token-response-payload-as-json (json/read-value body)
+        _ (is (map? token-response-payload-as-json))
+
+        {access-token "access_token"
+         refresh-token "refresh_token"} token-response-payload-as-json]
+
+    [access-token refresh-token]
+    )
+  )
+
+
+#_(with-fixtures ;; refresh-tokens
+    (let [session-token (login "alice" "garden")
+          response
+          (with-session-token session-token
+            (*handler*
+             (authorization-request
+              {"client_id" "test-app"
+               ;;  "The implicit grant type is used to obtain access
+               ;;  tokens (it does not support the issuance of refresh
+               ;;  tokens)"
+               ;;
+               ;;  https://www.rfc-editor.org/rfc/rfc6749#section-4.2
+               "response_type" "code"
+               "state" "123"})))
+          location (get-in response [:ring.response/headers "location"])
+          [_ _ query-string] (re-matches #"(https://.+?)\?(.*)" location)
+          {:strs [code]} (codec/form-decode query-string)
+
+          token-request-payload
+          (codec/form-encode
+           {"grant_type" "authorization_code"
+            "code" "123sef"
+            "redirect_uri" "https://test-app.test.com/redirect.html"
+            "client_id" "test-app"})
+
+          token-request
+          {:ring.request/method :post
+           :juxt.site/uri "https://auth.example.test/oauth/token"
+           :ring.request/headers
+           {"content-type" "application/x-www-form-urlencoded"
+            "content-length" (str (count (.getBytes token-request-payload)))}
+           :ring.request/body (io/input-stream (.getBytes token-request-payload))}
+
+          {:ring.response/keys [status headers body] :as response}
+          (*handler* token-request)
+
+          token-response-payload-as-json (json/read-value body)]
+
+      token-response-payload-as-json
+
+      ))
 
 ;; Are refresh tokens working?
+;; Scopes
+;; Put scope in token-info

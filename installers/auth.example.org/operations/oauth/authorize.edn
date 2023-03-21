@@ -172,6 +172,8 @@
 
           _ (assert redirect-uri)
 
+          state (get query "state")
+
           ;; From now on, if we encounter an error we can inform the
           ;; client via redirect-uri.
 
@@ -211,6 +213,11 @@
            {"error" "unsupported_response_type"
             "error_description" "The response_type query parameter must either by 'code' or 'token'."}))
 
+        (when-not state
+          (client-error
+           {"error" "invalid_request"
+            "error_description" "A state query parameter is required."}))
+
         (when-not subject
           (client-error
            {"error" "invalid_request"
@@ -247,7 +254,7 @@
                 query-component
                 (ring.util.codec/form-encode
                  {"code" code
-                  "state" (get query "state")})
+                  "state" state})
 
                 location (format "%s?%s" redirect-uri query-component)]
 
