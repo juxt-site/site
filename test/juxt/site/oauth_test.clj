@@ -30,7 +30,7 @@
   (bootstrap)
   (f))
 
-(use-fixtures :each system-xt-fixture handler-fixture bootstrap-fixture)
+(use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
 
 (deftest register-client-test
   (testing "Register client with generated client-id"
