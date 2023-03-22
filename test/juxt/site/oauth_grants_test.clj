@@ -362,8 +362,84 @@
                                       :in [token]} new-refresh-token)))
                "The new refresh-token should exist")]))))
 
+(defn acquire-access-token!
+  "Having thoroughly tested the authorization flows, we can now provide
+  a convenience function which can be useful for further testing."
+  [{:keys [grant-type session-token client code-challenge-method]
+    :or {code-challenge-method "S256"
+         grant-type "authorization_code"}}]
+  (let [db (xt/db *xt-node*)
+        client-doc (xt/entity db client)]
+    (case grant-type
+      "authorization_code"
+      (let [code-verifier (util/make-code-verifier 64)
+            code-challenge (util/code-challenge code-verifier)
+            {:ring.response/keys [headers]}
+            (with-session-token session-token
+              (*handler*
+               (oauth/make-authorization-request
+                {"response_type" "code"
+                 "client_id" "test-app"
+                 "state" (util/make-nonce 4)
+                 "code_challenge" code-challenge
+                 "code_challenge_method" code-challenge-method})))
+            {:strs [location]} headers
+            [_ _ query-string] (re-matches #"(https://.+?)\?(.*)" location)
+            {:strs [code]} (codec/form-decode query-string)
+
+            token-request
+            (oauth/make-token-request
+             {"grant_type" "authorization_code"
+              "code" code
+              "redirect_uri" (first (:juxt.site/redirect-uris client-doc))
+              "client_id" "test-app"
+              "code_verifier" code-verifier})
+
+            {:ring.response/keys [status body] :as response}
+            (*handler* token-request)
+
+            _ (when (= status 500)
+                (throw (ex-info "Error on token acquisition" {:response response})))
+
+            _ (assert (contains? #{200 400} status) (str status)) ; avoid confusion later
+
+            ]
+
+        (json/read-value body)))))
+
+(defn refresh-token!
+  [{:keys [session-token refresh-token]}]
+  (let [{:ring.response/keys [status body] :as response}
+        (with-session-token session-token
+          (*handler*
+           (oauth/make-token-request
+            {"grant_type" "refresh_token"
+             "refresh_token" refresh-token})))
+
+        _ (when (= status 500)
+            (throw (ex-info "Error on token refresh" {:response response})))
+
+        _ (assert (contains? #{200 400} status) (str status))]
+
+    (json/read-value body)))
 
 ;; What if we fake a refresh token?
+(deftest fake-refresh-token-test
+  (let [session-token (login "alice" "garden")
+        _ (acquire-access-token!
+           {:session-token session-token
+            :client "https://auth.example.test/clients/test-app"
+            :grant-type "authorization_code"})]
+
+    (is (=
+         {"error_description" "Refresh token invalid or expired",
+          "error" "invalid_grant"}
+         (refresh-token!
+          {:session-token session-token
+           :refresh-token "fake"})))))
+
+(with-fixtures
+  )
 
 ;; Scopes
 ;; Put scope in token-info
