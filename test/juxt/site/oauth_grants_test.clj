@@ -365,7 +365,7 @@
 (defn acquire-access-token!
   "Having thoroughly tested the authorization flows, we can now provide
   a convenience function which can be useful for further testing."
-  [{:keys [grant-type session-token client code-challenge-method]
+  [{:keys [grant-type session-token client code-challenge-method redirect-uri scope]
     :or {code-challenge-method "S256"
          grant-type "authorization_code"}}]
   (let [db (xt/db *xt-node*)
@@ -378,43 +378,57 @@
             (with-session-token session-token
               (*handler*
                (oauth/make-authorization-request
-                {"response_type" "code"
-                 "client_id" "test-app"
-                 "state" (util/make-nonce 4)
-                 "code_challenge" code-challenge
-                 "code_challenge_method" code-challenge-method})))
+                ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.1
+                (merge
+                 ;; REQUIRED
+                 {"response_type" "code"
+                  "client_id" "test-app"}
+                 ;; OPTIONAL
+                 (when redirect-uri {"redirect_uri" redirect-uri})
+                 (when scope {"scope" scope})
+                 ;; RECOMMENDED
+                 {"state" (util/make-nonce 4)}
+                 ;; PKCE
+                 {"code_challenge" code-challenge
+                  "code_challenge_method" code-challenge-method}))))
             {:strs [location]} headers
             [_ _ query-string] (re-matches #"(https://.+?)\?(.*)" location)
             {:strs [code]} (codec/form-decode query-string)
 
             token-request
             (oauth/make-token-request
-             {"grant_type" "authorization_code"
-              "code" code
-              "redirect_uri" (first (:juxt.site/redirect-uris client-doc))
-              "client_id" "test-app"
-              "code_verifier" code-verifier})
+             ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.3
+             (merge
+              ;; REQUIRED
+              {"grant_type" "authorization_code"
+               "code" code
+               "redirect_uri" (first (:juxt.site/redirect-uris client-doc))
+               "client_id" "test-app"}
+              ;; PKCE
+              {"code_verifier" code-verifier}))
 
             {:ring.response/keys [status body] :as response}
-            (*handler* token-request)
+            (*handler* token-request)]
 
-            _ (when (= status 500)
-                (throw (ex-info "Error on token acquisition" {:response response})))
+        (when (= status 500)
+          (throw (ex-info "Error on token acquisition" {:response response})))
 
-            _ (assert (contains? #{200 400} status) (str status)) ; avoid confusion later
-
-            ]
+        ;; Avoid confusion later
+        (assert (contains? #{200 400} status) (str status))
 
         (json/read-value body)))))
 
 (defn refresh-token!
-  [{:keys [session-token refresh-token]}]
+  [{:keys [session-token refresh-token scope]}]
   (let [{:ring.response/keys [status body] :as response}
         (with-session-token session-token
           (*handler*
            (oauth/make-token-request
-            {"grant_type" "refresh_token"
-             "refresh_token" refresh-token})))
+            ;; See https://www.rfc-editor.org/rfc/rfc6749#section-6
+            (merge
+             {"grant_type" "refresh_token"
+              "refresh_token" refresh-token}
+             (when scope {"scope" scope})))))
 
         _ (when (= status 500)
             (throw (ex-info "Error on token refresh" {:response response})))
@@ -438,5 +452,17 @@
            :refresh-token "fake"})))))
 
 ;; Scopes
+
+(with-fixtures
+  (let [session-token (login "alice" "garden")]
+    (acquire-access-token!
+     {:session-token session-token
+      :client "https://auth.example.test/clients/test-app"
+      :grant-type "authorization_code"
+      :scope #{"dummy"}})))
+
+
+
+
 ;; Put scope in token-info
 ;; Try different combinations of redirects
