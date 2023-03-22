@@ -12,9 +12,7 @@
    [juxt.site.cache :as cache]
    [juxt.site.installer :as installer]
    [juxt.site.jwt :as jwt]
-   [juxt.site.util :as util]
-   [xtdb.api :as xt])
-  )
+   [xtdb.api :as xt]))
 
 (defn system [] main/*system*)
 

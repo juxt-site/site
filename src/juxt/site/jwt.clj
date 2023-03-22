@@ -111,13 +111,6 @@
         jwt (decode-jwt jwt public-key)]
     jwt))
 
-(comment
-  (let [kp (xt/entity (repl/db) "https://auth.site.test/keypairs/testkp")
-        jwt (new-jwt {"typ" "at+jwt"} {"iss" "foo"} kp)
-        ]
-    (time
-     (verify-jwt jwt kp))))
-
 (defn get-kid [jwt]
   (.asString (.getHeaderClaim (JWT/decode jwt) "kid")))
 

@@ -3,10 +3,8 @@
 (ns juxt.site.repl-server
   (:require
    [clojure.main :as m]
-   [fipp.visit :as fv]
    [juxt.site.repl :as repl]
-   [puget.printer :as puget]
-   [puget.dispatch :as dispatch]))
+   [puget.printer :as puget]))
 
 (defn repl-init
   "Initialize repl in user namespace and make standard repl requires."
@@ -17,10 +15,10 @@
   (println "Site by JUXT. Copyright (c) 2020-2023, JUXT LTD.")
   (println "Type :quit to exit, :help for help.")
   #_(let [f (requiring-resolve 'juxt.site.repl/steps)
-        steps (f)]
-    (when-not (every? :complete? steps)
-      (let [g (requiring-resolve 'juxt.site.repl/status)]
-        (g steps)))))
+          steps (f)]
+      (when-not (every? :complete? steps)
+        (let [g (requiring-resolve 'juxt.site.repl/status)]
+          (g steps)))))
 
 (defn- handle-input [input]
   (if-let [v (get (into {} (repl/keyword-commands)) input)]

@@ -2,8 +2,9 @@
  {:unused-namespace {:exclude [clojure.tools.logging
                                clojure.pprint
                                juxt.site.logging
-                               juxt.site.repl]}
-  :unused-referred-var {:exclude {juxt.test.util [with-fixtures]
+                               juxt.site.repl
+                               juxt.site.test-helpers.fixture]}
+  :unused-referred-var {:exclude {juxt.site.test-helpers.fixture [with-fixtures]
                                   clojure.pprint [pprint]
                                   juxt.site.logging [with-logging]
                                   clojure.test [deftest is are]}}}}
