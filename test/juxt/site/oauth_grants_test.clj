@@ -423,23 +423,19 @@
 
     (json/read-value body)))
 
-;; What if we fake a refresh token?
+;; What if we try to fake the refresh token?
 (deftest fake-refresh-token-test
   (let [session-token (login "alice" "garden")
         _ (acquire-access-token!
            {:session-token session-token
             :client "https://auth.example.test/clients/test-app"
             :grant-type "authorization_code"})]
-
     (is (=
-         {"error_description" "Refresh token invalid or expired",
-          "error" "invalid_grant"}
+         {"error" "invalid_grant"
+          "error_description" "Refresh token invalid or expired",}
          (refresh-token!
           {:session-token session-token
            :refresh-token "fake"})))))
-
-(with-fixtures
-  )
 
 ;; Scopes
 ;; Put scope in token-info
