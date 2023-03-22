@@ -47,7 +47,12 @@
     (assert (:juxt.site/session-token login-result))
     (:juxt.site/session-token login-result)))
 
-(use-fixtures :once system-xt-fixture handler-fixture oauth-test/bootstrap-fixture bootstrap-fixture)
+(use-fixtures
+  :once
+  system-xt-fixture
+  handler-fixture
+  oauth-test/bootstrap-fixture
+  bootstrap-fixture)
 
 (deftest implicit-grant-test
   (let [session-token (login "alice" "garden")
