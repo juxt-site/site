@@ -27,7 +27,9 @@
                clojure.edn/read-string
                juxt.site.malli/validate-input)]
 
-          (assoc input :juxt.site/type "https://meta.juxt.site/types/scope"))))}
+          (assoc input
+                 :juxt.site/type "https://meta.juxt.site/types/scope"
+                 :juxt.site/issuer "https://auth.example.org"))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

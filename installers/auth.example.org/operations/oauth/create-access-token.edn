@@ -75,7 +75,7 @@
           "authorization_code"
           (let [{:keys [client-id code code-verifier scopes]} *prepare*
 
-                {:juxt.site/keys [code-challenge code-challenge-method subject] :as code-doc}
+                {:juxt.site/keys [code-challenge code-challenge-method subject scope] :as code-doc}
                 (juxt.site/lookup-authorization-code code)
 
                 _ (when-not code-doc
@@ -89,14 +89,22 @@
                   :code-challenge-method code-challenge-method})]
 
             (when-not (:verified? verification)
-              (throw (ex-info "Not verified" {:code-verifier code-verifier
-                                              :code-challenge code-challenge
-                                              :code-challenge-method code-challenge-method
-                                              :verification verification})))
+              (throw
+               (ex-info
+                "Not verified"
+                {:code-verifier code-verifier
+                 :code-challenge code-challenge
+                 :code-challenge-method code-challenge-method
+                 :verification verification})))
 
             (let [[{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-client client-id)
                   _ (assert origin)
                   _ (assert resource-server)
+
+                  ;; TODO: We need to recheck whether the client's
+                  ;; scope is a superset of the requested scope. A
+                  ;; client's scope may have changed on the time-line
+                  ;; since granting the authorization code.
 
                   now (java.time.Instant/now)
                   issued-at (java.util.Date/from now)
@@ -116,6 +124,7 @@
                                  "aud" resource-server
                                  "sub" subject
                                  "client_id" client-id}
+                          scope (assoc "scope" (clojure.string/join " " scope))
                           username (assoc "username" username)))
 
                   access-token
@@ -135,7 +144,7 @@
                            :juxt.site/application client-id
                            :juxt.site/token access-token
                            :juxt.site/keypair (:juxt.site/keypair *resource*)}
-                    scopes (assoc :juxt.site/scope scopes)
+                    scope (assoc :juxt.site/scope scope)
                     username (assoc :juxt.site/username username))
 
                   refresh-token-expires-in (java.time.Duration/parse "PT6H")
@@ -154,7 +163,7 @@
                                   :juxt.site/issued-at
                                   :juxt.site/application
                                   :juxt.site/keypair])
-                          scopes (assoc :juxt.site/scope scopes)
+                          scope (assoc :juxt.site/scope scope)
                           username (assoc :juxt.site/username username)))]
 
               [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
@@ -170,9 +179,19 @@
                                 ))]
                [:ring.response/body
                 (jsonista.core/write-value-as-string
-                 {"access_token" access-token
-                  "expires_in" (.getSeconds access-token-expires-in)
-                  "refresh_token" new-refresh-token})]]))
+                 ;; See https://www.rfc-editor.org/rfc/rfc6749#section-5.1
+                 (cond-> {"access_token" access-token
+                          "token_type" "bearer"
+                          "expires_in" (.getSeconds access-token-expires-in)
+                          "refresh_token" new-refresh-token}
+                   ;; As per
+                   ;; https://www.rfc-editor.org/rfc/rfc6749#section-5.1,
+                   ;; scope can be OPTIONAL if it is exactly what was
+                   ;; requested, otherwise it is REQUIRED. We include
+                   ;; it if there was a requested scope, regardless of
+                   ;; whether its value is now exactly what was
+                   ;; requested or not.
+                   scope (assoc "scope" (clojure.string/join " " scope))))]]))
 
           "refresh_token"
           (let [{:juxt.site/keys [subject application keypair] :as existing-refresh-token-doc}

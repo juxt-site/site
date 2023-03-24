@@ -32,7 +32,7 @@
     [:juxt.site/scope
      {:optional true}
      [:maybe
-      [:sequential
+      [:set
        [:re "https://auth.example.org/scopes/.+?(,https://auth.example.org/scopes/.+?)*"]]]]]
 
    ;; TODO: Check that scope actually exists

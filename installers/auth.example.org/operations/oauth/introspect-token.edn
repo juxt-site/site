@@ -28,7 +28,7 @@
     #juxt.pprint
     (let [token (:token *prepare*)
 
-          {:juxt.site/keys [subject application scope] :as access-token-doc}
+          {:juxt.site/keys [subject application] :as access-token-doc}
           (juxt.site/lookup-access-token token)
 
           jwt (try
@@ -42,6 +42,7 @@
         (jsonista.core/write-value-as-string
          (if jwt
            (merge
+            ;; See https://datatracker.ietf.org/doc/html/rfc7662#section-2.2
             {"active" true
              "token_type" "bearer"}
             (:claims jwt))

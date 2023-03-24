@@ -21,7 +21,10 @@
    "https://data.example.org/_site/users.json"
    ;; Roles
    "https://auth.example.org/roles/SystemReadonly"
-   "https://auth.example.org/permissions/by-role/SystemReadonly/get-users"]},
+   "https://auth.example.org/permissions/by-role/SystemReadonly/get-users"
+   ;; Scopes
+   "https://auth.example.org/scopes/system/read"
+   "https://auth.example.org/scopes/system/write"]}
 
  "juxt/site/sessions"
  {:juxt.site/description "Sessions",
@@ -96,10 +99,6 @@
    "https://auth.example.org/.well-known/oauth-authorization-server"
    "https://auth.example.org/.well-known/jwks.json"
    ;; From https://www.rfc-editor.org/rfc/rfc8414#section-3
-
-   ;; Scopes - TODO: do they belong here?
-   "https://auth.example.org/scopes/system/read"
-   "https://auth.example.org/scopes/system/write"
    ]}
 
  "juxt/site/example-users"

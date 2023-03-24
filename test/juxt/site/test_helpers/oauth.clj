@@ -82,6 +82,8 @@
    ["access_token" {:optional true} :string]
    ["error" {:optional true} :string]]])
 
+;; TODO: Not sure I like the make- prefix any more
+
 (defn make-authorization-request [m]
   {:ring.request/method :get
    :juxt.site/uri "https://auth.example.test/oauth/authorize"

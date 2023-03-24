@@ -16,7 +16,8 @@
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.util :as util]
    [ring.util.codec :as codec]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [clojure.string :as str]))
 
 (defn bootstrap-fixture [f]
   (install-resource-groups!
@@ -26,14 +27,55 @@
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   (converge!
-   ["https://auth.example.test/clients/test-app"]
+   ["https://auth.example.test/clients/public-global-scope-app"]
    AUTH_SERVER
    {"client-type" "public"
-    "origin" "https://test-app.test.com"
+    "origin" "https://public-global-scope-app.test.com"
     "resource-server" "https://data.example.test"
     "authorization-server" "https://auth.example.test"
-    "redirect-uris" ["https://test-app.test.com/redirect.html"]
+    "redirect-uris" ["https://public-global-scope-app.test.com/redirect.html"]
+    ;; A scope of nil means the 'maximum' scope, or 'global' scope.
     "scope" nil})
+
+  (converge!
+   ["https://auth.example.test/clients/public-read-scope-app"]
+   AUTH_SERVER
+   {"client-type" "public"
+    "origin" "https://public-read-scope-app.test.com"
+    "resource-server" "https://data.example.test"
+    "authorization-server" "https://auth.example.test"
+    "redirect-uris" ["https://public-read-scope-app.test.com/redirect.html"]
+    "scope" #{"https://auth.example.test/scopes/test/read"}})
+
+  (converge!
+   ["https://auth.example.test/clients/public-read-write-scope-app"]
+   AUTH_SERVER
+   {"client-type" "public"
+    "origin" "https://public-read-write-scope-app.test.com"
+    "resource-server" "https://data.example.test"
+    "authorization-server" "https://auth.example.test"
+    "redirect-uris" ["https://public-read-write-scope-app.test.com/redirect.html"]
+    "scope" #{"https://auth.example.test/scopes/test/read"
+              "https://auth.example.test/scopes/test/write"}})
+
+  ;; Add the scopes
+  (converge!
+   ["https://auth.example.test/scopes/test/read"]
+   AUTH_SERVER
+   {"description" "Read stuff"
+    "operations-in-scope" #{}})
+
+  (converge!
+   ["https://auth.example.test/scopes/test/write"]
+   AUTH_SERVER
+   {"description" "Write stuff"
+    "operations-in-scope" #{}})
+
+  (converge!
+   ["https://auth.example.test/scopes/test/admin"]
+   AUTH_SERVER
+   {"description" "Write stuff"
+    "operations-in-scope" #{}})
 
   (f))
 
@@ -65,7 +107,7 @@
          :ring.request/query
          (codec/form-encode
           {"response_type" "token"
-           "client_id" "test-app"
+           "client_id" "public-global-scope-app"
            "state" state})}
 
         {:ring.response/keys [status headers]}
@@ -73,13 +115,13 @@
           (*handler* authorization-request))
 
         _ (is (= 303 status))
-        _ (is (= "https://test-app.test.com" (get headers "access-control-allow-origin")))
+        _ (is (= "https://public-global-scope-app.test.com" (get headers "access-control-allow-origin")))
 
         {:strs [location]} headers
 
         [_ location-uri fragment] (re-matches #"(https://.+?)#(.*)" location)
 
-        _ (is (= "https://test-app.test.com/redirect.html" location-uri))
+        _ (is (= "https://public-global-scope-app.test.com/redirect.html" location-uri))
 
         fragment-params (codec/form-decode fragment)
 
@@ -108,7 +150,7 @@
 
         _ (is (= "https://auth.example.test" iss))
         _ (is (= "https://data.example.test" aud))
-        _ (is (= "test-app" client-id))]))
+        _ (is (= "public-global-scope-app" client-id))]))
 
 
 
@@ -139,13 +181,13 @@
         (with-session-token session-token
           (*handler*
            (oauth/make-authorization-request
-            {"client_id" "test-app"})))
+            {"client_id" "public-global-scope-app"})))
         location (get-in response [:ring.response/headers "location"])]
 
     (is (= 303 (:ring.response/status response)))
 
     (condp re-matches location
-      #"https://test-app.test.com/redirect.html\?(.*)"
+      #"https://public-global-scope-app.test.com/redirect.html\?(.*)"
       :>>
       (fn [[_ query] ]
         (let [form (codec/form-decode query)]
@@ -162,8 +204,8 @@
         (codec/form-encode
          {"grant_type" "authorization_code"
           "code" "fake"
-          "redirect_uri" "https://test-app.test.com/redirect.html"
-          "client_id" "test-app"})
+          "redirect_uri" "https://public-global-scope-app.test.com/redirect.html"
+          "client_id" "public-global-scope-app"})
 
         token-request
         {:ring.request/method :post
@@ -195,14 +237,14 @@
           (*handler*
            (oauth/make-authorization-request
             {"response_type" "code"
-             "client_id" "test-app"})))
+             "client_id" "public-global-scope-app"})))
         location (get-in response [:ring.response/headers "location"])]
 
     (is (= 303 (:ring.response/status response)))
     (is location)
 
     (condp re-matches location
-      #"https://test-app.test.com/redirect.html\?(.*)"
+      #"https://public-global-scope-app.test.com/redirect.html\?(.*)"
       :>>
       (fn [[_ query] ]
         (let [form (codec/form-decode query)]
@@ -220,7 +262,7 @@
           (*handler*
            (oauth/make-authorization-request
             {"response_type" "code"
-             "client_id" "test-app"
+             "client_id" "public-global-scope-app"
              "state" "123"
              "code_challenge" code-challenge
              ;; TODO: Should we also support plain?
@@ -228,10 +270,10 @@
         {:strs [location access-control-allow-origin]} headers
 
         _ (is (= 303 status))
-        _ (is (= "https://test-app.test.com" access-control-allow-origin))
+        _ (is (= "https://public-global-scope-app.test.com" access-control-allow-origin))
 
         [_ location-uri query-string] (re-matches #"(https://.+?)\?(.*)" location)
-        _ (is (= "https://test-app.test.com/redirect.html" location-uri))
+        _ (is (= "https://public-global-scope-app.test.com/redirect.html" location-uri))
 
         {:strs [code state]} (codec/form-decode query-string)
         _ (is (= "123" state))
@@ -242,8 +284,8 @@
         (oauth/make-token-request
          {"grant_type" "authorization_code"
           "code" code
-          "redirect_uri" "https://test-app.test.com/redirect.html"
-          "client_id" "test-app"
+          "redirect_uri" "https://public-global-scope-app.test.com/redirect.html"
+          "client_id" "public-global-scope-app"
           "code_verifier" code-verifier})
 
         {:ring.response/keys [status headers body]}
@@ -252,7 +294,7 @@
         {:strs [access-control-allow-origin]} headers
 
         _ (is (= 200 status))
-        _ (is (= "https://test-app.test.com" access-control-allow-origin))
+        _ (is (= "https://public-global-scope-app.test.com" access-control-allow-origin))
 
         token-response-payload-as-json (json/read-value body)
         _ (is (map? token-response-payload-as-json))
@@ -286,7 +328,7 @@
 
         _ (is (= "https://auth.example.test" iss))
         _ (is (= "https://data.example.test" aud))
-        _ (is (= "test-app" client-id))]
+        _ (is (= "public-global-scope-app" client-id))]
 
     ;; TODO: Add an equivalent test for the implicit flow
     (testing "access token-info endpoint"
@@ -303,7 +345,7 @@
             _ (is (= "https://auth.example.test" iss))
             _ (is (= "https://data.example.test" aud))
             _ (is (= "https://data.example.test" aud))
-            _ (is (= "test-app" client-id))]))
+            _ (is (= "public-global-scope-app" client-id))]))
 
     (testing "use refresh token"
       (let [{:ring.response/keys [status headers body]}
@@ -315,7 +357,7 @@
             _ (is (= 200 status))
 
             {:strs [access-control-allow-origin]} headers
-            _ (is (= "https://test-app.test.com" access-control-allow-origin))
+            _ (is (= "https://public-global-scope-app.test.com" access-control-allow-origin))
 
             token-response-payload-as-json (json/read-value body)
             _ (is (map? token-response-payload-as-json))
@@ -369,12 +411,13 @@
     :or {code-challenge-method "S256"
          grant-type "authorization_code"}}]
   (let [db (xt/db *xt-node*)
-        client-doc (xt/entity db client)]
+        client-doc (xt/entity db client)
+        client-id (:juxt.site/client-id client-doc)]
     (case grant-type
       "authorization_code"
       (let [code-verifier (util/make-code-verifier 64)
             code-challenge (util/code-challenge code-verifier)
-            {:ring.response/keys [headers]}
+            {:ring.response/keys [status headers] :as response}
             (with-session-token session-token
               (*handler*
                (oauth/make-authorization-request
@@ -382,18 +425,26 @@
                 (merge
                  ;; REQUIRED
                  {"response_type" "code"
-                  "client_id" "test-app"}
+                  "client_id" client-id}
                  ;; OPTIONAL
                  (when redirect-uri {"redirect_uri" redirect-uri})
-                 (when scope {"scope" scope})
+                 (when scope {"scope" (str/join " " scope)})
                  ;; RECOMMENDED
                  {"state" (util/make-nonce 4)}
                  ;; PKCE
                  {"code_challenge" code-challenge
                   "code_challenge_method" code-challenge-method}))))
+            _ (when (not= 303 status)
+                (throw (ex-info "Unexpected response" {:response response})))
+
+
             {:strs [location]} headers
             [_ _ query-string] (re-matches #"(https://.+?)\?(.*)" location)
-            {:strs [code]} (codec/form-decode query-string)
+
+            {:strs [code error] :as query} (codec/form-decode query-string)
+
+            _ (when error
+                (throw (ex-info "Error from authorize request" query)))
 
             token-request
             (oauth/make-token-request
@@ -403,7 +454,7 @@
               {"grant_type" "authorization_code"
                "code" code
                "redirect_uri" (first (:juxt.site/redirect-uris client-doc))
-               "client_id" "test-app"}
+               "client_id" client-id}
               ;; PKCE
               {"code_verifier" code-verifier}))
 
@@ -419,16 +470,15 @@
         (json/read-value body)))))
 
 (defn refresh-token!
-  [{:keys [session-token refresh-token scope]}]
+  [{:keys [refresh-token scope]}]
   (let [{:ring.response/keys [status body] :as response}
-        (with-session-token session-token
-          (*handler*
-           (oauth/make-token-request
-            ;; See https://www.rfc-editor.org/rfc/rfc6749#section-6
-            (merge
-             {"grant_type" "refresh_token"
-              "refresh_token" refresh-token}
-             (when scope {"scope" scope})))))
+        (*handler*
+         (oauth/make-token-request
+          ;; See https://www.rfc-editor.org/rfc/rfc6749#section-6
+          (merge
+           {"grant_type" "refresh_token"
+            "refresh_token" refresh-token}
+           (when scope {"scope" scope}))))
 
         _ (when (= status 500)
             (throw (ex-info "Error on token refresh" {:response response})))
@@ -442,27 +492,107 @@
   (let [session-token (login "alice" "garden")
         _ (acquire-access-token!
            {:session-token session-token
-            :client "https://auth.example.test/clients/test-app"
+            :client "https://auth.example.test/clients/public-global-scope-app"
             :grant-type "authorization_code"})]
     (is (=
          {"error" "invalid_grant"
           "error_description" "Refresh token invalid or expired",}
          (refresh-token!
-          {:session-token session-token
-           :refresh-token "fake"})))))
+          {:refresh-token "fake"})))))
 
 ;; Scopes
 
-(with-fixtures
-  (let [session-token (login "alice" "garden")]
-    (acquire-access-token!
-     {:session-token session-token
-      :client "https://auth.example.test/clients/test-app"
-      :grant-type "authorization_code"
-      :scope #{"dummy"}})))
+(deftest app-with-global-scope-with-no-scope-requested
+  (let [response
+        (acquire-access-token!
+         {:session-token (login "alice" "garden")
+          :client "https://auth.example.test/clients/public-global-scope-app"
+          :grant-type "authorization_code"})]
+    (is (nil? (find response "scope"))
+        "Scope should not be reported in JSON response")))
+
+(deftest app-with-global-scope-with-specific-scope-requested
+  (let [{:strs [scope]}
+        (acquire-access-token!
+         {:session-token (login "alice" "garden")
+          :client "https://auth.example.test/clients/public-global-scope-app"
+          :grant-type "authorization_code"
+          :scope #{"https://auth.example.test/scopes/test/read"
+                   "https://auth.example.test/scopes/test/write"
+                   "https://auth.example.test/scopes/test/dummy"}})
+        scope-set (set (str/split scope #" "))]
+
+    (is (not (contains? scope-set "https://auth.example.test/scopes/test/dummy"))
+        "Non existing scope should not be returned")
+
+    (is (= #{"https://auth.example.test/scopes/test/read"
+             "https://auth.example.test/scopes/test/write"}
+           scope-set)
+        "Scope should be returned as expected in JSON response")))
+
+(deftest scope-included-in-token-info
+ (let [{access-token "access_token"}
+       (acquire-access-token!
+        {:session-token (login "alice" "garden")
+         :client "https://auth.example.test/clients/public-global-scope-app"
+         :grant-type "authorization_code"
+         :scope #{"https://auth.example.test/scopes/test/read"
+                  "https://auth.example.test/scopes/test/write"
+                  "https://auth.example.test/scopes/test/dummy"}})
+       {:ring.response/keys [status headers body]}
+       (with-session-token (login "alice" "garden")
+         (*handler*
+          (oauth/make-token-info-request {"token" access-token})))]
+   (is (= 200 status))
+   (is (= "application/json" (get headers "content-type")))
+   (let [{scope "scope"} (json/read-value body)]
+     (is (= #{"https://auth.example.test/scopes/test/read"
+              "https://auth.example.test/scopes/test/write"}
+            ;; See
+            ;; https://datatracker.ietf.org/doc/html/rfc7662#section-2.2
+            ;; which explains that the 'scope' member of the
+            ;; introspection response is a JSON string.
+            (set (str/split scope #" ")) )))))
+
+(deftest read-write-app-test
+  (testing "no scope requested"
+    (let [{scope "scope"}
+          (acquire-access-token!
+           {:session-token (login "alice" "garden")
+            :client "https://auth.example.test/clients/public-read-write-scope-app"
+            :grant-type "authorization_code"})]
+      (is (= #{"https://auth.example.test/scopes/test/read"
+               "https://auth.example.test/scopes/test/write"}
+             (set (str/split scope #" "))))))
+
+  (testing "read-app"
+    (let [{scope "scope"}
+          (acquire-access-token!
+           {:session-token (login "alice" "garden")
+            :client "https://auth.example.test/clients/public-read-scope-app"
+            :grant-type "authorization_code"
+            :scope #{"https://auth.example.test/scopes/test/read"
+                     "https://auth.example.test/scopes/test/write"
+                     "https://auth.example.test/scopes/test/dummy"}})]
+      (is (= #{"https://auth.example.test/scopes/test/read"} (set (str/split scope #" ")))
+          "Scope returned should be limited by the client's scope")))
+
+  (testing "read-write-app"
+    (let [{scope "scope"}
+          (acquire-access-token!
+           {:session-token (login "alice" "garden")
+            :client "https://auth.example.test/clients/public-read-write-scope-app"
+            :grant-type "authorization_code"
+            :scope #{"https://auth.example.test/scopes/test/read"
+                     "https://auth.example.test/scopes/test/write"
+                     "https://auth.example.test/scopes/test/dummy"}})]
+      (is (= #{"https://auth.example.test/scopes/test/read"
+               "https://auth.example.test/scopes/test/write"}
+             (set (str/split scope #" ")))
+          "Scope returned should be limited by the client's scope"))))
 
 
+;; TODO: Try different combinations of redirects
 
-
-;; Put scope in token-info
-;; Try different combinations of redirects
+;; TODO: In another test namespace, let's test the effect of scope on
+;; what we can do. Research other test namespaces that test operations.

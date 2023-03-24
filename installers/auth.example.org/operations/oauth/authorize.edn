@@ -45,12 +45,16 @@
 
           response-type (get query "response_type")
 
+          scope (get query "scope")
+
           subject (:juxt.site/subject *ctx*)]
 
       (cond-> {:response-type response-type
                :client-id client-id
                :query query
                :subject (:xt/id subject)}
+
+        scope (into {:scope (set (clojure.string/split scope (re-pattern " ")))})
 
         (= response-type "code")
         (into {:code
@@ -223,135 +227,176 @@
            {"error" "invalid_request"
             "error_description" "Missing subject. Resource owner has not been authenticated"}))
 
-        (case response-type
+        ;; See https://www.rfc-editor.org/rfc/rfc6749#section-3.3
+        (let [scope
+              (if-let [requested-scope (:scope *prepare*)]
+                ;; No client scope means we potentially allow any
+                ;; and all scope, but we must ask the resource owner
+                ;; to approve. Also, try to find a consent document
+                ;; between the subject and the client, giving the
+                ;; consented scope.
 
-          "code"
-          (let [{:keys [code]} *prepare*
+                ;; We must also limit the requested-scope to the
+                ;; scopes currently available.
+                (let [client-scope
+                      (or
+                       (:juxt.site/scope client-doc)
+                       ;; If the client has no scope, we say that the
+                       ;; client has a 'global' scope (we collate all
+                       ;; the scopes in the authorization server).
+                       (set
+                        (map first
+                             (xt/q '{:find [e]
+                                     :where [[e :juxt.site/type "https://meta.juxt.site/types/scope"]
+                                             [e :juxt.site/issuer "https://auth.example.test"]]}))))
+                      combined-scope (clojure.set/intersection client-scope requested-scope)]
+                  (if (seq combined-scope)
+                    combined-scope
+                    (client-error
+                     {"error" "invalid_scope"
+                      "error_description" "No intersection between requested scope and available scope"})))
 
-                scopes nil
+                ;; No requested scope.  Return the client scope, which
+                ;; can be nil, which is OK. If there is no registered
+                ;; scope, we proceed with nil scope, which means that
+                ;; every action is available. Actions can be stripped
+                ;; according to scope. Note: A secure system merely
+                ;; needs to indicate that scope must be specified
+                ;; during the registration of a client.
+                (:juxt.site/scope client-doc))]
 
-                code-challenge (get query "code_challenge")
-                code-challenge-method (get query "code_challenge_method")
+          (case response-type
 
-                now (java.time.Instant/now)
+            "code"
+            (let [{:keys [code]} *prepare*
 
-                ;; "A maximum authorization code lifetime of 10 minutes
-                ;; is RECOMMENDED" --
-                ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2
-                code-doc-expires-in (java.time.Duration/parse "PT10M")
-                code-doc-expiry (java.util.Date/from (.plus now code-doc-expires-in))
+                  code-challenge (get query "code_challenge")
+                  code-challenge-method (get query "code_challenge_method")
 
-                code-doc
-                (cond-> {:xt/id (str "https://auth.example.org/authorization-codes/" code)
-                         :juxt.site/type "https://meta.juxt.site/types/authorization-code"
-                         :juxt.site/subject subject
-                         :juxt.site/application (:xt/id client-doc)
-                         :juxt.site/code code}
-                  code-challenge (assoc :juxt.site/code-challenge code-challenge)
-                  code-challenge-method (assoc :juxt.site/code-challenge-method code-challenge-method)
-                  scopes (assoc :juxt.site/scope scopes))
+                  now (java.time.Instant/now)
 
-                query-component
-                (ring.util.codec/form-encode
-                 {"code" code
-                  "state" state})
+                  ;; "A maximum authorization code lifetime of 10 minutes
+                  ;; is RECOMMENDED"
+                  ;;
+                  ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2
+                  code-doc-expires-in (java.time.Duration/parse "PT10M")
+                  code-doc-expiry (java.util.Date/from (.plus now code-doc-expires-in))
 
-                location (format "%s?%s" redirect-uri query-component)]
+                  code-doc
+                  (cond-> {:xt/id (str "https://auth.example.org/authorization-codes/" code)
+                           :juxt.site/type "https://meta.juxt.site/types/authorization-code"
+                           :juxt.site/subject subject
+                           :juxt.site/application (:xt/id client-doc)
+                           :juxt.site/code code}
+                    code-challenge (assoc :juxt.site/code-challenge code-challenge)
+                    code-challenge-method (assoc :juxt.site/code-challenge-method code-challenge-method)
+                    scope (assoc :juxt.site/scope scope))
 
-            [
-             [:xtdb.api/put code-doc (java.util.Date/from now) code-doc-expiry]
-             [:ring.response/status 303]
-             [:ring.response/headers
-              (cond-> {"location" location
-                       "content-type" "application/json"}
-                origin (assoc "access-control-allow-origin" origin
-                              "access-control-allow-credentials" "true"))]])
+                  query-component
+                  (ring.util.codec/form-encode
+                   {"code" code
+                    "state" state})
 
-          "token"
-          (let [{:keys [jwt-claims]} *prepare*
+                  location (format "%s?%s" redirect-uri query-component)]
 
-                ;; Leave scope for now for tests to flush out
-                ;; scopes (some-> *prepare* (get-in [:query "scope"]) ring.util.codec/form-decode (clojure.string/split (re-pattern "\\s")) set)
-                ;;_ (doall (map juxt.site/lookup-scope scopes))
+              [
+               [:xtdb.api/put code-doc (java.util.Date/from now) code-doc-expiry]
+               [:ring.response/status 303]
+               [:ring.response/headers
+                (cond-> {"location" location
+                         "content-type" "application/json"}
+                  origin (assoc "access-control-allow-origin" origin
+                                "access-control-allow-credentials" "true"))]])
 
-                scopes nil
+            "token"
+            (let [{:keys [jwt-claims]} *prepare*
 
-                {:juxt.site/keys [origin resource-server]} client-doc
-                _ (assert resource-server)
+                  ;; Leave scope for now for tests to flush out
+                  ;; scopes (some-> *prepare* (get-in [:query "scope"]) ring.util.codec/form-decode (clojure.string/split (re-pattern "\\s")) set)
+                  ;;_ (doall (map juxt.site/lookup-scope scopes))
 
-                now (java.time.Instant/now)
-                issued-at (java.util.Date/from now)
-                not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
-                expires-in (java.time.Duration/parse "PT15M")
-                expiry (java.util.Date/from (.plus now expires-in))
+                  scope nil
 
-                username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
+                  {:juxt.site/keys [origin resource-server]} client-doc
+                  _ (assert resource-server)
 
-                jwt-claims
-                (into jwt-claims
-                      (cond-> {"iat" issued-at
-                               "nbf" not-before
-                               "exp" expiry
-                               "aud" resource-server
-                               "sub" subject
-                               "client_id" client-id}
-                        username (assoc "username" username)))
+                  now (java.time.Instant/now)
+                  issued-at (java.util.Date/from now)
+                  not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
+                  expires-in (java.time.Duration/parse "PT15M")
+                  expiry (java.util.Date/from (.plus now expires-in))
 
-                access-token
-                (juxt.site/make-access-token
-                 jwt-claims
-                 (:juxt.site/keypair *resource*))
+                  username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
 
-                access-token-doc
-                (cond->
-                    {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
-                     :juxt.site/type "https://meta.juxt.site/types/access-token"
-                     :juxt.site/subject subject
-                     :juxt.site/issuer (get jwt-claims "iss")
-                     :juxt.site/issued-at issued-at
-                     :juxt.site/not-before not-before
-                     :juxt.site/expiry expiry
-                     :juxt.site/audience resource-server
-                     :juxt.site/application client-id
-                     :juxt.site/token access-token
-                     :juxt.site/keypair (:juxt.site/keypair *resource*)
-                     :juxt.site/username username}
-                    scopes (assoc :juxt.site/scope scopes))
+                  jwt-claims
+                  (into jwt-claims
+                        (cond-> {"iat" issued-at
+                                 "nbf" not-before
+                                 "exp" expiry
+                                 "aud" resource-server
+                                 "sub" subject
+                                 "client_id" client-id}
+                          scope (assoc "scope" (clojure.string/join " " scope))
+                          username (assoc "username" username)))
 
-                fragment
-                (ring.util.codec/form-encode
-                 {"access_token" access-token
-                  "token_type" "bearer"
-                  "state" (get query "state")})
+                  access-token
+                  (juxt.site/make-access-token
+                   jwt-claims
+                   (:juxt.site/keypair *resource*))
 
-                location (format "%s#%s" redirect-uri fragment)]
+                  access-token-doc
+                  (cond->
+                      {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
+                       :juxt.site/type "https://meta.juxt.site/types/access-token"
+                       :juxt.site/subject subject
+                       :juxt.site/issuer (get jwt-claims "iss")
+                       :juxt.site/issued-at issued-at
+                       :juxt.site/not-before not-before
+                       :juxt.site/expiry expiry
+                       :juxt.site/audience resource-server
+                       :juxt.site/application client-id
+                       :juxt.site/token access-token
+                       :juxt.site/keypair (:juxt.site/keypair *resource*)
+                       :juxt.site/username username}
+                      scope (assoc :juxt.site/scope scope))
 
-            [[:xtdb.api/put access-token-doc issued-at expiry]
-             [:ring.response/status 303]
-             [:ring.response/headers
-              (cond-> {"location" location}
-                origin (assoc "access-control-allow-origin" origin
-                              "access-control-allow-credentials" "true"))]]))
+                  fragment
+                  (ring.util.codec/form-encode
+                   {"access_token" access-token
+                    "token_type" "bearer"
+                    "state" (get query "state")})
+
+                  location (format "%s#%s" redirect-uri fragment)]
+
+              [[:xtdb.api/put access-token-doc issued-at expiry]
+               [:ring.response/status 303]
+               [:ring.response/headers
+                (cond-> {"location" location}
+                  origin (assoc "access-control-allow-origin" origin
+                                "access-control-allow-credentials" "true"))]])))
 
         (catch clojure.lang.ExceptionInfo cause
-          (let [state (get query "state")
-                query-component
-                (ring.util.codec/form-encode
-                 (cond->
-                     (cond
-                       (:oauth-redirect (ex-data cause))
-                       (-> cause ex-data (dissoc :oauth-redirect))
-                       :else
-                       {"error" "server_error"
-                        "error_description" (.getMessage cause)})
-                   state (assoc "state" state)))
-                location (format "%s?%s" redirect-uri query-component)]
+          (if (:oauth-redirect (ex-data cause))
+            (let [state (get query "state")
+                  query-component
+                  (ring.util.codec/form-encode
+                   (cond->
+                       (cond
+                         (:oauth-redirect (ex-data cause))
+                         (-> cause ex-data (dissoc :oauth-redirect))
+                         :else
+                         {"error" "server_error"
+                          "error_description" (.getMessage cause)})
+                       state (assoc "state" state)))
+                  location (format "%s?%s" redirect-uri query-component)]
 
-            [[:ring.response/status 303]
-             [:ring.response/headers
-              (cond-> {"location" location}
-                origin (assoc "access-control-allow-origin" origin
-                              "access-control-allow-credentials" "true"))]]))))}
+              [[:ring.response/status 303]
+               [:ring.response/headers
+                (cond-> {"location" location}
+                  origin (assoc "access-control-allow-origin" origin
+                                "access-control-allow-credentials" "true"))]])
+
+            (throw cause)))))}
 
    :juxt.site/rules
    [

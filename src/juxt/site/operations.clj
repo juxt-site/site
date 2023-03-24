@@ -455,8 +455,7 @@
                       ;; Allowed to access the database
                       'xt
                       {'entity (fn [id] (xt/entity db id))
-                       ;; Definitely can't do this! But we may be able to give access to an operation that can do it.
-                       ;;'q (fn [& args] (apply xt/q db args))
+                       'q (fn [& args] (apply xt/q db args))
 
                        }
 

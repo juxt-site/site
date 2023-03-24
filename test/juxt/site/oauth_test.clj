@@ -8,7 +8,7 @@
    [juxt.site.repl :as repl]
    [juxt.site.installer :refer [call-operation-with-init-data!]]
    [juxt.site.test-helpers.login :as login :refer [with-session-token]]
-   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -96,40 +96,34 @@
        :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
        :juxt.site/input {:juxt.site/client-type "public"
                          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
-                         :juxt.site/scope ["https://auth.example.test/scopes/dummy"]}}))))
+                         :juxt.site/scope #{"https://auth.example.test/scopes/dummy"}}}))))
 
 (deftest authorization-server-metadata
-  ;; token-info is public
-  (testing "RFC 8414: Authorization Server Metadata"
-    (let [{:ring.response/keys [status headers body]}
-          (*handler* {:ring.request/method :get
-                      :juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"})]
-      (is (= 200 status))
-      (is (= "application/json" (get headers "content-type")))
-      (is (= {"issuer" "https://auth.example.test"
-              "authorization_endpoint" "https://auth.example.test/oauth/authorize"
-              "token_endpoint" "https://auth.example.test/oauth/token"
-              "jwks_uri" "https://auth.example.test/.well-known/jwks.json"
-              "scopes_supported"
-	      ["https://auth.example.test/scopes/system/read"
-	       "https://auth.example.test/scopes/system/write"]
-              "response_types_supported" ["code" "token"]
-              "response_modes_supported" ["query" "fragment"]
-	      "grant_types_supported" ["authorization_code" "implicit" "refresh_token"]
-              "token_endpoint_auth_signing_alg_values_supported" ["RS256"]
-	      "token_endpoint_auth_methods_supported" ["none" "client_secret_post"]
-              "code_challenge_methods_supported" ["S256"]}
-             (json/read-value body))))))
+  ;; oauth-authorization-server is public
+  (converge!
+   ["https://auth.example.test/scopes/test/read"]
+   AUTH_SERVER
+   {"description" "Read stuff"
+    "operations-in-scope" #{}})  (testing "RFC 8414: Authorization Server Metadata"
 
-(deftest scope-test
-  (is (=
-       {:juxt.site/description "Read system info"
-        :juxt.site/operations
-        #{"https://auth.example.test/operations/get-users"
-          "https://auth.example.test/operations/get-operations"},
-        :juxt.site/type "https://meta.juxt.site/types/scope",
-        :xt/id "https://auth.example.test/scopes/system/read"}
-       (repl/e "https://auth.example.test/scopes/system/read"))))
+   (let [{:ring.response/keys [status headers body]}
+         (*handler* {:ring.request/method :get
+                     :juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"})]
+     (is (= 200 status))
+     (is (= "application/json" (get headers "content-type")))
+     (is (= {"issuer" "https://auth.example.test"
+             "authorization_endpoint" "https://auth.example.test/oauth/authorize"
+             "token_endpoint" "https://auth.example.test/oauth/token"
+             "jwks_uri" "https://auth.example.test/.well-known/jwks.json"
+             "scopes_supported"
+	     ["https://auth.example.test/scopes/test/read"]
+             "response_types_supported" ["code" "token"]
+             "response_modes_supported" ["query" "fragment"]
+	     "grant_types_supported" ["authorization_code" "implicit" "refresh_token"]
+             "token_endpoint_auth_signing_alg_values_supported" ["RS256"]
+	     "token_endpoint_auth_methods_supported" ["none" "client_secret_post"]
+             "code_challenge_methods_supported" ["S256"]}
+            (json/read-value body))))))
 
 ;; This test might not really belong here.
 (deftest get-subject-test
