@@ -29,8 +29,10 @@
          scope (assoc :juxt.site/scope scope))))
    req))
 
-;; TODO (idea): Tie bearer token to other security aspects such as remote IP so that
-;; the bearer token is more difficult to use if intercepted.
+;; TODO (idea): Tie bearer token to other security aspects such as
+;; remote IP so that the bearer token is more difficult to use if
+;; intercepted. This can be extended to other claims in the JWT,
+;; restricting the token to time periods.
 
 (defn find-or-create-basic-auth-subject [req user-identity protection-space]
   (let [xt-node (:juxt.site/xt-node req)
