@@ -596,3 +596,5 @@
 
 ;; TODO: In another test namespace, let's test the effect of scope on
 ;; what we can do. Research other test namespaces that test operations.
+
+;; TODO: Confidential clients

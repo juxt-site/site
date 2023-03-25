@@ -15,41 +15,17 @@
 
 (defn bootstrap []
   (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
-  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER {}))
+  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER {})
 
-(defn bootstrap-fixture [f]
-  (bootstrap)
-  (f))
-
-(use-fixtures :each system-xt-fixture handler-fixture bootstrap-fixture)
-
-
-;; deftest openapi-json-test
-
-#_(with-fixtures
-
-  (testing "Users API endpoint cannot be accessed anonymously"
-      (let [response
-            (*handler*
-             {:juxt.site/uri "https://data.example.test/_site/users"
-              :ring.request/method :get})]
-        (is (= 401 (:ring.response/status response)))
-        (is (= "Bearer" (get-in response [:ring.response/headers "www-authenticate"])))))
-
-  ;;
-
-  (repl/ls)
-
-  #_(repl/q '{:find [e]
-            :where [[e :juxt.site.type ""]]})
-  )
-
-(deftest system-api-test
-
+  ;; Need some test users and a way for them to authenticate
   (install-resource-groups!
-   ["juxt/site/oauth-authorization-server"
-    "juxt/site/login-form"
-    "juxt/site/example-users"]
+   ["juxt/site/login-form" "juxt/site/example-users"]
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
+
+  ;; Install an authorization server
+  (install-resource-groups!
+   ["juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
     "keypair" "https://auth.example.test/keypairs/test-kp-123"
@@ -64,7 +40,15 @@
     "resource-server" "https://data.example.test"
     "redirect-uris" ["https://test-app.example.test/callback"]
     "authorization-server" "https://auth.example.test"
-    "scope" nil})
+    "scope" nil}))
+
+(defn bootstrap-fixture [f]
+  (bootstrap)
+  (f))
+
+(use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
+
+(deftest system-api-test
 
   (let [login-result
         (login/login-with-form!

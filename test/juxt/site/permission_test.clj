@@ -16,7 +16,7 @@
 ;; Site is a 'Bring Your Own Domain' thing, and it's common for domains to
 ;; define users in terms of the attributes of those users that are important to
 ;; the domain. So in this example we define our users without any keywords that
-;; would be recognisable to site.
+;; could be recognisable to site.
 
 ;; Note: if you're unfamiliar with the Alice and Bob characters, see
 ;; https://en.wikipedia.org/wiki/Alice_and_Bob#Cast_of_characters
@@ -55,9 +55,9 @@
    :juxt.site/client-id "100"
    :juxt.site/client-secret "SecretUmbrella"
    :juxt.site/scope #{"read:resource" "write:resource"
-                  "read:user"
-                  "read:messages"
-                  "read:health"}})
+                      "read:user"
+                      "read:messages"
+                      "read:health"}})
 
 ;; Subjects incorporate information about the person and other details. For
 ;; example, the device they are using, the method of authentication (whether
@@ -144,8 +144,7 @@
      [(allowed? subject operation resource permission)
       [resource :juxt.site/classification "INTERNAL"]
       [permission ::person person]
-      [subject ::person person]]
-]})
+      [subject ::person person]]]})
 
 (def ANYONE_CAN_READ_PUBLIC_RESOURCES
   {:xt/id "https://example.org/permissions/anyone-can-read-public-resources"
@@ -159,10 +158,6 @@
    :juxt.site/operation (:xt/id GET_RESOURCE_OPERATION)
    :juxt.site/purpose nil
    ::person (:xt/id ALICE)})
-
-#_((t/join-fixtures [xt-fixture])
- (fn []
-   ))
 
 (deftest classified-resource-test
   (submit-and-await!
@@ -1448,11 +1443,6 @@
 
 ;; TODO: Build back access-token concept, apps, scopes and filtering of available
 ;; operations.
-
-#_((t/join-fixtures [xt-fixture])
- (fn []
-   ))
-
 
 (def site-prefix "https://test.example.com")
 
