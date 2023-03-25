@@ -22,8 +22,11 @@
                                [at :juxt.site/type "https://meta.juxt.site/types/access-token"]
                                [at :juxt.site/subject sub]
                                [sub :juxt.site/type "https://meta.juxt.site/types/subject"]]
-                       :in [tok]} token68))]
-       (when subject (assoc req :juxt.site/subject subject :juxt.site/access-token access-token))))
+                       :in [tok]} token68))
+           scope (:juxt.site/scope access-token)]
+       (cond-> req
+         subject (assoc :juxt.site/subject subject :juxt.site/access-token access-token)
+         scope (assoc :juxt.site/scope scope))))
    req))
 
 ;; TODO (idea): Tie bearer token to other security aspects such as remote IP so that
