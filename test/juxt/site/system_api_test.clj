@@ -13,6 +13,10 @@
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
 
+;; TODO: Investigate use of test-ns-hook to run ns tests with both
+;; implicit and authorization code grants. Until then, let's just use
+;; 'authorization code'.
+
 (defn bootstrap []
   (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
   (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER {})
@@ -35,9 +39,6 @@
   ;; TODO: Analyse the performance cost of install-resource-groups!
   ;; Perhaps optimise by only creating the installer graph once and
   ;; passing it in as a parameter.
-
-  ;; TODO: Investigate use of test-ns-hook to run ns tests with both
-  ;; implicit and authorization code grants.
 
   (converge!
    ["https://auth.example.test/clients/test-app"]
