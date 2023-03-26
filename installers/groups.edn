@@ -111,12 +111,6 @@
    "https://data.example.org/users/carlos"
    "https://data.example.org/user-identities/carlos"]}
 
- ;; TODO: Replace this single-member group with converge!
- "juxt/site/example-apps"
- {:juxt.site/description "Example applications",
-  :juxt.site/resources
-  ["https://auth.example.org/clients/test-app"]}
-
  "juxt/site/hospital-demo"
  {:juxt.site/description "Hospital demo resources",
   :juxt.site/resources

@@ -39,10 +39,8 @@
   ;; TODO: Investigate use of test-ns-hook to run ns tests with both
   ;; implicit and authorization code grants.
 
-  ;; TODO: This misses the point of an installer, which is to provide
-  ;; these variable values in EDN data.
-  (install-resource-groups!
-   ["juxt/site/example-apps"]
+  (converge!
+   ["https://auth.example.test/clients/test-app"]
    AUTH_SERVER
    {"client-type" "public"
     "origin" "https://test-app.example.test"
