@@ -32,6 +32,15 @@
     "authorization-code-length" 12
     "jti-length" 12})
 
+  ;; TODO: Analyse the performance cost of install-resource-groups!
+  ;; Perhaps optimise by only creating the installer graph once and
+  ;; passing it in as a parameter.
+
+  ;; TODO: Investigate use of test-ns-hook to run ns tests with both
+  ;; implicit and authorization code grants.
+
+  ;; TODO: This misses the point of an installer, which is to provide
+  ;; these variable values in EDN data.
   (install-resource-groups!
    ["juxt/site/example-apps"]
    AUTH_SERVER
