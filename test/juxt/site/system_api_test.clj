@@ -48,7 +48,17 @@
     "resource-server" "https://data.example.test"
     "redirect-uris" ["https://test-app.example.test/callback"]
     "authorization-server" "https://auth.example.test"
-    "scope" nil}))
+    "scope" nil})
+
+  (converge!
+   ["https://auth.example.test/clients/read-only-app"]
+   AUTH_SERVER
+   {"client-type" "public"
+    "origin" "https://read-only-app.example.test"
+    "resource-server" "https://data.example.test"
+    "redirect-uris" ["https://read-only-app.example.test/callback"]
+    "authorization-server" "https://auth.example.test"
+    "scope" #{"https://auth.example.test/scopes/system/read"}}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)
@@ -108,3 +118,17 @@
             (is json)
             (is (<= 8 (count json)))
             json))))))
+
+
+
+;; So we need a system-api call that will allow us to add a
+;; user. We'll still need the site tool to bootstrap users, but it
+;; shouldn't be necessary to use the tool for adding new users once
+;; the system has been bootstrapped.
+
+#_(with-fixtures
+  (repl/ls))
+
+;; TODO: put-user
+
+;; What's in put-user?
