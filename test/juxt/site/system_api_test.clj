@@ -117,11 +117,10 @@
 ;; shouldn't be necessary to use the tool for adding new users once
 ;; the system has been bootstrapped.
 
-(with-fixtures
-  (let [session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
+#_(with-fixtures
+  (let [{access-token "access_token"}
         (with-session-token
-          session-token
+          (login/login-with-form! "alice" "garden")
           (oauth/implicit-authorize!
            "https://auth.example.test/oauth/authorize"
            {"client_id" "test-app"}))]
@@ -134,7 +133,8 @@
               :ring.request/headers
               {"content-type" "application/edn"}})]
 
-        (is (= 201 (:ring.response/status response))))))
+        (is (= 201 (:ring.response/status response)))
+        response)))
   )
 
 ;; TODO: put-user
