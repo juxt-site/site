@@ -68,16 +68,7 @@
 
 (deftest system-api-test
 
-  (let [login-result
-        (login/login-with-form!
-         *handler*
-         "username" "alice"
-         "password" "garden"
-         :juxt.site/uri "https://auth.example.test/login-with-form")
-
-        session-token (:juxt.site/session-token login-result)
-        _ (assert session-token)
-
+  (let [session-token (login/login-with-form! "alice" "garden")
         {access-token "access_token"}
         (with-session-token
           session-token
@@ -126,8 +117,25 @@
 ;; shouldn't be necessary to use the tool for adding new users once
 ;; the system has been bootstrapped.
 
-#_(with-fixtures
-  (repl/ls))
+(with-fixtures
+  (let [session-token (login/login-with-form! "alice" "garden")
+        {access-token "access_token"}
+        (with-session-token
+          session-token
+          (oauth/implicit-authorize!
+           "https://auth.example.test/oauth/authorize"
+           {"client_id" "test-app"}))]
+
+    (oauth/with-bearer-token access-token
+      (let [response
+            (*handler*
+             {:juxt.site/uri "https://data.example.test/_site/users"
+              :ring.request/method :post
+              :ring.request/headers
+              {"content-type" "application/edn"}})]
+
+        (is (= 201 (:ring.response/status response))))))
+  )
 
 ;; TODO: put-user
 

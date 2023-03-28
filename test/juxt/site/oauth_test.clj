@@ -148,15 +148,7 @@
 
   (install-resource-groups! ["juxt/site/whoami"] RESOURCE_SERVER {})
 
-  (let [login-result
-        (login/login-with-form!
-         *handler*
-         "username" "alice"
-         "password" "garden"
-         :juxt.site/uri "https://auth.example.test/login-with-form")
-
-        session-token (:juxt.site/session-token login-result)
-        _ (assert session-token)
+  (let [session-token (login/login-with-form! "alice" "garden")
 
         {access-token "access_token"}
         (with-session-token session-token

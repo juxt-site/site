@@ -21,6 +21,7 @@
    [juxt.site.test-helpers.login :as login :refer [with-session-token]]
    [juxt.site.test-helpers.oauth :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
+   [ring.util.codec :as codec]
    [xtdb.api :as xt]))
 
 (def AUTH_SERVER
@@ -29,6 +30,28 @@
 (def RESOURCE_SERVER
   {"https://auth.example.org" "https://auth.hospital.com"
    "https://data.example.org" "https://hospital.com"})
+
+(defn login-with-form!
+  "Return a session id (or nil) given a map of fields."
+  [username password]
+  (let [form (codec/form-encode {"username" username "password" password})
+        body (.getBytes form)
+        req {:juxt.site/uri "https://auth.hospital.com/login-with-form"
+             :ring.request/method :post
+             :ring.request/headers
+             {"content-length" (str (count body))
+              "content-type" "application/x-www-form-urlencoded"}
+             :ring.request/body (io/input-stream body)}
+        response (*handler* req)
+        {:strs [set-cookie]} (:ring.response/headers response)
+        [_ token] (when set-cookie (re-matches #"[a-z]+=(.*?);.*" set-cookie))]
+    (when-not token
+      (throw
+       (ex-info
+        (format "Login failed: %s" (String. (:ring.response/body response)))
+        {:username username
+         :response response})))
+    token))
 
 (defn install-hospital! []
   (install-resource-groups!
@@ -112,12 +135,8 @@
 
   ;; Fails because add-implicit-dependencies doesn't cope with :deps being a fn
 
-  (let [{alice-session-token :juxt.site/session-token}
-        (login/login-with-form!
-         *handler*
-         :juxt.site/uri "https://auth.hospital.com/login-with-form"
-         "username" "alice"
-         "password" "garden")
+  (let [alice-session-token
+        (login-with-form! "alice" "garden")
 
         {alice-access-token "access_token" error "error"}
         (with-session-token alice-session-token
@@ -128,12 +147,8 @@
             }))
         _ (is (nil? error) (format "OAuth2 grant error: %s" error))
 
-        {bob-session-token :juxt.site/session-token}
-        (login/login-with-form!
-         *handler*
-         :juxt.site/uri "https://auth.hospital.com/login-with-form"
-         "username" "bob"
-         "password" "walrus")
+        bob-session-token
+        (login-with-form! "bob" "walrus")
         {bob-access-token "access_token"
          error "error"}
         (with-session-token bob-session-token
@@ -656,12 +671,7 @@
 
 (deftest graphql-test
 
-  (let [{alice-session-token :juxt.site/session-token}
-        (login/login-with-form!
-         *handler*
-         :juxt.site/uri "https://auth.hospital.com/login-with-form"
-         "username" "alice"
-         "password" "garden")
+  (let [alice-session-token (login-with-form! "alice" "garden")
         {alice-access-token "access_token"}
         (with-session-token alice-session-token
           (oauth/implicit-authorize!
@@ -670,12 +680,7 @@
             ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
             }))
 
-        {bob-session-token :juxt.site/session-token}
-        (login/login-with-form!
-         *handler*
-         :juxt.site/uri "https://auth.hospital.com/login-with-form"
-         "username" "bob"
-         "password" "walrus")
+        bob-session-token (login-with-form! "bob" "walrus")
         {bob-access-token "access_token"}
         (with-session-token bob-session-token
           (oauth/implicit-authorize!

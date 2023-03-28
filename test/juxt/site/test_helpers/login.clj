@@ -3,7 +3,6 @@
 (ns juxt.site.test-helpers.login
   (:require
    [clojure.java.io :as io]
-   [malli.core :as malli]
    [juxt.site.test-helpers.xt :refer [*xt-node*]]
    [juxt.site.test-helpers.handler :refer [*handler*]]
    [ring.util.codec :as codec]
@@ -11,30 +10,25 @@
 
 (defn login-with-form!
   "Return a session id (or nil) given a map of fields."
-  [handler & {:as args}]
-  {:pre [(malli/validate
-          [:map
-           [:juxt.site/uri [:re "https://.*"]]
-           ["username" [:string {:min 2}]]
-           ["password" [:string {:min 6}]]] args)]}
-  (let [form (codec/form-encode (dissoc args :juxt.site/uri))
+  [username password]
+  (let [form (codec/form-encode {"username" username "password" password})
         body (.getBytes form)
-        req {:juxt.site/uri (:juxt.site/uri args)
+        req {:juxt.site/uri "https://auth.example.test/login-with-form"
              :ring.request/method :post
              :ring.request/headers
              {"content-length" (str (count body))
               "content-type" "application/x-www-form-urlencoded"}
              :ring.request/body (io/input-stream body)}
-        response (handler req)
+        response (*handler* req)
         {:strs [set-cookie]} (:ring.response/headers response)
-        [_ id] (when set-cookie (re-matches #"[a-z]+=(.*?);.*" set-cookie))]
-    (when-not id
+        [_ token] (when set-cookie (re-matches #"[a-z]+=(.*?);.*" set-cookie))]
+    (when-not token
       (throw
        (ex-info
         (format "Login failed: %s" (String. (:ring.response/body response)))
-        {:args args
+        {:username username
          :response response})))
-    {:juxt.site/session-token id}))
+    token))
 
 (defn lookup-session-details [session-token]
   (when session-token

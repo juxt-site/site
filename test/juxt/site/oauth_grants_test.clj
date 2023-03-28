@@ -11,7 +11,7 @@
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
-   [juxt.site.test-helpers.login :as login :refer [with-session-token]]
+   [juxt.site.test-helpers.login :as login :refer [login-with-form! with-session-token]]
    [juxt.site.test-helpers.oauth :as oauth :refer [AUTH_SERVER]]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.util :as util]
@@ -79,16 +79,6 @@
 
   (f))
 
-(defn login [username password]
-  (let [login-result
-        (login/login-with-form!
-         *handler*
-         "username" username
-         "password" password
-         :juxt.site/uri "https://auth.example.test/login-with-form")]
-    (assert (:juxt.site/session-token login-result))
-    (:juxt.site/session-token login-result)))
-
 (use-fixtures
   :once
   system-xt-fixture
@@ -97,7 +87,7 @@
   bootstrap-fixture)
 
 (deftest implicit-grant-test
-  (let [session-token (login "alice" "garden")
+  (let [session-token (login-with-form! "alice" "garden")
 
         state (util/make-nonce 10)
 
@@ -155,7 +145,7 @@
 
 
 (deftest client-not-registered-test
-  (let [session-token (login "alice" "garden")
+  (let [session-token (login-with-form! "alice" "garden")
         state (util/make-nonce 10)
         {:ring.response/keys [status headers body]}
         (with-session-token session-token
@@ -176,7 +166,7 @@
 ;;
 ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.1
 (deftest missing-response-type-error-test
-  (let [session-token (login "alice" "garden")
+  (let [session-token (login-with-form! "alice" "garden")
         response
         (with-session-token session-token
           (*handler*
@@ -231,7 +221,7 @@
 
 ;; State is mandatory
 (deftest authorization-missing-state-test
-  (let [session-token (login "alice" "garden")
+  (let [session-token (login-with-form! "alice" "garden")
         response
         (with-session-token session-token
           (*handler*
@@ -256,7 +246,7 @@
   (let [code-verifier (util/make-code-verifier 64)
         code-challenge (util/code-challenge code-verifier)
 
-        session-token (login "alice" "garden")
+        session-token (login-with-form! "alice" "garden")
         {:ring.response/keys [status headers]}
         (with-session-token session-token
           (*handler*
@@ -489,7 +479,7 @@
 
 ;; What if we try to fake the refresh token?
 (deftest fake-refresh-token-test
-  (let [session-token (login "alice" "garden")
+  (let [session-token (login-with-form! "alice" "garden")
         _ (acquire-access-token!
            {:session-token session-token
             :client "https://auth.example.test/clients/public-global-scope-app"
@@ -505,7 +495,7 @@
 (deftest app-with-global-scope-with-no-scope-requested
   (let [response
         (acquire-access-token!
-         {:session-token (login "alice" "garden")
+         {:session-token (login-with-form! "alice" "garden")
           :client "https://auth.example.test/clients/public-global-scope-app"
           :grant-type "authorization_code"})]
     (is (nil? (find response "scope"))
@@ -514,7 +504,7 @@
 (deftest app-with-global-scope-with-specific-scope-requested
   (let [{:strs [scope]}
         (acquire-access-token!
-         {:session-token (login "alice" "garden")
+         {:session-token (login-with-form! "alice" "garden")
           :client "https://auth.example.test/clients/public-global-scope-app"
           :grant-type "authorization_code"
           :scope #{"https://auth.example.test/scopes/test/read"
@@ -533,14 +523,14 @@
 (deftest scope-included-in-token-info
  (let [{access-token "access_token"}
        (acquire-access-token!
-        {:session-token (login "alice" "garden")
+        {:session-token (login-with-form! "alice" "garden")
          :client "https://auth.example.test/clients/public-global-scope-app"
          :grant-type "authorization_code"
          :scope #{"https://auth.example.test/scopes/test/read"
                   "https://auth.example.test/scopes/test/write"
                   "https://auth.example.test/scopes/test/dummy"}})
        {:ring.response/keys [status headers body]}
-       (with-session-token (login "alice" "garden")
+       (with-session-token (login-with-form! "alice" "garden")
          (*handler*
           (oauth/make-token-info-request {"token" access-token})))]
    (is (= 200 status))
@@ -558,7 +548,7 @@
   (testing "no scope requested"
     (let [{scope "scope"}
           (acquire-access-token!
-           {:session-token (login "alice" "garden")
+           {:session-token (login-with-form! "alice" "garden")
             :client "https://auth.example.test/clients/public-read-write-scope-app"
             :grant-type "authorization_code"})]
       (is (= #{"https://auth.example.test/scopes/test/read"
@@ -568,7 +558,7 @@
   (testing "read-app"
     (let [{scope "scope"}
           (acquire-access-token!
-           {:session-token (login "alice" "garden")
+           {:session-token (login-with-form! "alice" "garden")
             :client "https://auth.example.test/clients/public-read-scope-app"
             :grant-type "authorization_code"
             :scope #{"https://auth.example.test/scopes/test/read"
@@ -580,7 +570,7 @@
   (testing "read-write-app"
     (let [{scope "scope"}
           (acquire-access-token!
-           {:session-token (login "alice" "garden")
+           {:session-token (login-with-form! "alice" "garden")
             :client "https://auth.example.test/clients/public-read-write-scope-app"
             :grant-type "authorization_code"
             :scope #{"https://auth.example.test/scopes/test/read"
