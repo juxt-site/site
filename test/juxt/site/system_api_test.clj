@@ -11,7 +11,8 @@
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
+   [clojure.java.io :as io]))
 
 ;; TODO: Investigate use of test-ns-hook to run ns tests with both
 ;; implicit and authorization code grants. Until then, let's just use
@@ -24,13 +25,13 @@
   ;; Need some test users and a way for them to authenticate
   (install-resource-groups!
    ["juxt/site/login-form" "juxt/site/example-users"]
-   AUTH_SERVER
+   RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   ;; Install an authorization server
   (install-resource-groups!
    ["juxt/site/oauth-authorization-server"]
-   AUTH_SERVER
+   RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
     "keypair" "https://auth.example.test/keypairs/test-kp-123"
     "authorization-code-length" 12
@@ -42,7 +43,7 @@
 
   (converge!
    ["https://auth.example.test/clients/test-app"]
-   AUTH_SERVER
+   RESOURCE_SERVER
    {"client-type" "public"
     "origin" "https://test-app.example.test"
     "resource-server" "https://data.example.test"
@@ -52,7 +53,7 @@
 
   (converge!
    ["https://auth.example.test/clients/read-only-app"]
-   AUTH_SERVER
+   RESOURCE_SERVER
    {"client-type" "public"
     "origin" "https://read-only-app.example.test"
     "resource-server" "https://data.example.test"
@@ -126,26 +127,49 @@
 ;; shouldn't be necessary to use the tool for adding new users once
 ;; the system has been bootstrapped.
 
-#_(with-fixtures
-    (let [{access-token "access_token"}
-          (with-session-token
-            (login/login-with-form! "alice" "garden")
-            (oauth/implicit-authorize!
-             "https://auth.example.test/oauth/authorize"
-             {"client_id" "test-app"}))]
+(deftest put-user-test
+  (let [session-token (login/login-with-form! "alice" "garden")
 
-      (oauth/with-bearer-token access-token
-        (let [response
-              (*handler*
-               {:juxt.site/uri "https://data.example.test/_site/users"
-                :ring.request/method :post
-                :ring.request/headers
-                {"content-type" "application/edn"}})]
+        {test-app-access-token "access_token"}
+        (with-session-token session-token
+          (oauth/implicit-authorize!
+           "https://auth.example.test/oauth/authorize"
+           ;; the test-app has global scope
+           {"client_id" "test-app"}))
 
-          (is (= 201 (:ring.response/status response)))
-          response)))
-    )
+        {read-only-app-access-token "access_token"}
+        (with-session-token session-token
+          (oauth/implicit-authorize!
+           "https://auth.example.test/oauth/authorize"
+           ;; the read-only-app should not be able to put-user
+           {"client_id" "read-only-app"}))]
 
-;; TODO: put-user
+    (converge!
+     ["https://auth.example.test/role-assignments/alice-System"]
+     RESOURCE_SERVER
+     {})
 
-;; What's in put-user?
+    (oauth/with-bearer-token test-app-access-token
+      (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/terry"}))
+            request {:juxt.site/uri "https://data.example.test/_site/users"
+                     :ring.request/method :post
+                     :ring.request/headers
+                     {"content-type" "application/edn"
+                      "content-length" (str (count payload))}
+                     :ring.request/body (io/input-stream payload)}
+            response (*handler* request)]
+
+        (is (= 200 (:ring.response/status response)))))
+
+    (oauth/with-bearer-token read-only-app-access-token
+      (let [request {:juxt.site/uri "https://data.example.test/_site/users.json"
+                     :ring.request/method :get}
+            {:ring.response/keys [status headers body]} (*handler* request)]
+
+        (is (= 200 status))
+        (is (= "application/json" (get headers "content-type")))
+        (is (= [{"xt/id" "https://data.example.test/users/alice"}
+                {"xt/id" "https://data.example.test/users/bob"}
+                {"xt/id" "https://data.example.test/users/carlos"}
+                {"xt/id" "https://data.example.test/users/terry"}]
+               (json/read-value body)))))))

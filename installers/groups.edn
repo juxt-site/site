@@ -1,7 +1,7 @@
 {"juxt/site/protection-spaces"
- {:juxt.site/description "Core resources",
+ {:juxt.site/description "Protection spaces"
   :juxt.site/resources
-  ["https://auth.example.org/operations/put-protection-space"]},
+  ["https://auth.example.org/operations/put-protection-space"]}
 
  "juxt/site/system-api"
  {:juxt.site/description "Site System API",
@@ -16,24 +16,37 @@
    "https://data.example.org/_site/operations.json"
    ;; /users
    "https://auth.example.org/operations/get-users"
+   "https://auth.example.org/operations/put-user"
    "https://data.example.org/_site/users"
    "https://data.example.org/_site/users.html"
    "https://data.example.org/_site/users.json"
    ;; Roles
+   "https://auth.example.org/roles/System"
    "https://auth.example.org/roles/SystemReadonly"
+   ;; Permissions (mapping roles to operations)
+   "https://auth.example.org/permissions/by-role/System/get-users"
+   "https://auth.example.org/permissions/by-role/System/put-user"
    "https://auth.example.org/permissions/by-role/SystemReadonly/get-users"
+
    ;; Scopes
+
+   ;; TODO: There's a risk of forgetting to update a scope or scopes
+   ;; when adding a new operation (which will be commmon). Why not
+   ;; reference scopes from operations instead? That way, when writing
+   ;; an operation, designers would be forced to consider scopes at
+   ;; the same time as the access control rules.
+
    "https://auth.example.org/scopes/system/read"
    "https://auth.example.org/scopes/system/write"]}
 
  "juxt/site/sessions"
- {:juxt.site/description "Sessions",
+ {:juxt.site/description "Sessions"
   :juxt.site/resources
   ["https://auth.example.org/operations/put-session-scope"
-   "https://auth.example.org/permissions/system/put-session-scope"]},
+   "https://auth.example.org/permissions/system/put-session-scope"]}
 
  "juxt/site/bootstrap"
- {:juxt.site/description "Bootstrap resources",
+ {:juxt.site/description "Bootstrap resources"
   :juxt.site/resources
   ["https://auth.example.org/_site/do-operation"
    "https://auth.example.org/_site/subjects/system"
@@ -44,42 +57,34 @@
    "https://auth.example.org/_site/permissions/system/install-not-found"
    "https://auth.example.org/_site/not-found"
    "https://auth.example.org/_site/operations/get-not-found"
-   "https://auth.example.org/_site/permissions/get-not-found"]},
+   "https://auth.example.org/_site/permissions/get-not-found"]}
 
  "juxt/site/user-model"
  {:juxt.site/description
-  "Operations to establish users upon a common model",
+  "Operations to establish users upon a common model"
   :juxt.site/resources
   ["https://auth.example.org/operations/put-user"
-   "https://auth.example.org/permissions/system/put-user"]},
+   "https://auth.example.org/permissions/system/put-user"]}
 
  "juxt/site/login-form"
- {:juxt.site/description "Login form",
+ {:juxt.site/description "Login form"
   :juxt.site/resources
   ["https://auth.example.org/operations/login"
    "https://auth.example.org/permissions/login"
    "https://auth.example.org/operations/create-login-resource"
-   "https://auth.example.org/login-with-form"]},
-
- ;; Commenting out, as we can depend directly on these resources from
- ;; dependent OpenAPI resources
- #_"juxt/site/openapi"
- #_{:juxt.site/description "OpenAPI",
-    :juxt.site/resources
-    ["https://auth.example.org/operations/get-openapi-document"
-     "https://auth.example.org/permissions/get-openapi-document"]},
+   "https://auth.example.org/login-with-form"]}
 
  ;; Tested in juxt.site.oauth-test
  "juxt/site/whoami"
- {:juxt.site/description "whoami resources",
+ {:juxt.site/description "whoami resources"
   :juxt.site/resources
   ["https://auth.example.org/permissions/whoami"
    "https://data.example.org/whoami"
    "https://data.example.org/whoami.json"
-   "https://data.example.org/whoami.html"]},
+   "https://data.example.org/whoami.html"]}
 
  "juxt/site/oauth-authorization-server"
- {:juxt.site/description "OAuth2 Authorization Server",
+ {:juxt.site/description "OAuth2 Authorization Server"
   :juxt.site/resources
   ["https://auth.example.org/oauth/authorize"
    "https://auth.example.org/oauth/token"
@@ -102,7 +107,7 @@
    ]}
 
  "juxt/site/example-users"
- {:juxt.site/description "Example users",
+ {:juxt.site/description "Example users"
   :juxt.site/resources
   ["https://data.example.org/users/alice"
    "https://data.example.org/user-identities/alice"
@@ -112,7 +117,7 @@
    "https://data.example.org/user-identities/carlos"]}
 
  "juxt/site/hospital-demo"
- {:juxt.site/description "Hospital demo resources",
+ {:juxt.site/description "Hospital demo resources"
   :juxt.site/resources
   ["https://auth.example.org/session-scopes/form-login-session"
    "https://auth.example.org/protection-spaces/bearer"
@@ -166,24 +171,24 @@
    "https://data.example.org/assignments/patient/005/doctor/001"
    "https://data.example.org/assignments/patient/005/doctor/002"
    "https://data.example.org/assignments/patient/006/doctor/003"
-   "https://data.example.org/assignments/patient/010/doctor/003"]},
+   "https://data.example.org/assignments/patient/010/doctor/003"]}
 
  "juxt/site/roles"
  {:juxt.site/description
-  "Operations to establish and assign roles to users",
+  "Operations to establish and assign roles to users"
   :juxt.site/resources
   ["https://auth.example.org/operations/put-role"
    "https://auth.example.org/permissions/system/put-role"
    "https://auth.example.org/operations/assign-role"
-   "https://auth.example.org/permissions/system/assign-role"]},
+   "https://auth.example.org/permissions/system/assign-role"]}
 
  "juxt/site/password-based-user-identity"
- {:juxt.site/description "Password based user identities",
+ {:juxt.site/description "Password based user identities"
   :juxt.site/resources
   ["https://auth.example.org/permissions/system/register-password-based-user-identity"]}
 
  "juxt/site/openid"
- {:juxt.site/description "OpenID Connect",
+ {:juxt.site/description "OpenID Connect"
   :juxt.site/resources
   ["https://auth.example.org/operations/openid/exchange-code-for-id-token"
    "https://auth.example.org/operations/register-openid-issuer"

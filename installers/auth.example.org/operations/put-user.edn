@@ -82,7 +82,7 @@
                      :juxt.site/access-control-allow-headers ["authorization" "hx-current-url" "hx-request"]}]]
 
              ;; It's nice to be able to access this resource via a browser
-             :juxt.site/session-scope "{{session-scope}}"
+             ;; :juxt.site/session-scope "{{session-scope}}"
 
              :juxt.site/respond
              {:juxt.site.sci/program
@@ -113,4 +113,13 @@
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)
-     [permission :juxt.site/subject subject]]]}}}
+     [permission :juxt.site/subject subject]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/user-identity id]
+     [id :juxt.site/user user]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://auth.example.org/_site/types/role"]
+     [role-assignment :juxt.site/type "https://auth.example.org/_site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/user user]]]}}}
