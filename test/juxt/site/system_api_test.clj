@@ -111,6 +111,16 @@
             json))))))
 
 
+(deftest openapi-json-test
+  (let [{:ring.response/keys [status headers body]}
+        (*handler*
+         {:ring.request/method :get
+          :juxt.site/uri "https://data.example.test/_site/openapi.json"})]
+    (is (= 200 status))
+    (is (= "application/json" (get headers "content-type")))
+    (let [json (json/read-value body)]
+      (is (= 2 (count (get-in json ["paths" "/users"])))))))
+
 ;; So we need a system-api call that will allow us to add a
 ;; user. We'll still need the site tool to bootstrap users, but it
 ;; shouldn't be necessary to use the tool for adding new users once
