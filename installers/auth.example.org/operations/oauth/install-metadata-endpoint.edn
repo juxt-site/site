@@ -25,7 +25,7 @@
          juxt.site.malli/validate-input
          (assoc
           :juxt.site/methods
-          {:get #:juxt.site{:operations #{"https://auth.example.org/operations/oauth/get-authorization-server-metadata"}}}
+          {:get {:juxt.site/operation "https://auth.example.org/operations/oauth/get-authorization-server-metadata"}}
           :juxt.http/content-type "application/json"
           :juxt.site/respond
           {:juxt.site.sci/program

@@ -5,7 +5,7 @@
  {:juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/operations #{"https://auth.example.org/operations/whoami"}}}
+   {:get {:juxt.site/operation "https://auth.example.org/operations/whoami"}}
    :juxt.site/variant-of "https://data.example.org/whoami"
    :juxt.http/content-type "application/json"
    :juxt.site/respond

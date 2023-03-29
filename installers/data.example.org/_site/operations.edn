@@ -12,7 +12,7 @@
    :juxt.site/methods
    {:get
     {:juxt.site/description "Get all permitted operations"
-     :juxt.site/operations #{"https://auth.example.org/operations/get-operations"}
+     :juxt.site/operation "https://auth.example.org/operations/get-operations"
      :openapi.v3/operation-id "getOperations"
      :openapi.v3/scope "https://auth.example.org/scopes/system/read"
      :openapi.v3/tags ["Operations"]}}

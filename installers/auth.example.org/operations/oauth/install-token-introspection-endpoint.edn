@@ -31,9 +31,9 @@
          (assoc
           :juxt.site/methods
           {:get
-           {:juxt.site/operations #{"https://auth.example.org/operations/oauth/get-introspect-token-form"}}
+           {:juxt.site/operation "https://auth.example.org/operations/oauth/get-introspect-token-form"}
            :post
-           {:juxt.site/operations #{"https://auth.example.org/operations/oauth/introspect-token"}
+           {:juxt.site/operation "https://auth.example.org/operations/oauth/introspect-token"
             :juxt.site/acceptable {"accept" "application/x-www-form-urlencoded"}}}))))}
 
    :juxt.site/transact

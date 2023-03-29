@@ -19,6 +19,18 @@
    juxt.site.schema
    [juxt.site.jwt :as jwt]))
 
+(defn operation->rules
+  "Determine rules for the given operation id. A rule is bound to the
+  given operation."
+  [db operation]
+  (mapv
+   #(conj (second %) ['operation :xt/id (first %)])
+   (xt/q db '{:find [e rules]
+              :where [[e :xt/id operation]
+                      [e :juxt.site/rules rules]]
+              :in [operation]}
+         operation)))
+
 (defn operations->rules
   "Determine rules for the given operation ids. Each rule is bound to the given
   operation."
@@ -33,17 +45,13 @@
 ;; authorization is denied and we don't know why. A better authorization
 ;; debugger is definitely required.
 (defn ^{:private true} query-permissions
-  [{:keys [db rules subject operations resource purpose]}]
+  [{:keys [db rules subject operation resource purpose]}]
   (assert (or (nil? subject) (string? subject)))
   (assert (or (nil? resource) (string? resource)))
-  (let [query {:find '[(pull permission [*]) (pull operation [*])]
-               :keys '[juxt.site/permission juxt.site/operation]
+  (let [query {:find '[(pull permission [*]) ]
                :where
                '[
                  [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
-
-                 ;; Only consider given operations
-                 [(contains? operations operation)]
 
                  ;; TODO: Constrain with scope
 
@@ -57,18 +65,15 @@
 
                :rules rules
 
-               :in '[subject operations resource purpose]}]
+               :in '[subject operation resource purpose]}]
     (try
-      (xt/q
-       db
-       query
-       subject operations resource purpose)
+      (map first (xt/q db query subject operation resource purpose))
       (catch Exception e
         (throw (ex-info "Failed to query permissions" {:query query} e))))))
 
 (defn check-permissions
-  "Given a subject, possible operations and resource, return all related pairs of permissions and operations."
-  [db operations {subject :juxt.site/subject resource :juxt.site/resource purpose :juxt.site/purpose :as options}]
+  "Given a subject, a possible operation and resource, return all related pairs of permissions and operations."
+  [db operation {subject :juxt.site/subject resource :juxt.site/resource purpose :juxt.site/purpose :as options}]
 
   (when (= (find options :juxt.site/subject) [:juxt.site/subject nil])
     (throw (ex-info "Nil subject passed!" {})))
@@ -77,24 +82,21 @@
   (assert (or (nil? subject) (map? subject)) "Subject expected to be a map, or null")
   (assert (or (nil? resource) (map? resource)) "Resource expected to be a map, or null")
 
-  (let [rules (operations->rules db operations)]
+  (let [rules (operation->rules db operation)]
     (when (seq rules)
-      (let [permissions
-            (query-permissions
-             {:db db
-              :rules rules
-              :subject (:xt/id subject)
-              :operations operations
-              :resource (:xt/id resource)
-              :purpose purpose})]
-        ;;(log/debugf "Returning permissions: %s" (pr-str permissions))
-        permissions))))
+      (query-permissions
+       {:db db
+        :rules rules
+        :subject (:xt/id subject)
+        :operation operation
+        :resource (:xt/id resource)
+        :purpose purpose}))))
 
 (malli/=>
  check-permissions
  [:=> [:cat
        :any
-       [:or [:set :string] [:sequential :string]]
+       :string
        [:map
         [:juxt.site/subject {:optional true}]
         [:juxt.site/resource {:optional true}]
@@ -104,15 +106,12 @@
 (defn allowed-resources
   "Given a set of possible operations, and possibly a subject and purpose, which
   resources are allowed?"
-  [db operations {:juxt.site/keys [subject purpose]}]
-  (let [rules (operations->rules db operations)
+  [db operation {:juxt.site/keys [subject purpose]}]
+  (let [rules (operation->rules db operation)
         query {:find '[resource]
                :where
                '[
                  [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
-
-                 ;; Only consider given operations
-                 [(contains? operations operation)]
 
                  ;; Only consider a permitted operation
                  [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
@@ -124,10 +123,10 @@
 
                :rules rules
 
-               :in '[subject operations purpose]}]
+               :in '[subject operation purpose]}]
 
     (try
-      (xt/q db query (:xt/id subject) operations purpose)
+      (xt/q db query (:xt/id subject) operation purpose)
       (catch Exception cause
         (throw
          (ex-info
@@ -135,8 +134,8 @@
           {:query query
            :rules rules
            :subject subject
-           :operations operations
-           :operation-entities (doseq [a operations] (xt/entity db a))
+           :operation operation
+           :operation-entity (xt/entity db operation)
            :purpose purpose}
           cause))))))
 
@@ -144,9 +143,7 @@
  allowed-resources
  [:=> [:cat
        :any
-       [:or
-        [:set {:min 0} :string]
-        [:sequential {:min 0} :string]]
+       :string
        [:map
         [:juxt.site/subject {:optional true}]
         [:juxt.site/purpose {:optional true}]]]
@@ -155,20 +152,16 @@
 ;; TODO: How is this call protected from unauthorized use? Must call this with
 ;; access-token to verify subject.
 (defn allowed-subjects
-  "Given a resource and a set of operations, which subjects can access and via which
-  operations?"
-  [db resource operations {:keys [purpose]}]
-  (let [rules (operations->rules db operations)]
+  "Given a resource and an operation, which subjects can access?"
+  [db resource operation {:keys [purpose]}]
+  (let [rules (operation->rules db operation)]
     (->> (xt/q
           db
-          {:find '[subject operation]
-           :keys '[subject operation]
+          {:find '[subject]
+           :keys '[subject]
            :where
            '[
              [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
-
-             ;; Only consider given operations
-             [(contains? operations operation)]
 
              ;; Only consider a permitted operation
              [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
@@ -182,18 +175,18 @@
 
            :rules rules
 
-           :in '[resource operations purpose]}
+           :in '[resource operation purpose]}
 
-          resource operations purpose))))
+          resource operation purpose))))
 
 (defn pull-allowed-resource
-  "Given a subject, a set of possible operations and a resource, pull the allowed
+  "Given a subject, an operation and a resource, pull the allowed
   attributes."
-  [db operations resource ctx]
+  [db operation resource ctx]
   (let [check-result
         (check-permissions
          db
-         operations
+         operation
          (assoc ctx :juxt.site/resource resource))
 
         pull-expr (vec (mapcat
@@ -206,7 +199,7 @@
  pull-allowed-resource
  [:=> [:cat
        :any
-       [:set :string]
+       :string
        :juxt.site/resource
        [:map
         [:juxt.site/subject {:optional true}]
@@ -214,13 +207,14 @@
   :any])
 
 (defn pull-allowed-resources
-  "Given a subject and a set of possible operations, which resources are allowed, and
-  get me the documents. If resources-in-scope is given, only consider resources
-  in that set."
-  [db operations {:juxt.site/keys [subject purpose include-rules resources-in-scope]}]
-  (let [rules (operations->rules db operations)
+  "Given a subject and an operation, which resources are allowed, and
+  get me the documents. If resources-in-scope is given, only consider
+  resources in that set."
+  [db operation {:juxt.site/keys [subject purpose include-rules resources-in-scope]}]
+  (assert (string? operation))
+  (let [rules (operation->rules db operation)
         _ (when-not (seq rules)
-            (throw (ex-info "No rules found for operations" {:operations operations})))
+            (throw (ex-info "No rules found for operation" {:operation operation})))
         results
         (xt/q
          db
@@ -230,7 +224,6 @@
           (cond-> '[
                     ;; Only consider given operations
                     [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
-                    [(contains? operations operation)]
 
                     ;; Only consider allowed permssions
                     [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
@@ -248,9 +241,9 @@
 
           :rules (vec (concat rules include-rules))
 
-          :in '[subject operations purpose resources-in-scope]}
+          :in '[subject operation purpose resources-in-scope]}
 
-         (:xt/id subject) operations purpose (or resources-in-scope #{}))]
+         (:xt/id subject) operation purpose (or resources-in-scope #{}))]
 
     ;; TODO: Too complex, extract this and unit test. The purpose here it to
     ;; apply the pull of each relevant operation to each result, and merge the
@@ -268,7 +261,7 @@
  pull-allowed-resources
  [:=> [:cat
         :any
-        [:set :string]
+        :string
         [:map
          [:juxt.site/subject {:optional true}]
          [:juxt.site/purpose {:optional true}]]]
@@ -308,6 +301,7 @@
          [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
 
          ;; Only consider given operations
+         ;; TODO: Is this necessary
          [(contains? operations operation)]
 
          ;; Only consider a permitted operation
@@ -414,7 +408,7 @@
 
       ;; Check that we /can/ call the operation
       (let [check-permissions-result
-            (check-permissions db #{operation} ctx)
+            (check-permissions db operation ctx)
 
             _ (when scope
                 (when-not access-token
@@ -717,7 +711,9 @@
 ;; only transitory for the purposes of responnding to the request.
 
 (defn sanitize-ctx [ctx]
-  (dissoc ctx :juxt.site/xt-node :juxt.site/db))
+  (-> ctx
+      (dissoc :juxt.site/xt-node :juxt.site/db)
+      (update :juxt.site/operation :xt/id)))
 
 (defn apply-response-fx [ctx fx]
   (reduce
@@ -780,19 +776,18 @@
         ;; Ignore and unwrap the SCI error
         (throw (.getCause e))))))
 
-
 (defn do-operation!
-  [ ;; TODO: Arguably operation should passed as a map
-   {:juxt.site/keys [xt-node db resource subject operation] :as ctx}]
+  [{:juxt.site/keys [xt-node db resource subject operation] :as ctx}]
+  (assert operation)
+
   (assert (:juxt.site/xt-node ctx) "xt-node must be present")
   (assert (:juxt.site/db ctx) "db must be present")
 
-  (when-not (xt/entity db operation)
-    (throw (ex-info "No operation found" {:operation operation})))
-
-  (assert (xt/entity db operation) (format "Operation '%s' must exist in database" operation))
-
-  (log/debugf "Doing operation: %s" operation)
+  (when-not (map? operation)
+    (throw
+     (ex-info
+      "Operation must be a map"
+      {:juxt.site/request-context ctx :operation operation})))
 
   (when-not (or (nil? subject) (map? subject))
     (throw
@@ -813,26 +808,24 @@
 
   ;; The :juxt.site/subject can be nil, if this operation is being performed
   ;; by an anonymous user.
-  (let [operation-doc (xt/entity db operation)
-        _ (when-not operation-doc
-            (throw (ex-info (format "Operation not found in the database: %s" operation) {:operation operation})))
-        prepare (do-prepare ctx operation-doc)
-        tx-fn (:juxt.site/do-operation-tx-fn operation-doc)
+  (let [prepare (do-prepare ctx operation)
+        tx-fn (:juxt.site/do-operation-tx-fn operation)
         _ (when-not (xt/entity db tx-fn)
             (throw (ex-info (format "do-operation must exist in database: %s" tx-fn)
-                            {:operation-doc operation-doc})))
-        tx-ctx (cond-> (sanitize-ctx ctx) prepare (assoc :juxt.site/prepare prepare))
+                            {:operation operation})))
+        tx-ctx (cond-> (sanitize-ctx ctx)
+                 prepare (assoc :juxt.site/prepare prepare))
         tx (xt/submit-tx xt-node [[::xt/fn tx-fn tx-ctx]])
         {::xt/keys [tx-id] :as tx} (xt/await-tx xt-node tx)
         ctx (assoc ctx :juxt.site/db (xt/db xt-node tx))
-        events-base-uri (:juxt.site/events-base-uri operation-doc)]
+        events-base-uri (:juxt.site/events-base-uri operation)]
 
     (when-not (xt/tx-committed? xt-node tx)
       (throw
        (ex-info
-        (format "Transaction failed to be committed for operation %s" operation)
+        (format "Transaction failed to be committed for operation %s" (:xt/id operation))
         {::xt/tx-id tx-id
-         :juxt.site/operation operation
+         :juxt.site/operation (:xt/id operation)
          :juxt.site/request-context ctx})))
 
     (let [result
@@ -871,7 +864,7 @@
 ;;
 ;; For a fuller discussion on determinism and its benefits, see
 ;; https://www.cs.umd.edu/~abadi/papers/abadi-cacm2018.pdf
-(defn wrap-authorize-with-operations [h]
+(defn wrap-authorize-with-operation [h]
   (fn [{:juxt.site/keys [db resource uri subject]
         :ring.request/keys [method]
         :as req}]
@@ -880,24 +873,23 @@
     (assert (or (nil? resource) (map? resource)))
 
     (let [method (if (= method :head) :get method)
-          operations (get-in resource [:juxt.site/methods method :juxt.site/operations])
+          operation-id (get-in resource [:juxt.site/methods method :juxt.site/operation])
 
-          _ (doseq [operation operations]
-              (when-not (xt/entity db operation)
-                (throw
-                 (ex-info
-                  (format "No such operation: %s" operation)
-                  {:juxt.site/request-context req
-                   :missing-operation operation}))))
+          operation (xt/entity db operation-id)
+          _ (when-not operation
+              (throw
+               (ex-info
+                (format "No such operation: %s" operation-id)
+                {:juxt.site/request-context req
+                 :missing-operation operation-id
+                 :resource resource
+                 :method method})))
 
-          _ (log/tracef "operations are %s" (pr-str {:operations operations}))
-
-          permitted-operations
-          (when operations
+          permissions
+          (when operation-id
             (check-permissions
              db
-             operations
-             ;; TODO: Isn't this now superfluous - can't we pass through the req?
+             operation-id
              (cond-> {}
                ;; When the resource is in the database, we can add it to the
                ;; permission checking in case there's a specific permission for
@@ -905,18 +897,16 @@
                subject (assoc :juxt.site/subject subject)
                resource (assoc :juxt.site/resource resource))))]
 
-      #_(log/debugf "Permitted operations: %s" (pr-str permitted-operations))
-
       (cond
-        (seq permitted-operations)
-        (h (assoc req :juxt.site/permitted-operations permitted-operations))
+        (seq permissions)
+        (h (assoc req :juxt.site/operation operation :juxt.site/permissions permissions))
 
         (= method :options) (h req)
 
         subject
         (throw
          (ex-info
-          (format "Subject (%s) does not have permission to use any of these operations: %s" (:xt/id subject) (pr-str operations))
+          (format "Subject (%s) does not have permission to this operation: %s" (:xt/id subject) (pr-str operation))
           {:ring.response/status 403
            :juxt.site/request-context req}))
 
@@ -926,7 +916,7 @@
           ;; + WWW-Authenticate header)
           (throw
            (ex-info
-            (format "No anonymous permission for operations (try authenticating!): %s" (pr-str operations))
+            (format "No anonymous permission for operation (try authenticating!): %s" (pr-str operation))
             {:ring.response/status 401
              :ring.response/headers
              {"www-authenticate" (http-authn/www-authenticate-header db protection-spaces)
@@ -960,13 +950,13 @@
               ;;                (def req req)
               (throw
                (ex-info
-                (format "No anonymous permission for operations (try logging in!): %s" (pr-str operations))
+                (format "No anonymous permission for operation (try logging in!): %s" (pr-str operation))
                 {:ring.response/status 302
                  :ring.response/headers {"location" redirect}
                  :juxt.site/request-context req})))
             (throw
              (ex-info
-              (format "No anonymous permission for operations: %s" (pr-str operations))
+              (format "No anonymous permission for operation: %s" (pr-str operation))
               {:ring.response/status 403
                :juxt.site/request-context req}))))))))
 

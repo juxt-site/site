@@ -212,20 +212,15 @@
   (conditional/evaluate-preconditions! req)
 
   (let [req (assoc req :ring.response/status 200)
-        ;; This use of 'first' is worrisome. Perhaps we should be merging the
-        ;; results of every permitted operation? TODO: resolve this
-        permitted-operation (:juxt.site/operation (first (:juxt.site/permitted-operations req)))]
-
-    ;;(log/debugf "Permitted operation is %s" (:xt/id permitted-operation))
+        operation (:juxt.site/operation req)]
 
     (cond
 
       ;; It's rare but sometimes a GET will involve a transaction. For example,
       ;; the Authorization Request (RFC 6749 Section 4.2.1).
-      (and permitted-operation (-> permitted-operation :juxt.site/transact))
+      (and operation (:juxt.site/transact operation))
       (operations/do-operation!
        (cond-> req
-         permitted-operation (assoc :juxt.site/operation (:xt/id permitted-operation))
          ;; A java.io.BufferedInputStream in the request can cause this error:
          ;; "invalid tx-op: Unfreezable type: class
          ;; java.io.BufferedInputStream".
@@ -233,13 +228,13 @@
 
       (-> resource :juxt.site/respond :juxt.site.sci/program)
       (let [state
-            (when-let [program (-> permitted-operation :juxt.site/state :juxt.site.sci/program)]
+            (when-let [program (-> operation :juxt.site/state :juxt.site.sci/program)]
               (sci/binding [sci/out *out*]
                 (sci/eval-string
                  program
                  {:namespaces
                   (merge
-                   {'user {'*operation* permitted-operation
+                   {'user {'*operation* operation
                            '*resource* (:juxt.site/resource req)
                            '*ctx* (dissoc req :juxt.site/xt-node)
                            'log (fn [& message]
@@ -286,7 +281,7 @@
              {:namespaces
               (merge
                {'user (cond->
-                          {'*operation* permitted-operation
+                          {'*operation* operation
                            '*resource* (:juxt.site/resource req)
                            '*ctx* (dissoc req :juxt.site/xt-node)
                            'logf (fn [& args] (eval `(log/debugf ~@args)))
@@ -332,22 +327,22 @@
 (defn perform-unsafe-method [{:keys [ring.request/method] :as req}]
   (let [req (cond-> req
               (#{:post :put :patch} method) receive-representation)
-        ;; TODO: Should we fail if more than one permitted operation available?
-        permitted-operation (:juxt.site/operation (first (:juxt.site/permitted-operations req)))
+
+        permissions (:juxt.site/permissions req)
+        _ (assert permissions)
+
         ;; Default response status
         req (assoc req :ring.response/status 200)]
 
     (operations/do-operation!
      (-> req
-         (assoc :juxt.site/operation (:xt/id permitted-operation))
          ;; A java.io.BufferedInputStream in the request can provoke this
          ;; error: "invalid tx-op: Unfreezable type: class
          ;; java.io.BufferedInputStream".
          (dissoc :ring.request/body)))))
 
 (defn POST [req]
-  (perform-unsafe-method req)
-)
+  (perform-unsafe-method req))
 
 (defn PUT [req]
   (perform-unsafe-method req))
@@ -1191,7 +1186,7 @@
    wrap-method-not-allowed?
 
    ;; We authorize the resource, prior to finding representations.
-   operations/wrap-authorize-with-operations
+   operations/wrap-authorize-with-operation
 
    ;; Find representations and possibly do content negotiation
    wrap-find-current-representations

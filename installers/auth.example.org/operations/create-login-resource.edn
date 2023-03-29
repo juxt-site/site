@@ -30,8 +30,8 @@
          juxt.site.malli/validate-input
          (assoc
           :juxt.site/methods
-          {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-public-resource"}}
-           :post {:juxt.site/operations #{"https://auth.example.org/operations/login"}}}
+          {:get {:juxt.site/operation "https://auth.example.org/operations/get-public-resource"}
+           :post {:juxt.site/operation "https://auth.example.org/operations/login"}}
 
           :juxt.http/content-type "text/html;charset=utf-8"
           ;; TODO: We could make the HTML content a parameter

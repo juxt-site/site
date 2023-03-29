@@ -15,7 +15,7 @@
         _ (assert operation-id "Operation must be specified on metadata")
         operation (when operation-id (xt/entity db operation-id))
         _ (when operation-id (assert operation (format "Operation not found: %s" operation-id)))
-        rules (when operation (operations/operations->rules db #{operation-id}))
+        rules (when operation (operations/operation->rules db operation-id))
         _ (when operation (assert (seq rules) (format "No rules found for operation %s" operation-id)))
 
         parent-operation (:juxt.site/operation ctx)

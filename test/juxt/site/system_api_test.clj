@@ -111,31 +111,30 @@
             json))))))
 
 
-
 ;; So we need a system-api call that will allow us to add a
 ;; user. We'll still need the site tool to bootstrap users, but it
 ;; shouldn't be necessary to use the tool for adding new users once
 ;; the system has been bootstrapped.
 
 #_(with-fixtures
-  (let [{access-token "access_token"}
-        (with-session-token
-          (login/login-with-form! "alice" "garden")
-          (oauth/implicit-authorize!
-           "https://auth.example.test/oauth/authorize"
-           {"client_id" "test-app"}))]
+    (let [{access-token "access_token"}
+          (with-session-token
+            (login/login-with-form! "alice" "garden")
+            (oauth/implicit-authorize!
+             "https://auth.example.test/oauth/authorize"
+             {"client_id" "test-app"}))]
 
-    (oauth/with-bearer-token access-token
-      (let [response
-            (*handler*
-             {:juxt.site/uri "https://data.example.test/_site/users"
-              :ring.request/method :post
-              :ring.request/headers
-              {"content-type" "application/edn"}})]
+      (oauth/with-bearer-token access-token
+        (let [response
+              (*handler*
+               {:juxt.site/uri "https://data.example.test/_site/users"
+                :ring.request/method :post
+                :ring.request/headers
+                {"content-type" "application/edn"}})]
 
-        (is (= 201 (:ring.response/status response)))
-        response)))
-  )
+          (is (= 201 (:ring.response/status response)))
+          response)))
+    )
 
 ;; TODO: put-user
 

@@ -28,7 +28,7 @@
          (assoc
           :juxt.site/type "https://auth.example.org/_site/types/role"
           :juxt.site/methods
-          {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-role"}}}))))}
+          {:get {:juxt.site/operation "https://auth.example.org/operations/get-role"}}))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

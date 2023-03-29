@@ -31,7 +31,7 @@
              edn
              :juxt.site/type "https://meta.juxt.site/types/user"
              :juxt.site/methods
-             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}}
+             {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
              :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 
              :juxt.site/access-control-allow-origins
@@ -49,7 +49,7 @@
              :juxt.site/variant-of id
              :juxt.http/content-type "application/json"
              :juxt.site/methods
-             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}}
+             {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
              :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
              :juxt.site/access-control-allow-origins
              [[".*" {:juxt.site/access-control-allow-origin "*"
@@ -73,7 +73,7 @@
              :juxt.site/variant-of id
              :juxt.http/content-type "text/html;charset=utf-8"
              :juxt.site/methods
-             {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-user"}}}
+             {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
              :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 
              :juxt.site/access-control-allow-origins

@@ -4,6 +4,7 @@
   (:require
    [clojure.test :refer [deftest is use-fixtures]]
    [malli.core :as malli]
+   [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER]]

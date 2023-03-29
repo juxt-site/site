@@ -11,14 +11,14 @@
    :juxt.site/methods
    {:get
     {:juxt.site/description "Get users"
-     :juxt.site/operations #{"https://auth.example.org/operations/get-users"}
+     :juxt.site/operation "https://auth.example.org/operations/get-users"
      :openapi.v3/operation-id "get-users"
      :openapi.v3/scope "https://auth.example.org/scopes/system/read"
      :openapi.v3/tags ["Users"]}
 
     :post
     {:juxt.site/description "Add a user"
-     :juxt.site/operations #{"https://auth.example.org/operations/put-user"}
+     :juxt.site/operation "https://auth.example.org/operations/put-user"
      :openapi.v3/operation-id "put-user"
      :openapi.v3/scope "https://auth.example.org/scopes/system/write"
      :openapi.v3/tags ["Users"]}}

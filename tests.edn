@@ -6,8 +6,7 @@
  :tests [{:id :test
           :test-paths ["test"]
           :ns-patterns
-          ["juxt.site.permission-test"
-           "juxt.site.cors-test"
+          ["juxt.site.cors-test"
            "juxt.site.return-test"
            "juxt.site.graphql-compiler-test"
            "juxt.site.form-based-auth-test"

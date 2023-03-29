@@ -32,7 +32,7 @@
          (assoc
           :juxt.site/type "https://meta.juxt.site/types/not-found"
           :juxt.site/methods
-          {:get {:juxt.site/operations #{"https://auth.example.org/_site/operations/get-not-found"}}}))))}
+          {:get {:juxt.site/operation "https://auth.example.org/_site/operations/get-not-found"}}))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

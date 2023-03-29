@@ -24,7 +24,7 @@
          juxt.site.malli/validate-input
          (assoc
           :juxt.site/methods
-          {:get #:juxt.site{:operations #{"https://auth.example.org/operations/oauth/authorize"}}}))))}
+          {:get {:juxt.site/operation "https://auth.example.org/operations/oauth/authorize"}}))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

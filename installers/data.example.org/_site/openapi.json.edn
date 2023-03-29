@@ -43,7 +43,7 @@ Some useful links:
    [{"oauth" ["read:operations" "write:operations"]}]
 
    :juxt.site/methods
-   {:get {:juxt.site/operations #{"https://auth.example.org/operations/get-openapi-document"}}}
+   {:get {:juxt.site/operation "https://auth.example.org/operations/get-openapi-document"}}
 
    :juxt.site/access-control-allow-origins
    [[".*" {:juxt.site/access-control-allow-origin "*"

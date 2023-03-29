@@ -30,7 +30,7 @@
     ;; and queries to XT and see if we can rewrite them to use a more
     ;; restricted API.
     (juxt.site/pull-allowed-resources
-     #{"https://auth.example.org/operations/get-patient"})}
+     "https://auth.example.org/operations/get-patient")}
 
    :juxt.site/rules
    [

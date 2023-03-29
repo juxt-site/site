@@ -35,22 +35,28 @@
           _ (when-not subject
               (throw
                (ex-info
-                (format "No subject found in database for %s" subject-id)
-                {:subject-id subject-id})))]
+                (format "No such subject found in database for %s" subject-id)
+                {:subject-id subject-id})))
+
+          operation (xt/entity db (:juxt.site/operation-id init-data))
+          _ (when-not operation
+              (throw
+               (ex-info
+                (format "No such operation found in database for %s" (:juxt.site/operation-id init-data))
+                {:operation-id (:juxt.site/operation-id init-data)})))]
 
       (try
         (:juxt.site/operation-result
          (operations/do-operation!
-          (cond->
-              {:juxt.site/xt-node xt-node
-               :juxt.site/db db
-               :juxt.site/subject subject
-               :juxt.site/operation (:juxt.site/operation-id init-data)}
+          (cond-> {:juxt.site/xt-node xt-node
+                   :juxt.site/db db
+                   :juxt.site/subject subject
+                   :juxt.site/operation operation}
 
-              (:juxt.site/input init-data)
-              (merge {:juxt.site/received-representation
-                      {:juxt.http/content-type "application/edn"
-                       :juxt.http/body (.getBytes (pr-str (:juxt.site/input init-data)))}}))))
+            (:juxt.site/input init-data)
+            (merge {:juxt.site/received-representation
+                    {:juxt.http/content-type "application/edn"
+                     :juxt.http/body (.getBytes (pr-str (:juxt.site/input init-data)))}}))))
         (catch Exception cause
           (throw (ex-info "Failed to perform operation" {:init-data init-data} cause)))))
 
