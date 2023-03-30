@@ -133,31 +133,31 @@
                       :reading {"heartRate" "87"
                                 "bloodPressure" "127/80"}}})
 
-  ;; Fails because add-implicit-dependencies doesn't cope with :deps being a fn
-
   (let [alice-session-token
         (login-with-form! "alice" "garden")
 
         {alice-access-token "access_token" error "error"}
-        (with-session-token alice-session-token
-          (oauth/implicit-authorize!
-           "https://auth.hospital.com/oauth/authorize"
-           {"client_id" "local-terminal"
-            ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
-            }))
+        (oauth/acquire-access-token!
+         {:grant-type "implicit"
+          :authorization-uri "https://auth.hospital.com/oauth/authorize"
+          :client "https://auth.hospital.com/clients/local-terminal"
+          :session-token alice-session-token
+          ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
+          })
         _ (is (nil? error) (format "OAuth2 grant error: %s" error))
 
         bob-session-token
         (login-with-form! "bob" "walrus")
         {bob-access-token "access_token"
          error "error"}
-        (with-session-token bob-session-token
-          (oauth/implicit-authorize!
-           "https://auth.hospital.com/oauth/authorize"
-           {"client_id" "local-terminal"
-            ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
-            }
-           ))
+        (oauth/acquire-access-token!
+         {:grant-type "implicit"
+          :authorization-uri "https://auth.hospital.com/oauth/authorize"
+          :client "https://auth.hospital.com/clients/local-terminal"
+          :session-token bob-session-token
+          ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
+          }
+         )
         _ (is (nil? error) (format "OAuth2 grant error: %s" error))]
 
     ;; Add a /patient/XXX resource to serve an individual patient.
@@ -669,25 +669,41 @@
     ;; {:xt/id "list-patients" :juxt.site/rules "get-patient"}
     ))
 
+#_(with-fixtures
+  (let [session-token (login-with-form! "alice" "garden")]
+    (oauth/acquire-access-token!
+       {:grant-type "implicit"
+        :authorization-uri "https://auth.hospital.com/oauth/authorize"
+        :token-uri "https://auth.hospital.com/oauth/token"
+        :client "https://auth.hospital.com/clients/local-terminal"
+        :session-token session-token
+        ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
+        })
+      )
+  )
+
 (deftest graphql-test
 
   (let [alice-session-token (login-with-form! "alice" "garden")
         {alice-access-token "access_token"}
-        (with-session-token alice-session-token
-          (oauth/implicit-authorize!
-           "https://auth.hospital.com/oauth/authorize"
-           {"client_id" "local-terminal"
-            ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
-            }))
+        (oauth/acquire-access-token!
+         {:grant-type "implicit"
+          :authorization-uri "https://auth.hospital.com/oauth/authorize"
+          :client "https://auth.hospital.com/clients/local-terminal"
+          :session-token alice-session-token
+          ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
+          })
 
         bob-session-token (login-with-form! "bob" "walrus")
         {bob-access-token "access_token"}
-        (with-session-token bob-session-token
-          (oauth/implicit-authorize!
-           "https://auth.hospital.com/oauth/authorize"
-           {"client_id" "local-terminal"
-            ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
-            }))
+        (oauth/acquire-access-token!
+         {:grant-type "implicit"
+          :authorization-uri "https://auth.hospital.com/oauth/authorize"
+          :client "https://auth.hospital.com/clients/local-terminal"
+          :session-token bob-session-token
+          ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
+          }
+         )
 
         db (xt/db *xt-node*)
 

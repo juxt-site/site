@@ -13,7 +13,8 @@
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [juxt.site.jwt :as jwt]))
 
 (defn bootstrap []
   (install-resource-groups!
@@ -125,6 +126,33 @@
              "code_challenge_methods_supported" ["S256"]}
             (json/read-value body))))))
 
+#_(with-fixtures
+  (call-operation-with-init-data!
+   *xt-node*
+   {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
+    :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
+    :juxt.site/input
+    {:juxt.site/client-id "test-app"
+     :juxt.site/client-type "confidential"
+     :juxt.site/resource-server "https://data.example.test"
+     :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
+
+  (install-resource-groups!
+   ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
+    "juxt/site/example-users" "juxt/site/protection-spaces"]
+   AUTH_SERVER
+   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
+
+  (let [session-token (login/login-with-form! "alice" "garden")
+        {access-token "access_token"}
+        (oauth/acquire-access-token!
+             { ;;:grant-type "authorization_code"
+              :grant-type "implicit"
+              :authorize-uri "https://auth.example.test/oauth/authorize"
+              :session-token session-token
+              :client "https://auth.example.test/clients/test-app"})]
+    (jwt/decode-jwt access-token)))
+
 ;; This test might not really belong here.
 (deftest get-subject-test
   ;; Register an application
@@ -133,10 +161,11 @@
    *xt-node*
    {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
     :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
-    :juxt.site/input {:juxt.site/client-id "test-app"
-                      :juxt.site/client-type "confidential"
-                      :juxt.site/resource-server "https://data.example.test"
-                      :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
+    :juxt.site/input
+    {:juxt.site/client-id "test-app"
+     :juxt.site/client-type "confidential"
+     :juxt.site/resource-server "https://data.example.test"
+     :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
 
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
@@ -149,12 +178,13 @@
   (install-resource-groups! ["juxt/site/whoami"] RESOURCE_SERVER {})
 
   (let [session-token (login/login-with-form! "alice" "garden")
-
         {access-token "access_token"}
-        (with-session-token session-token
-          (oauth/implicit-authorize!
-           "https://auth.example.test/oauth/authorize"
-           {"client_id" "test-app"}))]
+        (oauth/acquire-access-token!
+         { ;;:grant-type "authorization_code"
+          :grant-type "implicit"
+          :authorization-uri "https://auth.example.test/oauth/authorize"
+          :session-token session-token
+          :client "https://auth.example.test/clients/test-app"})]
 
     (oauth/with-bearer-token access-token
       (let [{:ring.response/keys [headers body]}

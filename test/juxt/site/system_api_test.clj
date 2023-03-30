@@ -72,11 +72,11 @@
 
   (let [session-token (login/login-with-form! "alice" "garden")
         {access-token "access_token"}
-        (with-session-token
-          session-token
-          (oauth/implicit-authorize!
-           "https://auth.example.test/oauth/authorize"
-           {"client_id" "test-app"}))]
+        (oauth/acquire-access-token!
+         {:grant-type "implicit"
+          :session-token session-token
+          :authorization-uri "https://auth.example.test/oauth/authorize"
+          :client "https://auth.example.test/clients/test-app"})]
 
     (testing "Permissions are required for access"
       (oauth/with-bearer-token access-token
@@ -134,7 +134,8 @@
     (oauth/acquire-access-token!
      ;; the read-only-app should not be able to put-user
      {:session-token session-token
-      :client "https://auth.example.test/clients/read-only-app"})
+      :client "https://auth.example.test/clients/read-only-app"
+      :grant-type "implicit"})
 
     #_(with-session-token session-token
       (oauth/implicit-authorize!
@@ -205,6 +206,8 @@
       ;; It is important that such a client can introspect the scope in the access-token.
       ;; If it is nil, the client should assume that is has global scope.
       ;; Either way, we must fix the implicit flow.
+
+      ;; Plus, let's have some tests around scope in the JWT
 
       (let [jwt (jwt/decode-jwt read-only-app-access-token)
             jti (get-in jwt [:claims "jti"])]

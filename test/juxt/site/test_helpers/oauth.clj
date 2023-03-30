@@ -22,7 +22,7 @@
 (def RESOURCE_SERVER {"https://auth.example.org" "https://auth.example.test"
                       "https://data.example.org" "https://data.example.test"})
 
-(defn implicit-authorization-request
+#_(defn implicit-authorization-request
   "Create a request that can be sent to the authorization_endpoint of an
   authorization server"
   [uri {client-id "client_id"
@@ -38,13 +38,13 @@
          "state" state}
         scope (assoc "scope" (codec/url-encode (str/join " " scope)))))})
 
-(defn implicit-authorization-response!
+#_(defn implicit-authorization-response!
   "Authorize response"
   [uri args]
   (let [request (implicit-authorization-request uri (assoc args :state (make-nonce 10)))]
     (*handler* request)))
 
-(malli/=>
+#_(malli/=>
  implicit-authorization-response!
  [:=> [:cat
        [:string]
@@ -55,7 +55,7 @@
    ["access_token" {:optional true} :string]
    ["error" {:optional true} :string]]])
 
-(defn implicit-authorize!
+#_(defn implicit-authorize!
   "Authorize a client, and return decoded fragment parameters as a string->string map"
   [uri args]
   (let [response (implicit-authorization-response! uri args)
@@ -75,39 +75,27 @@
 
     (codec/form-decode encoded-access-token)))
 
-(malli/=>
- authorize!
- [:=> [:cat
-       [:string]
-       [:map
-;;        ^{:doc "to authenticate with authorization server"} [:juxt.site/session-token :string]
-        ["client_id" :string]
-        ["scope" {:optional true} [:sequential :string]]]]
-  [:map
-   ["access_token" {:optional true} :string]
-   ["error" {:optional true} :string]]])
-
 ;; TODO: Not sure I like the make- prefix any more
 
-(defn make-authorization-request [m]
+(defn make-authorization-request [uri m]
   {:ring.request/method :get
-   :juxt.site/uri "https://auth.example.test/oauth/authorize"
+   :juxt.site/uri uri
    :ring.request/query
    (codec/form-encode m)})
 
-(defn make-token-request [params]
+(defn make-token-request [uri params]
   (let [payload (codec/form-encode params)]
     {:ring.request/method :post
-     :juxt.site/uri "https://auth.example.test/oauth/token"
+     :juxt.site/uri uri
      :ring.request/headers
      {"content-type" "application/x-www-form-urlencoded"
       "content-length" (str (count (.getBytes payload)))}
      :ring.request/body (io/input-stream (.getBytes payload))}))
 
-(defn make-token-info-request [params]
+(defn make-token-info-request [uri params]
   (let [payload (codec/form-encode params)]
     {:ring.request/method :post
-     :juxt.site/uri "https://auth.example.test/token-info"
+     :juxt.site/uri uri
      :ring.request/headers
      {"content-type" "application/x-www-form-urlencoded"
       "content-length" (str (count (.getBytes payload)))}
@@ -116,14 +104,20 @@
 (defn acquire-access-token!
   "Having thoroughly tested the authorization flows, we can now provide
   a convenience function which can be useful for further testing."
-  [{:keys [grant-type session-token client code-challenge-method redirect-uri scope]
-    :or {code-challenge-method "S256"
-         ;; TODO: Consider removing this default
-         grant-type "authorization_code"}}]
+  [{:keys [grant-type authorization-uri token-uri
+           session-token client code-challenge-method redirect-uri scope]
+    :or {;;authorization-uri "https://auth.example.test/oauth/authorize"
+         ;;token-uri "https://auth.example.test/oauth/token"
+         code-challenge-method "S256"}
+    :as args}]
+  (assert authorization-uri "Must provide authorization-uri")
   (assert grant-type "Must provide grant-type")
+  (assert session-token "Must provide session-token")
   (let [db (xt/db *xt-node*)
         client-doc (xt/entity db client)
-        client-id (:juxt.site/client-id client-doc)]
+        _ (assert client-doc (str "Client not registered: " client))
+        client-id (:juxt.site/client-id client-doc)
+        _ (assert client-id (str "No client-id for client: " client))]
     (case grant-type
       "authorization_code"
       (let [code-verifier (util/make-code-verifier 64)
@@ -132,6 +126,7 @@
             (with-session-token session-token
               (*handler*
                (make-authorization-request
+                authorization-uri
                 ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.1
                 (merge
                  ;; REQUIRED
@@ -157,8 +152,11 @@
             _ (when error
                 (throw (ex-info "Error from authorize request" query)))
 
+            _ (assert token-uri "For grant_type of authorization_code, must provide token-uri")
+
             token-request
             (make-token-request
+             token-uri
              ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.3
              (merge
               ;; REQUIRED
@@ -178,13 +176,55 @@
         ;; Avoid confusion later
         (assert (contains? #{200 400} status) (str status))
 
-        (json/read-value body)))))
+        (json/read-value body))
 
+      "implicit"
+      (let [state (make-nonce 10)
+            request (make-authorization-request
+                     authorization-uri
+                     (cond-> {"response_type" "token"
+                              "client_id" client-id
+                              "state" state}
+                       scope (assoc "scope" (codec/url-encode (str/join " " scope)))))
+
+            response (with-session-token session-token
+                       (*handler* request))
+            _ (case (:ring.response/status response)
+                (302 303) :ok
+                400 (throw (ex-info "Client error" (assoc args :response response)))
+                403 (throw (ex-info "Forbidden to authorize" (assoc args :response response)))
+                (throw (ex-info "Unexpected error" (assoc args :response response))))
+
+            location-header (-> response :ring.response/headers (get "location"))
+
+            [_ _ encoded-access-token]
+            (re-matches #"https://(.*?)/.*?#(.*)" location-header)]
+
+        (when-not encoded-access-token
+          (throw (ex-info "No access-token fragment" {:response response})))
+
+        (codec/form-decode encoded-access-token))
+
+      )))
+
+(malli/=>
+ acquire-access-token!
+ [:=>
+  [:cat
+   [:map
+    [:grant-type [:enum ["authorization_code" "implicit"]]]
+    [:authorization-uri [:re "https://.+"]]]]
+  [:map
+   ["access_token" {:optional true} :string]
+   ["error" {:optional true} :string]]])
+
+;; TODO: Consolidate this with above function: acquire-access-token!
 (defn refresh-token!
   [{:keys [refresh-token scope]}]
   (let [{:ring.response/keys [status body] :as response}
         (*handler*
          (make-token-request
+          "https://auth.example.test/oauth/token"
           ;; See https://www.rfc-editor.org/rfc/rfc6749#section-6
           (merge
            {"grant_type" "refresh_token"

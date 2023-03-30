@@ -151,6 +151,7 @@
         (with-session-token session-token
           (*handler*
            (oauth/make-authorization-request
+            "https://auth.example.test/oauth/authorize"
             {"response_type" "foo"
              "client_id" "public-app2"
              "state" state})))]
@@ -171,6 +172,7 @@
         (with-session-token session-token
           (*handler*
            (oauth/make-authorization-request
+            "https://auth.example.test/oauth/authorize"
             {"client_id" "public-global-scope-app"})))
         location (get-in response [:ring.response/headers "location"])]
 
@@ -226,6 +228,7 @@
         (with-session-token session-token
           (*handler*
            (oauth/make-authorization-request
+            "https://auth.example.test/oauth/authorize"
             {"response_type" "code"
              "client_id" "public-global-scope-app"})))
         location (get-in response [:ring.response/headers "location"])]
@@ -251,6 +254,7 @@
         (with-session-token session-token
           (*handler*
            (oauth/make-authorization-request
+            "https://auth.example.test/oauth/authorize"
             {"response_type" "code"
              "client_id" "public-global-scope-app"
              "state" "123"
@@ -272,6 +276,7 @@
 
         token-request
         (oauth/make-token-request
+         "https://auth.example.test/oauth/token"
          {"grant_type" "authorization_code"
           "code" code
           "redirect_uri" "https://public-global-scope-app.test.com/redirect.html"
@@ -325,7 +330,9 @@
       (let [{:ring.response/keys [status headers body]}
             (with-session-token session-token
               (*handler*
-               (oauth/make-token-info-request {"token" access-token})))
+               (oauth/make-token-info-request
+                "https://auth.example.test/token-info"
+                {"token" access-token})))
 
             _ (is (= 200 status))
             _ (is (= "application/json" (get headers "content-type")))
@@ -342,6 +349,7 @@
             (with-session-token session-token
               (*handler*
                (oauth/make-token-request
+                "https://auth.example.test/oauth/token"
                 {"grant_type" "refresh_token"
                  "refresh_token" refresh-token})))
             _ (is (= 200 status))
@@ -394,15 +402,16 @@
                                       :in [token]} new-refresh-token)))
                "The new refresh-token should exist")]))))
 
-
-
 ;; What if we try to fake the refresh token?
 (deftest fake-refresh-token-test
   (let [session-token (login-with-form! "alice" "garden")
         _ (oauth/acquire-access-token!
-           {:session-token session-token
+           {:grant-type "authorization_code"
+            :authorization-uri "https://auth.example.test/oauth/authorize"
+            :token-uri "https://auth.example.test/oauth/token"
+            :session-token session-token
             :client "https://auth.example.test/clients/public-global-scope-app"
-            :grant-type "authorization_code"})]
+            })]
     (is (=
          {"error" "invalid_grant"
           "error_description" "Refresh token invalid or expired",}
@@ -414,18 +423,23 @@
 (deftest app-with-global-scope-with-no-scope-requested
   (let [response
         (oauth/acquire-access-token!
-         {:session-token (login-with-form! "alice" "garden")
+         {:grant-type "authorization_code"
+          :session-token (login-with-form! "alice" "garden")
+          :authorization-uri "https://auth.example.test/oauth/authorize"
+          :token-uri "https://auth.example.test/oauth/token"
           :client "https://auth.example.test/clients/public-global-scope-app"
-          :grant-type "authorization_code"})]
+          })]
     (is (nil? (find response "scope"))
         "Scope should not be reported in JSON response")))
 
 (deftest app-with-global-scope-with-specific-scope-requested
   (let [{:strs [scope]}
         (oauth/acquire-access-token!
-         {:session-token (login-with-form! "alice" "garden")
+         {:grant-type "authorization_code"
+          :session-token (login-with-form! "alice" "garden")
+          :authorization-uri "https://auth.example.test/oauth/authorize"
+          :token-uri "https://auth.example.test/oauth/token"
           :client "https://auth.example.test/clients/public-global-scope-app"
-          :grant-type "authorization_code"
           :scope #{"https://auth.example.test/scopes/test/read"
                    "https://auth.example.test/scopes/test/write"
                    "https://auth.example.test/scopes/test/dummy"}})
@@ -442,16 +456,20 @@
 (deftest scope-included-in-token-info
  (let [{access-token "access_token"}
        (oauth/acquire-access-token!
-        {:session-token (login-with-form! "alice" "garden")
+        {:grant-type "authorization_code"
+         :session-token (login-with-form! "alice" "garden")
+         :authorization-uri "https://auth.example.test/oauth/authorize"
+         :token-uri "https://auth.example.test/oauth/token"
          :client "https://auth.example.test/clients/public-global-scope-app"
-         :grant-type "authorization_code"
          :scope #{"https://auth.example.test/scopes/test/read"
                   "https://auth.example.test/scopes/test/write"
                   "https://auth.example.test/scopes/test/dummy"}})
        {:ring.response/keys [status headers body]}
        (with-session-token (login-with-form! "alice" "garden")
          (*handler*
-          (oauth/make-token-info-request {"token" access-token})))]
+          (oauth/make-token-info-request
+           "https://auth.example.test/token-info"
+           {"token" access-token})))]
    (is (= 200 status))
    (is (= "application/json" (get headers "content-type")))
    (let [{scope "scope"} (json/read-value body)]
@@ -467,9 +485,12 @@
   (testing "no scope requested"
     (let [{scope "scope"}
           (oauth/acquire-access-token!
-           {:session-token (login-with-form! "alice" "garden")
+           {:grant-type "authorization_code"
+            :session-token (login-with-form! "alice" "garden")
+            :authorization-uri "https://auth.example.test/oauth/authorize"
+            :token-uri "https://auth.example.test/oauth/token"
             :client "https://auth.example.test/clients/public-read-write-scope-app"
-            :grant-type "authorization_code"})]
+            })]
       (is (= #{"https://auth.example.test/scopes/test/read"
                "https://auth.example.test/scopes/test/write"}
              (set (str/split scope #" "))))))
@@ -477,9 +498,11 @@
   (testing "read-app"
     (let [{scope "scope"}
           (oauth/acquire-access-token!
-           {:session-token (login-with-form! "alice" "garden")
+           {:grant-type "authorization_code"
+            :session-token (login-with-form! "alice" "garden")
+            :authorization-uri "https://auth.example.test/oauth/authorize"
+            :token-uri "https://auth.example.test/oauth/token"
             :client "https://auth.example.test/clients/public-read-scope-app"
-            :grant-type "authorization_code"
             :scope #{"https://auth.example.test/scopes/test/read"
                      "https://auth.example.test/scopes/test/write"
                      "https://auth.example.test/scopes/test/dummy"}})]
@@ -489,9 +512,11 @@
   (testing "read-write-app"
     (let [{scope "scope"}
           (oauth/acquire-access-token!
-           {:session-token (login-with-form! "alice" "garden")
+           {:grant-type "authorization_code"
+            :session-token (login-with-form! "alice" "garden")
+            :authorization-uri "https://auth.example.test/oauth/authorize"
+            :token-uri "https://auth.example.test/oauth/token"
             :client "https://auth.example.test/clients/public-read-write-scope-app"
-            :grant-type "authorization_code"
             :scope #{"https://auth.example.test/scopes/test/read"
                      "https://auth.example.test/scopes/test/write"
                      "https://auth.example.test/scopes/test/dummy"}})]
