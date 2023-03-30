@@ -166,6 +166,7 @@
 ;; authorization server MUST return an error response.
 ;;
 ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.1
+
 (deftest missing-response-type-error-test
   (let [session-token (login-with-form! "alice" "garden")
         response
@@ -421,110 +422,215 @@
 ;; Scopes
 
 (deftest app-with-global-scope-with-no-scope-requested
-  (let [response
-        (oauth/acquire-access-token!
-         {:grant-type "authorization_code"
-          :session-token (login-with-form! "alice" "garden")
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :token-uri "https://auth.example.test/oauth/token"
-          :client "https://auth.example.test/clients/public-global-scope-app"
-          })]
-    (is (nil? (find response "scope"))
-        "Scope should not be reported in JSON response")))
+  (let [session-token (login-with-form! "alice" "garden")]
+    (testing "authorization_code"
+      (let [response
+            (oauth/acquire-access-token!
+             {:grant-type "authorization_code"
+              :session-token session-token
+              :authorization-uri "https://auth.example.test/oauth/authorize"
+              :token-uri "https://auth.example.test/oauth/token"
+              :client "https://auth.example.test/clients/public-global-scope-app"})]
+        (is (nil? (find response "scope"))
+            "Scope should not be reported in JSON response")))
+
+    (testing "implicit"
+      (let [response
+            (oauth/acquire-access-token!
+             {:grant-type "implicit"
+              :session-token session-token
+              :authorization-uri "https://auth.example.test/oauth/authorize"
+              :client "https://auth.example.test/clients/public-global-scope-app"})]
+        (is (nil? (find response "scope"))
+            "Scope should not be reported in JSON response")))))
 
 (deftest app-with-global-scope-with-specific-scope-requested
-  (let [{:strs [scope]}
-        (oauth/acquire-access-token!
-         {:grant-type "authorization_code"
-          :session-token (login-with-form! "alice" "garden")
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :token-uri "https://auth.example.test/oauth/token"
-          :client "https://auth.example.test/clients/public-global-scope-app"
-          :scope #{"https://auth.example.test/scopes/test/read"
-                   "https://auth.example.test/scopes/test/write"
-                   "https://auth.example.test/scopes/test/dummy"}})
-        scope-set (set (str/split scope #" "))]
+  (let [session-token (login-with-form! "alice" "garden")]
+    (testing "authorization_code"
+      (let [{:strs [scope]}
+            (oauth/acquire-access-token!
+             {:grant-type "authorization_code"
+              :session-token session-token
+              :authorization-uri "https://auth.example.test/oauth/authorize"
+              :token-uri "https://auth.example.test/oauth/token"
+              :client "https://auth.example.test/clients/public-global-scope-app"
+              :scope #{"https://auth.example.test/scopes/test/read"
+                       "https://auth.example.test/scopes/test/write"
+                       "https://auth.example.test/scopes/test/dummy"}})
+            _ (is scope)
+            scope-set (set (str/split scope #" "))]
 
-    (is (not (contains? scope-set "https://auth.example.test/scopes/test/dummy"))
-        "Non existing scope should not be returned")
+        (is (not (contains? scope-set "https://auth.example.test/scopes/test/dummy"))
+            "Non existing scope should not be returned")
 
-    (is (= #{"https://auth.example.test/scopes/test/read"
-             "https://auth.example.test/scopes/test/write"}
-           scope-set)
-        "Scope should be returned as expected in JSON response")))
+        (is (= #{"https://auth.example.test/scopes/test/read"
+                 "https://auth.example.test/scopes/test/write"}
+               scope-set)
+            "Scope should be returned as expected in JSON response")))
+
+    (testing "implicit"
+      (let [{:strs [scope]}
+            (oauth/acquire-access-token!
+             {:grant-type "implicit"
+              :session-token session-token
+              :authorization-uri "https://auth.example.test/oauth/authorize"
+              :client "https://auth.example.test/clients/public-global-scope-app"
+              :scope #{"https://auth.example.test/scopes/test/read"
+                       "https://auth.example.test/scopes/test/write"
+                       "https://auth.example.test/scopes/test/dummy"}})
+            _ (is scope)
+            scope-set (set (str/split scope #" "))]
+
+        (is (not (contains? scope-set "https://auth.example.test/scopes/test/dummy"))
+            "Non existing scope should not be returned")
+
+        (is (= #{"https://auth.example.test/scopes/test/read"
+                 "https://auth.example.test/scopes/test/write"}
+               scope-set)
+            "Scope should be returned as expected in JSON response")))))
 
 (deftest scope-included-in-token-info
- (let [{access-token "access_token"}
-       (oauth/acquire-access-token!
-        {:grant-type "authorization_code"
-         :session-token (login-with-form! "alice" "garden")
-         :authorization-uri "https://auth.example.test/oauth/authorize"
-         :token-uri "https://auth.example.test/oauth/token"
-         :client "https://auth.example.test/clients/public-global-scope-app"
-         :scope #{"https://auth.example.test/scopes/test/read"
-                  "https://auth.example.test/scopes/test/write"
-                  "https://auth.example.test/scopes/test/dummy"}})
-       {:ring.response/keys [status headers body]}
-       (with-session-token (login-with-form! "alice" "garden")
-         (*handler*
-          (oauth/make-token-info-request
-           "https://auth.example.test/token-info"
-           {"token" access-token})))]
-   (is (= 200 status))
-   (is (= "application/json" (get headers "content-type")))
-   (let [{scope "scope"} (json/read-value body)]
-     (is (= #{"https://auth.example.test/scopes/test/read"
-              "https://auth.example.test/scopes/test/write"}
-            ;; See
-            ;; https://datatracker.ietf.org/doc/html/rfc7662#section-2.2
-            ;; which explains that the 'scope' member of the
-            ;; introspection response is a JSON string.
-            (set (str/split scope #" ")) )))))
+  (let [session-token (login-with-form! "alice" "garden")]
+    (testing "authorization_code"
+      (let [{access-token "access_token"}
+            (oauth/acquire-access-token!
+             {:grant-type "authorization_code"
+              :session-token session-token
+              :authorization-uri "https://auth.example.test/oauth/authorize"
+              :token-uri "https://auth.example.test/oauth/token"
+              :client "https://auth.example.test/clients/public-global-scope-app"
+              :scope #{"https://auth.example.test/scopes/test/read"
+                       "https://auth.example.test/scopes/test/write"
+                       "https://auth.example.test/scopes/test/dummy"}})
+            {:ring.response/keys [status headers body]}
+            (with-session-token session-token
+              (*handler*
+               (oauth/make-token-info-request
+                "https://auth.example.test/token-info"
+                {"token" access-token})))]
+        (is (= 200 status))
+        (is (= "application/json" (get headers "content-type")))
+        (let [{scope "scope"} (json/read-value body)]
+          (is (= #{"https://auth.example.test/scopes/test/read"
+                   "https://auth.example.test/scopes/test/write"}
+                 ;; See
+                 ;; https://datatracker.ietf.org/doc/html/rfc7662#section-2.2
+                 ;; which explains that the 'scope' member of the
+                 ;; introspection response is a JSON string.
+                 (set (str/split scope #" ")) )))))
+
+    (testing "implicit"
+      (let [{access-token "access_token"}
+            (oauth/acquire-access-token!
+             {:grant-type "implicit"
+              :session-token session-token
+              :authorization-uri "https://auth.example.test/oauth/authorize"
+              :client "https://auth.example.test/clients/public-global-scope-app"
+              :scope #{"https://auth.example.test/scopes/test/read"
+                       "https://auth.example.test/scopes/test/write"
+                       "https://auth.example.test/scopes/test/dummy"}})
+            {:ring.response/keys [status headers body]}
+            (with-session-token session-token
+              (*handler*
+               (oauth/make-token-info-request
+                "https://auth.example.test/token-info"
+                {"token" access-token})))]
+        (is (= 200 status))
+        (is (= "application/json" (get headers "content-type")))
+        (let [{scope "scope"} (json/read-value body)]
+          (is (= #{"https://auth.example.test/scopes/test/read"
+                   "https://auth.example.test/scopes/test/write"}
+                 ;; See
+                 ;; https://datatracker.ietf.org/doc/html/rfc7662#section-2.2
+                 ;; which explains that the 'scope' member of the
+                 ;; introspection response is a JSON string.
+                 (set (str/split scope #" ")) )))))))
 
 (deftest read-write-app-test
-  (testing "no scope requested"
-    (let [{scope "scope"}
-          (oauth/acquire-access-token!
-           {:grant-type "authorization_code"
-            :session-token (login-with-form! "alice" "garden")
-            :authorization-uri "https://auth.example.test/oauth/authorize"
-            :token-uri "https://auth.example.test/oauth/token"
-            :client "https://auth.example.test/clients/public-read-write-scope-app"
-            })]
-      (is (= #{"https://auth.example.test/scopes/test/read"
-               "https://auth.example.test/scopes/test/write"}
-             (set (str/split scope #" "))))))
+  (let [session-token (login-with-form! "alice" "garden")]
+    (testing "no scope requested"
+      (testing "authorization_code"
+        (let [{scope "scope"}
+              (oauth/acquire-access-token!
+               {:grant-type "authorization_code"
+                :session-token session-token
+                :authorization-uri "https://auth.example.test/oauth/authorize"
+                :token-uri "https://auth.example.test/oauth/token"
+                :client "https://auth.example.test/clients/public-read-write-scope-app"})]
+          (is (= #{"https://auth.example.test/scopes/test/read"
+                   "https://auth.example.test/scopes/test/write"}
+                 (set (str/split scope #" "))))))
 
-  (testing "read-app"
-    (let [{scope "scope"}
-          (oauth/acquire-access-token!
-           {:grant-type "authorization_code"
-            :session-token (login-with-form! "alice" "garden")
-            :authorization-uri "https://auth.example.test/oauth/authorize"
-            :token-uri "https://auth.example.test/oauth/token"
-            :client "https://auth.example.test/clients/public-read-scope-app"
-            :scope #{"https://auth.example.test/scopes/test/read"
-                     "https://auth.example.test/scopes/test/write"
-                     "https://auth.example.test/scopes/test/dummy"}})]
-      (is (= #{"https://auth.example.test/scopes/test/read"} (set (str/split scope #" ")))
-          "Scope returned should be limited by the client's scope")))
+      (testing "implicit"
+        (let [{scope "scope"}
+              (oauth/acquire-access-token!
+               {:grant-type "implicit"
+                :session-token session-token
+                :authorization-uri "https://auth.example.test/oauth/authorize"
+                :client "https://auth.example.test/clients/public-read-write-scope-app"})]
+          (is (= #{"https://auth.example.test/scopes/test/read"
+                   "https://auth.example.test/scopes/test/write"}
+                 (set (str/split scope #" ")))))))
 
-  (testing "read-write-app"
-    (let [{scope "scope"}
-          (oauth/acquire-access-token!
-           {:grant-type "authorization_code"
-            :session-token (login-with-form! "alice" "garden")
-            :authorization-uri "https://auth.example.test/oauth/authorize"
-            :token-uri "https://auth.example.test/oauth/token"
-            :client "https://auth.example.test/clients/public-read-write-scope-app"
-            :scope #{"https://auth.example.test/scopes/test/read"
-                     "https://auth.example.test/scopes/test/write"
-                     "https://auth.example.test/scopes/test/dummy"}})]
-      (is (= #{"https://auth.example.test/scopes/test/read"
-               "https://auth.example.test/scopes/test/write"}
-             (set (str/split scope #" ")))
-          "Scope returned should be limited by the client's scope"))))
+    (testing "read-app"
+      (testing "authorization_code"
+        (let [{scope "scope"}
+              (oauth/acquire-access-token!
+               {:grant-type "authorization_code"
+                :session-token session-token
+                :authorization-uri "https://auth.example.test/oauth/authorize"
+                :token-uri "https://auth.example.test/oauth/token"
+                :client "https://auth.example.test/clients/public-read-scope-app"
+                :scope #{"https://auth.example.test/scopes/test/read"
+                         "https://auth.example.test/scopes/test/write"
+                         "https://auth.example.test/scopes/test/dummy"}})]
+          (is (= #{"https://auth.example.test/scopes/test/read"} (set (str/split scope #" ")))
+              "Scope returned should be limited by the client's scope")))
 
+      (testing "implicit"
+        (let [{scope "scope"}
+              (oauth/acquire-access-token!
+               {:grant-type "implicit"
+                :session-token session-token
+                :authorization-uri "https://auth.example.test/oauth/authorize"
+                :client "https://auth.example.test/clients/public-read-scope-app"
+                :scope #{"https://auth.example.test/scopes/test/read"
+                         "https://auth.example.test/scopes/test/write"
+                         "https://auth.example.test/scopes/test/dummy"}})]
+          (is (= #{"https://auth.example.test/scopes/test/read"} (set (str/split scope #" ")))
+              "Scope returned should be limited by the client's scope"))))
+
+    (testing "read-write-app"
+      (testing "authorization_code"
+        (let [{scope "scope"}
+              (oauth/acquire-access-token!
+               {:grant-type "authorization_code"
+                :session-token session-token
+                :authorization-uri "https://auth.example.test/oauth/authorize"
+                :token-uri "https://auth.example.test/oauth/token"
+                :client "https://auth.example.test/clients/public-read-write-scope-app"
+                :scope #{"https://auth.example.test/scopes/test/read"
+                         "https://auth.example.test/scopes/test/write"
+                         "https://auth.example.test/scopes/test/dummy"}})]
+          (is (= #{"https://auth.example.test/scopes/test/read"
+                   "https://auth.example.test/scopes/test/write"}
+                 (set (str/split scope #" ")))
+              "Scope returned should be limited by the client's scope")))
+
+      (testing "implicit"
+        (let [{scope "scope"}
+              (oauth/acquire-access-token!
+               {:grant-type "implicit"
+                :session-token session-token
+                :authorization-uri "https://auth.example.test/oauth/authorize"
+                :client "https://auth.example.test/clients/public-read-write-scope-app"
+                :scope #{"https://auth.example.test/scopes/test/read"
+                         "https://auth.example.test/scopes/test/write"
+                         "https://auth.example.test/scopes/test/dummy"}})]
+          (is (= #{"https://auth.example.test/scopes/test/read"
+                   "https://auth.example.test/scopes/test/write"}
+                 (set (str/split scope #" ")))
+              "Scope returned should be limited by the client's scope"))))))
 
 ;; TODO: Try different combinations of redirects
 

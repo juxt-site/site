@@ -43,12 +43,12 @@
   ;; passing it in as a parameter.
 
   (converge!
-   ["https://auth.example.test/clients/test-app"]
+   ["https://auth.example.test/clients/global-scope-app"]
    RESOURCE_SERVER
    {"client-type" "public"
-    "origin" "https://test-app.example.test"
+    "origin" "https://global-scope-app.example.test"
     "resource-server" "https://data.example.test"
-    "redirect-uris" ["https://test-app.example.test/callback"]
+    "redirect-uris" ["https://global-scope-app.example.test/callback"]
     "authorization-server" "https://auth.example.test"
     "scope" nil})
 
@@ -60,7 +60,18 @@
     "resource-server" "https://data.example.test"
     "redirect-uris" ["https://read-only-app.example.test/callback"]
     "authorization-server" "https://auth.example.test"
-    "scope" #{"https://auth.example.test/scopes/system/read"}}))
+    "scope" #{"https://auth.example.test/scopes/system/read"}})
+
+  (converge!
+   ["https://auth.example.test/clients/read-write-app"]
+   RESOURCE_SERVER
+   {"client-type" "public"
+    "origin" "https://read-write-app.example.test"
+    "resource-server" "https://data.example.test"
+    "redirect-uris" ["https://read-write-app.example.test/callback"]
+    "authorization-server" "https://auth.example.test"
+    "scope" #{"https://auth.example.test/scopes/system/read"
+              "https://auth.example.test/scopes/system/write"}}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)
@@ -76,7 +87,7 @@
          {:grant-type "implicit"
           :session-token session-token
           :authorization-uri "https://auth.example.test/oauth/authorize"
-          :client "https://auth.example.test/clients/test-app"})]
+          :client "https://auth.example.test/clients/global-scope-app"})]
 
     (testing "Permissions are required for access"
       (oauth/with-bearer-token access-token
@@ -133,44 +144,95 @@
   (let [session-token (login/login-with-form! "alice" "garden")]
     (oauth/acquire-access-token!
      ;; the read-only-app should not be able to put-user
-     {:session-token session-token
-      :client "https://auth.example.test/clients/read-only-app"
-      :grant-type "implicit"})
-
-    #_(with-session-token session-token
-      (oauth/implicit-authorize!
-       "https://auth.example.test/oauth/authorize"
-       ;; the test-app has global scope
-       {"client_id" "test-app"})))
-
-
+     {:grant-type "authorization_code"
+      :authorization-uri "https://auth.example.test/oauth/authorize"
+      :token-uri "https://auth.example.test/oauth/token"
+      :session-token session-token
+      :client "https://auth.example.test/clients/read-write-app"
+      }))
 
   ;; TODO: Can a client-id be a URI?
+
   #_(let [session-token (login/login-with-form! "alice" "garden")
 
-          {test-app-access-token "access_token"}
-          (with-session-token session-token
-            (oauth/implicit-authorize!
-             "https://auth.example.test/oauth/authorize"
-             ;; the test-app has global scope
-             {"client_id" "test-app"}))
+        {test-app-access-token "access_token"}
+        (with-session-token session-token
+          (oauth/implicit-authorize!
+           "https://auth.example.test/oauth/authorize"
+           ;; the test-app has global scope
+           {"client_id" "test-app"}))
 
-          {read-only-app-access-token "access_token"}
-          (with-session-token session-token
-            ;; TODO: How to request a scope? See oauth_grants_test.clj
-            (oauth/acquire-access-token!
-             "https://auth.example.test/oauth/authorize"
-             ;; the read-only-app should not be able to put-user
-             {:client "read-only-app"}))]
+        {read-only-app-access-token "access_token"}
+        (with-session-token session-token
+          ;; TODO: How to request a scope? See oauth_grants_test.clj
+          (oauth/acquire-access-token!
+           "https://auth.example.test/oauth/authorize"
+           ;; the read-only-app should not be able to put-user
+           {:client "read-only-app"}))]
 
-      (converge!
-       ["https://auth.example.test/role-assignments/alice-System"]
-       RESOURCE_SERVER
-       {})
+    (converge!
+     ["https://auth.example.test/role-assignments/alice-System"]
+     RESOURCE_SERVER
+     {})
 
-      (testing "Add Terry"
-        (oauth/with-bearer-token test-app-access-token
-          (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/terry"}))
+    (testing "Add Terry"
+      (oauth/with-bearer-token test-app-access-token
+        (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/terry"}))
+              request {:juxt.site/uri "https://data.example.test/_site/users"
+                       :ring.request/method :post
+                       :ring.request/headers
+                       {"content-type" "application/edn"
+                        "content-length" (str (count payload))}
+                       :ring.request/body (io/input-stream payload)}
+              response (*handler* request)]
+
+          (is (= 200 (:ring.response/status response))))))
+
+    (testing "Terry has been added to database"
+      (oauth/with-bearer-token read-only-app-access-token
+        (let [request {:juxt.site/uri "https://data.example.test/_site/users.json"
+                       :ring.request/method :get}
+              {:ring.response/keys [status headers body]} (*handler* request)]
+
+          (is (= 200 status))
+          (is (= "application/json" (get headers "content-type")))
+          (is (= [{"xt/id" "https://data.example.test/users/alice"}
+                  {"xt/id" "https://data.example.test/users/bob"}
+                  {"xt/id" "https://data.example.test/users/carlos"}
+                  {"xt/id" "https://data.example.test/users/terry"}]
+                 (json/read-value body))))))
+
+    ;; Inspect the token, to see if it has some scope
+
+    ;; Seems that we don't have the correct scope in the token.
+    ;; Let's see if it's to do with our use of the implicit flow.
+    ;; Let's use the authorization_code flow and see what the result is.
+    ;; If it contains scope, all good. If it doesn't, this is wrong.
+    ;; The access-token should contain the scope if the client is limited in scope.
+    ;; A client might be written in such a way to alter behaviour (show/hide details) based on the scope.
+    ;; It is important that such a client can introspect the scope in the access-token.
+    ;; If it is nil, the client should assume that is has global scope.
+    ;; Either way, we must fix the implicit flow.
+
+    ;; Plus, let's have some tests around scope in the JWT
+
+    (let [jwt (jwt/decode-jwt read-only-app-access-token)
+          jti (get-in jwt [:claims "jti"])]
+      {:jwt jwt
+       :token-in-db (repl/e (str "https://auth.example.test/access-tokens/" jti))}
+      )
+
+    ;;
+    #_(json/read-value
+       (:ring.response/body
+        (with-session-token session-token
+          (*handler*
+           (oauth/make-token-info-request {"token" read-only-app-access-token})))))
+
+    ;; This shouldn't work
+    #_(testing "Add Ursula"
+        (oauth/with-bearer-token read-only-app-access-token
+          (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/ursula"}))
                 request {:juxt.site/uri "https://data.example.test/_site/users"
                          :ring.request/method :post
                          :ring.request/headers
@@ -179,68 +241,13 @@
                          :ring.request/body (io/input-stream payload)}
                 response (*handler* request)]
 
-            (is (= 200 (:ring.response/status response))))))
+            (select-keys response [:ring.response/status :ring.response/headers])
+            ;; What is the scope of the read-only-app-access-token?
 
-      (testing "Terry has been added to database"
-        (oauth/with-bearer-token read-only-app-access-token
-          (let [request {:juxt.site/uri "https://data.example.test/_site/users.json"
-                         :ring.request/method :get}
-                {:ring.response/keys [status headers body]} (*handler* request)]
+            ;;(jwt/decode-jwt read-only-app-access-token)
+            ;;(is (= 200 (:ring.response/status response)))
+            )))
 
-            (is (= 200 status))
-            (is (= "application/json" (get headers "content-type")))
-            (is (= [{"xt/id" "https://data.example.test/users/alice"}
-                    {"xt/id" "https://data.example.test/users/bob"}
-                    {"xt/id" "https://data.example.test/users/carlos"}
-                    {"xt/id" "https://data.example.test/users/terry"}]
-                   (json/read-value body))))))
+    ;; TODO: Check that the read-only-app cannot add Ursula
 
-      ;; Inspect the token, to see if it has some scope
-
-      ;; Seems that we don't have the correct scope in the token.
-      ;; Let's see if it's to do with our use of the implicit flow.
-      ;; Let's use the authorization_code flow and see what the result is.
-      ;; If it contains scope, all good. If it doesn't, this is wrong.
-      ;; The access-token should contain the scope if the client is limited in scope.
-      ;; A client might be written in such a way to alter behaviour (show/hide details) based on the scope.
-      ;; It is important that such a client can introspect the scope in the access-token.
-      ;; If it is nil, the client should assume that is has global scope.
-      ;; Either way, we must fix the implicit flow.
-
-      ;; Plus, let's have some tests around scope in the JWT
-
-      (let [jwt (jwt/decode-jwt read-only-app-access-token)
-            jti (get-in jwt [:claims "jti"])]
-        {:jwt jwt
-         :token-in-db (repl/e (str "https://auth.example.test/access-tokens/" jti))}
-        )
-
-      ;;
-      #_(json/read-value
-         (:ring.response/body
-          (with-session-token session-token
-            (*handler*
-             (oauth/make-token-info-request {"token" read-only-app-access-token})))))
-
-      ;; This shouldn't work
-      #_(testing "Add Ursula"
-          (oauth/with-bearer-token read-only-app-access-token
-            (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/ursula"}))
-                  request {:juxt.site/uri "https://data.example.test/_site/users"
-                           :ring.request/method :post
-                           :ring.request/headers
-                           {"content-type" "application/edn"
-                            "content-length" (str (count payload))}
-                           :ring.request/body (io/input-stream payload)}
-                  response (*handler* request)]
-
-              (select-keys response [:ring.response/status :ring.response/headers])
-              ;; What is the scope of the read-only-app-access-token?
-
-              ;;(jwt/decode-jwt read-only-app-access-token)
-              ;;(is (= 200 (:ring.response/status response)))
-              )))
-
-      ;; TODO: Check that the read-only-app cannot add Ursula
-
-      ))
+    ))

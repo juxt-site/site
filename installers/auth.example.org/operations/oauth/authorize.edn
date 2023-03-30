@@ -311,12 +311,6 @@
             "token"
             (let [{:keys [jwt-claims]} *prepare*
 
-                  ;; Leave scope for now for tests to flush out
-                  ;; scopes (some-> *prepare* (get-in [:query "scope"]) ring.util.codec/form-decode (clojure.string/split (re-pattern "\\s")) set)
-                  ;;_ (doall (map juxt.site/lookup-scope scopes))
-
-                  scope nil
-
                   {:juxt.site/keys [origin resource-server]} client-doc
                   _ (assert resource-server)
 
@@ -356,15 +350,19 @@
                        :juxt.site/audience resource-server
                        :juxt.site/application client-id
                        :juxt.site/token access-token
-                       :juxt.site/keypair (:juxt.site/keypair *resource*)
-                       :juxt.site/username username}
-                      scope (assoc :juxt.site/scope scope))
+                       :juxt.site/keypair (:juxt.site/keypair *resource*)}
+                      scope (assoc :juxt.site/scope scope)
+                      username (assoc :juxt.site/username username))
 
                   fragment
                   (ring.util.codec/form-encode
-                   {"access_token" access-token
-                    "token_type" "bearer"
-                    "state" (get query "state")})
+                   ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.2.2
+                   (merge
+                    {"access_token" access-token
+                     "token_type" "bearer"
+                     "expires_in" (.getSeconds expires-in)}
+                    (when scope {"scope" (clojure.string/join " " scope)})
+                    {"state" (get query "state")}))
 
                   location (format "%s#%s" redirect-uri fragment)]
 
@@ -378,7 +376,7 @@
         (catch clojure.lang.ExceptionInfo cause
           (if (:oauth-redirect (ex-data cause))
             (let [state (get query "state")
-                  query-component
+                  encoded
                   (ring.util.codec/form-encode
                    (cond->
                        (cond
@@ -388,7 +386,11 @@
                          {"error" "server_error"
                           "error_description" (.getMessage cause)})
                        state (assoc "state" state)))
-                  location (format "%s?%s" redirect-uri query-component)]
+
+                  location
+                  (format
+                   (if (= response-type "token") "%s#%s" "%s?%s")
+                   redirect-uri encoded)]
 
               [[:ring.response/status 303]
                [:ring.response/headers

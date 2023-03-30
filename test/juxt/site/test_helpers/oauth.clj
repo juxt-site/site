@@ -182,10 +182,14 @@
       (let [state (make-nonce 10)
             request (make-authorization-request
                      authorization-uri
-                     (cond-> {"response_type" "token"
-                              "client_id" client-id
-                              "state" state}
-                       scope (assoc "scope" (codec/url-encode (str/join " " scope)))))
+                     (merge
+                      ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.2.1
+                      {"response_type" "token"
+                       "client_id" client-id
+                       ;; "redirect_uri" redirect-uri ; OPTIONAL
+                       }
+                      (when scope {"scope" (str/join " " scope)})
+                      {"state" state}))
 
             response (with-session-token session-token
                        (*handler* request))

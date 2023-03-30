@@ -73,7 +73,7 @@
       (try
         (case grant-type
           "authorization_code"
-          (let [{:keys [client-id code code-verifier scopes]} *prepare*
+          (let [{:keys [client-id code code-verifier]} *prepare*
 
                 {:juxt.site/keys [code-challenge code-challenge-method subject scope] :as code-doc}
                 (juxt.site/lookup-authorization-code code)
@@ -180,18 +180,20 @@
                [:ring.response/body
                 (jsonista.core/write-value-as-string
                  ;; See https://www.rfc-editor.org/rfc/rfc6749#section-5.1
-                 (cond-> {"access_token" access-token
-                          "token_type" "bearer"
-                          "expires_in" (.getSeconds access-token-expires-in)
-                          "refresh_token" new-refresh-token}
-                   ;; As per
-                   ;; https://www.rfc-editor.org/rfc/rfc6749#section-5.1,
-                   ;; scope can be OPTIONAL if it is exactly what was
-                   ;; requested, otherwise it is REQUIRED. We include
-                   ;; it if there was a requested scope, regardless of
-                   ;; whether its value is now exactly what was
-                   ;; requested or not.
-                   scope (assoc "scope" (clojure.string/join " " scope))))]]))
+                 (merge
+                  {"access_token" access-token
+                   "token_type" "bearer"
+                   "expires_in" (.getSeconds access-token-expires-in)
+                   "refresh_token" new-refresh-token}
+                  (when scope
+                    ;; As per
+                    ;; https://www.rfc-editor.org/rfc/rfc6749#section-5.1,
+                    ;; scope can be OPTIONAL if it is exactly what was
+                    ;; requested, otherwise it is REQUIRED. We include
+                    ;; it if there was a requested scope, regardless
+                    ;; of whether its value is now exactly what was
+                    ;; requested or not.
+                    {"scope" (clojure.string/join " " scope)})))]]))
 
           "refresh_token"
           (let [{:juxt.site/keys [subject application keypair] :as existing-refresh-token-doc}
