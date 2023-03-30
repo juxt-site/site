@@ -55,27 +55,31 @@
     (.acceptLeeway (* 30 60))
     (.build))))
 
-(defn decode-jwt [jwt public-key]
-  (let [verifier (get-verifier public-key)
-        decoded-jwt (.verify verifier jwt)]
+(defn- jwt->edn [decoded-jwt]
+  {:header {"alg" (.getAlgorithm decoded-jwt)
+            "cty" (.getContentType decoded-jwt)
+            "kid" (.getKeyId decoded-jwt)
+            "typ" (.getType decoded-jwt)}
+   :claims (reduce-kv
+            (fn [acc k v]
+              (assoc acc k
+                     (case k
+                       "exp" (.asLong v)
+                       "iat" (.asLong v)
+                       "nbf" (.asLong v)
+                       "aud" (.asString v)
+                       "iss" (.asString v)
+                       "jti" (.asString v)
+                       (.asString v))))
+            {}
+            (.getClaims decoded-jwt))})
 
-    {:header {"alg" (.getAlgorithm decoded-jwt)
-              "cty" (.getContentType decoded-jwt)
-              "kid" (.getKeyId decoded-jwt)
-              "typ" (.getType decoded-jwt)}
-     :claims (reduce-kv
-              (fn [acc k v]
-                (assoc acc k
-                       (case k
-                         "exp" (.asLong v)
-                         "iat" (.asLong v)
-                         "nbf" (.asLong v)
-                         "aud" (.asString v)
-                         "iss" (.asString v)
-                         "jti" (.asString v)
-                         (.asString v))))
-              {}
-              (.getClaims decoded-jwt))}))
+(defn decode-jwt
+  ([jwt] (jwt->edn (JWT/decode jwt)))
+  ([jwt public-key]
+   (let [verifier (get-verifier public-key)
+         decoded-jwt (.verify verifier jwt)]
+     (jwt->edn decoded-jwt))))
 
 (defn new-jwt [header payload keypair]
   (assert (map? header))
