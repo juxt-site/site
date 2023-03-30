@@ -118,7 +118,9 @@
   a convenience function which can be useful for further testing."
   [{:keys [grant-type session-token client code-challenge-method redirect-uri scope]
     :or {code-challenge-method "S256"
+         ;; TODO: Consider removing this default
          grant-type "authorization_code"}}]
+  (assert grant-type "Must provide grant-type")
   (let [db (xt/db *xt-node*)
         client-doc (xt/entity db client)
         client-id (:juxt.site/client-id client-doc)]
