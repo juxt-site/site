@@ -5,10 +5,15 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.pprint :refer [pprint]]
+   [jsonista.core :as json]
    [juxt.site.util :refer [make-nonce]]
    [juxt.site.test-helpers.handler :refer [*handler*]]
+   [juxt.site.test-helpers.login :as login :refer [with-session-token]]
+   [juxt.site.test-helpers.xt :refer [*xt-node*]]
+   [juxt.site.util :as util]
    [malli.core :as malli]
-   [ring.util.codec :as codec]))
+   [ring.util.codec :as codec]
+   [xtdb.api :as xt]))
 
 ;; This are the uri-maps used by the tests
 
@@ -107,6 +112,89 @@
      {"content-type" "application/x-www-form-urlencoded"
       "content-length" (str (count (.getBytes payload)))}
      :ring.request/body (io/input-stream (.getBytes payload))}))
+
+(defn acquire-access-token!
+  "Having thoroughly tested the authorization flows, we can now provide
+  a convenience function which can be useful for further testing."
+  [{:keys [grant-type session-token client code-challenge-method redirect-uri scope]
+    :or {code-challenge-method "S256"
+         grant-type "authorization_code"}}]
+  (let [db (xt/db *xt-node*)
+        client-doc (xt/entity db client)
+        client-id (:juxt.site/client-id client-doc)]
+    (case grant-type
+      "authorization_code"
+      (let [code-verifier (util/make-code-verifier 64)
+            code-challenge (util/code-challenge code-verifier)
+            {:ring.response/keys [status headers] :as response}
+            (with-session-token session-token
+              (*handler*
+               (make-authorization-request
+                ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.1
+                (merge
+                 ;; REQUIRED
+                 {"response_type" "code"
+                  "client_id" client-id}
+                 ;; OPTIONAL
+                 (when redirect-uri {"redirect_uri" redirect-uri})
+                 (when scope {"scope" (str/join " " scope)})
+                 ;; RECOMMENDED
+                 {"state" (util/make-nonce 4)}
+                 ;; PKCE
+                 {"code_challenge" code-challenge
+                  "code_challenge_method" code-challenge-method}))))
+            _ (when (not= 303 status)
+                (throw (ex-info "Unexpected response" {:response response})))
+
+
+            {:strs [location]} headers
+            [_ _ query-string] (re-matches #"(https://.+?)\?(.*)" location)
+
+            {:strs [code error] :as query} (codec/form-decode query-string)
+
+            _ (when error
+                (throw (ex-info "Error from authorize request" query)))
+
+            token-request
+            (make-token-request
+             ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.3
+             (merge
+              ;; REQUIRED
+              {"grant_type" "authorization_code"
+               "code" code
+               "redirect_uri" (first (:juxt.site/redirect-uris client-doc))
+               "client_id" client-id}
+              ;; PKCE
+              {"code_verifier" code-verifier}))
+
+            {:ring.response/keys [status body] :as response}
+            (*handler* token-request)]
+
+        (when (= status 500)
+          (throw (ex-info "Error on token acquisition" {:response response})))
+
+        ;; Avoid confusion later
+        (assert (contains? #{200 400} status) (str status))
+
+        (json/read-value body)))))
+
+(defn refresh-token!
+  [{:keys [refresh-token scope]}]
+  (let [{:ring.response/keys [status body] :as response}
+        (*handler*
+         (make-token-request
+          ;; See https://www.rfc-editor.org/rfc/rfc6749#section-6
+          (merge
+           {"grant_type" "refresh_token"
+            "refresh_token" refresh-token}
+           (when scope {"scope" scope}))))
+
+        _ (when (= status 500)
+            (throw (ex-info "Error on token refresh" {:response response})))
+
+        _ (assert (contains? #{200 400} status) (str status))]
+
+    (json/read-value body)))
 
 (defn assoc-bearer-token [req token]
   (update-in

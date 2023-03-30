@@ -394,107 +394,26 @@
                                       :in [token]} new-refresh-token)))
                "The new refresh-token should exist")]))))
 
-(defn acquire-access-token!
-  "Having thoroughly tested the authorization flows, we can now provide
-  a convenience function which can be useful for further testing."
-  [{:keys [grant-type session-token client code-challenge-method redirect-uri scope]
-    :or {code-challenge-method "S256"
-         grant-type "authorization_code"}}]
-  (let [db (xt/db *xt-node*)
-        client-doc (xt/entity db client)
-        client-id (:juxt.site/client-id client-doc)]
-    (case grant-type
-      "authorization_code"
-      (let [code-verifier (util/make-code-verifier 64)
-            code-challenge (util/code-challenge code-verifier)
-            {:ring.response/keys [status headers] :as response}
-            (with-session-token session-token
-              (*handler*
-               (oauth/make-authorization-request
-                ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.1
-                (merge
-                 ;; REQUIRED
-                 {"response_type" "code"
-                  "client_id" client-id}
-                 ;; OPTIONAL
-                 (when redirect-uri {"redirect_uri" redirect-uri})
-                 (when scope {"scope" (str/join " " scope)})
-                 ;; RECOMMENDED
-                 {"state" (util/make-nonce 4)}
-                 ;; PKCE
-                 {"code_challenge" code-challenge
-                  "code_challenge_method" code-challenge-method}))))
-            _ (when (not= 303 status)
-                (throw (ex-info "Unexpected response" {:response response})))
 
-
-            {:strs [location]} headers
-            [_ _ query-string] (re-matches #"(https://.+?)\?(.*)" location)
-
-            {:strs [code error] :as query} (codec/form-decode query-string)
-
-            _ (when error
-                (throw (ex-info "Error from authorize request" query)))
-
-            token-request
-            (oauth/make-token-request
-             ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.1.3
-             (merge
-              ;; REQUIRED
-              {"grant_type" "authorization_code"
-               "code" code
-               "redirect_uri" (first (:juxt.site/redirect-uris client-doc))
-               "client_id" client-id}
-              ;; PKCE
-              {"code_verifier" code-verifier}))
-
-            {:ring.response/keys [status body] :as response}
-            (*handler* token-request)]
-
-        (when (= status 500)
-          (throw (ex-info "Error on token acquisition" {:response response})))
-
-        ;; Avoid confusion later
-        (assert (contains? #{200 400} status) (str status))
-
-        (json/read-value body)))))
-
-(defn refresh-token!
-  [{:keys [refresh-token scope]}]
-  (let [{:ring.response/keys [status body] :as response}
-        (*handler*
-         (oauth/make-token-request
-          ;; See https://www.rfc-editor.org/rfc/rfc6749#section-6
-          (merge
-           {"grant_type" "refresh_token"
-            "refresh_token" refresh-token}
-           (when scope {"scope" scope}))))
-
-        _ (when (= status 500)
-            (throw (ex-info "Error on token refresh" {:response response})))
-
-        _ (assert (contains? #{200 400} status) (str status))]
-
-    (json/read-value body)))
 
 ;; What if we try to fake the refresh token?
 (deftest fake-refresh-token-test
   (let [session-token (login-with-form! "alice" "garden")
-        _ (acquire-access-token!
+        _ (oauth/acquire-access-token!
            {:session-token session-token
             :client "https://auth.example.test/clients/public-global-scope-app"
             :grant-type "authorization_code"})]
     (is (=
          {"error" "invalid_grant"
           "error_description" "Refresh token invalid or expired",}
-         (refresh-token!
+         (oauth/refresh-token!
           {:refresh-token "fake"})))))
 
 ;; Scopes
 
 (deftest app-with-global-scope-with-no-scope-requested
   (let [response
-        (acquire-access-token!
+        (oauth/acquire-access-token!
          {:session-token (login-with-form! "alice" "garden")
           :client "https://auth.example.test/clients/public-global-scope-app"
           :grant-type "authorization_code"})]
@@ -503,7 +422,7 @@
 
 (deftest app-with-global-scope-with-specific-scope-requested
   (let [{:strs [scope]}
-        (acquire-access-token!
+        (oauth/acquire-access-token!
          {:session-token (login-with-form! "alice" "garden")
           :client "https://auth.example.test/clients/public-global-scope-app"
           :grant-type "authorization_code"
@@ -522,7 +441,7 @@
 
 (deftest scope-included-in-token-info
  (let [{access-token "access_token"}
-       (acquire-access-token!
+       (oauth/acquire-access-token!
         {:session-token (login-with-form! "alice" "garden")
          :client "https://auth.example.test/clients/public-global-scope-app"
          :grant-type "authorization_code"
@@ -547,7 +466,7 @@
 (deftest read-write-app-test
   (testing "no scope requested"
     (let [{scope "scope"}
-          (acquire-access-token!
+          (oauth/acquire-access-token!
            {:session-token (login-with-form! "alice" "garden")
             :client "https://auth.example.test/clients/public-read-write-scope-app"
             :grant-type "authorization_code"})]
@@ -557,7 +476,7 @@
 
   (testing "read-app"
     (let [{scope "scope"}
-          (acquire-access-token!
+          (oauth/acquire-access-token!
            {:session-token (login-with-form! "alice" "garden")
             :client "https://auth.example.test/clients/public-read-scope-app"
             :grant-type "authorization_code"
@@ -569,7 +488,7 @@
 
   (testing "read-write-app"
     (let [{scope "scope"}
-          (acquire-access-token!
+          (oauth/acquire-access-token!
            {:session-token (login-with-form! "alice" "garden")
             :client "https://auth.example.test/clients/public-read-write-scope-app"
             :grant-type "authorization_code"
