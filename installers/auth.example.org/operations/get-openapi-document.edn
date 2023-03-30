@@ -34,6 +34,7 @@
                    (assoc
                     (name method)
                     {"operationId" (:openapi.v3/operation-id metadata)
+                     ;; TODO: This can be multiple scopes
                      "security" [{"oauth" [(:openapi.v3/scope metadata)]}]
                      "responses"
                      (case method
