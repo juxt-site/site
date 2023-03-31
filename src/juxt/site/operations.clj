@@ -44,6 +44,7 @@
 ;; This is broken out into its own function to assist debugging when
 ;; authorization is denied and we don't know why. A better authorization
 ;; debugger is definitely required.
+
 (defn ^{:private true} query-permissions
   [{:keys [db rules subject operation resource scope purpose]}]
   (assert (or (nil? subject) (string? subject)))
@@ -99,7 +100,7 @@
           (throw (ex-info "Failed to query permissions" {:query query} e)))))))
 
 (defn check-permissions
-  "Given a subject, a possible operation and resource, return all related pairs of permissions and operations."
+  "Given a subject, an operation and resource, return all permissions."
   [db operation
    {subject :juxt.site/subject
     resource :juxt.site/resource
@@ -924,6 +925,9 @@
           (format "No permission for this operation (%s) with subject (%s) and scope (%s)"
                   operation-id (:xt/id subject) scope)
           {:ring.response/status 403
+           :operation operation-id
+           :subject subject
+           :scope scope
            :juxt.site/request-context req}))
 
         :else

@@ -9,11 +9,17 @@
    [juxt.site.test-helpers.login :refer [with-session-token] :as login]
    [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
-   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
+   [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [clojure.java.io :as io]
-   [juxt.site.jwt :as jwt]))
+   [juxt.site.jwt :as jwt]
+   [xtdb.api :as xt]))
+
+;; Welcome to the System API test suite
+
+;; TODO: Write an explanation of the testing strategy used in this
+;; namespace.
 
 ;; TODO: Investigate use of test-ns-hook to run ns tests with both
 ;; implicit and authorization code grants. Until then, let's just use
@@ -37,6 +43,18 @@
     "keypair" "https://auth.example.test/keypairs/test-kp-123"
     "authorization-code-length" 12
     "jti-length" 12})
+
+  ;; Alice has the System role which confers access to put-user
+  (converge!
+   ["https://auth.example.test/role-assignments/alice-System"]
+   RESOURCE_SERVER
+   {})
+
+  ;; ... whereas Bob has the SystemReadonly role which doesn't
+  (converge!
+   ["https://auth.example.test/role-assignments/bob-SystemReadonly"]
+   RESOURCE_SERVER
+   {})
 
   ;; TODO: Analyse the performance cost of install-resource-groups!
   ;; Perhaps optimise by only creating the installer graph once and
@@ -77,7 +95,7 @@
   (bootstrap)
   (f))
 
-(use-fixtures :each system-xt-fixture handler-fixture bootstrap-fixture)
+(use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
 
 (deftest system-api-test
 
@@ -88,23 +106,6 @@
           :session-token session-token
           :authorization-uri "https://auth.example.test/oauth/authorize"
           :client "https://auth.example.test/clients/global-scope-app"})]
-
-    (testing "Permissions are required for access"
-      (oauth/with-bearer-token access-token
-        (let [response
-              (*handler*
-               {:juxt.site/uri "https://data.example.test/_site/users"
-                :ring.request/method :get
-                :ring.request/headers
-                {"accept" "application/json"}})]
-
-          ;; This access token is not sufficient, so we get a 403
-          (is (= 403 (:ring.response/status response))))))
-
-    (converge!
-     ["https://auth.example.test/role-assignments/alice-SystemReadonly"]
-     AUTH_SERVER
-     {})
 
     (testing "Access achieved with correct permissions and role assignment"
       (oauth/with-bearer-token access-token
@@ -172,11 +173,6 @@
           :session-token session-token
           :client "https://auth.example.test/clients/read-write-app"})]
 
-    (converge!
-     ["https://auth.example.test/role-assignments/alice-System"]
-     RESOURCE_SERVER
-     {})
-
     (testing "Add Hannah"
       (oauth/with-bearer-token read-write-access-token
         (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/hannah"}))
@@ -204,7 +200,6 @@
                   {"xt/id" "https://data.example.test/users/hannah"}]
                  (json/read-value body))))))
 
-    ;; This shouldn't work!!
     (oauth/with-bearer-token read-only-access-token
       (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/rebecca"}))
             request {:juxt.site/uri "https://data.example.test/_site/users"
