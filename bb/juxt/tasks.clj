@@ -374,7 +374,7 @@
         "authorization-server" auth-base-uri
         "resource-server" resource-server
         "redirect-uris" (vec (filter seq (clojure.string/split (or redirect-uris-as-csv "") #",")))
-        "scope" (vec (filter seq (clojure.string/split (or scope-as-csv "") #",")))}
+        "scope" (set (filter seq (clojure.string/split (or scope-as-csv "") #",")))}
        {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn add-user [{:keys [auth-base-uri data-base-uri username fullname iss nickname]}]
