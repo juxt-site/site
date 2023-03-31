@@ -149,8 +149,8 @@
                  (case username "alice" "garden" "bob" "walrus"))) ]
 
     (are [username client grant-type requested-scope expected-status]
-        (testing (cond-> (format "%s using %s with %s" username client grant-type)
-                   requested-scope (str " requesting " (str/join " " requested-scope)))
+        (testing (cond-> (format "%s using %s with %s grant" username client grant-type)
+                   requested-scope (str " requesting " (str/join ", " requested-scope)))
           (let [session-token (login username)
                 {access-token "access_token"}
                 (oauth/acquire-access-token!
