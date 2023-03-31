@@ -45,35 +45,67 @@
 ;; authorization is denied and we don't know why. A better authorization
 ;; debugger is definitely required.
 (defn ^{:private true} query-permissions
-  [{:keys [db rules subject operation resource purpose]}]
+  [{:keys [db rules subject operation resource scope purpose]}]
   (assert (or (nil? subject) (string? subject)))
   (assert (or (nil? resource) (string? resource)))
-  (let [query {:find '[(pull permission [*]) ]
-               :where
-               '[
-                 [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
+  (assert (or (nil? scope) (set? scope)))
 
-                 ;; TODO: Constrain with scope
+  (if scope
+    (let [query {:find '[(pull permission [*]) ]
+                 :where
+                 '[
+                   [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
 
-                 ;; Only consider a permitted operation
-                 [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                 [permission :juxt.site/operation operation]
-                 (allowed? subject operation resource permission)
+                   ;; Only consider a permitted operation
+                   [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
+                   [permission :juxt.site/operation operation]
+                   (allowed? subject operation resource permission)
 
-                 ;; Only permissions that match our purpose
-                 [permission :juxt.site/purpose purpose]]
+                   ;; Only permissions that match our purpose
+                   [permission :juxt.site/purpose purpose]
 
-               :rules rules
+                   ;; When scope limits operations, restrict operations that have the scope
+                   [operation :juxt.site/scope s]
+                   [(contains? scope s)]]
 
-               :in '[subject operation resource purpose]}]
-    (try
-      (map first (xt/q db query subject operation resource purpose))
-      (catch Exception e
-        (throw (ex-info "Failed to query permissions" {:query query} e))))))
+                 :rules rules
+
+                 :in '[subject operation resource scope purpose]}]
+      (try
+        (map first (xt/q db query subject operation resource scope purpose))
+        (catch Exception e
+          (throw (ex-info "Failed to query permissions" {:query query} e)))))
+
+    ;; No scope involved. Ignore it.
+    (let [query {:find '[(pull permission [*]) ]
+                 :where
+                 '[
+                   [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
+
+                   ;; Only consider a permitted operation
+                   [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
+                   [permission :juxt.site/operation operation]
+                   (allowed? subject operation resource permission)
+
+                   ;; Only permissions that match our purpose
+                   [permission :juxt.site/purpose purpose]]
+
+                 :rules rules
+
+                 :in '[subject operation resource purpose]}]
+      (try
+        (map first (xt/q db query subject operation resource purpose))
+        (catch Exception e
+          (throw (ex-info "Failed to query permissions" {:query query} e)))))))
 
 (defn check-permissions
   "Given a subject, a possible operation and resource, return all related pairs of permissions and operations."
-  [db operation {subject :juxt.site/subject resource :juxt.site/resource purpose :juxt.site/purpose :as options}]
+  [db operation
+   {subject :juxt.site/subject
+    resource :juxt.site/resource
+    scope :juxt.site/scope
+    purpose :juxt.site/purpose
+    :as options}]
 
   (when (= (find options :juxt.site/subject) [:juxt.site/subject nil])
     (throw (ex-info "Nil subject passed!" {})))
@@ -90,6 +122,7 @@
         :subject (:xt/id subject)
         :operation operation
         :resource (:xt/id resource)
+        :scope scope
         :purpose purpose}))))
 
 (malli/=>
@@ -846,7 +879,7 @@
 ;; For a fuller discussion on determinism and its benefits, see
 ;; https://www.cs.umd.edu/~abadi/papers/abadi-cacm2018.pdf
 (defn wrap-authorize-with-operation [h]
-  (fn [{:juxt.site/keys [db resource uri subject]
+  (fn [{:juxt.site/keys [db resource uri subject scope]
         :ring.request/keys [method]
         :as req}]
 
@@ -876,7 +909,8 @@
                ;; permission checking in case there's a specific permission for
                ;; this resource.
                subject (assoc :juxt.site/subject subject)
-               resource (assoc :juxt.site/resource resource))))]
+               resource (assoc :juxt.site/resource resource)
+               scope (assoc :juxt.site/scope scope))))]
 
       (cond
         (seq permissions)
@@ -887,7 +921,8 @@
         subject
         (throw
          (ex-info
-          (format "Subject (%s) does not have permission to this operation: %s" (:xt/id subject) (pr-str operation))
+          (format "No permission for this operation (%s) with subject (%s) and scope (%s)"
+                  operation-id (:xt/id subject) scope)
           {:ring.response/status 403
            :juxt.site/request-context req}))
 
