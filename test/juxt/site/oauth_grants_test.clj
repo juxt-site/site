@@ -640,4 +640,9 @@
 ;; TODO: Confidential clients
 
 ;; TODO: Test that JWT access-tokens contain a scope claim, where
-;; expected.
+;; expected:
+#_(let [jwt (jwt/decode-jwt read-only-access-token)
+            jti (get-in jwt [:claims "jti"])]
+        {:jwt jwt
+         :token-in-db (repl/e (str "https://auth.example.test/access-tokens/" jti))}
+        )

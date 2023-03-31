@@ -77,7 +77,7 @@
   (bootstrap)
   (f))
 
-(use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
+(use-fixtures :each system-xt-fixture handler-fixture bootstrap-fixture)
 
 (deftest system-api-test
 
@@ -140,8 +140,8 @@
 
 ;; TODO: Can a client-id be a URI?
 
-;;deftest put-user-test
-#_(with-fixtures
+;;
+(deftest put-user-test
 
   (let [session-token (login/login-with-form! "alice" "garden")
 
@@ -213,48 +213,6 @@
                      {"content-type" "application/edn"
                       "content-length" (str (count payload))}
                      :ring.request/body (io/input-stream payload)}
-            response (*handler* request)]
+            {:ring.response/keys [status headers body]} (*handler* request)]
 
-        response
-        #_(select-keys response [:ring.response/status
-                                 :ring.response/headers])))
-
-    (repl/e "https://auth.example.test/scopes/system/read")
-
-    ;; Inspect the token, to see if it has some scope: it does!
-
-    #_(let [jwt (jwt/decode-jwt read-only-access-token)
-            jti (get-in jwt [:claims "jti"])]
-        {:jwt jwt
-         :token-in-db (repl/e (str "https://auth.example.test/access-tokens/" jti))}
-        )
-
-    ;;
-    #_(json/read-value
-       (:ring.response/body
-        (with-session-token session-token
-          (*handler*
-           (oauth/make-token-info-request {"token" read-only-app-access-token})))))
-
-    ;; This shouldn't work
-    #_(testing "Add Ursula"
-        (oauth/with-bearer-token read-only-app-access-token
-          (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/ursula"}))
-                request {:juxt.site/uri "https://data.example.test/_site/users"
-                         :ring.request/method :post
-                         :ring.request/headers
-                         {"content-type" "application/edn"
-                          "content-length" (str (count payload))}
-                         :ring.request/body (io/input-stream payload)}
-                response (*handler* request)]
-
-            (select-keys response [:ring.response/status :ring.response/headers])
-            ;; What is the scope of the read-only-app-access-token?
-
-            ;;(jwt/decode-jwt read-only-app-access-token)
-            ;;(is (= 200 (:ring.response/status response)))
-            )))
-
-    ;; TODO: Check that the read-only-app cannot add Ursula
-
-    ))
+        (is (= 403 status))))))
