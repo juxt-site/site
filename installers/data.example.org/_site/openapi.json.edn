@@ -39,6 +39,9 @@ Some useful links:
     "schemas" {}
     "requestBodies" {}}
 
+   :openapi.v3/tags
+   ["Users" "Operations"]
+
    :juxt.site/methods
    {:get {:juxt.site/operation "https://auth.example.org/operations/get-openapi-document"}}
 

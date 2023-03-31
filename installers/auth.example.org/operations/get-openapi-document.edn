@@ -62,7 +62,7 @@
        "servers" (:openapi.v3/servers *resource*)
        "paths" paths
        "components" (:openapi.v3/components *resource*)
-       "tags" []
+       "tags" (or (:openapi.v3/tags *resource*) [])
        ;;"externalDocs" {}
        })}
 
