@@ -638,3 +638,6 @@
 ;; what we can do. Research other test namespaces that test operations.
 
 ;; TODO: Confidential clients
+
+;; TODO: Test that JWT access-tokens contain a scope claim, where
+;; expected.
