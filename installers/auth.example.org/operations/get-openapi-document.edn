@@ -39,11 +39,7 @@
                        {"operationId" (:juxt.site/operation metadata)}
                        (when (seq scope)
                          {"security" [{"oauth" (vec (seq scope))}]})
-                       {
-                        ;; TODO: This can be multiple scopes
-                        ;; This must be the scope of the operation
-
-                        "responses"
+                       {"responses"
                         (case method
                           :get
                           {"200"
@@ -66,7 +62,6 @@
        "servers" (:openapi.v3/servers *resource*)
        "paths" paths
        "components" (:openapi.v3/components *resource*)
-       "security" (:openapi.v3/security *resource*)
        "tags" []
        ;;"externalDocs" {}
        })}
