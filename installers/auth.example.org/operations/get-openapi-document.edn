@@ -33,23 +33,30 @@
                          allowed-operations))
                    (assoc
                     (name method)
-                    {"operationId" (:openapi.v3/operation-id metadata)
-                     ;; TODO: This can be multiple scopes
-                     "security" [{"oauth" [(:openapi.v3/scope metadata)]}]
-                     "responses"
-                     (case method
-                       :get
-                       {"200"
-                        {"content"
-                         (reduce
-                          (fn [acc variant]
-                            (assoc acc (:juxt.http/content-type variant) {}))
-                          {}
-                          (sort-by :juxt.http/content-type (:variants path)))
-                         "description" "Successful operation"}}
-                       {})
-                     "tags" (:openapi.v3/tags metadata)
-                     "description" (:juxt.site/description metadata)})))
+                    (let [operation (xt/entity (:juxt.site/operation metadata))
+                          scope (:juxt.site/scope operation)]
+                      (merge
+                       {"operationId" (:juxt.site/operation metadata)}
+                       (when (seq scope)
+                         {"security" [{"oauth" (vec (seq scope))}]})
+                       {
+                        ;; TODO: This can be multiple scopes
+                        ;; This must be the scope of the operation
+
+                        "responses"
+                        (case method
+                          :get
+                          {"200"
+                           {"content"
+                            (reduce
+                             (fn [acc variant]
+                               (assoc acc (:juxt.http/content-type variant) {}))
+                             {}
+                             (sort-by :juxt.http/content-type (:variants path)))
+                            "description" "Successful operation"}}
+                          {})
+                        "tags" (:openapi.v3/tags metadata)
+                        "description" (:juxt.site/description metadata)})))))
                {} (:juxt.site/methods path))))
            {}
            openapi-paths)]

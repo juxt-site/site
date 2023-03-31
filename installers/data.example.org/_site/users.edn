@@ -12,15 +12,11 @@
    {:get
     {:juxt.site/description "Get users"
      :juxt.site/operation "https://auth.example.org/operations/get-users"
-     :openapi.v3/operation-id "get-users"
-     :openapi.v3/scope "https://auth.example.org/scopes/system/read"
      :openapi.v3/tags ["Users"]}
 
     :post
     {:juxt.site/description "Add a user"
      :juxt.site/operation "https://auth.example.org/operations/put-user"
-     :openapi.v3/operation-id "put-user"
-     :openapi.v3/scope "https://auth.example.org/scopes/system/write"
      :openapi.v3/tags ["Users"]}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
