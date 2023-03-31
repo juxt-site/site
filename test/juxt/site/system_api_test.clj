@@ -138,46 +138,48 @@
 ;; shouldn't be necessary to use the tool for adding new users once
 ;; the system has been bootstrapped.
 
+;; TODO: Can a client-id be a URI?
+
 ;;deftest put-user-test
 #_(with-fixtures
 
-  (let [session-token (login/login-with-form! "alice" "garden")]
-    (oauth/acquire-access-token!
-     ;; the read-only-app should not be able to put-user
-     {:grant-type "authorization_code"
-      :authorization-uri "https://auth.example.test/oauth/authorize"
-      :token-uri "https://auth.example.test/oauth/token"
-      :session-token session-token
-      :client "https://auth.example.test/clients/read-write-app"
-      }))
+  (let [session-token (login/login-with-form! "alice" "garden")
 
-  ;; TODO: Can a client-id be a URI?
+        {global-scope-access-token "access_token"}
+        (oauth/acquire-access-token!
+         ;; the read-only-app should not be able to put-user
+         {:grant-type "authorization_code"
+          :authorization-uri "https://auth.example.test/oauth/authorize"
+          :token-uri "https://auth.example.test/oauth/token"
+          :session-token session-token
+          :client "https://auth.example.test/clients/global-scope-app"})
 
-  #_(let [session-token (login/login-with-form! "alice" "garden")
+        {read-only-access-token "access_token"}
+        (oauth/acquire-access-token!
+         ;; the read-only-app should not be able to put-user
+         {:grant-type "implicit"
+          :authorization-uri "https://auth.example.test/oauth/authorize"
+          :token-uri "https://auth.example.test/oauth/token"
+          :session-token session-token
+          :client "https://auth.example.test/clients/read-only-app"})
 
-        {test-app-access-token "access_token"}
-        (with-session-token session-token
-          (oauth/implicit-authorize!
-           "https://auth.example.test/oauth/authorize"
-           ;; the test-app has global scope
-           {"client_id" "test-app"}))
-
-        {read-only-app-access-token "access_token"}
-        (with-session-token session-token
-          ;; TODO: How to request a scope? See oauth_grants_test.clj
-          (oauth/acquire-access-token!
-           "https://auth.example.test/oauth/authorize"
-           ;; the read-only-app should not be able to put-user
-           {:client "read-only-app"}))]
+        {read-write-access-token "access_token"}
+        (oauth/acquire-access-token!
+         ;; the read-only-app should not be able to put-user
+         {:grant-type "implicit"
+          :authorization-uri "https://auth.example.test/oauth/authorize"
+          :token-uri "https://auth.example.test/oauth/token"
+          :session-token session-token
+          :client "https://auth.example.test/clients/read-write-app"})]
 
     (converge!
      ["https://auth.example.test/role-assignments/alice-System"]
      RESOURCE_SERVER
      {})
 
-    (testing "Add Terry"
-      (oauth/with-bearer-token test-app-access-token
-        (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/terry"}))
+    (testing "Add Hannah"
+      (oauth/with-bearer-token read-write-access-token
+        (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/hannah"}))
               request {:juxt.site/uri "https://data.example.test/_site/users"
                        :ring.request/method :post
                        :ring.request/headers
@@ -188,8 +190,8 @@
 
           (is (= 200 (:ring.response/status response))))))
 
-    (testing "Terry has been added to database"
-      (oauth/with-bearer-token read-only-app-access-token
+    (testing "Hannah has been added to database"
+      (oauth/with-bearer-token read-write-access-token
         (let [request {:juxt.site/uri "https://data.example.test/_site/users.json"
                        :ring.request/method :get}
               {:ring.response/keys [status headers body]} (*handler* request)]
@@ -199,28 +201,33 @@
           (is (= [{"xt/id" "https://data.example.test/users/alice"}
                   {"xt/id" "https://data.example.test/users/bob"}
                   {"xt/id" "https://data.example.test/users/carlos"}
-                  {"xt/id" "https://data.example.test/users/terry"}]
+                  {"xt/id" "https://data.example.test/users/hannah"}]
                  (json/read-value body))))))
 
-    ;; Inspect the token, to see if it has some scope
+    ;; This shouldn't work!!
+    (oauth/with-bearer-token read-only-access-token
+      (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/rebecca"}))
+            request {:juxt.site/uri "https://data.example.test/_site/users"
+                     :ring.request/method :post
+                     :ring.request/headers
+                     {"content-type" "application/edn"
+                      "content-length" (str (count payload))}
+                     :ring.request/body (io/input-stream payload)}
+            response (*handler* request)]
 
-    ;; Seems that we don't have the correct scope in the token.
-    ;; Let's see if it's to do with our use of the implicit flow.
-    ;; Let's use the authorization_code flow and see what the result is.
-    ;; If it contains scope, all good. If it doesn't, this is wrong.
-    ;; The access-token should contain the scope if the client is limited in scope.
-    ;; A client might be written in such a way to alter behaviour (show/hide details) based on the scope.
-    ;; It is important that such a client can introspect the scope in the access-token.
-    ;; If it is nil, the client should assume that is has global scope.
-    ;; Either way, we must fix the implicit flow.
+        response
+        #_(select-keys response [:ring.response/status
+                                 :ring.response/headers])))
 
-    ;; Plus, let's have some tests around scope in the JWT
+    (repl/e "https://auth.example.test/scopes/system/read")
 
-    (let [jwt (jwt/decode-jwt read-only-app-access-token)
-          jti (get-in jwt [:claims "jti"])]
-      {:jwt jwt
-       :token-in-db (repl/e (str "https://auth.example.test/access-tokens/" jti))}
-      )
+    ;; Inspect the token, to see if it has some scope: it does!
+
+    #_(let [jwt (jwt/decode-jwt read-only-access-token)
+            jti (get-in jwt [:claims "jti"])]
+        {:jwt jwt
+         :token-in-db (repl/e (str "https://auth.example.test/access-tokens/" jti))}
+        )
 
     ;;
     #_(json/read-value
