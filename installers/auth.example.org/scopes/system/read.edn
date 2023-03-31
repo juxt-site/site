@@ -6,7 +6,4 @@
   :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-scope"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/description "Read system info"
-   :juxt.site/operations
-   #{"https://auth.example.org/operations/get-users"
-     "https://auth.example.org/operations/get-operations"}}}}
+   :juxt.site/description "Read system info"}}}

@@ -7,7 +7,7 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:juxt.site/operations [:set [:re "https://auth.example.org/operations/.+"]]]]
+    [:juxt.site/description :string]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program

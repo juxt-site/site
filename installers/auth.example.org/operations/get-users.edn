@@ -13,6 +13,9 @@
          (map first)
          (sort-by :xt/id))}
 
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/system/read"}
+
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)

@@ -34,6 +34,9 @@
     #juxt.pprint
     [[:xtdb.api/put *prepare*]]}
 
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/system/write"}
+
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)

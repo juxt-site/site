@@ -389,7 +389,6 @@
   [xt-ctx
    {subject :juxt.site/subject
     operation :juxt.site/operation
-    access-token :juxt.site/access-token
     resource :juxt.site/resource
     purpose :juxt.site/purpose
     prepare :juxt.site/prepare
@@ -408,25 +407,7 @@
 
       ;; Check that we /can/ call the operation
       (let [check-permissions-result
-            (check-permissions db operation ctx)
-
-            _ (when scope
-                (when-not access-token
-                  (throw
-                   (ex-info
-                    (format "Operation (%s) requires a scope (%s) but there is no access-token" operation scope)
-                    {:ring.response/status 403
-                     :operation operation
-                     :scope scope})))
-                (when-not (contains? (set (:juxt.site/scope access-token)) scope)
-                  (throw
-                   (ex-info
-                    (format "Access token does not have sufficient scope (%s)" scope)
-                    {:ring.response/status 403
-                     :access-token access-token
-                     :operation operation
-                     :scope-granted (:juxt.site/scope access-token)
-                     :scope-required scope}))))]
+            (check-permissions db operation ctx)]
 
         (when-not (seq check-permissions-result)
           (throw (ex-info "Operation denied" ctx)))

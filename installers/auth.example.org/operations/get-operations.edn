@@ -13,6 +13,9 @@
      (fn [x] (select-keys x [:xt/id :juxt.site/description]))
      (juxt.site/allowed-operations {}))}
 
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/system/read"}
+
    :juxt.site/rules
    [
     ;; Anyone get call this API, as some operations are public. It
