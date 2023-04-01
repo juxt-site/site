@@ -7,14 +7,13 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.installer :refer [call-operation-with-init-data!]]
-   [juxt.site.test-helpers.login :as login :refer [with-session-token]]
+   [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
-   [xtdb.api :as xt]
-   [juxt.site.jwt :as jwt]))
+   [xtdb.api :as xt]))
 
 (defn bootstrap []
   (install-resource-groups!

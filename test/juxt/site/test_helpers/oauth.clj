@@ -3,15 +3,14 @@
 (ns juxt.site.test-helpers.oauth
   (:require
    [clojure.java.io :as io]
-   [clojure.string :as str]
    [clojure.pprint :refer [pprint]]
+   [clojure.string :as str]
+   [malli.core :as malli]
    [jsonista.core :as json]
-   [juxt.site.util :refer [make-nonce]]
+   [juxt.site.util :as util :refer [make-nonce]]
    [juxt.site.test-helpers.handler :refer [*handler*]]
    [juxt.site.test-helpers.login :as login :refer [with-session-token]]
    [juxt.site.test-helpers.xt :refer [*xt-node*]]
-   [juxt.site.util :as util]
-   [malli.core :as malli]
    [ring.util.codec :as codec]
    [xtdb.api :as xt]))
 

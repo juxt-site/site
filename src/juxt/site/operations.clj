@@ -429,7 +429,7 @@
     :as ctx}]
   (let [db (xt/db xt-ctx)
         tx (xt/indexing-tx xt-ctx)
-        {:juxt.site/keys [scope] :as operation-doc} (xt/entity db operation)
+        operation-doc (xt/entity db operation)
         _ (when-not operation-doc
             (throw
              (ex-info

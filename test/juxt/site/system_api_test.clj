@@ -2,20 +2,18 @@
 
 (ns juxt.site.system-api-test
   (:require
+   [clojure.java.io :as io]
+   [clojure.string :as str]
+   [clojure.test :refer [deftest is are use-fixtures testing]]
    [jsonista.core :as json]
    [juxt.site.logging :refer [with-logging]]
-   [clojure.test :refer [deftest is are use-fixtures testing]]
    [juxt.site.repl :as repl]
-   [juxt.site.test-helpers.login :refer [with-session-token] :as login]
+   [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
-   [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
+   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
-   [clojure.java.io :as io]
-   [juxt.site.jwt :as jwt]
-   [xtdb.api :as xt]
-   [clojure.string :as str]))
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
 
 ;; Welcome to the System API test suite
 

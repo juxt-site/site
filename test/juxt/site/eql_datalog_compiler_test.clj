@@ -18,7 +18,6 @@
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.local-files-util :refer [install-resource-groups!]]
-   [juxt.site.test-helpers.login :as login :refer [with-session-token]]
    [juxt.site.test-helpers.oauth :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [ring.util.codec :as codec]
