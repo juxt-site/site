@@ -240,3 +240,11 @@
       ;; scope.
       "bob" "read-only-app" "authorization_code" #{"system/read"} 403
       "bob" "read-only-app" "implicit" #{"system/read"} 403)))
+
+
+#_(with-fixtures
+  (converge!
+   ["https://data.example.test/users/{username}"]
+   RESOURCE_SERVER
+   {})
+  )

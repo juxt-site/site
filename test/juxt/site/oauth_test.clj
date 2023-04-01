@@ -199,7 +199,7 @@
                    (get-in ["juxt.site/subject"
                             "juxt.site/user-identity"
                             "juxt.site/user"
-                            "name"
+                            "fullname"
                             ]))))
         (is (= "application/json" (get headers "content-type")))
         (is (= "https://data.example.test/whoami.json" (get headers "content-location"))))

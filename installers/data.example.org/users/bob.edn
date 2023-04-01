@@ -6,4 +6,5 @@
   :juxt.site/operation-id "https://auth.example.org/operations/put-user"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :name "Bob"}}}
+   :username "bob"
+   :fullname "Bob"}}}
