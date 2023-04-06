@@ -409,6 +409,13 @@
              :schema schema})))
         input))}
 
+   'log
+   {'trace (fn [message] (log/trace message))
+    'debug (fn [message] (log/debug message))
+    'info (fn [message] (log/info message))
+    'warn (fn [message] (log/warn message))
+    'error (fn [message] (log/error message))}
+
    'grab
    {'parse graphql.parser/parse
     'compile-schema graphql.schema/compile-schema*}
