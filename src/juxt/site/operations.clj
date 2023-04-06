@@ -855,7 +855,7 @@
            (xt/db xt-node)
            (str events-base-uri tx-id))]
 
-      (log/debugf "Result from operation %s: %s" operation result)
+      (log/debugf "Result from operation %s: %s" (:xt/id operation) result)
 
       (if-let [{:juxt.site/keys [message ex-data]
                 :as error} (:juxt.site/error result)]
