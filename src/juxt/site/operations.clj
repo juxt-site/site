@@ -897,15 +897,30 @@
     (let [method (if (= method :head) :get method)
           operation-id (get-in resource [:juxt.site/methods method :juxt.site/operation])
 
-          operation (xt/entity db operation-id)
+          _ (when-not operation-id
+              ;; Options doesn't cause this to fail, it will just
+              ;; result in no permissions. But if an operation is
+              ;; registered against an OPTIONS operation, we want to
+              ;; respect it.
+              (when (not= method :options)
+                (throw
+                 (ex-info
+                  (format "No :juxt.site/operation for method %s: %s" method (pr-str resource) #_(pr-str (get-in resource [:juxt.site/methods method])))
+                  {:juxt.site/request-context req
+                   :resource resource
+                   :method method}))))
+
+          operation (when operation-id
+                      (xt/entity db operation-id))
           _ (when-not operation
-              (throw
-               (ex-info
-                (format "No such operation: %s" operation-id)
-                {:juxt.site/request-context req
-                 :missing-operation operation-id
-                 :resource resource
-                 :method method})))
+              (when (not= method :options)
+                (throw
+                 (ex-info
+                  (format "No such operation: %s" operation-id)
+                  {:juxt.site/request-context req
+                   :missing-operation operation-id
+                   :resource resource
+                   :method method}))))
 
           permissions
           (when operation-id
