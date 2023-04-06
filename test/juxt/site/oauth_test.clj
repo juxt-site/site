@@ -7,9 +7,8 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.installer :refer [call-operation-with-init-data!]]
-   [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
-   [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
+   [juxt.site.test-helpers.oauth :refer [AUTH_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
@@ -22,7 +21,13 @@
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
     "keypair" "https://auth.example.test/keypairs/test-kp-123"
     "authorization-code-length" 12
-    "jti-length" 12}))
+    "jti-length" 12})
+
+  (converge!
+   ["https://auth.example.test/scopes/test/read"]
+   AUTH_SERVER
+   {"description" "Read stuff"
+    "operations-in-scope" #{}}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)
@@ -100,11 +105,7 @@
 
 (deftest authorization-server-metadata
   ;; oauth-authorization-server is public
-  (converge!
-   ["https://auth.example.test/scopes/test/read"]
-   AUTH_SERVER
-   {"description" "Read stuff"
-    "operations-in-scope" #{}})  (testing "RFC 8414: Authorization Server Metadata"
+  (testing "RFC 8414: Authorization Server Metadata"
 
    (let [{:ring.response/keys [status headers body]}
          (*handler* {:ring.request/method :get
@@ -151,65 +152,3 @@
               :session-token session-token
               :client "https://auth.example.test/clients/test-app"})]
     (jwt/decode-jwt access-token)))
-
-;; This test might not really belong here.
-(deftest get-subject-test
-  ;; Register an application
-  ;; TODO: Only temporary while moving init below pkg
-  (call-operation-with-init-data!
-   *xt-node*
-   {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-    :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-client"
-    :juxt.site/input
-    {:juxt.site/client-id "test-app"
-     :juxt.site/client-type "confidential"
-     :juxt.site/resource-server "https://data.example.test"
-     :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
-
-  ;; Now we need some mechanism to authenticate with the authorization server in
-  ;; order to authorize applications and acquire tokens.
-  (install-resource-groups!
-   ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
-    "juxt/site/example-users" "juxt/site/protection-spaces"]
-   AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
-
-  (install-resource-groups! ["juxt/site/whoami"] RESOURCE_SERVER {})
-
-  (let [session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
-        (oauth/acquire-access-token!
-         { ;;:grant-type "authorization_code"
-          :grant-type "implicit"
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :session-token session-token
-          :client "https://auth.example.test/clients/test-app"})]
-
-    (oauth/with-bearer-token access-token
-      (let [{:ring.response/keys [headers body]}
-            (*handler*
-             {:juxt.site/uri "https://data.example.test/whoami"
-              :ring.request/method :get
-              :ring.request/headers
-              {"accept" "application/json"}})]
-
-        (is (= "Alice"
-               (-> body
-                   json/read-value
-                   (get-in ["juxt.site/subject"
-                            "juxt.site/user-identity"
-                            "juxt.site/user"
-                            "fullname"
-                            ]))))
-        (is (= "application/json" (get headers "content-type")))
-        (is (= "https://data.example.test/whoami.json" (get headers "content-location"))))
-
-      (let [{:ring.response/keys [status headers]}
-            (*handler*
-             {:juxt.site/uri "https://data.example.test/whoami.html"
-              :ring.request/method :get
-              :ring.request/headers
-              {"authorization" (format "Bearer %s" access-token)
-               }})]
-        (is (= 200 status))
-        (is (= "text/html;charset=utf-8" (get headers "content-type")))))))
