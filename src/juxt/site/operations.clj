@@ -945,6 +945,7 @@
           (format "No permission for this operation (%s) with subject (%s) and scope (%s)"
                   operation-id (:xt/id subject) scope)
           {:ring.response/status 403
+           :ring.response/headers {"access-control-allow-origin" "*"}
            :operation operation-id
            :subject subject
            :scope scope
@@ -998,6 +999,7 @@
              (ex-info
               (format "No anonymous permission for operation: %s" (pr-str operation))
               {:ring.response/status 403
+               :ring.response/headers {"access-control-allow-origin" "*"}
                :juxt.site/request-context req}))))))))
 
 (comment
