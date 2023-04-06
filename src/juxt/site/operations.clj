@@ -471,9 +471,7 @@
                       ;; Allowed to access the database
                       'xt
                       {'entity (fn [id] (xt/entity db id))
-                       'q (fn [& args] (apply xt/q db args))
-
-                       }
+                       'q (fn [& args] (apply xt/q db args))}
 
                       'juxt.site
                       {'match-identity
