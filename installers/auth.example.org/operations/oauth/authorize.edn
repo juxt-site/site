@@ -98,7 +98,9 @@
           ;; client-id, and communicate any errors directly to the
           ;; resource owner by an error message.
 
-          [{:juxt.site/keys [origin] :as client-doc} & others] (juxt.site/lookup-client client-id)
+          [{:juxt.site/keys [origin] :as client-doc} & others]
+          (juxt.site/lookup-client client-id)
+
           _ (when-not client-doc
               (resource-owner-error
                (format "No client registered with client-id of %s" client-id)
@@ -228,42 +230,31 @@
             "error_description" "Missing subject. Resource owner has not been authenticated"}))
 
         ;; See https://www.rfc-editor.org/rfc/rfc6749#section-3.3
-        (let [scope
-              (if-let [requested-scope (:scope *prepare*)]
-                ;; No client scope means we potentially allow any
-                ;; and all scope, but we must ask the resource owner
-                ;; to approve. Also, try to find a consent document
-                ;; between the subject and the client, giving the
-                ;; consented scope.
+        (let [requested-scope (:scope *prepare*)
+              client-scope (:juxt.site/scope client-doc)
+              available-scope
+              (set
+               (map first
+                    (xt/q '{:find [e]
+                            :where [[e :juxt.site/type "https://meta.juxt.site/types/scope"]
+                                    [e :juxt.site/issuer "https://auth.example.org"]]})))
 
-                ;; We must also limit the requested-scope to the
-                ;; scopes currently available.
-                (let [client-scope
-                      (or
-                       (:juxt.site/scope client-doc)
-                       ;; If the client has no scope, we say that the
-                       ;; client has a 'global' scope (we collate all
-                       ;; the scopes in the authorization server).
-                       (set
-                        (map first
-                             (xt/q '{:find [e]
-                                     :where [[e :juxt.site/type "https://meta.juxt.site/types/scope"]
-                                             [e :juxt.site/issuer "https://auth.example.test"]]}))))
-                      combined-scope (clojure.set/intersection client-scope requested-scope)]
-                  (if (seq combined-scope)
-                    combined-scope
-                    (client-error
-                     {"error" "invalid_scope"
-                      "error_description" "No intersection between requested scope and available scope"})))
+              scope (cond
+                      (and requested-scope client-scope)
+                      (clojure.set/intersection requested-scope client-scope available-scope)
 
-                ;; No requested scope.  Return the client scope, which
-                ;; can be nil, which is OK. If there is no registered
-                ;; scope, we proceed with nil scope, which means that
-                ;; every action is available. Actions can be stripped
-                ;; according to scope. Note: A secure system merely
-                ;; needs to indicate that scope must be specified
-                ;; during the registration of a client.
-                (:juxt.site/scope client-doc))]
+                      (and requested-scope (nil? client-scope))
+                      (clojure.set/intersection requested-scope available-scope)
+
+                      (and (nil? requested-scope) client-scope)
+                      (clojure.set/intersection client-scope available-scope)
+
+                      :otherwise nil)]
+
+          (when (= #{} scope)
+            (client-error
+             {"error" "invalid_scope"
+              "error_description" "No intersection between requested scope and available scope"}))
 
           (case response-type
 
