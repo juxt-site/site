@@ -1,0 +1,25 @@
+{:deps
+ ["https://auth.example.org/operations/get-user"]
+ :install
+ {:juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/type "https://meta.juxt.site/types/openapi-path"
+
+   :openapi.v3/path "/users/{username}"
+
+   :openapi.v3/parameters
+   [
+    {"name" "username"
+     "in" "path"
+     "required" "true"
+     "schema" {"type" "string"}
+     "style" "simple"}]
+
+   :juxt.site/uri-template true
+
+   :juxt.site/methods
+   {:get
+    {:juxt.site/description "Get user"
+     :juxt.site/operation "https://auth.example.org/operations/get-user"
+     :openapi.v3/tags ["Users"]}}
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}}}}

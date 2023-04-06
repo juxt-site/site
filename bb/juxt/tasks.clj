@@ -291,11 +291,21 @@
           "https://data.example.org/_site/users"
           "https://data.example.org/_site/users.html"
           "https://data.example.org/_site/users.json"
+          "https://data.example.org/_site/users/{username}"
 
           ;; Roles
+          "https://auth.example.org/roles/System"
           "https://auth.example.org/roles/SystemReadonly"
+
+          ;; TODO: To dedupe, we should integrate this with groups.edn
+
+          ;; Permissions
+          "https://auth.example.org/permissions/by-role/System/get-users"
+          "https://auth.example.org/permissions/by-role/System/get-user"
+          "https://auth.example.org/permissions/by-role/System/put-user"
           "https://auth.example.org/permissions/by-role/SystemReadonly/get-users"
           "https://auth.example.org/permissions/by-role/SystemReadonly/get-user"]
+
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri))
          (mapv #(str/replace % "https://data.example.org" data-base-uri)))
 
