@@ -19,41 +19,45 @@
              (assoc
               acc
               (:openapi.v3/path path)
-              (reduce
-               (fn [acc [method metadata]]
-                 (cond-> acc
-                   ;; When the operation associated with the operation is
-                   ;; permitted, we should show the operation
-                   true
-                   ;; Until this is issue is
-                   ;; resolved (https://github.com/swagger-api/swagger-ui/issues/4324)
-                   ;; we can't to this:
-                   #_(seq (clojure.set/intersection
-                         (set (:juxt.site/operations metadata))
-                         allowed-operations))
-                   (assoc
-                    (name method)
-                    (let [operation (xt/entity (:juxt.site/operation metadata))
-                          scope (:juxt.site/scope operation)]
-                      (merge
-                       {"operationId" (:juxt.site/operation metadata)}
-                       (when (seq scope)
-                         {"security" [{"oauth" (vec (seq scope))}]})
-                       {"responses"
-                        (case method
-                          :get
-                          {"200"
-                           {"content"
-                            (reduce
-                             (fn [acc variant]
-                               (assoc acc (:juxt.http/content-type variant) {}))
-                             {}
-                             (sort-by :juxt.http/content-type (:variants path)))
-                            "description" "Successful operation"}}
-                          {})
-                        "tags" (:openapi.v3/tags metadata)
-                        "description" (:juxt.site/description metadata)})))))
-               {} (:juxt.site/methods path))))
+              (merge
+               ;; Path parameters
+               (when-let [parameters (:openapi.v3/parameters path)]
+                 {"parameters" parameters})
+               (reduce
+                (fn [acc [method metadata]]
+                  (cond-> acc
+                    ;; When the operation associated with the operation is
+                    ;; permitted, we should show the operation
+                    true
+                    ;; Until this is issue is
+                    ;; resolved (https://github.com/swagger-api/swagger-ui/issues/4324)
+                    ;; we can't to this:
+                    #_(seq (clojure.set/intersection
+                            (set (:juxt.site/operations metadata))
+                            allowed-operations))
+                    (assoc
+                     (name method)
+                     (let [operation (xt/entity (:juxt.site/operation metadata))
+                           scope (:juxt.site/scope operation)]
+                       (merge
+                        {"operationId" (:juxt.site/operation metadata)}
+                        (when (seq scope)
+                          {"security" [{"oauth" (vec (seq scope))}]})
+                        {"responses"
+                         (case method
+                           :get
+                           {"200"
+                            {"content"
+                             (reduce
+                              (fn [acc variant]
+                                (assoc acc (:juxt.http/content-type variant) {}))
+                              {}
+                              (sort-by :juxt.http/content-type (:variants path)))
+                             "description" "Successful operation"}}
+                           {})
+                         "tags" (:openapi.v3/tags metadata)
+                         "description" (:juxt.site/description metadata)})))))
+                {} (:juxt.site/methods path)))))
            {}
            openapi-paths)]
 
