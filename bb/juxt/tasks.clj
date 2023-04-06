@@ -365,6 +365,9 @@
           (input {:prompt "Scope (comma separated)"
                   :value (if scope (str/join "," scope) "")})
 
+          scope (let [s (filter seq (clojure.string/split (or scope-as-csv "") #","))]
+                  (when (seq s) (set s)))
+
           resources [(format "%s/clients/%s" auth-base-uri client-id)]
           uri-map {"https://auth.example.org" auth-base-uri}]
       (install!
@@ -374,7 +377,7 @@
         "authorization-server" auth-base-uri
         "resource-server" resource-server
         "redirect-uris" (vec (filter seq (clojure.string/split (or redirect-uris-as-csv "") #",")))
-        "scope" (set (filter seq (clojure.string/split (or scope-as-csv "") #",")))}
+        "scope" scope}
        {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn add-user [{:keys [auth-base-uri data-base-uri username fullname iss nickname]}]
