@@ -13,11 +13,11 @@
 
 (defn to-regex [uri-template]
   (re-pattern
-   (str/replace
-    uri-template
-    #"\{([^\}]+)\}"
-    (fn replacer [[_ group]]
-      (format "(?<%s>[^/#\\?]+)" (str/replace group "-" ""))))))
+   (-> uri-template
+       (str/replace
+        #"\{([^\}]+)\}"
+        (fn replacer [[_ group]]
+          (format "(?<%s>[^/#\\?]+)" (str/replace group "-" "")))))))
 
 (defn lookup [id graph]
   (or
