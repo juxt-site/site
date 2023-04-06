@@ -1,4 +1,6 @@
-{:install
+{:deps
+ ["https://auth.example.org/scopes/system/read"]
+ :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
   :juxt.site/input
@@ -25,6 +27,9 @@
                [* {(:juxt.site/_subject {:as :referenced-by})
                    [*]}]}]}]
         user-id)))}
+
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/system/read"}
 
    :juxt.site/rules
    [

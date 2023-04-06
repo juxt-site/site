@@ -1,4 +1,6 @@
-{:deps ["https://auth.example.org/operations/get-user"]
+{:deps
+ ["https://auth.example.org/operations/get-user"
+  "https://auth.example.org/scopes/system/write"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
