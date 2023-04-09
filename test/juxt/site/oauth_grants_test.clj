@@ -123,16 +123,16 @@
 
         db (xt/db *xt-node*)
 
-        _ (is (= "test-kp-123" (jwt/get-kid access-token)))
+        _ (is (= "default-auth-server" (jwt/get-kid access-token)))
 
-        kp (jwt/lookup-keypair db "test-kp-123")
+        kp (jwt/lookup-keypair db "default-auth-server")
         _ (is (:xt/id kp))
 
         jwt (jwt/verify-jwt access-token kp)
 
         {:strs [alg kid typ]} (:header jwt)
         _ (is (= "RS256" alg))
-        _ (is (= "test-kp-123" kid))
+        _ (is (= "default-auth-server" kid))
         _ (is (= "at+jwt" typ))
 
         {:strs [aud iss]
@@ -307,16 +307,16 @@
 
         db (xt/db *xt-node*)
 
-        _ (is (= "test-kp-123" (jwt/get-kid access-token)))
+        _ (is (= "default-auth-server" (jwt/get-kid access-token)))
 
-        kp (jwt/lookup-keypair db "test-kp-123")
+        kp (jwt/lookup-keypair db "default-auth-server")
         _ (is (:xt/id kp))
 
         decoded-jwt (jwt/verify-jwt access-token kp)
 
         {:strs [alg kid typ]} (:header decoded-jwt)
         _ (is (= "RS256" alg))
-        _ (is (= "test-kp-123" kid))
+        _ (is (= "default-auth-server" kid))
         _ (is (= "at+jwt" typ))
 
         {:strs [aud iss]

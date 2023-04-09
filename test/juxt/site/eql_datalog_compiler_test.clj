@@ -64,7 +64,7 @@
     "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.hospital.com/session-scopes/openid-login-session"
-    "keypair" "https://auth.hospital.com/keypairs/test-kp-123"
+    "keypair" "https://auth.hospital.com/keypairs/default-auth-server"
     "authorization-code-length" 12
     "jti-length" 12})
 

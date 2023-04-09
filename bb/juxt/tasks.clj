@@ -9,6 +9,10 @@
    [clojure.string :as str]
    [juxt.installer-tree :refer [resource-installers]]))
 
+(def GROUPS
+  (edn/read-string
+   (slurp (io/file (System/getenv "SITE_HOME") "installers/groups.edn"))))
+
 (def ^:dynamic *no-confirm* nil)
 
 (defn read-line* [r]
@@ -211,17 +215,9 @@
 (defn bootstrap [{:keys [auth-base-uri]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         resources
-        (->> ["https://auth.example.org/_site/do-operation"
-              "https://auth.example.org/_site/subjects/system"
-              "https://auth.example.org/_site/operations/create-operation"
-              "https://auth.example.org/_site/operations/grant-permission"
-              "https://auth.example.org/_site/permissions/system/bootstrap"
-              "https://auth.example.org/_site/operations/install-not-found"
-              "https://auth.example.org/_site/permissions/system/install-not-found"
-              "https://auth.example.org/_site/not-found"
-              "https://auth.example.org/_site/operations/get-not-found"
-              "https://auth.example.org/_site/permissions/get-not-found"]
-             (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))]
+        (->>
+         (get-in GROUPS ["juxt/site/bootstrap" :juxt.site/resources])
+         (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))]
     (install!
      resources
      {"https://auth.example.org" auth-base-uri}
@@ -275,37 +271,7 @@
         data-base-uri (or data-base-uri (input-data-base-uri))
         resources
         (->>
-         [ ;; API resources
-          "https://data.example.org/_site/openapi.json"
-
-          ;; /operations
-          "https://auth.example.org/operations/get-operations"
-          "https://auth.example.org/permissions/get-operations"
-          "https://data.example.org/_site/operations"
-          "https://data.example.org/_site/operations.html"
-          "https://data.example.org/_site/operations.json"
-
-          ;; /users
-          "https://auth.example.org/operations/get-users"
-          "https://auth.example.org/operations/get-user"
-          "https://data.example.org/_site/users"
-          "https://data.example.org/_site/users.html"
-          "https://data.example.org/_site/users.json"
-          "https://data.example.org/_site/users/{username}"
-
-          ;; Roles
-          "https://auth.example.org/roles/System"
-          "https://auth.example.org/roles/SystemReadonly"
-
-          ;; TODO: To dedupe, we should integrate this with groups.edn
-
-          ;; Permissions
-          "https://auth.example.org/permissions/by-role/System/get-users"
-          "https://auth.example.org/permissions/by-role/System/get-user"
-          "https://auth.example.org/permissions/by-role/System/put-user"
-          "https://auth.example.org/permissions/by-role/SystemReadonly/get-users"
-          "https://auth.example.org/permissions/by-role/SystemReadonly/get-user"]
-
+         (get-in GROUPS ["juxt/site/system-api" :juxt.site/resources])
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri))
          (mapv #(str/replace % "https://data.example.org" data-base-uri)))
 
@@ -327,28 +293,11 @@
 
 (defn auth-server [{:keys [auth-base-uri]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        kid (random-string 8)
+        kid "default-auth-server"
         resources
         (->>
-         ["https://auth.example.org/oauth/authorize"
-          "https://auth.example.org/oauth/token"
-          "https://auth.example.org/operations/oauth/authorize"
-          "https://auth.example.org/operations/oauth/create-access-token"
-          "https://auth.example.org/operations/oauth/install-authorize-endpoint"
-          "https://auth.example.org/operations/oauth/install-token-endpoint"
-          "https://auth.example.org/permissions/system/oauth/install-authorize-endpoint"
-          "https://auth.example.org/permissions/system/install-oauth-token-endpoint"
-          "https://auth.example.org/permissions/system/register-client"
-          "https://auth.example.org/permissions/oauth/authorize"
-          "https://auth.example.org/permissions/oauth/create-access-token"
-          (format "https://auth.example.org/keypairs/%s" kid)
-          ;; Introspection endpoint - see RFC 7662
-          "https://auth.example.org/token-info"
-          ;; Metadata endpoint -see RFC 8414
-          "https://auth.example.org/.well-known/oauth-authorization-server"
-          "https://auth.example.org/.well-known/jwks.json"]
+         (get-in GROUPS ["juxt/site/oauth-authorization-server" :juxt.site/resources])
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))
-
         uri-map {"https://auth.example.org" auth-base-uri}]
     (install!
      resources

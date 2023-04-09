@@ -47,7 +47,7 @@
   {:task (juxt.tasks/register-scope {})}
 
   request-access-token
-  (juxt.tasks/request-access-token {})
+  {:task (juxt.tasks/request-access-token {})}
 
   apply
   {:task
@@ -70,4 +70,4 @@
            (task args)
            (task)))))}
 
-  installer-tree {:task (juxt.installer-tree/installer-tree)}}}
+  debug {:task (juxt.tasks/debug)}}}

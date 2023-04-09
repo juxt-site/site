@@ -100,7 +100,7 @@
    "https://auth.example.org/permissions/system/register-client"
    "https://auth.example.org/permissions/oauth/authorize"
    "https://auth.example.org/permissions/oauth/create-access-token"
-   "https://auth.example.org/keypairs/test-kp-123"
+   "https://auth.example.org/keypairs/default-auth-server"
    ;; Introspection endpoint - see RFC 7662
    "https://auth.example.org/token-info"
    ;; Metadata endpoint -see RFC 8414
