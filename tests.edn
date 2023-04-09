@@ -14,6 +14,7 @@
            "juxt.site.oauth-test"
            "juxt.site.oauth-grants-test"
            "juxt.site.openid-test"
-           "juxt.site.system-api-test"]}]
+           "juxt.site.system-api-test"
+           "juxt.site.whoami-test"]}]
 
  :reporter kaocha.report/documentation}
