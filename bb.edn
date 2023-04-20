@@ -1,16 +1,18 @@
 ;; See https://book.babashka.org/#tasks
 {:min-bb-version "0.6.2"
- :paths ["bb"]
+ :paths ["bb" "install"]
  :deps {io.github.lispyclouds/bblgum {:git/sha "7ebae0e2231899fe2a6ad44bc9ef5fca64099fcd"}
         org.babashka/cli {:mvn/version "0.4.39"}}
  :tasks
  {:requires (juxt.tasks
-             juxt.installer-tree
              [clojure.core.async :as async]
              [clojure.edn :as edn]
              [clojure.java.io :as io]
-             [babashka.cli :as cli]
-             )
+             [babashka.cli :as cli])
+
+  debug
+  {:doc "DEBUG"
+   :task (juxt.tasks/debug)}
 
   reset
   {:doc "Factory reset"
@@ -68,6 +70,4 @@
                :let [task (ns-resolve 'juxt.tasks (symbol task-kw))]]
          (if args
            (task args)
-           (task)))))}
-
-  debug {:task (juxt.tasks/debug)}}}
+           (task)))))}}}

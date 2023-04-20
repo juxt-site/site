@@ -11,9 +11,11 @@
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
-   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
+   [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
+   [juxt.site.test-helpers.install :as install]
+   [clojure.set :as set]))
 
 ;; Welcome to the System API test suite
 
@@ -39,19 +41,25 @@
    ["juxt/site/oauth-authorization-server"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "keypair" "https://auth.example.test/keypairs/test-kp-123"
+    "keypair" "https://auth.example.test/keypairs/default-auth-server"
     "authorization-code-length" 12
     "jti-length" 12})
 
   ;; Alice has the System role which confers access to put-user
   (converge!
-   ["https://auth.example.test/role-assignments/alice-System"]
+   [{:juxt.site/target-uri "https://auth.example.test/role-assignments/{{username}}-{{rolename}}"
+     :juxt.site/parameters
+     {"username" "alice"
+      "rolename" "System"}}]
    RESOURCE_SERVER
    {})
 
   ;; ... whereas Bob has the SystemReadonly role which doesn't
   (converge!
-   ["https://auth.example.test/role-assignments/bob-SystemReadonly"]
+   [{:juxt.site/target-uri "https://auth.example.test/role-assignments/{{username}}-{{rolename}}"
+     :juxt.site/parameters
+     {"username" "bob"
+      "rolename" "SystemReadonly"}}]
    RESOURCE_SERVER
    {})
 
@@ -60,35 +68,12 @@
   ;; passing it in as a parameter.
 
   (converge!
-   ["https://auth.example.test/clients/global-scope-app"]
+   ;; TODO: Add these resources to a group
+   ["https://auth.example.test/clients/global-scope-app"
+    "https://auth.example.test/clients/read-only-app"
+    "https://auth.example.test/clients/read-write-app"]
    RESOURCE_SERVER
-   {"client-type" "public"
-    "origin" "https://global-scope-app.example.test"
-    "resource-server" "https://data.example.test"
-    "redirect-uris" ["https://global-scope-app.example.test/callback"]
-    "authorization-server" "https://auth.example.test"
-    "scope" nil})
-
-  (converge!
-   ["https://auth.example.test/clients/read-only-app"]
-   RESOURCE_SERVER
-   {"client-type" "public"
-    "origin" "https://read-only-app.example.test"
-    "resource-server" "https://data.example.test"
-    "redirect-uris" ["https://read-only-app.example.test/callback"]
-    "authorization-server" "https://auth.example.test"
-    "scope" #{"https://auth.example.test/scopes/system/read"}})
-
-  (converge!
-   ["https://auth.example.test/clients/read-write-app"]
-   RESOURCE_SERVER
-   {"client-type" "public"
-    "origin" "https://read-write-app.example.test"
-    "resource-server" "https://data.example.test"
-    "redirect-uris" ["https://read-write-app.example.test/callback"]
-    "authorization-server" "https://auth.example.test"
-    "scope" #{"https://auth.example.test/scopes/system/read"
-              "https://auth.example.test/scopes/system/write"}}))
+   {}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)
@@ -170,81 +155,124 @@
                               "content-length" (str (count payload))}
                              :ring.request/body (io/input-stream payload)}
                     response (*handler* request)]
-                (is (= expected-status (:ring.response/status response)))))))
+                (is (= expected-status (:ring.response/status response)))
+                ))))
 
       ;; Alice has permission, and using a client with global-scope
-      "alice" "global-scope-app" "authorization_code" nil 200
-      "alice" "global-scope-app" "implicit" nil 200
+        "alice" "global-scope-app" "authorization_code" nil 200
+        "alice" "global-scope-app" "implicit" nil 200
 
-      ;; Alice has permission, requesting write scope from a client
-      ;; with global scope
-      "alice" "global-scope-app" "authorization_code" #{"system/read" "system/write"} 200
-      "alice" "global-scope-app" "implicit" #{"system/read" "system/write"} 200
+        ;; Alice has permission, requesting write scope from a client
+        ;; with global scope
+        "alice" "global-scope-app" "authorization_code" #{"system/read" "system/write"} 200
+        "alice" "global-scope-app" "implicit" #{"system/read" "system/write"} 200
 
-      ;; Alice has permission, but not requesting sufficient scope
-      ;; from a client with global scope means she cannot create a
-      ;; user.
-      "alice" "global-scope-app" "authorization_code" #{"system/read"} 403
-      "alice" "global-scope-app" "implicit" #{"system/read"} 403
+        ;; Alice has permission, but not requesting sufficient scope
+        ;; from a client with global scope means she cannot create a
+        ;; user.
+        "alice" "global-scope-app" "authorization_code" #{"system/read"} 403
+        "alice" "global-scope-app" "implicit" #{"system/read"} 403
 
-      ;; Alice has permission, and can use a client with sufficient
-      ;; scope to create a user.
-      "alice" "read-write-app" "authorization_code" nil 200
-      "alice" "read-write-app" "implicit" nil 200
+        ;; Alice has permission, and can use a client with sufficient
+        ;; scope to create a user.
+        "alice" "read-write-app" "authorization_code" nil 200
+        "alice" "read-write-app" "implicit" nil 200
 
-      ;; Alice has permission, using a client with sufficient scope
-      ;; but requesting insufficient scope to create a user.  scope to
-      ;; create a user results in a Forbidden response.
-      "alice" "read-write-app" "authorization_code" #{"system/read"} 403
-      "alice" "read-write-app" "implicit" #{"system/read"} 403
+        ;; Alice has permission, using a client with sufficient scope
+        ;; but requesting insufficient scope to create a user.  scope to
+        ;; create a user results in a Forbidden response.
+        "alice" "read-write-app" "authorization_code" #{"system/read"} 403
+        "alice" "read-write-app" "implicit" #{"system/read"} 403
 
-      ;; Alice has permission, using a client with sufficient scope
-      ;; and explicitly requesting sufficient scope to create a user.
-      "alice" "read-write-app" "authorization_code" #{"system/write"} 200
-      "alice" "read-write-app" "implicit" #{"system/write"} 200
+        ;; Alice has permission, using a client with sufficient scope
+        ;; and explicitly requesting sufficient scope to create a user.
+        "alice" "read-write-app" "authorization_code" #{"system/write"} 200
+        "alice" "read-write-app" "implicit" #{"system/write"} 200
 
-      ;; Alice has permission, but using a client with insufficient
-      ;; scope.
-      "alice" "read-only-app" "authorization_code" nil 403
-      "alice" "read-only-app" "implicit" nil 403
+        ;; Alice has permission, but using a client with insufficient
+        ;; scope.
+        "alice" "read-only-app" "authorization_code" nil 403
+        "alice" "read-only-app" "implicit" nil 403
 
-      ;; Alice has permission, but using a client with insufficient
-      ;; scope and explicitly requesting insufficient scope.
-      "alice" "read-only-app" "authorization_code" #{"system/read"} 403
-      "alice" "read-only-app" "implicit" #{"system/read"} 403
+        ;; Alice has permission, but using a client with insufficient
+        ;; scope and explicitly requesting insufficient scope.
+        "alice" "read-only-app" "authorization_code" #{"system/read"} 403
+        "alice" "read-only-app" "implicit" #{"system/read"} 403
 
-      ;; Bob can't add users, regardless of the application he uses.
-      "bob" "global-scope-app" "authorization_code" nil 403
-      "bob" "global-scope-app" "implicit" nil 403
+        ;; Bob can't add users, regardless of the application he uses.
+        "bob" "global-scope-app" "authorization_code" nil 403
+        "bob" "global-scope-app" "implicit" nil 403
 
-      ;; Bob doesn't have permission to add users, and this means he
-      ;; can't add users even if he's able to request sufficient
-      ;; scope with a client that is configured with global scope.
-      "bob" "global-scope-app" "authorization_code" #{"system/read" "system/write"} 403
-      "bob" "global-scope-app" "implicit" #{"system/read" "system/write"} 403
+        ;; Bob doesn't have permission to add users, and this means he
+        ;; can't add users even if he's able to request sufficient
+        ;; scope with a client that is configured with global scope.
+        "bob" "global-scope-app" "authorization_code" #{"system/read" "system/write"} 403
+        "bob" "global-scope-app" "implicit" #{"system/read" "system/write"} 403
 
-      ;; Bob doesn't have permission to add users, and this means he
-      ;; can't add users even if he's able to request sufficient
-      ;; scope with a client that is configured with sufficient
-      ;; scope.
-      "bob" "read-write-app" "authorization_code" #{"system/read" "system/write"} 403
-      "bob" "read-write-app" "implicit" #{"system/read" "system/write"} 403
+        ;; Bob doesn't have permission to add users, and this means he
+        ;; can't add users even if he's able to request sufficient
+        ;; scope with a client that is configured with sufficient
+        ;; scope.
+        "bob" "read-write-app" "authorization_code" #{"system/read" "system/write"} 403
+        "bob" "read-write-app" "implicit" #{"system/read" "system/write"} 403
 
-      ;; Bob doesn't have permission to add users, using a client
-      ;; with insufficient scope.
-      "bob" "read-only-app" "authorization_code" nil 403
-      "bob" "read-only-app" "implicit" nil 403
+        ;; Bob doesn't have permission to add users, using a client
+        ;; with insufficient scope.
+        "bob" "read-only-app" "authorization_code" nil 403
+        "bob" "read-only-app" "implicit" nil 403
 
-      ;; Bob doesn't have permission to add users, using a client
-      ;; with insufficient scope, explicitly request insufficient
-      ;; scope.
-      "bob" "read-only-app" "authorization_code" #{"system/read"} 403
-      "bob" "read-only-app" "implicit" #{"system/read"} 403)))
+        ;; Bob doesn't have permission to add users, using a client
+        ;; with insufficient scope, explicitly request insufficient
+        ;; scope.
+        "bob" "read-only-app" "authorization_code" #{"system/read"} 403
+        "bob" "read-only-app" "implicit" #{"system/read"} 403
+        )))
 
 
 #_(with-fixtures
   (converge!
-   ["https://data.example.test/users/{username}"]
+   ["https://data.example.test/_site/users/{username}"]
    RESOURCE_SERVER
    {})
-  )
+
+  (converge!
+   ["https://data.example.test/users/alice"]
+   RESOURCE_SERVER
+   {})
+
+  {:alice (repl/e "https://data.example.test/users/alice")
+   :api-get-user (repl/e "https://data.example.test/_site/users/{username}")
+   :api-get-users (repl/e "https://data.example.test/_site/users")}
+
+  (repl/ls)
+
+  ;; Direct read of user
+  #_(let
+      [session-token (login/login-with-form! "alice" "garden")
+       {access-token "access_token"}
+       (oauth/acquire-access-token!
+        {:grant-type "implicit"
+         :session-token session-token
+         :authorization-uri "https://auth.example.test/oauth/authorize"
+         :client "https://auth.example.test/clients/global-scope-app"})
+       {:ring.response/keys [body] :as response}
+       (oauth/with-bearer-token access-token
+         (*handler*
+          {:ring.request/method :get
+           :ring.request/headers {"accept" "application/json"}
+           :juxt.site/uri "https://data.example.test/users/alice"}))]
+
+    (json/read-value body)))
+
+#_(with-fixtures
+  (let [graph (juxt.site.test-helpers.local-files-util/unified-installer-map
+               RESOURCE_SERVER)]
+    (install/converge!
+     *xt-node* ["https://data.example.test/_site/users/{username}"]
+     graph {})
+    (repl/ls)))
+
+
+#_(keys
+   (juxt.site.test-helpers.local-files-util/unified-installer-map
+    RESOURCE_SERVER))

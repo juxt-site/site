@@ -12,7 +12,7 @@
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
    [juxt.site.test-helpers.login :as login :refer [login-with-form! with-session-token]]
-   [juxt.site.test-helpers.oauth :as oauth :refer [AUTH_SERVER]]
+   [juxt.site.test-helpers.oauth :as oauth :refer [RESOURCE_SERVER]]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.util :as util]
    [ring.util.codec :as codec]
@@ -22,61 +22,11 @@
 (defn bootstrap-fixture [f]
   (install-resource-groups!
    ["juxt/site/login-form"
-    "juxt/site/example-users"]
-   AUTH_SERVER
+    "juxt/site/example-users"
+    "juxt/site/test-scopes"
+    "juxt/site/test-clients"]
+   RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
-
-  (converge!
-   ["https://auth.example.test/clients/public-global-scope-app"]
-   AUTH_SERVER
-   {"client-type" "public"
-    "origin" "https://public-global-scope-app.test.com"
-    "resource-server" "https://data.example.test"
-    "authorization-server" "https://auth.example.test"
-    "redirect-uris" ["https://public-global-scope-app.test.com/redirect.html"]
-    ;; A scope of nil means the 'maximum' scope, or 'global' scope.
-    "scope" nil})
-
-  (converge!
-   ["https://auth.example.test/clients/public-read-scope-app"]
-   AUTH_SERVER
-   {"client-type" "public"
-    "origin" "https://public-read-scope-app.test.com"
-    "resource-server" "https://data.example.test"
-    "authorization-server" "https://auth.example.test"
-    "redirect-uris" ["https://public-read-scope-app.test.com/redirect.html"]
-    "scope" #{"https://auth.example.test/scopes/test/read"}})
-
-  (converge!
-   ["https://auth.example.test/clients/public-read-write-scope-app"]
-   AUTH_SERVER
-   {"client-type" "public"
-    "origin" "https://public-read-write-scope-app.test.com"
-    "resource-server" "https://data.example.test"
-    "authorization-server" "https://auth.example.test"
-    "redirect-uris" ["https://public-read-write-scope-app.test.com/redirect.html"]
-    "scope" #{"https://auth.example.test/scopes/test/read"
-              "https://auth.example.test/scopes/test/write"}})
-
-  ;; Add the scopes
-  (converge!
-   ["https://auth.example.test/scopes/test/read"]
-   AUTH_SERVER
-   {"description" "Read stuff"
-    "operations-in-scope" #{}})
-
-  (converge!
-   ["https://auth.example.test/scopes/test/write"]
-   AUTH_SERVER
-   {"description" "Write stuff"
-    "operations-in-scope" #{}})
-
-  (converge!
-   ["https://auth.example.test/scopes/test/admin"]
-   AUTH_SERVER
-   {"description" "Write stuff"
-    "operations-in-scope" #{}})
-
   (f))
 
 (use-fixtures
@@ -97,7 +47,7 @@
          :ring.request/query
          (codec/form-encode
           {"response_type" "token"
-           "client_id" "public-global-scope-app"
+           "client_id" "test/public-global-scope-app"
            "state" state})}
 
         {:ring.response/keys [status headers]}
@@ -140,9 +90,7 @@
 
         _ (is (= "https://auth.example.test" iss))
         _ (is (= "https://data.example.test" aud))
-        _ (is (= "public-global-scope-app" client-id))]))
-
-
+        _ (is (= "test/public-global-scope-app" client-id))]))
 
 (deftest client-not-registered-test
   (let [session-token (login-with-form! "alice" "garden")
@@ -153,7 +101,7 @@
            (oauth/make-authorization-request
             "https://auth.example.test/oauth/authorize"
             {"response_type" "foo"
-             "client_id" "public-app2"
+             "client_id" "test/public-app2"
              "state" state})))]
     (is (= 400 status))
     ;; Why is this not HTML?
@@ -174,7 +122,7 @@
           (*handler*
            (oauth/make-authorization-request
             "https://auth.example.test/oauth/authorize"
-            {"client_id" "public-global-scope-app"})))
+            {"client_id" "test/public-global-scope-app"})))
         location (get-in response [:ring.response/headers "location"])]
 
     (is (= 303 (:ring.response/status response)))
@@ -198,7 +146,7 @@
          {"grant_type" "authorization_code"
           "code" "fake"
           "redirect_uri" "https://public-global-scope-app.test.com/redirect.html"
-          "client_id" "public-global-scope-app"})
+          "client_id" "test/public-global-scope-app"})
 
         token-request
         {:ring.request/method :post
@@ -231,7 +179,7 @@
            (oauth/make-authorization-request
             "https://auth.example.test/oauth/authorize"
             {"response_type" "code"
-             "client_id" "public-global-scope-app"})))
+             "client_id" "test/public-global-scope-app"})))
         location (get-in response [:ring.response/headers "location"])]
 
     (is (= 303 (:ring.response/status response)))
@@ -257,7 +205,7 @@
            (oauth/make-authorization-request
             "https://auth.example.test/oauth/authorize"
             {"response_type" "code"
-             "client_id" "public-global-scope-app"
+             "client_id" "test/public-global-scope-app"
              "state" "123"
              "code_challenge" code-challenge
              ;; TODO: Should we also support plain?
@@ -281,7 +229,7 @@
          {"grant_type" "authorization_code"
           "code" code
           "redirect_uri" "https://public-global-scope-app.test.com/redirect.html"
-          "client_id" "public-global-scope-app"
+          "client_id" "test/public-global-scope-app"
           "code_verifier" code-verifier})
 
         {:ring.response/keys [status headers body]}
@@ -324,7 +272,7 @@
 
         _ (is (= "https://auth.example.test" iss))
         _ (is (= "https://data.example.test" aud))
-        _ (is (= "public-global-scope-app" client-id))]
+        _ (is (= "test/public-global-scope-app" client-id))]
 
     ;; TODO: Add an equivalent test for the implicit flow
     (testing "access token-info endpoint"
@@ -343,7 +291,7 @@
             _ (is (= "https://auth.example.test" iss))
             _ (is (= "https://data.example.test" aud))
             _ (is (= "https://data.example.test" aud))
-            _ (is (= "public-global-scope-app" client-id))]))
+            _ (is (= "test/public-global-scope-app" client-id))]))
 
     (testing "use refresh token"
       (let [{:ring.response/keys [status headers body]}
@@ -411,7 +359,7 @@
             :authorization-uri "https://auth.example.test/oauth/authorize"
             :token-uri "https://auth.example.test/oauth/token"
             :session-token session-token
-            :client "https://auth.example.test/clients/public-global-scope-app"
+            :client "https://auth.example.test/clients/test/public-global-scope-app"
             })]
     (is (=
          {"error" "invalid_grant"
@@ -430,7 +378,7 @@
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
               :token-uri "https://auth.example.test/oauth/token"
-              :client "https://auth.example.test/clients/public-global-scope-app"})]
+              :client "https://auth.example.test/clients/test/public-global-scope-app"})]
         (is (nil? (find response "scope"))
             "Scope should not be reported in JSON response")))
 
@@ -440,7 +388,7 @@
              {:grant-type "implicit"
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
-              :client "https://auth.example.test/clients/public-global-scope-app"})]
+              :client "https://auth.example.test/clients/test/public-global-scope-app"})]
         (is (nil? (find response "scope"))
             "Scope should not be reported in JSON response")))))
 
@@ -453,7 +401,7 @@
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
               :token-uri "https://auth.example.test/oauth/token"
-              :client "https://auth.example.test/clients/public-global-scope-app"
+              :client "https://auth.example.test/clients/test/public-global-scope-app"
               :scope #{"https://auth.example.test/scopes/test/read"
                        "https://auth.example.test/scopes/test/write"
                        "https://auth.example.test/scopes/test/dummy"}})
@@ -474,7 +422,7 @@
              {:grant-type "implicit"
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
-              :client "https://auth.example.test/clients/public-global-scope-app"
+              :client "https://auth.example.test/clients/test/public-global-scope-app"
               :scope #{"https://auth.example.test/scopes/test/read"
                        "https://auth.example.test/scopes/test/write"
                        "https://auth.example.test/scopes/test/dummy"}})
@@ -498,7 +446,7 @@
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
               :token-uri "https://auth.example.test/oauth/token"
-              :client "https://auth.example.test/clients/public-global-scope-app"
+              :client "https://auth.example.test/clients/test/public-global-scope-app"
               :scope #{"https://auth.example.test/scopes/test/read"
                        "https://auth.example.test/scopes/test/write"
                        "https://auth.example.test/scopes/test/dummy"}})
@@ -525,7 +473,7 @@
              {:grant-type "implicit"
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
-              :client "https://auth.example.test/clients/public-global-scope-app"
+              :client "https://auth.example.test/clients/test/public-global-scope-app"
               :scope #{"https://auth.example.test/scopes/test/read"
                        "https://auth.example.test/scopes/test/write"
                        "https://auth.example.test/scopes/test/dummy"}})
@@ -556,7 +504,7 @@
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
                 :token-uri "https://auth.example.test/oauth/token"
-                :client "https://auth.example.test/clients/public-read-write-scope-app"})]
+                :client "https://auth.example.test/clients/test/public-read-write-scope-app"})]
           (is (= #{"https://auth.example.test/scopes/test/read"
                    "https://auth.example.test/scopes/test/write"}
                  (set (str/split scope #" "))))))
@@ -567,7 +515,7 @@
                {:grant-type "implicit"
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
-                :client "https://auth.example.test/clients/public-read-write-scope-app"})]
+                :client "https://auth.example.test/clients/test/public-read-write-scope-app"})]
           (is (= #{"https://auth.example.test/scopes/test/read"
                    "https://auth.example.test/scopes/test/write"}
                  (set (str/split scope #" ")))))))
@@ -580,7 +528,7 @@
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
                 :token-uri "https://auth.example.test/oauth/token"
-                :client "https://auth.example.test/clients/public-read-scope-app"
+                :client "https://auth.example.test/clients/test/public-read-scope-app"
                 :scope #{"https://auth.example.test/scopes/test/read"
                          "https://auth.example.test/scopes/test/write"
                          "https://auth.example.test/scopes/test/dummy"}})]
@@ -593,7 +541,7 @@
                {:grant-type "implicit"
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
-                :client "https://auth.example.test/clients/public-read-scope-app"
+                :client "https://auth.example.test/clients/test/public-read-scope-app"
                 :scope #{"https://auth.example.test/scopes/test/read"
                          "https://auth.example.test/scopes/test/write"
                          "https://auth.example.test/scopes/test/dummy"}})]
@@ -608,7 +556,7 @@
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
                 :token-uri "https://auth.example.test/oauth/token"
-                :client "https://auth.example.test/clients/public-read-write-scope-app"
+                :client "https://auth.example.test/clients/test/public-read-write-scope-app"
                 :scope #{"https://auth.example.test/scopes/test/read"
                          "https://auth.example.test/scopes/test/write"
                          "https://auth.example.test/scopes/test/dummy"}})]
@@ -623,7 +571,7 @@
                {:grant-type "implicit"
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
-                :client "https://auth.example.test/clients/public-read-write-scope-app"
+                :client "https://auth.example.test/clients/test/public-read-write-scope-app"
                 :scope #{"https://auth.example.test/scopes/test/read"
                          "https://auth.example.test/scopes/test/write"
                          "https://auth.example.test/scopes/test/dummy"}})]

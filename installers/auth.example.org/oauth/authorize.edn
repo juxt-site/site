@@ -1,5 +1,5 @@
 {:deps
- ["{{session-scope}}"
+ [{:juxt.site/parameter-ref "session-scope"}
   "https://auth.example.org/operations/oauth/install-authorize-endpoint"
   "https://auth.example.org/permissions/system/oauth/install-authorize-endpoint"
   "https://auth.example.org/operations/oauth/authorize"]

@@ -1,0 +1,17 @@
+{:deps
+ ["https://auth.example.org/operations/oauth/register-client"
+  "https://auth.example.org/permissions/system/register-client"
+  "https://auth.example.org/scopes/system/read"
+  "https://auth.example.org/scopes/system/write"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-client"
+  :juxt.site/input
+  {:juxt.site/client-id "read-write-app"
+   :juxt.site/client-type "public"
+   :juxt.site/origin "https://read-write-app.example.test"
+   :juxt.site/authorization-server "https://auth.example.org"
+   :juxt.site/resource-server "https://data.example.org"
+   :juxt.site/redirect-uris ["https://read-write-app.example.test/callback"]
+   :juxt.site/scope #{"https://auth.example.org/scopes/system/read"
+                      "https://auth.example.org/scopes/system/write"}}}}

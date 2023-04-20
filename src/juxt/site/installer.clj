@@ -70,24 +70,24 @@
 
 (defn call-installer
   [xt-node
-   {id :id
+   {uri :juxt.site/uri
     init-data :juxt.site/init-data
     error :error :as installer}]
-  (assert id)
-  (when error (throw (ex-info "Cannot proceed with error resource" {:id id :error error})))
+  (assert uri)
+  (when error (throw (ex-info "Cannot proceed with error resource" {:juxt.site/uri uri :error error})))
   (when-not init-data
     (throw
      (ex-info
       "Installer does not contain init-data"
-      {:id id :installer installer})))
+      {:juxt.site/uri uri :installer installer})))
 
   (try
     (let [{:juxt.site/keys [puts] :as result}
           (call-operation-with-init-data! xt-node init-data)]
-      (when (and puts (not (contains? (set puts) id)))
-        (throw (ex-info "Puts does not contain id" {:id id :puts puts})))
-      {:id id :status :installed :result result})
+      (when (and puts (not (contains? (set puts) uri)))
+        (throw (ex-info "Puts does not contain uri" {:juxt.site/uri uri :puts puts})))
+      {:juxt.site/uri uri :status :installed :result result})
     (catch Throwable cause
-      (throw (ex-info (format "Failed to converge id: '%s'" id) {:id id} cause))
+      (throw (ex-info (format "Failed to converge uri: '%s'" uri) {:juxt.site/uri uri} cause))
       ;;{:id id :status :error :error cause}
       )))

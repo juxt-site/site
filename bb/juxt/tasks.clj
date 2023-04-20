@@ -2,18 +2,38 @@
 
 (ns juxt.tasks
   (:require
+   [juxt.site.install.common-install-util :as ciu]
    [bblgum.core :as b]
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
    [clojure.edn :as edn]
    [clojure.string :as str]
-   [juxt.installer-tree :refer [resource-installers]]))
+   [clojure.walk :refer [postwalk]]))
 
 (def GROUPS
   (edn/read-string
    (slurp (io/file (System/getenv "SITE_HOME") "installers/groups.edn"))))
 
 (def ^:dynamic *no-confirm* nil)
+
+(defn uri-map-replace
+  "Replace URIs in string, taking substitutions from the given uri-map."
+  [s uri-map]
+  (str/replace
+   s
+   #"(https://.*?example.org)([\p{Alnum}-]+)*"
+   (fn [[_ host path]] (str (get uri-map host host) path))))
+
+(defn get-group-resources [group-name]
+  (get-in GROUPS [group-name :juxt.site/resources]))
+
+(defn apply-uri-map [uri-map resources]
+  (postwalk
+   (fn walk-fn [node]
+     (cond
+       (string? node) (uri-map-replace node uri-map)
+       :else node))
+   resources))
 
 (defn read-line* [r]
   (let [sb (java.lang.StringBuilder.)]
@@ -132,10 +152,15 @@
 
 (defn install! [resources uri-map parameter-map install-opts]
 
+  ;; Can we access juxt.site.test-helpers.local-files-util/install-resource-groups! from here?
+
   ;; 1. Ask tree to return an installer-seq
-  (let [installers (resource-installers resources uri-map parameter-map)
-        existing (set (edn/read-string (push! `(~'find-resources ~(mapv :id installers)) {:title "Retrieving existing resources"})))
-        remaining-installers (remove (comp existing :id) installers)
+  (let [installer-map (ciu/unified-installer-map
+                       (io/file (System/getenv "SITE_HOME") "installers")
+                       uri-map)
+        installers (ciu/installer-seq resources installer-map parameter-map)
+        existing (set (edn/read-string (push! `(~'find-resources ~(mapv :juxt.site/uri installers)) {:title "Retrieving existing resources"})))
+        remaining-installers (remove (comp existing :juxt.site/uri) installers)
         heading (or (:title install-opts) *heading* "TITLE")]
 
     (cond
@@ -143,13 +168,13 @@
       (when (confirm (format "%s\n\nResources to overwrite\n\n%s\n\nResources to install\n\n%s\n\nGo ahead?\n"
                              heading
                              (str/join "\n" (sort existing))
-                             (str/join "\n" (sort (map :id remaining-installers)))))
+                             (str/join "\n" (sort (map :juxt.site/uri remaining-installers)))))
         (push! `(~'call-installers! (quote ~installers)) {}))
 
       :else
       (when (confirm (format "%s\n\n%s\n\nInstall these resources?\n"
                              heading
-                             (str/join "\n" (sort (map :id remaining-installers)))))
+                             (str/join "\n" (sort (map :juxt.site/uri remaining-installers)))))
         (push! `(~'call-installers! (quote ~remaining-installers)) {}))))
 
   ;; TODO: 2. Exchange installer-seq with repl to enquire which resources have already installed.
@@ -213,6 +238,7 @@
               :default "https://"}))
 
 (defn bootstrap [{:keys [auth-base-uri]}]
+  ;; Use install-resource-groups!
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         resources
         (->>
@@ -236,7 +262,7 @@
           (into
            {}
            [
-            ["issuer-configuration"
+            #_["issuer-configuration"
              (str auth-base-uri
                   "/openid/issuers/"
                   (url-encode
@@ -244,7 +270,12 @@
                     {:prompt "Issuer"
                      :value iss})))]
 
-            ["client-configuration"
+            ["iss" iss]
+
+
+            ["client-id" client-id]
+
+            #_["client-configuration"
              (str auth-base-uri
                   "/openid/clients/"
                   (url-encode
@@ -257,7 +288,8 @@
               {:prompt "Client Secret"
                :value client-secret})]
 
-            ["session-scope" (str auth-base-uri "/session-scopes/openid-login-session")]]))]
+            #_["session-scope" (str auth-base-uri "/session-scopes/openid-login-session")]
+            ["session-scope" "openid-login-session"]]))]
 
     (install!
      [(str auth-base-uri "/login-with-openid")
@@ -269,14 +301,12 @@
 (defn system-api [{:keys [auth-base-uri data-base-uri]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         data-base-uri (or data-base-uri (input-data-base-uri))
-        resources
-        (->>
-         (get-in GROUPS ["juxt/site/system-api" :juxt.site/resources])
-         (mapv #(str/replace % "https://auth.example.org" auth-base-uri))
-         (mapv #(str/replace % "https://data.example.org" data-base-uri)))
 
         uri-map {"https://auth.example.org" auth-base-uri
-                 "https://data.example.org" data-base-uri}]
+                 "https://data.example.org" data-base-uri}
+
+        resources (->> (get-group-resources "juxt/site/system-api")
+                       (apply-uri-map uri-map))]
 
     (install! resources uri-map {} {:title "Installing System API"})))
 
@@ -294,11 +324,11 @@
 (defn auth-server [{:keys [auth-base-uri]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         kid "default-auth-server"
+        uri-map {"https://auth.example.org" auth-base-uri}
         resources
         (->>
-         (get-in GROUPS ["juxt/site/oauth-authorization-server" :juxt.site/resources])
-         (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))
-        uri-map {"https://auth.example.org" auth-base-uri}]
+         (get-group-resources "juxt/site/oauth-authorization-server")
+         (apply-uri-map uri-map))]
     (install!
      resources
      uri-map
@@ -313,30 +343,14 @@
   (binding [*heading* "Register application"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           client-id (input {:prompt "Client ID" :value client-id})
-          origin (input {:prompt "Origin (example: https://example.com)" :value (or origin "https://")})
-          resource-server (input {:prompt "Resource server (example: https://api.example.com)"
-                                  :value (or resource-server "https://")})
-          redirect-uris-as-csv
-          (input {:prompt "Redirect URIs (comma separated)"
-                  :value (or (str/join "," redirect-uris) (str origin "/redirect.html"))})
+          uri-map {"https://auth.example.org" auth-base-uri}
+          resources (->>
+                     [(format "https://auth.example.org/clients/%s" client-id)]
+                     (apply-uri-map uri-map))]
 
-          scope-as-csv
-          (input {:prompt "Scope (comma separated)"
-                  :value (if scope (str/join "," scope) "")})
-
-          scope (let [s (filter seq (clojure.string/split (or scope-as-csv "") #","))]
-                  (when (seq s) (set s)))
-
-          resources [(format "%s/clients/%s" auth-base-uri client-id)]
-          uri-map {"https://auth.example.org" auth-base-uri}]
       (install!
        resources uri-map
-       {"client-type" "public"
-        "origin" origin
-        "authorization-server" auth-base-uri
-        "resource-server" resource-server
-        "redirect-uris" (vec (filter seq (clojure.string/split (or redirect-uris-as-csv "") #",")))
-        "scope" scope}
+       {}
        {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn add-user [{:keys [auth-base-uri data-base-uri username fullname iss nickname]}]
@@ -344,22 +358,27 @@
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           data-base-uri (or data-base-uri (input-data-base-uri))
           username (input {:prompt "Username" :value username})
-          user (format "%s/users/%s" data-base-uri (url-encode username))
           fullname (input {:prompt "Full name" :value fullname})
           iss (input {:prompt "Issuer" :value iss})
           nickname (input {:prompt "Nick name" :value nickname})
-          resources [user
-                     (format "%s/openid/user-identities/%s/nickname/%s"
-                             data-base-uri (url-encode iss) (url-encode nickname))]
+
+          user (format "%s/users/%s" data-base-uri (url-encode username))
 
           uri-map {"https://auth.example.org" auth-base-uri
-                   "https://data.example.org" data-base-uri}]
+                   "https://data.example.org" data-base-uri}
+
+          resources (->>
+                     ["https://data.example.org/users/{{username}}"
+                      "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}"]
+                     (apply-uri-map uri-map))]
 
       (install!
        resources uri-map
        {"user" user
+        "username" username
         "fullname" fullname
-        "session-scope" (str auth-base-uri "/session-scopes/openid-login-session")}
+        "iss" iss
+        "nickname" nickname}
 
        {:title (format "Adding user: %s" username)}))))
 
@@ -368,16 +387,16 @@
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           data-base-uri (or data-base-uri (input-data-base-uri))
           username (input {:prompt "Username" :value username})
-          user (format "%s/users/%s" data-base-uri (url-encode username))
           rolename (input {:prompt "Role" :value rolename})
-          role (format "%s/roles/%s" auth-base-uri rolename)
-          resources [(format "%s/role-assignments/%s-%s" auth-base-uri username rolename)]
           uri-map {"https://auth.example.org" auth-base-uri
-                   "https://data.example.org" data-base-uri}]
+                   "https://data.example.org" data-base-uri}
+          resources (->>
+                     ["https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]
+                     (apply-uri-map uri-map))]
       (install!
        resources uri-map
-       {"user" user
-        "role" role}
+       {"username" username
+        "rolename" rolename}
        {:title (format "Granting role %s to %s" rolename username)}))))
 
 (defn request-access-token
@@ -396,7 +415,7 @@
           :duration ~duration})
        {}))))
 
-(defn register-scope
+#_(defn register-scope
   [{:keys [auth-base-uri scope description operations]}]
   (binding [*heading* "Register scope"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))

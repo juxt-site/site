@@ -1,15 +1,16 @@
 {:deps
  ["https://auth.example.org/operations/install-openid-callback-endpoint"
   "https://auth.example.org/permissions/system/install-openid-callback-endpoint"
-  "{{session-scope}}"
-  "{{client-configuration}}"
+  "https://auth.example.org/openid/clients/{{client-id}}"
+  "https://auth.example.org/session-scopes/{{session-scope}}"
   ;; Having established this callback, allow all callers to initiate the operation
   ;; associated with the GET method.
   "https://auth.example.org/permissions/openid/exchange-code-for-id-token"]
+
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/operations/install-openid-callback-endpoint"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/openid-client-configuration "{{client-configuration}}"
-   :juxt.site/session-scope "{{session-scope}}"}}}
+   :juxt.site/openid-client-configuration "https://auth.example.org/openid/clients/{{client-id}}"
+   :juxt.site/session-scope "https://auth.example.org/session-scopes/{{session-scope}}"}}}
