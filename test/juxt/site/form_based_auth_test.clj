@@ -7,7 +7,7 @@
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER]]
-   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups!]]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
@@ -15,7 +15,7 @@
 (use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest login-with-form-test
-  (install-resource-groups!
+  (install-installer-groups!
    ["juxt/site/bootstrap"
     "juxt/site/sessions"
     "juxt/site/login-form"

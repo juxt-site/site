@@ -7,7 +7,7 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.installer :refer [call-operation-with-init-data!]]
-   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -15,7 +15,7 @@
    [xtdb.api :as xt]))
 
 (defn bootstrap []
-  (install-resource-groups!
+  (install-installer-groups!
    ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"

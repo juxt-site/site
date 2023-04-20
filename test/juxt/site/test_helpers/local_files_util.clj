@@ -9,12 +9,12 @@
    [clojure.java.io :as io]
    [juxt.site.install.common-install-util :as ciu]))
 
-(defn install-resource-groups!
+(defn install-installer-groups!
   ([names uri-map parameter-map]
    (let [graph (ciu/unified-installer-map (io/file "installers") uri-map)
          groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
      (doseq [n names
-             :let [resources (some-> groups (get n) :juxt.site/resources)]]
+             :let [resources (some-> groups (get n) :juxt.site/installers)]]
        (install/converge!
         *xt-node*
         (install/map-uris resources uri-map)

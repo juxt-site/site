@@ -1,11 +1,11 @@
 {"juxt/site/protection-spaces"
  {:juxt.site/description "Protection spaces"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/operations/put-protection-space"]}
 
  "juxt/site/system-api"
  {:juxt.site/description "Site System API",
-  :juxt.site/resources
+  :juxt.site/installers
   [ ;; API resources
    "https://data.example.org/_site/openapi.json"
    ;; /operations
@@ -44,13 +44,13 @@
 
  "juxt/site/sessions"
  {:juxt.site/description "Sessions"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/operations/put-session-scope"
    "https://auth.example.org/permissions/system/put-session-scope"]}
 
  "juxt/site/bootstrap"
  {:juxt.site/description "Bootstrap resources"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/_site/do-operation"
    "https://auth.example.org/_site/subjects/system"
    "https://auth.example.org/_site/operations/create-operation"
@@ -65,13 +65,13 @@
  "juxt/site/user-model"
  {:juxt.site/description
   "Operations to establish users upon a common model"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/operations/put-user"
    "https://auth.example.org/permissions/system/put-user"]}
 
  "juxt/site/login-form"
  {:juxt.site/description "Login form"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/operations/login"
    "https://auth.example.org/permissions/login"
    "https://auth.example.org/operations/create-login-resource"
@@ -80,7 +80,7 @@
  ;; Tested in juxt.site.oauth-test
  "juxt/site/whoami"
  {:juxt.site/description "whoami resources"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/permissions/whoami"
    "https://data.example.org/whoami"
    "https://data.example.org/whoami.json"
@@ -88,14 +88,14 @@
 
  "juxt/site/test-scopes"
  {:juxt.site/description "Test scopes"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/scopes/test/read"
    "https://auth.example.org/scopes/test/write"
    "https://auth.example.org/scopes/test/admin"]}
 
  "juxt/site/test-clients"
  {:juxt.site/description "Test clients"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/clients/test/public-global-scope-app"
    "https://auth.example.org/clients/test/public-read-scope-app"
    "https://auth.example.org/clients/test/public-read-write-scope-app"
@@ -103,7 +103,7 @@
 
  "juxt/site/oauth-authorization-server"
  {:juxt.site/description "OAuth2 Authorization Server"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/oauth/authorize"
    "https://auth.example.org/oauth/token"
    "https://auth.example.org/operations/oauth/authorize"
@@ -127,7 +127,7 @@
 
  "juxt/site/example-users"
  {:juxt.site/description "Example users"
-  :juxt.site/resources
+  :juxt.site/installers
   [{:juxt.site/target-uri "https://data.example.org/users/{{username}}"
     :juxt.site/parameters {"username" "alice"
                            "fullname" "Alice"}}
@@ -143,7 +143,7 @@
 
  "juxt/site/hospital-demo"
  {:juxt.site/description "Hospital demo resources"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/session-scopes/form-login-session"
    "https://auth.example.org/protection-spaces/bearer"
    "https://auth.example.org/operations/get-patient"
@@ -221,7 +221,7 @@
  "juxt/site/roles"
  {:juxt.site/description
   "Operations to establish and assign roles to users"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/operations/put-role"
    "https://auth.example.org/permissions/system/put-role"
    "https://auth.example.org/operations/assign-role"
@@ -229,12 +229,12 @@
 
  "juxt/site/password-based-user-identity"
  {:juxt.site/description "Password based user identities"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/permissions/system/register-password-based-user-identity"]}
 
  "juxt/site/openid"
  {:juxt.site/description "OpenID Connect"
-  :juxt.site/resources
+  :juxt.site/installers
   ["https://auth.example.org/operations/openid/exchange-code-for-id-token"
    "https://auth.example.org/operations/register-openid-issuer"
    "https://auth.example.org/operations/register-openid-client"

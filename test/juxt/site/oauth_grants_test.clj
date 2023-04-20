@@ -10,7 +10,7 @@
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
    [juxt.site.test-helpers.login :as login :refer [login-with-form! with-session-token]]
    [juxt.site.test-helpers.oauth :as oauth :refer [RESOURCE_SERVER]]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
@@ -20,7 +20,7 @@
    [clojure.string :as str]))
 
 (defn bootstrap-fixture [f]
-  (install-resource-groups!
+  (install-installer-groups!
    ["juxt/site/login-form"
     "juxt/site/example-users"
     "juxt/site/test-scopes"

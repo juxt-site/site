@@ -9,7 +9,7 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -27,17 +27,17 @@
 ;; 'authorization code'.
 
 (defn bootstrap []
-  (install-resource-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
-  (install-resource-groups! ["juxt/site/system-api"] RESOURCE_SERVER {})
+  (install-installer-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
+  (install-installer-groups! ["juxt/site/system-api"] RESOURCE_SERVER {})
 
   ;; Need some test users and a way for them to authenticate
-  (install-resource-groups!
+  (install-installer-groups!
    ["juxt/site/login-form" "juxt/site/example-users"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   ;; Install an authorization server
-  (install-resource-groups!
+  (install-installer-groups!
    ["juxt/site/oauth-authorization-server"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"

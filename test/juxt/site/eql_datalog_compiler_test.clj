@@ -17,7 +17,7 @@
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups!]]
    [juxt.site.test-helpers.oauth :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [ring.util.codec :as codec]
@@ -53,11 +53,11 @@
     token))
 
 (defn install-hospital! []
-  (install-resource-groups!
+  (install-installer-groups!
    ["juxt/site/bootstrap"]
    AUTH_SERVER {})
 
-  (install-resource-groups!
+  (install-installer-groups!
    ["juxt/site/user-model"
     "juxt/site/password-based-user-identity"
     "juxt/site/sessions"
@@ -77,14 +77,14 @@
                       :juxt.site/resource-server "https://hospital.com"
                       :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
 
-  (install-resource-groups!
+  (install-installer-groups!
    ["juxt/site/example-users"
     "juxt/site/login-form"
     "juxt/site/protection-spaces"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.hospital.com/session-scopes/openid-login-session"})
 
-  (install-resource-groups!
+  (install-installer-groups!
    ["juxt/site/hospital-demo"]
    RESOURCE_SERVER {}))
 

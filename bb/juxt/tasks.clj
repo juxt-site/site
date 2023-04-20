@@ -24,16 +24,16 @@
    #"(https://.*?example.org)([\p{Alnum}-]+)*"
    (fn [[_ host path]] (str (get uri-map host host) path))))
 
-(defn get-group-resources [group-name]
-  (get-in GROUPS [group-name :juxt.site/resources]))
+(defn get-group-installers [group-name]
+  (get-in GROUPS [group-name :juxt.site/installers]))
 
-(defn apply-uri-map [uri-map resources]
+(defn apply-uri-map [uri-map installers]
   (postwalk
    (fn walk-fn [node]
      (cond
        (string? node) (uri-map-replace node uri-map)
        :else node))
-   resources))
+   installers))
 
 (defn read-line* [r]
   (let [sb (java.lang.StringBuilder.)]
@@ -150,7 +150,7 @@
         (pprint result))
       (str/join " " result))))
 
-(defn install! [resources uri-map parameter-map install-opts]
+(defn install! [installers uri-map parameter-map install-opts]
 
   ;; Can we access juxt.site.test-helpers.local-files-util/install-resource-groups! from here?
 
@@ -158,9 +158,9 @@
   (let [installer-map (ciu/unified-installer-map
                        (io/file (System/getenv "SITE_HOME") "installers")
                        uri-map)
-        installers (ciu/installer-seq resources installer-map parameter-map)
-        existing (set (edn/read-string (push! `(~'find-resources ~(mapv :juxt.site/uri installers)) {:title "Retrieving existing resources"})))
-        remaining-installers (remove (comp existing :juxt.site/uri) installers)
+        installers-seq (ciu/installer-seq installers installer-map parameter-map)
+        existing (set (edn/read-string (push! `(~'find-resources ~(mapv :juxt.site/uri installers-seq)) {:title "Retrieving existing resources"})))
+        remaining-installers (remove (comp existing :juxt.site/uri) installers-seq)
         heading (or (:title install-opts) *heading* "TITLE")]
 
     (cond
@@ -169,7 +169,7 @@
                              heading
                              (str/join "\n" (sort existing))
                              (str/join "\n" (sort (map :juxt.site/uri remaining-installers)))))
-        (push! `(~'call-installers! (quote ~installers)) {}))
+        (push! `(~'call-installers! (quote ~installers-seq)) {}))
 
       :else
       (when (confirm (format "%s\n\n%s\n\nInstall these resources?\n"
@@ -240,12 +240,12 @@
 (defn bootstrap [{:keys [auth-base-uri]}]
   ;; Use install-resource-groups!
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        resources
+        installers
         (->>
-         (get-in GROUPS ["juxt/site/bootstrap" :juxt.site/resources])
+         (get-in GROUPS ["juxt/site/bootstrap" :juxt.site/installers])
          (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))]
     (install!
-     resources
+     installers
      {"https://auth.example.org" auth-base-uri}
      {}
      {:title "Bootstrapping"
@@ -305,10 +305,10 @@
         uri-map {"https://auth.example.org" auth-base-uri
                  "https://data.example.org" data-base-uri}
 
-        resources (->> (get-group-resources "juxt/site/system-api")
+        installers (->> (get-group-installers "juxt/site/system-api")
                        (apply-uri-map uri-map))]
 
-    (install! resources uri-map {} {:title "Installing System API"})))
+    (install! installers uri-map {} {:title "Installing System API"})))
 
 (defn random-string [size]
   (apply str
@@ -325,12 +325,12 @@
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         kid "default-auth-server"
         uri-map {"https://auth.example.org" auth-base-uri}
-        resources
+        installers
         (->>
-         (get-group-resources "juxt/site/oauth-authorization-server")
+         (get-group-installers "juxt/site/oauth-authorization-server")
          (apply-uri-map uri-map))]
     (install!
-     resources
+     installers
      uri-map
      {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")
       "keypair" (format "%s/keypairs/%s" auth-base-uri kid)
@@ -344,13 +344,12 @@
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           client-id (input {:prompt "Client ID" :value client-id})
           uri-map {"https://auth.example.org" auth-base-uri}
-          resources (->>
-                     [(format "https://auth.example.org/clients/%s" client-id)]
-                     (apply-uri-map uri-map))]
+          installers (->>
+                      [(format "https://auth.example.org/clients/%s" client-id)]
+                      (apply-uri-map uri-map))]
 
       (install!
-       resources uri-map
-       {}
+       installers uri-map {}
        {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn add-user [{:keys [auth-base-uri data-base-uri username fullname iss nickname]}]
@@ -367,13 +366,13 @@
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
 
-          resources (->>
+          installers (->>
                      ["https://data.example.org/users/{{username}}"
                       "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}"]
                      (apply-uri-map uri-map))]
 
       (install!
-       resources uri-map
+       installers uri-map
        {"user" user
         "username" username
         "fullname" fullname
@@ -390,11 +389,11 @@
           rolename (input {:prompt "Role" :value rolename})
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
-          resources (->>
+          installers (->>
                      ["https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]
                      (apply-uri-map uri-map))]
       (install!
-       resources uri-map
+       installers uri-map
        {"username" username
         "rolename" rolename}
        {:title (format "Granting role %s to %s" rolename username)}))))
@@ -430,11 +429,11 @@
           (input {:prompt "Operations (comma separated)"
                   :value (or (str/join ", " operations) (str auth-base-uri "/operations/"))})
 
-          resources [scope]
+          installers [scope]
           uri-map {"https://auth.example.org" auth-base-uri}]
 
       (install!
-       resources uri-map
+       installers uri-map
        {"operations-in-scope" (set (map str/trim (str/split operations-as-csv #",")))
         "description" description}
        {:title (format "Adding scope: %s" scope)}))))

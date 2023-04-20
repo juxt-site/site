@@ -6,7 +6,7 @@
    [jsonista.core :as json]
    [juxt.site.installer :refer [call-operation-with-init-data!]]
    [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.local-files-util :refer [install-resource-groups! converge! unified-installer-map]]
+   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge! unified-installer-map]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.install :as install]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
