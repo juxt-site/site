@@ -225,7 +225,7 @@
                            {:header (str prefix prompt)
                             :value default}))]
     (loop [base-uri (grab "")]
-      (if (re-matches #"https://.+" base-uri)
+      (if (re-matches #"https?://.+" base-uri)
         base-uri
         (recur (grab "Bad format. "))))))
 
