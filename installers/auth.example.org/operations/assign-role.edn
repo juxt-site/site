@@ -7,8 +7,8 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:juxt.site/user [:re "https://.*?/.+"]]
-    [:juxt.site/role [:re "https://.*?/.+"]]]
+    [:juxt.site/user [:re "https?://.*?/.+"]]
+    [:juxt.site/role [:re "https?://.*?/.+"]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program

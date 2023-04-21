@@ -27,7 +27,7 @@
 (defn replace-string-uris [s uri-map]
   (str/replace
    s
-   #"(https://.*?example.org)(.*)"
+   #"(https?://.*?example.org)(.*)"
    (fn [[_ host path]] (str (get uri-map host host) path))))
 
 (defn map-uris
@@ -49,7 +49,7 @@
            (z/edit loc (fn [s]
                          (str/replace
                           s
-                          #"(https://.*?example.org)(.*)"
+                          #"(https?://.*?example.org)(.*)"
                           (fn [[_ host path]] (str (get uri-map host host) path)))))))
         z/root
         n/string))

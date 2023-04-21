@@ -6,7 +6,7 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:xt/id [:re "https://.*?/session-scopes/(.+)"]]
+    [:xt/id [:re "https?://.*?/session-scopes/(.+)"]]
     [:juxt.site/cookie-domain [:re "https?://[^/]*"]]
     [:juxt.site/cookie-path [:re "/.*"]]
     [:juxt.site/login-uri [:re "https?://[^/]*"]]]

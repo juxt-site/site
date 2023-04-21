@@ -24,7 +24,7 @@
       (spit file %))))
 
 (defn alter-dependency [dep-uri]
-  (let [[_ host path] (re-matches #"(https://.*?)/_site(/.*)" dep-uri)]
+  (let [[_ host path] (re-matches #"(https?://.*?)/_site(/.*)" dep-uri)]
     (n/map-node
      [(n/keyword-node :juxt.site/package)
       (n/spaces 1)

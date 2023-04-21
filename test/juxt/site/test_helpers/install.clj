@@ -47,6 +47,6 @@
        (cond-> x
          (string? x)
          (str/replace
-          #"(https://.*?example.org)(.*)"
+          #"(https?://.*?example.org)(.*)"
           (fn [[_ host path]] (str (get uri-map host host) path)))))
      o)))

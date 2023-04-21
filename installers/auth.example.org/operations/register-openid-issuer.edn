@@ -7,7 +7,7 @@
    :juxt.site.malli/input-schema
    [:map
     [:xt/id [:re "https://auth.example.org/.*"]]
-    [:juxt.site/issuer [:re "https://.*"]]]
+    [:juxt.site/issuer [:re "https?://.*"]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program

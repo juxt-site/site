@@ -17,7 +17,7 @@
    [:map
     ;; Our only constraint is that we always want the operation to be in a
     ;; /operations/ context somewhere in the path (not necessarily at the root).
-    [:xt/id [:re "https://.*?/operations/.+"]]
+    [:xt/id [:re "https?://.*?/operations/.+"]]
     [:juxt.site/rules [:vector [:vector :any]]]]
 
    :juxt.site/prepare
