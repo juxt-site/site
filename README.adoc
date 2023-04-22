@@ -16,6 +16,25 @@ Every change to the database is auditable, so you can find out who made which ch
 Many BaaS products are great for simple CRUD applications but don't work well for more sophisticated use-cases.
 Site is intended to handle the more complex projects which many BaaS products can't.
 
+== What is Site and how would I use it?
+
+* You work for an organisation and want to provide a platform to
+  developers which provides built-in benefits such as HTTP
+  conformance, API security and a built-in database.
+
+* You have a dataset that you want to make available to
+  consumers/customers via a secure OAuth2-compliant API, but don't
+  want to build a system from scratch.
+
+* You are a Clojure developer building a new system to allow access to
+  data over a REST API. You can use Site as a jump-start project,
+  fulfilling a similar purpose to our
+  https://github.com/juxt/edge[Edge] project.
+
+In all these cases, https://juxt.pro[JUXT] can provide expert guidance, consulting and
+development resources, if required. Contact info@juxt.pro to schedule
+an appointment.
+
 == Getting Started
 
 If you're really keen, you can try out Site and use Swagger UI as a test client.
