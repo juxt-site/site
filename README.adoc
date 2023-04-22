@@ -1,7 +1,6 @@
 = Site (2.0)
 
-Site is an open-source
-https://blog.boot.dev/backend/backend-as-a-service/[Backend-as-a-Service] offering:
+Site is an open-source software platform offering:
 
 * Data storage
 * User authentication (including https://openid.net/[OpenID])
@@ -13,8 +12,11 @@ On top of these features, Site has strong support for data governance.
 Every state of the database is accessible at any point in time.
 Every change to the database is auditable, so you can find out who made which change to the data, and when.
 
-Many BaaS products are great for simple CRUD applications but don't work well for more sophisticated use-cases.
-Site is intended to handle the more complex projects which many BaaS products can't.
+Similar
+https://blog.boot.dev/backend/backend-as-a-service/[Backend-as-a-Service]
+products are great for simple CRUD applications but don't work well
+for more sophisticated use-cases.  Site is intended to handle the more
+complex projects which many BaaS products can't.
 
 == What is Site and how would I use it?
 
