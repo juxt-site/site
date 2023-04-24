@@ -1,14 +1,8 @@
 ;; Copy this to $HOME/.config/site/config.edn
 
 {
- ;; Used by bin/site to know where to send HTTP API requests.
- :juxt.site.alpha/base-uri "https://site.test"
-
- ;; If specified, this is used to source passwords from Unix pass.
- :juxt.site.alpha.unix-pass/password-prefix "site/local/"
-
  :ig/system
- {:juxt.site.alpha.db/xt-node
+ {:juxt.site.db/xt-node
   {:xtdb/tx-log
    {:kv-store {:xtdb/module xtdb.rocksdb/->kv-store
                :db-dir #join [#env HOME "/.local/share/site/db/txes"]}}
@@ -21,20 +15,28 @@
    {:kv-store {:xtdb/module xtdb.rocksdb/->kv-store
                :db-dir #join [#env HOME "/.local/share/site/db/idxs"]}}}
 
-  :juxt.site.alpha.server/server
-  {:juxt.site.alpha/xt-node #ig/ref :juxt.site.alpha.db/xt-node
-   :juxt.site.alpha/port 2021
-
-   ;; Really, this is the canoncial-uri prefix where /_site exists.
-   :juxt.site.alpha/base-uri #ref [:juxt.site.alpha/base-uri]
-
+  ;; Primary server
+  [:juxt.site.server/server :juxt.site.server/primary-server]
+  {:juxt.site/xt-node #ig/ref :juxt.site.db/xt-node
+   :juxt.site/port 4440
    ;; If specified, inbound URLs will be uri-prefix + path. If not
    ;; specified, will default to concatenating the request's proto (or
    ;; X-Forwarded-Proto header) and Host (or X-Forwarded-Host) request header.
-   ;;:juxt.site.alpha/uri-prefix "https://my.juxt.site"
+   ;;:juxt.site/uri-prefix "https://my.juxt.site"
+   :juxt.site/dynamic? #profile {:dev true :prod false}}
 
-   :juxt.site.alpha/dynamic? #profile {:dev true :prod false}}
+  ;; We use the secondary server in development for separating out
+  ;; localhost ports. In this case, the primary server (4440) is used
+  ;; for the authorization server and the secondary server (4444) is
+  ;; used for the resource server. A useful memory-jogger is to think
+  ;; 'Auth0', to remember that the 'Auth'orization server ends in a
+  ;; '0'.
+  [:juxt.site.server/server :juxt.site.server/secondary-server]
+  {:juxt.site/xt-node #ig/ref :juxt.site.db/xt-node
+   :juxt.site/port 4444
+   :juxt.site/dynamic? #profile {:dev true :prod false}}
 
-  :juxt.site.alpha.nrepl/server
-  {:juxt.site.alpha/port 7888}
+  ;; Optional; nREPL server
+  :juxt.site.nrepl/server
+  {:juxt.site/port 7888}
   }}
