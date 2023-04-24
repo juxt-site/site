@@ -128,18 +128,28 @@
  "juxt/site/example-users"
  {:juxt.site/description "Example users"
   :juxt.site/installers
-  [{:juxt.site/target-uri "https://data.example.org/users/{{username}}"
+  [
+   ;; Alice
+   {:juxt.site/target-uri "https://data.example.org/users/{{username}}"
     :juxt.site/parameters {"username" "alice"
                            "fullname" "Alice"}}
-   "https://data.example.org/user-identities/alice"
+   {:juxt.site/target-uri "https://data.example.org/user-identities/{{username}}"
+    :juxt.site/parameters {"username" "alice"
+                           "password" "garden"}}
+   ;; Bob
    {:juxt.site/target-uri "https://data.example.org/users/{{username}}"
     :juxt.site/parameters {"username" "bob"
                            "fullname" "Bob"}}
-   "https://data.example.org/user-identities/bob"
+   {:juxt.site/target-uri "https://data.example.org/user-identities/{{username}}"
+    :juxt.site/parameters {"username" "bob"
+                           "password" "walrus"}}
+   ;; Carlos
    {:juxt.site/target-uri "https://data.example.org/users/{{username}}"
     :juxt.site/parameters {"username" "carlos"
                            "fullname" "Carlos"}}
-   "https://data.example.org/user-identities/carlos"]}
+   {:juxt.site/target-uri "https://data.example.org/user-identities/{{username}}"
+    :juxt.site/parameters {"username" "carlos"
+                           "password" "jackal"}}]}
 
  "juxt/site/hospital-demo"
  {:juxt.site/description "Hospital demo resources"
