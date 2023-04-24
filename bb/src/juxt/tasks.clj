@@ -308,22 +308,35 @@
                             (range (int \a) (inc (int \z)))
                             (range (int \0) (inc (int \9))))))))))
 
-(defn auth-server [{:keys [auth-base-uri]}]
-  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        kid "default-auth-server"
-        uri-map {"https://auth.example.org" auth-base-uri}
-        installers
-        (->>
-         (get-group-installers "juxt/site/oauth-authorization-server")
-         (apply-uri-map uri-map))]
-    (install!
-     installers
-     uri-map
-     {"session-scope" (str auth-base-uri "/session-scopes/openid-login-session")
-      "keypair" (format "%s/keypairs/%s" auth-base-uri kid)
-      "authorization-code-length" 12
-      "jti-length" 12}
-     {:title "Installing authorization server"})))
+(defn auth-server [{:keys [auth-base-uri session-scope]}]
+  (binding [*heading* "Deploy OAuth2 Authorization Server"]
+    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          ;; TODO: kid should ALWAYS be unique and therefore generated
+          kid "default-auth-server"
+          uri-map {"https://auth.example.org" auth-base-uri}
+
+          session-scope
+          (or
+           session-scope
+           (let [choices [["OpenID (Recommended for production)"
+                           (str auth-base-uri "/session-scopes/openid-login-session")]
+                          ["Login form (dev only)"
+                           (str auth-base-uri "/session-scopes/form-login-session")]]]
+             (-> (into {} choices)
+                 (get (choose (mapv first choices) {})))))
+
+          installers
+          (->>
+           (get-group-installers "juxt/site/oauth-authorization-server")
+           (apply-uri-map uri-map))]
+      (install!
+       installers
+       uri-map
+       {"session-scope" session-scope
+        "keypair" (format "%s/keypairs/%s" auth-base-uri kid)
+        "authorization-code-length" 12
+        "jti-length" 12}
+       {:title "Installing authorization server"}))))
 
 (defn register-application
   [{:keys [auth-base-uri client-id origin resource-server redirect-uris scope]}]
