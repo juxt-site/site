@@ -63,7 +63,7 @@
     "juxt/site/sessions"
     "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
-   {"session-scope" "https://auth.hospital.com/session-scopes/openid-login-session"
+   {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"
     "keypair" "https://auth.hospital.com/keypairs/default-auth-server"
     "authorization-code-length" 12
     "jti-length" 12})
@@ -82,7 +82,7 @@
     "juxt/site/login-form"
     "juxt/site/protection-spaces"]
    RESOURCE_SERVER
-   {"session-scope" "https://auth.hospital.com/session-scopes/openid-login-session"})
+   {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"})
 
   (install-installer-groups!
    ["juxt/site/hospital-demo"]
