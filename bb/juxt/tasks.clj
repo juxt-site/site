@@ -124,7 +124,15 @@
     (let [{:keys [status result]}
           (b/gum {:cmd :choose
                   :args choices
-                  :opts (or opts {})})]
+                  :opts (->
+                         (merge {:header (str (or (:heading opts) *heading*) "\n")
+                                 :header.foreground "#C72"
+                                 :item.foreground "#444"
+                                 :selected.foreground "#C72"
+                                 :cursor.foreground "#AAA"
+                                 :limit 1}
+                                opts)
+                         (dissoc :heading :description))})]
       (when-not (zero? status)
         (throw
          (ex-info "gum process exited with non-zero status" {:status status})))
@@ -356,30 +364,48 @@
   (binding [*heading* "Add user"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           data-base-uri (or data-base-uri (input-data-base-uri))
-          username (input {:prompt "Username" :value username})
-          fullname (input {:prompt "Full name" :value fullname})
-          iss (input {:prompt "Issuer" :value iss})
-          nickname (input {:prompt "Nick name" :value nickname})
-
-          user (format "%s/users/%s" data-base-uri (url-encode username))
 
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
 
-          installers (->>
-                     ["https://data.example.org/users/{{username}}"
-                      "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}"]
-                     (apply-uri-map uri-map))]
+          username (input {:prompt "Username" :value username})
+          fullname (input {:prompt "Full name" :value fullname})
 
-      (install!
-       installers uri-map
-       {"user" user
-        "username" username
-        "fullname" fullname
-        "iss" iss
-        "nickname" nickname}
+          user (format "%s/users/%s" data-base-uri (url-encode username))
 
-       {:title (format "Adding user: %s" username)}))))
+          user-type (let [choices [["OpenID (Recommended for production)" :openid]
+                                   ["password (dev only)" :password]]]
+                      (-> (into {} choices)
+                          (get (choose (mapv first choices) {}))))
+
+          installers ["https://data.example.org/users/{{username}}"]]
+
+      (case user-type
+        :openid
+        (let [iss (input {:prompt "OpenID Issuer" :value iss :placeholder "https://"})
+              nickname (input {:prompt "Nick name" :value nickname})
+              installers (conj installers "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")]
+          (install!
+           (apply-uri-map uri-map installers)
+           uri-map
+           {"user" user
+            "username" username
+            "fullname" fullname
+            "iss" iss
+            "nickname" nickname}
+           {:title (format "Adding OpenID user: %s" username)}))
+
+        :password
+        (let [password (input {:prompt "Password" :password true})
+              installers (conj installers #_["https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}"])]
+          (install!
+           (apply-uri-map uri-map installers)
+           uri-map
+           {"user" user
+            "username" username
+            "fullname" fullname
+            "password" password}
+           {:title (format "Adding user: %s" username)}))))))
 
 (defn grant-role [{:keys [auth-base-uri data-base-uri username rolename]}]
   (binding [*heading* "Grant role to user"]
