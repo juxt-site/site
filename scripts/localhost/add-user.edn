@@ -1,0 +1,9 @@
+[
+ [:add-user
+  {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"}]
+
+ [:grant-role
+  {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"
+   :rolename "System"}]]

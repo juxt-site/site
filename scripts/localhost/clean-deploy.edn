@@ -1,0 +1,20 @@
+[
+ [:reset]
+
+ [:bootstrap
+  {:auth-base-uri "http://localhost:4440"}]
+
+ [:system-api
+  {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"}]
+
+ [:auth-server
+  {:auth-base-uri "http://localhost:4440"}]
+
+ ;; Clients
+
+ [:register-application
+  {:auth-base-uri "http://localhost:4440"
+   :client-id "swagger-ui"}]
+
+ ]
