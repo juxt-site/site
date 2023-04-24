@@ -8,7 +8,8 @@
    [clojure.walk :refer [prewalk postwalk]]
    [selmer.parser :as selmer]
    [clojure.set :as set]
-   [clojure.edn :as edn]))
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]))
 
 (defn namespaced-name [kw]
   (str
@@ -221,21 +222,27 @@
    'juxt.template (fn [s] (->Template s))})
 
 (defn unified-installer-files [root uri-map]
-  (for [installer-file (file-seq root)
+  (for [dir (.listFiles root)
+        :when (.isDirectory dir)
+        installer-file (file-seq dir)
         :when (.isFile installer-file)
         :let [filepath (.toPath installer-file)
               relpath (.toString (.relativize (.toPath root) filepath))
               [_ auth+path1 path2] (re-matches #"(.+?)(?:_index)?\.edn" relpath)
               url (str "https://" auth+path1 path2)
-              url (uri-map-replace url uri-map)]]
+              url (uri-map-replace url uri-map)
+              content (->
+                       (postwalk (make-uri-map-replace-walk-fn uri-map) (edn/read-string {:readers READERS} (slurp installer-file)))
+                       (merge {:url url
+                               :filepath (.toString filepath)
+                               :auth-path (str auth+path1 path2)}))]]
+
     {:url url
      :filepath (.toString filepath)
      :relpath relpath
      :auth-path (str auth+path1 path2)
      ;; TODO: Try using a delay for performance, but measure
-     :content (->>
-               (edn/read-string {:readers READERS} (slurp installer-file))
-               (postwalk (make-uri-map-replace-walk-fn uri-map)))}))
+     :content content}))
 
 (defn unified-installer-map
   "This converts the existing package structure into a unified map of
