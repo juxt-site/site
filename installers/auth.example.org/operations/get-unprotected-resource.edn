@@ -1,0 +1,14 @@
+{:deps
+ ["https://auth.example.org/permissions/get-unprotected-resource"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site/description "Get a resource representation that requires no authorization"
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [permission :xt/id]]]}}}

@@ -27,6 +27,9 @@
   users {:task (juxt.tasks/ls-type "user")}
   access-tokens {:task (juxt.tasks/ls-type "access-token")}
 
+  install-login-form
+  {:task (juxt.tasks/install-login-form {})}
+
   openid
   {:task (juxt.tasks/openid {})}
 

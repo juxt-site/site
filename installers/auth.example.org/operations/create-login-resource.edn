@@ -1,5 +1,6 @@
 {:deps
- ["https://auth.example.org/operations/login"
+ ["https://auth.example.org/operations/get-unprotected-resource"
+  "https://auth.example.org/operations/login"
   "https://auth.example.org/permissions/login"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
@@ -30,7 +31,7 @@
          juxt.site.malli/validate-input
          (assoc
           :juxt.site/methods
-          {:get {:juxt.site/operation "https://auth.example.org/operations/get-public-resource"}
+          {:get {:juxt.site/operation "https://auth.example.org/operations/get-unprotected-resource"}
            :post {:juxt.site/operation "https://auth.example.org/operations/login"}}
 
           :juxt.http/content-type "text/html;charset=utf-8"

@@ -1,0 +1,39 @@
+[
+ [:reset]
+
+ [:bootstrap
+  {:auth-base-uri "http://localhost:4440"}]
+
+ [:system-api
+  {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"}]
+
+ [:auth-server
+  {:auth-base-uri "http://localhost:4440"
+   :session-scope "http://localhost:4440/session-scopes/form-login-session"
+   }]
+
+ [:install-login-form
+  {:auth-base-uri "http://localhost:4440"}]
+
+ ;; Clients
+
+ [:register-application
+  {:auth-base-uri "http://localhost:4440"
+   :client-id "swagger-ui"}]
+
+ ;; Add password-based admin user
+
+ [:add-user
+  {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"
+   :user-type :password}]
+
+ [:grant-role
+  {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"
+   :rolename "System"}]
+
+
+
+ ]

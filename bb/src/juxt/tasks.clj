@@ -299,9 +299,10 @@
            (let [choices [["OpenID (Recommended for production)"
                            (str auth-base-uri "/session-scopes/openid-login-session")]
                           ["Login form (dev only)"
-                           (str auth-base-uri "/session-scopes/form-login-session")]]]
+                           (str auth-base-uri "/session-scopes/form-login-session")]]
+                 selected (get (zipmap (map second choices) (map first choices)) session-scope)]
              (-> (into {} choices)
-                 (get (choose (mapv first choices) {})))))
+                 (get (choose (mapv first choices) (cond-> {} selected (assoc :selected selected)))))))
 
           installers
           (->>
@@ -330,7 +331,7 @@
        installers uri-map {}
        {:title (format "Adding OAuth client: %s" client-id)}))))
 
-(defn add-user [{:keys [auth-base-uri data-base-uri username fullname iss nickname]}]
+(defn add-user [{:keys [auth-base-uri data-base-uri username user-type fullname iss nickname]}]
   (binding [*heading* "Add user"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           data-base-uri (or data-base-uri (input-data-base-uri))
@@ -343,10 +344,14 @@
 
           user (format "%s/users/%s" data-base-uri (url-encode username))
 
-          user-type (let [choices [["OpenID (Recommended for production)" :openid]
-                                   ["password (dev only)" :password]]]
-                      (-> (into {} choices)
-                          (get (choose (mapv first choices) {}))))
+          user-type (or
+                     user-type
+                     (let [choices [["OpenID (Recommended for production)" :openid]
+                                    ["password (dev only)" :password]]
+                           selected (get (zipmap (map second choices) (map first choices)) user-type)]
+                       (-> (into {} choices)
+                           (get (choose (mapv first choices)
+                                        (cond-> {} selected (assoc :selected selected)))))))
 
           installers ["https://data.example.org/users/{{username}}"]]
 
@@ -393,6 +398,16 @@
        {"username" username
         "rolename" rolename}
        {:title (format "Granting role %s to %s" rolename username)}))))
+
+(defn install-login-form [{:keys [auth-base-uri]}]
+  (binding [*heading* "Install login form"]
+    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          uri-map {"https://auth.example.org" auth-base-uri}
+          installers (->>
+                      ["https://auth.example.org/login-with-form"]
+                      (apply-uri-map uri-map))]
+
+      (install! installers uri-map {} {:title "Installing login form"}))))
 
 (defn openid [{:keys [auth-base-uri iss client-id client-secret]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
