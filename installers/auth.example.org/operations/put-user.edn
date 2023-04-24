@@ -39,7 +39,7 @@
              :juxt.site/access-control-allow-origins
              [[".*" {:juxt.site/access-control-allow-origin "*"
                      :juxt.site/access-control-allow-methods [:get]
-                     :juxt.site/access-control-allow-headers ["authorization" "hx-current-url" "hx-request"]}]]
+                     :juxt.site/access-control-allow-headers ["authorization"]}]]
 
              ;; It's nice to be able to access this resource via a browser
              ;;:juxt.site/session-scope "{{session-scope}}"
@@ -81,7 +81,7 @@
              :juxt.site/access-control-allow-origins
              [[".*" {:juxt.site/access-control-allow-origin "*"
                      :juxt.site/access-control-allow-methods [:get]
-                     :juxt.site/access-control-allow-headers ["authorization" "hx-current-url" "hx-request"]}]]
+                     :juxt.site/access-control-allow-headers ["authorization"]}]]
 
              ;; It's nice to be able to access this resource via a browser
              ;; :juxt.site/session-scope "{{session-scope}}"
