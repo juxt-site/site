@@ -279,8 +279,6 @@
                      :value iss})))]
 
             ["iss" iss]
-
-
             ["client-id" client-id]
 
             #_["client-configuration"
@@ -397,7 +395,7 @@
 
         :password
         (let [password (input {:prompt "Password" :password true})
-              installers (conj installers #_["https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}"])]
+              installers (conj installers "https://data.example.org/user-identities/{{username}}")]
           (install!
            (apply-uri-map uri-map installers)
            uri-map
@@ -416,8 +414,8 @@
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
           installers (->>
-                     ["https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]
-                     (apply-uri-map uri-map))]
+                      ["https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]
+                      (apply-uri-map uri-map))]
       (install!
        installers uri-map
        {"username" username
