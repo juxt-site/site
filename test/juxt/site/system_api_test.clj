@@ -244,35 +244,21 @@
    :api-get-user (repl/e "https://data.example.test/_site/users/{username}")
    :api-get-users (repl/e "https://data.example.test/_site/users")}
 
-  (repl/ls)
+  (repl/e "https://data.example.test/_site/users/{username}")
 
   ;; Direct read of user
-  #_(let
-      [session-token (login/login-with-form! "alice" "garden")
-       {access-token "access_token"}
-       (oauth/acquire-access-token!
-        {:grant-type "implicit"
-         :session-token session-token
-         :authorization-uri "https://auth.example.test/oauth/authorize"
-         :client "https://auth.example.test/clients/global-scope-app"})
-       {:ring.response/keys [body] :as response}
-       (oauth/with-bearer-token access-token
-         (*handler*
-          {:ring.request/method :get
-           :ring.request/headers {"accept" "application/json"}
-           :juxt.site/uri "https://data.example.test/users/alice"}))]
+  (let [session-token (login/login-with-form! "alice" "garden")
+        {access-token "access_token"}
+        (oauth/acquire-access-token!
+         {:grant-type "implicit"
+          :session-token session-token
+          :authorization-uri "https://auth.example.test/oauth/authorize"
+          :client "https://auth.example.test/clients/global-scope-app"})
+        {:ring.response/keys [body] :as response}
+        (oauth/with-bearer-token access-token
+          (*handler*
+           {:ring.request/method :get
+            :ring.request/headers {"accept" "application/json"}
+            :juxt.site/uri "https://data.example.test/users/alice"}))]
 
     (json/read-value body)))
-
-#_(with-fixtures
-  (let [graph (juxt.site.test-helpers.local-files-util/unified-installer-map
-               RESOURCE_SERVER)]
-    (install/converge!
-     *xt-node* ["https://data.example.test/_site/users/{username}"]
-     graph {})
-    (repl/ls)))
-
-
-#_(keys
-   (juxt.site.test-helpers.local-files-util/unified-installer-map
-    RESOURCE_SERVER))
