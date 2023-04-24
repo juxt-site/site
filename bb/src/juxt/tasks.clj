@@ -263,28 +263,6 @@
   (when s
     (java.net.URLEncoder/encode s)))
 
-(defn openid [{:keys [auth-base-uri iss client-id client-secret]}]
-  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        params
-        (binding [*heading* "Register OpenID client"]
-          (into
-           {}
-           [
-            ["iss" iss]
-            ["client-id" client-id]
-            ["client-secret"
-             (input
-              {:prompt "Client Secret"
-               :value client-secret})]
-            ["session-scope" "openid-login-session"]]))]
-
-    (install!
-     [(str auth-base-uri "/login-with-openid")
-      (str auth-base-uri "/openid/callback")]
-     {"https://auth.example.org" auth-base-uri}
-     params
-     {:title "Installing OpenAPI"})))
-
 (defn system-api [{:keys [auth-base-uri data-base-uri]}]
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
         data-base-uri (or data-base-uri (input-data-base-uri))
@@ -415,6 +393,28 @@
        {"username" username
         "rolename" rolename}
        {:title (format "Granting role %s to %s" rolename username)}))))
+
+(defn openid [{:keys [auth-base-uri iss client-id client-secret]}]
+  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+        params
+        (binding [*heading* "Register OpenID client"]
+          (into
+           {}
+           [
+            ["iss" iss]
+            ["client-id" client-id]
+            ["client-secret"
+             (input
+              {:prompt "Client Secret"
+               :value client-secret})]
+            ["session-scope" "openid-login-session"]]))]
+
+    (install!
+     [(str auth-base-uri "/login-with-openid")
+      (str auth-base-uri "/openid/callback")]
+     {"https://auth.example.org" auth-base-uri}
+     params
+     {:title "Installing OpenAPI"})))
 
 (defn request-access-token
   [{:keys [auth-base-uri data-base-uri username client-id duration]}]
