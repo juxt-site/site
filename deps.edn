@@ -82,7 +82,7 @@
 
  :aliases
  {:dev
-  {:extra-paths ["dev" "test" "bb"]
+  {:extra-paths ["dev" "test" "bb/src"]
    :extra-deps
    {org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
     djblue/portal {:mvn/version "0.29.1"}
@@ -96,7 +96,7 @@
     "--add-opens" "java.base/java.util.concurrent=ALL-UNNAMED"]}
 
   :test
-  {:extra-paths ["test" "bb"]
+  {:extra-paths ["test" "bb/src"]
    :extra-deps
    {lambdaisland/kaocha {:mvn/version "1.0.887"}
     lambdaisland/kaocha-junit-xml {:mvn/version "0.0.76"}
