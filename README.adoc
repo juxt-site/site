@@ -40,13 +40,52 @@ an appointment.
 
 == Getting Started
 
+. Clone this repository to your computer, cd into the `site` directory.
++
+----
+$ git clone https://github.com/juxt-site/site
+$ cd site
+----
+
+. Ensure you have https://github.com/babashka/babashka[Babashka] version v1.1.172 or later installed.
++
+----
+site$ bb --version
+babashka v1.1.172
+----
+
+. Copy `etc/config.edn` to `$HOME/.config/site/config.edn`
++
+----
+site$ mkdir -p $HOME/.config/site
+site$ cp etc/config.edn $HOME/.config/site/config.edn
+----
+Review the config at `$HOME/.config/site/config.edn` and make any appropriate modifications.
+
+. Start the Site instance
++
+----
+site$ bin/site-server
+----
+
+. Start a new terminal and `cd` into your Site directory.
+
+. Bootstrap your Site instance by deploying a minimal set of resources
++
+----
+site$ site apply -c scripts/localhost/clean-deploy.edn
+----
+
+
+
+
+== (Old instructions)
+
 If you're really keen, you can try out Site and use Swagger UI as a test client.
 Follow these instructions:
 
-. Install https://github.com/babashka/babashka[Babashka], ensure you have v1.1.173 or later
 . Install nginx - see link:doc/next/Installation.adoc[]
 . `git clone https://github.com/juxt-site/swagger-ui`
-. Clone this repo: `git clone https://github.com/juxt-site/site`
 . Install `mkcert` as per link:doc/next/Installation.adoc[]
 . Create a cert: `mkcert data.site.test auth.site.test`
 . Create a separate cert for the Swagger UI client: `mkcert swagger-ui.site.test`
