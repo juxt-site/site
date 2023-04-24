@@ -270,31 +270,12 @@
           (into
            {}
            [
-            #_["issuer-configuration"
-             (str auth-base-uri
-                  "/openid/issuers/"
-                  (url-encode
-                   (input
-                    {:prompt "Issuer"
-                     :value iss})))]
-
             ["iss" iss]
             ["client-id" client-id]
-
-            #_["client-configuration"
-             (str auth-base-uri
-                  "/openid/clients/"
-                  (url-encode
-                   (input
-                    {:prompt "Client ID"
-                     :value client-id})))]
-
             ["client-secret"
              (input
               {:prompt "Client Secret"
                :value client-secret})]
-
-            #_["session-scope" (str auth-base-uri "/session-scopes/openid-login-session")]
             ["session-scope" "openid-login-session"]]))]
 
     (install!
