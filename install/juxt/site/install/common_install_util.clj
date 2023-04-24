@@ -59,9 +59,7 @@
     (throw (ex-info "No such parameter" {:parameter param}))))
 
 (defn lookup-root [resource graph parameter-map]
-  (when (:juxt.site/target-uri (:juxt.site/target-uri resource))
-    (throw (ex-info "HERE" {})))
-  (assert (map? resource) (format "resource should be map: %s" (pr-str resource)))
+  (assert (map? resource) (format "Resource should be a map: %s" (pr-str resource)))
   (let [target-uri (:juxt.site/target-uri resource)
         uri-maybe-template (cond-> target-uri
                              (instance? Template target-uri) unwrap)
