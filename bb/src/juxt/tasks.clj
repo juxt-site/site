@@ -321,7 +321,7 @@
   [{:keys [auth-base-uri client-id origin resource-server redirect-uris scope]}]
   (binding [*heading* "Register application"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-          client-id (input {:prompt "Client ID" :value client-id})
+          client-id (or client-id (input {:prompt "Client ID" :value client-id}))
           uri-map {"https://auth.example.org" auth-base-uri}
           installers (->>
                       [(format "https://auth.example.org/clients/%s" client-id)]
