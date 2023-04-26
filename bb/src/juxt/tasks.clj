@@ -292,8 +292,7 @@
 (defn auth-server [{:keys [auth-base-uri session-scope]}]
   (binding [*heading* "Deploy OAuth2 Authorization Server"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-          ;; TODO: kid should ALWAYS be unique and therefore generated
-          kid "default-auth-server"
+          kid (random-string 16)
           uri-map {"https://auth.example.org" auth-base-uri}
 
           session-scope
@@ -313,7 +312,7 @@
        installers
        uri-map
        {"session-scope" session-scope
-        "keypair" (format "%s/keypairs/%s" auth-base-uri kid)
+        "kid" kid
         "authorization-code-length" 12
         "jti-length" 12}
        {:title "Installing authorization server"}))))

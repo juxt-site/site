@@ -64,7 +64,7 @@
     "juxt/site/oauth-authorization-server"]
    AUTH_SERVER
    {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"
-    "keypair" "https://auth.hospital.com/keypairs/default-auth-server"
+    "kid" "test-kid"
     "authorization-code-length" 12
     "jti-length" 12})
 

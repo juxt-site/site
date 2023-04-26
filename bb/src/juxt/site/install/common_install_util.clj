@@ -8,8 +8,7 @@
    [clojure.walk :refer [prewalk postwalk]]
    [selmer.parser :as selmer]
    [clojure.set :as set]
-   [clojure.edn :as edn]
-   [clojure.java.io :as io]))
+   [clojure.edn :as edn]))
 
 (defn namespaced-name [kw]
   (str
@@ -66,7 +65,9 @@
                              (instance? Template target-uri) unwrap)
         concrete-id
         (->
-         (render-with-required-check uri-maybe-template (merge parameter-map (:juxt.site/parameters resource)))
+         (render-with-required-check
+          uri-maybe-template
+          (merge parameter-map (:juxt.site/parameters resource)))
          (try
            (catch Exception e
              (throw

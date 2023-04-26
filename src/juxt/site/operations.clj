@@ -570,7 +570,7 @@
                        (fn [claims keypair-id]
                          (let [keypair (xt/entity db keypair-id)]
                            (when-not keypair
-                             (throw (ex-info "Keypair not found" {:keypair-id keypair-id})))
+                             (throw (ex-info (format "Keypair not found: %s" keypair-id) {:keypair-id keypair-id})))
                            (try
                              (jwt/new-access-token claims keypair)
                              (catch Exception cause
