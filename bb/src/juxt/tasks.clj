@@ -350,21 +350,21 @@
                            (get (choose (mapv first choices)
                                         (cond-> {} selected (assoc :selected selected)))))))
 
-          user-details {:auth-base-uri auth-base-uri
-                        :data-base-uri data-base-uri
-                        :user user
-                        :username username
-                        :fullname fullname
-                        :user-type user-type}]
+          user-details {"auth-base-uri" auth-base-uri
+                        "data-base-uri" data-base-uri
+                        "user" user
+                        "username" username
+                        "fullname" fullname
+                        "user-type" user-type}]
       (case user-type
         :openid
         (let [iss (input {:prompt "OpenID Issuer" :value iss :placeholder "https://"})
               nickname (input {:prompt "Nick name" :value nickname})]
-          (merge user-details {:iss iss :nickname nickname}))
+          (merge user-details {"iss" iss "nickname" nickname}))
 
         :password
         (let [password (input {:prompt "Password" :password true})]
-          (merge user-details {:password password}))))))
+          (merge user-details {"password" password}))))))
 
 (defn- grant-role-input [{:keys [auth-base-uri data-base-uri username rolename]}]
   (binding [*heading* "Grant role to user"]
@@ -372,50 +372,34 @@
           data-base-uri (or data-base-uri (input-data-base-uri))
           username (or username (input {:prompt "Username" :value username}))
           rolename (or rolename (input {:prompt "Role" :value rolename}))]
-      {:auth-base-uri auth-base-uri
-       :data-base-uri data-base-uri
-       :username username
-       :rolename rolename})))
+      {"auth-base-uri" auth-base-uri
+       "data-base-uri" data-base-uri
+       "username" username
+       "rolename" rolename})))
 
 (defn add-user [defaults]
   (binding [*heading* "Add user"]
-    (let [input (add-user-input defaults)
-          {:keys [auth-base-uri data-base-uri user username fullname user-type]} input
+    (let [parameters (add-user-input defaults)
+          {:strs [auth-base-uri data-base-uri user username fullname user-type]} parameters
 
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
 
-          installers ["https://data.example.org/users/{{username}}"]]
+          installers (cond-> ["https://data.example.org/users/{{username}}"]
+                       (= user-type :openid) (conj "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
+                       (= user-type :password (conj "https://data.example.org/user-identities/{{username}}")))]
 
-      (case user-type
-        :openid
-        (let [installers (conj installers "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
-              {:keys [iss nickname]} input]
-          (install!
-           (apply-uri-map uri-map installers)
-           uri-map
-           {"user" user
-            "username" username
-            "fullname" fullname
-            "iss" iss
-            "nickname" nickname}
-           {:title (format "Adding OpenID user: %s" username)}))
-
-        :password
-        (let [installers (conj installers "https://data.example.org/user-identities/{{username}}")
-              {:keys [password]} input]
-          (install!
-           (apply-uri-map uri-map installers)
-           uri-map
-           {"user" user
-            "username" username
-            "fullname" fullname
-            "password" password}
-           {:title (format "Adding user: %s" username)}))))))
+      (install!
+       (apply-uri-map uri-map installers)
+       uri-map
+       parameters
+       {:title (case user-type
+                 :openid (format "Adding OpenID user: %s" username)
+                 :password (format "Adding user: %s" username))}))))
 
 (defn grant-role [defaults]
   (binding [*heading* "Grant role to user"]
-    (let [{:keys [auth-base-uri data-base-uri username rolename]}
+    (let [{:strs [auth-base-uri data-base-uri username rolename] :as parameters}
           (grant-role-input defaults)
 
           uri-map {"https://auth.example.org" auth-base-uri
@@ -426,49 +410,32 @@
       (install!
        (apply-uri-map uri-map installers)
        uri-map
-       {"username" username
-        "rolename" rolename}
+       (select-keys parameters ["username" "rolename"])
        {:title (format "Granting role %s to %s" rolename username)}))))
 
 (defn add-system-user [defaults]
-  (let [input (add-user-input defaults)
-        {:keys [auth-base-uri data-base-uri user username fullname user-type]} input
+  (let [{:strs [auth-base-uri data-base-uri username user-type] :as parameters} (add-user-input defaults)
 
         uri-map {"https://auth.example.org" auth-base-uri
                  "https://data.example.org" data-base-uri}
 
-        installers ["https://data.example.org/users/{{username}}"
-                    "https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]]
+        installers
+        (cond-> ["https://data.example.org/users/{{username}}"
+                 "https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]
+          (= user-type :openid) (conj "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
+          (= user-type :password) (conj "https://data.example.org/user-identities/{{username}}"))]
 
-    ;; TODO: Remove duplication
-    ;; TODO: Start by switching from keys to strs
-    (case user-type
-      :openid
-      (let [installers (conj installers "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
-            {:keys [iss nickname]} input]
-        (install!
-         (apply-uri-map uri-map installers)
-         uri-map
-         {"user" user
-          "username" username
-          "fullname" fullname
-          "iss" iss
-          "nickname" nickname
-          "rolename" "System"}
-         {:title (format "Adding OpenID user: %s" username)}))
-
-      :password
-      (let [installers (conj installers "https://data.example.org/user-identities/{{username}}")
-            {:keys [password]} input]
-        (install!
-         (apply-uri-map uri-map installers)
-         uri-map
-         {"user" user
-          "username" username
-          "fullname" fullname
-          "password" password
-          "rolename" "System"}
-         {:title (format "Adding system user: %s" username)})))))
+    (install!
+     (apply-uri-map uri-map installers)
+     uri-map
+     (assoc
+      (select-keys
+       parameters
+       (case user-type
+         :openid ["user" "username" "fullname" "iss" "nickname"]
+         :password ["user" "username" "fullname" "password"]))
+      "rolename" "System")
+     {:title (format "Adding system user: %s" username)})))
 
 (defn install-login-form [{:keys [auth-base-uri]}]
   (binding [*heading* "Install login form"]
