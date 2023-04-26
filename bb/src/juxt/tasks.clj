@@ -163,7 +163,8 @@
   ;; Can we access juxt.site.test-helpers.local-files-util/install-resource-groups! from here?
 
   ;; 1. Ask tree to return an installer-seq
-  (let [installer-map (ciu/unified-installer-map
+  (let [installers (apply-uri-map uri-map installers)
+        installer-map (ciu/unified-installer-map
                        (io/file (System/getenv "SITE_HOME") "installers")
                        uri-map)
         installers-seq (ciu/installer-seq installers installer-map parameter-map)
@@ -270,8 +271,7 @@
         uri-map {"https://auth.example.org" auth-base-uri
                  "https://data.example.org" data-base-uri}
 
-        installers (->> (get-group-installers "juxt/site/system-api")
-                       (apply-uri-map uri-map))]
+        installers (get-group-installers "juxt/site/system-api")]
 
     (install! installers uri-map {} {:title "Installing System API"})))
 
@@ -305,9 +305,7 @@
                  (get (choose (mapv first choices) (cond-> {} selected (assoc :selected selected)))))))
 
           installers
-          (->>
-           (get-group-installers "juxt/site/oauth-authorization-server")
-           (apply-uri-map uri-map))]
+          (get-group-installers "juxt/site/oauth-authorization-server")]
       (install!
        installers
        uri-map
@@ -323,12 +321,9 @@
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           client-id (or client-id (input {:prompt "Client ID" :value client-id}))
           uri-map {"https://auth.example.org" auth-base-uri}
-          installers (->>
-                      [(format "https://auth.example.org/clients/%s" client-id)]
-                      (apply-uri-map uri-map))]
+          installers [(format "https://auth.example.org/clients/%s" client-id)]]
 
-      (install!
-       installers uri-map {}
+      (install! installers uri-map {}
        {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn- add-user-input [{:keys [auth-base-uri data-base-uri username user-type fullname iss nickname]}]
@@ -389,13 +384,10 @@
                        (= user-type :openid) (conj "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
                        (= user-type :password (conj "https://data.example.org/user-identities/{{username}}")))]
 
-      (install!
-       (apply-uri-map uri-map installers)
-       uri-map
-       parameters
-       {:title (case user-type
-                 :openid (format "Adding OpenID user: %s" username)
-                 :password (format "Adding user: %s" username))}))))
+      (install! installers uri-map parameters
+                {:title (case user-type
+                          :openid (format "Adding OpenID user: %s" username)
+                          :password (format "Adding user: %s" username))}))))
 
 (defn grant-role [defaults]
   (binding [*heading* "Grant role to user"]
@@ -407,11 +399,9 @@
 
           installers ["https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]]
 
-      (install!
-       (apply-uri-map uri-map installers)
-       uri-map
-       (select-keys parameters ["username" "rolename"])
-       {:title (format "Granting role %s to %s" rolename username)}))))
+      (install! installers uri-map
+                (select-keys parameters ["username" "rolename"])
+                {:title (format "Granting role %s to %s" rolename username)}))))
 
 (defn add-system-user [defaults]
   (let [{:strs [auth-base-uri data-base-uri username user-type] :as parameters} (add-user-input defaults)
@@ -426,7 +416,7 @@
           (= user-type :password) (conj "https://data.example.org/user-identities/{{username}}"))]
 
     (install!
-     (apply-uri-map uri-map installers)
+     installers
      uri-map
      (assoc
       (select-keys
@@ -441,9 +431,7 @@
   (binding [*heading* "Install login form"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           uri-map {"https://auth.example.org" auth-base-uri}
-          installers (->>
-                      ["https://auth.example.org/login-with-form"]
-                      (apply-uri-map uri-map))]
+          installers ["https://auth.example.org/login-with-form"]]
 
       (install! installers uri-map {} {:title "Installing login form"}))))
 
