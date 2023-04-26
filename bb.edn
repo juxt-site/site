@@ -42,6 +42,9 @@
   add-user
   {:task (juxt.tasks/add-user {})}
 
+  add-system
+  {:task (juxt.tasks/add-system-user {})}
+
   grant-role
   {:task (juxt.tasks/grant-role {})}
 
