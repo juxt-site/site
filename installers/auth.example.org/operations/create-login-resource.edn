@@ -38,6 +38,7 @@
           ;; TODO: We could make the HTML content a parameter
           ;; Note: It helps security if the http methods remain unconfigurable.
           :juxt.http/content "
+<!DOCTYPE html>
 <html>
 <head>
 <link rel='icon' href='data:,'>
