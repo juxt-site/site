@@ -740,7 +740,7 @@
    (fn [ctx [op & args]]
      (case op
        :ring.response/status (assoc ctx :ring.response/status (first args))
-       :ring.response/headers (update ctx :ring.response/headers (fnil {} into) (first args))
+       :ring.response/headers (update ctx :ring.response/headers (fnil into {}) (first args))
        :ring.response/body (assoc ctx :ring.response/body (first args))
        (throw
         (ex-info
