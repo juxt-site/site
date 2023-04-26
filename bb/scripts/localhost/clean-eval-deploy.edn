@@ -24,16 +24,8 @@
 
  ;; Add password-based admin user
 
- [:add-user
+ [:add-system-user
   {:auth-base-uri "http://localhost:4440"
    :data-base-uri "http://localhost:4444"
    :user-type :password}]
-
- [:grant-role
-  {:auth-base-uri "http://localhost:4440"
-   :data-base-uri "http://localhost:4444"
-   :rolename "System"}]
-
-
-
  ]
