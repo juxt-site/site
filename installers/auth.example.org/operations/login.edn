@@ -56,6 +56,9 @@
             _ (when-not session-scope
                 (throw (ex-info "Session scope does not exist in database" {:session-scope session-scope-id})))
 
+            query-params (some-> *ctx* :ring.request/query ring.util.codec/form-decode)
+            return-to (get query-params "return-to")
+
             session
             (when subject
               {:xt/id (str "https://auth.example.org/sessions/" session-id)
@@ -83,10 +86,15 @@
 
           (and session-token-doc cookie-name)
           (conj [:ring.response/headers
-                 { ;;"location" return-to
-                  "set-cookie"
+                 {"set-cookie"
                   (format "%s=%s; Path=%s; Secure; HttpOnly; SameSite=None"
-                          cookie-name session-token cookie-path)}])))
+                          cookie-name session-token cookie-path)}])
+
+          ;; This start-with check is to avoid an open-redirect
+          (and return-to (clojure.string/starts-with? return-to "https://auth.example.org"))
+          (conj
+           [:ring.response/status 303]
+           [:ring.response/headers {"location" return-to}])))
 
       ;; Failure case
       (let [message (.getBytes "Invalid credentials")]
