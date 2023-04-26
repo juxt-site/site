@@ -73,6 +73,10 @@
 
           return-to (get query-params "return-to")
 
+          _ (assert
+             (clojure.string/starts-with? return-to "https://auth.example.org")
+             "The return-to parameter is restricted to the authorization server to avoid creating an open-redirector")
+
           session
           (cond-> {:xt/id session-id
                    :juxt.site/type "https://meta.juxt.site/types/session"
