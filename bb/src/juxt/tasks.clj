@@ -227,7 +227,10 @@
              (pprint (eval-and-read! (pr-str expr))))))))))
 
 (defn ls-type [typ]
-  (ls `(~'ls-type ~(format "https://meta.juxt.site/types/%s" typ))))
+  (ls `(~'ls-type ~typ)))
+
+(defn ls-site-type [typ]
+  (ls `(~'ls-site-type ~typ)))
 
 (defn input-uri [{:keys [prompt default]}]
   (let [grab (fn [prefix] (input

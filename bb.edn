@@ -23,7 +23,7 @@
    :task (juxt.tasks/bootstrap {})}
 
   ls {:task (juxt.tasks/ls)}
-  ls-type {:task (juxt.tasks/ls-type (first *command-line-args*))}
+  ls-site-type {:task (juxt.tasks/ls-site-type (first *command-line-args*))}
   users {:task (juxt.tasks/ls-type "user")}
   access-tokens {:task (juxt.tasks/ls-type "access-token")}
 

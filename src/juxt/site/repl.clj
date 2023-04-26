@@ -131,6 +131,16 @@
        (map first)
        (sort)))
 
+(defn ^::public ls-site-type
+  "Return resources by type: (ls-type \"operation\")."
+  [t]
+  (->> (q '{:find [e]
+            :where [[e :xt/id]
+                    [e :juxt.site/type t]]
+            :in [t]} (str "https://meta.juxt.site/types/" t))
+       (map first)
+       (sort)))
+
 (defn ^::public operations
   "Return installed operations"
   []
