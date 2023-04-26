@@ -86,14 +86,7 @@
                  { ;;"location" return-to
                   "set-cookie"
                   (format "%s=%s; Path=%s; Secure; HttpOnly; SameSite=None"
-                          cookie-name session-token cookie-path)}])
-          #_true #_(conj [:xtdb.api/put
-                          {:xt/id :result
-                           :session-scope session-scope
-                           :session-scope-id session-scope-id
-                           :cookie-name cookie-name
-                           :cookie-path cookie-path
-                           }])))
+                          cookie-name session-token cookie-path)}])))
 
       ;; Failure case
       (let [message (.getBytes "Invalid credentials")]
@@ -101,5 +94,4 @@
          [:ring.response/headers
           {"content-type" "text/plain"
            "content-size" (str (count message))}]
-         [:ring.response/body message]])
-      )}}}}
+         [:ring.response/body message]]))}}}}
