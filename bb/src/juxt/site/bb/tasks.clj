@@ -1,6 +1,6 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.tasks
+(ns juxt.site.bb.tasks
   (:require
    [juxt.site.install.common-install-util :as ciu]
    [bblgum.core :as b]
