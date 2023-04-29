@@ -11,11 +11,9 @@
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
-   [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
+   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
-   [juxt.site.test-helpers.install :as install]
-   [clojure.set :as set]))
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
 
 ;; Welcome to the System API test suite
 
