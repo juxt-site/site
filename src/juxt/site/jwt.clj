@@ -176,7 +176,7 @@
             (throw (ex-info "User not found" {:user user})))
 
         user-identity (juxt.site.util/make-nonce 10)
-        user-identity-doc {:xt/id (str "https://auth.example.org/user-identities/%s" user-identity)
+        user-identity-doc {:xt/id (str "https://auth.example.org/_site/user-identities/%s" user-identity)
                            :juxt.site/user user
                            :juxt.site/issued-date iat
                            :juxt.site/expiry-date exp}

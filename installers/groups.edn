@@ -132,21 +132,21 @@
    {:juxt.site/target-uri "https://data.example.org/_site/users/{{username}}"
     :juxt.site/parameters {"username" "alice"
                            "fullname" "Alice"}}
-   {:juxt.site/target-uri "https://data.example.org/user-identities/{{username}}"
+   {:juxt.site/target-uri "https://data.example.org/_site/user-identities/{{username}}"
     :juxt.site/parameters {"username" "alice"
                            "password" "garden"}}
    ;; Bob
    {:juxt.site/target-uri "https://data.example.org/_site/users/{{username}}"
     :juxt.site/parameters {"username" "bob"
                            "fullname" "Bob"}}
-   {:juxt.site/target-uri "https://data.example.org/user-identities/{{username}}"
+   {:juxt.site/target-uri "https://data.example.org/_site/user-identities/{{username}}"
     :juxt.site/parameters {"username" "bob"
                            "password" "walrus"}}
    ;; Carlos
    {:juxt.site/target-uri "https://data.example.org/_site/users/{{username}}"
     :juxt.site/parameters {"username" "carlos"
                            "fullname" "Carlos"}}
-   {:juxt.site/target-uri "https://data.example.org/user-identities/{{username}}"
+   {:juxt.site/target-uri "https://data.example.org/_site/user-identities/{{username}}"
     :juxt.site/parameters {"username" "carlos"
                            "password" "jackal"}}]}
 

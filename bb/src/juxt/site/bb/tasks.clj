@@ -383,8 +383,8 @@
                    "https://data.example.org" data-base-uri}
 
           installers (cond-> ["https://data.example.org/_site/users/{{username}}"]
-                       (= user-type :openid) (conj "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
-                       (= user-type :password (conj "https://data.example.org/user-identities/{{username}}")))]
+                       (= user-type :openid) (conj "https://data.example.org/_site/openid-user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
+                       (= user-type :password (conj "https://data.example.org/_site/user-identities/{{username}}")))]
 
       (install! installers uri-map parameters
                 {:title (case user-type
@@ -414,8 +414,8 @@
         installers
         (cond-> ["https://data.example.org/_site/users/{{username}}"
                  "https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]
-          (= user-type :openid) (conj "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
-          (= user-type :password) (conj "https://data.example.org/user-identities/{{username}}"))]
+          (= user-type :openid) (conj "https://data.example.org/_site/openid-user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
+          (= user-type :password) (conj "https://data.example.org/_site/user-identities/{{username}}"))]
 
     (install!
      installers
