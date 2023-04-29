@@ -26,6 +26,11 @@
     :juxt.site/parameters {"role" "System"}}
    {:juxt.site/target-uri "https://auth.example.org/roles/{{role}}"
     :juxt.site/parameters {"role" "SystemReadonly"}}
+   ;; Whoami
+   "https://auth.example.org/permissions/whoami"
+   "https://data.example.org/_site/whoami"
+   "https://data.example.org/_site/whoami.json"
+   "https://data.example.org/_site/whoami.html"
    ;; Permissions (mapping roles to operations)
    {:juxt.site/target-uri "https://auth.example.org/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "System" "operation" "get-users"}}
@@ -76,15 +81,6 @@
    "https://auth.example.org/permissions/login"
    "https://auth.example.org/operations/create-login-resource"
    "https://auth.example.org/login-with-form"]}
-
- ;; Tested in juxt.site.oauth-test
- "juxt/site/whoami"
- {:juxt.site/description "whoami resources"
-  :juxt.site/installers
-  ["https://auth.example.org/permissions/whoami"
-   "https://data.example.org/whoami"
-   "https://data.example.org/whoami.json"
-   "https://data.example.org/whoami.html"]}
 
  "juxt/site/test-scopes"
  {:juxt.site/description "Test scopes"

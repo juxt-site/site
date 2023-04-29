@@ -1,27 +1,15 @@
 {:deps
- ["https://auth.example.org/operations/get-user"]
+ ["https://auth.example.org/operations/whoami"
+  "https://auth.example.org/protection-spaces/bearer"]
  :install
  {:juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/type "https://meta.juxt.site/types/openapi-path"
 
-   :openapi.v3/path "/users/{username}"
-
-   :openapi.v3/parameters
-   [
-    {"name" "username"
-     "in" "path"
-     "required" "true"
-     "schema" {"type" "string"}
-     "style" "simple"}]
-
-   :juxt.site/uri-template true
+   :openapi.v3/path "/whoami"
 
    :juxt.site/methods
-   {:get
-    {:juxt.site/description "Get the details for an individual user."
-     :juxt.site/operation "https://auth.example.org/operations/get-user"
-     :openapi.v3/tags ["Users"]}}
+   {:get {:juxt.site/operation "https://auth.example.org/operations/whoami"}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 

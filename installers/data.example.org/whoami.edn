@@ -1,9 +1,0 @@
-{:deps
- ["https://auth.example.org/operations/whoami"
-  "https://auth.example.org/protection-spaces/bearer"]
- :install
- {:juxt.site/input
-  {:xt/id "{{$id}}"
-   :juxt.site/methods
-   {:get {:juxt.site/operation "https://auth.example.org/operations/whoami"}}
-   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}}}}

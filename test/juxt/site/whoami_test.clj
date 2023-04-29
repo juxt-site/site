@@ -39,7 +39,7 @@
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
-  (install-installer-groups! ["juxt/site/whoami"] RESOURCE_SERVER {}))
+  (install-installer-groups! ["juxt/site/system-api"] RESOURCE_SERVER {}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)
@@ -64,7 +64,7 @@
     (oauth/with-bearer-token access-token
       (let [{:ring.response/keys [headers body]}
             (*handler*
-             {:juxt.site/uri "https://data.example.test/whoami"
+             {:juxt.site/uri "https://data.example.test/_site/whoami"
               :ring.request/method :get
               :ring.request/headers
               {"accept" "application/json"}})]
@@ -78,11 +78,11 @@
                             "fullname"
                             ]))))
         (is (= "application/json" (get headers "content-type")))
-        (is (= "https://data.example.test/whoami.json" (get headers "content-location"))))
+        (is (= "https://data.example.test/_site/whoami.json" (get headers "content-location"))))
 
       (let [{:ring.response/keys [status headers]}
             (*handler*
-             {:juxt.site/uri "https://data.example.test/whoami.html"
+             {:juxt.site/uri "https://data.example.test/_site/whoami.html"
               :ring.request/method :get
               :ring.request/headers
               {"authorization" (format "Bearer %s" access-token)

@@ -6,12 +6,13 @@
   {:xt/id "{{$id}}"
    :juxt.site/methods
    {:get {:juxt.site/operation "https://auth.example.org/operations/whoami"}}
-   :juxt.site/variant-of "https://data.example.org/whoami"
-   :juxt.http/content-type "application/json"
+   :juxt.site/variant-of "https://data.example.org/_site/whoami"
+   :juxt.http/content-type "text/html;charset=utf-8"
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [content (jsonista.core/write-value-as-string *state*)]
+    (let [content (format "<body><h1>Who am I?</h1><p>%s</p></h1></body>
+" (pr-str *state*))]
       (-> *ctx*
           (assoc :ring.response/body content)
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
