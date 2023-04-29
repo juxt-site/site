@@ -45,7 +45,7 @@
 
   ;; Alice has the System role which confers access to put-user
   (converge!
-   [{:juxt.site/target-uri "https://auth.example.test/role-assignments/{{username}}-{{rolename}}"
+   [{:juxt.site/target-uri "https://data.example.test/_site/role-assignments/{{username}}-{{rolename}}"
      :juxt.site/parameters
      {"username" "alice"
       "rolename" "System"}}]
@@ -54,7 +54,7 @@
 
   ;; ... whereas Bob has the SystemReadonly role which doesn't
   (converge!
-   [{:juxt.site/target-uri "https://auth.example.test/role-assignments/{{username}}-{{rolename}}"
+   [{:juxt.site/target-uri "https://data.example.test/_site/role-assignments/{{username}}-{{rolename}}"
      :juxt.site/parameters
      {"username" "bob"
       "rolename" "SystemReadonly"}}]

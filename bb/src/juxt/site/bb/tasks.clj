@@ -399,7 +399,7 @@
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
 
-          installers ["https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]]
+          installers ["https://data.example.org/_site/role-assignments/{{username}}-{{rolename}}"]]
 
       (install! installers uri-map
                 (select-keys parameters ["username" "rolename"])
@@ -413,7 +413,7 @@
 
         installers
         (cond-> ["https://data.example.org/_site/users/{{username}}"
-                 "https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]
+                 "https://data.example.org/_site/role-assignments/{{username}}-{{rolename}}"]
           (= user-type :openid) (conj "https://data.example.org/_site/openid-user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
           (= user-type :password) (conj "https://data.example.org/_site/user-identities/{{username}}"))]
 
