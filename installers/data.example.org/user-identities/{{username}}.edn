@@ -6,6 +6,6 @@
   :juxt.site/operation-id "https://auth.example.org/operations/register-password-based-user-identity"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/user "https://data.example.org/users/{{username}}"
+   :juxt.site/user "https://data.example.org/_site/users/{{username}}"
    :juxt.site/username "{{username}}"
    :juxt.site/password "{{password}}"}}}

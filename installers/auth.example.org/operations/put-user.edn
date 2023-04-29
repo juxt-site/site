@@ -9,7 +9,7 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:xt/id [:re "https://data.example.org/.*"]]]
+    [:xt/id [:re "https://data.example.org/_site/users/.*"]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program

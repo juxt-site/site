@@ -336,7 +336,7 @@
           username (input {:prompt "Username" :value username})
           fullname (input {:prompt "Full name" :value fullname})
 
-          user (format "%s/users/%s" data-base-uri (url-encode username))
+          user (format "%s/_site/users/%s" data-base-uri (url-encode username))
 
           user-type (or
                      user-type
@@ -382,7 +382,7 @@
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
 
-          installers (cond-> ["https://data.example.org/users/{{username}}"]
+          installers (cond-> ["https://data.example.org/_site/users/{{username}}"]
                        (= user-type :openid) (conj "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
                        (= user-type :password (conj "https://data.example.org/user-identities/{{username}}")))]
 
@@ -412,7 +412,7 @@
                  "https://data.example.org" data-base-uri}
 
         installers
-        (cond-> ["https://data.example.org/users/{{username}}"
+        (cond-> ["https://data.example.org/_site/users/{{username}}"
                  "https://auth.example.org/role-assignments/{{username}}-{{rolename}}"]
           (= user-type :openid) (conj "https://data.example.org/openid/user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
           (= user-type :password) (conj "https://data.example.org/user-identities/{{username}}"))]
@@ -470,7 +470,7 @@
       (push!
        `(~'make-access-token!
          {:authorization-server ~auth-base-uri
-          :user ~(format "%s/users/%s" data-base-uri username)
+          :user ~(format "%s/_site/users/%s" data-base-uri username)
           :client-id ~client-id
           :duration ~duration})
        {}))))

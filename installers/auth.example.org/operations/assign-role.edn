@@ -26,13 +26,15 @@
                    (String.)
                    clojure.edn/read-string
                    juxt.site.malli/validate-input)
-              [_ username] (re-matches (re-pattern "https://data.example.org/users/(.+)") (:juxt.site/user doc))
+              [_ username] (re-matches (re-pattern "https://data.example.org/_site/users/(.+)") (:juxt.site/user doc))
               [_ rolename] (re-matches (re-pattern "https://auth.example.org/roles/(.+)") (:juxt.site/role doc))]
+          (assert username)
+          (assert rolename)
           (assoc doc
                  :xt/id (format "https://auth.example.org/role-assignments/%s-%s" username rolename)
                  :juxt.site/type "https://auth.example.org/_site/types/role-assignment"
                  :juxt.site/methods
-           {:get {:juxt.site/operation "https://auth.example.org/operations/get-role-assignment"}}))))}
+                 {:get {:juxt.site/operation "https://auth.example.org/operations/get-role-assignment"}}))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

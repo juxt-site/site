@@ -4,6 +4,6 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/operation "https://auth.example.org/operations/get-patient"
-   :juxt.site/user "https://data.example.org/users/{{username}}"
+   :juxt.site/user "https://data.example.org/_site/users/{{username}}"
    :patient "https://data.example.org/patients/{{pid}}"
    :juxt.site/purpose nil}}}

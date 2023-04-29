@@ -52,7 +52,7 @@
     "jti-length" 12})
 
   #_(converge!
-   ["https://data.example.test/users/{{username}}"]
+   ["https://data.example.test/_site/users/{{username}}"]
    RESOURCE_SERVER
    {"username" "fred"
     "fullname" "Fred"})
@@ -61,7 +61,7 @@
 
   #_(map :id
        (installer-graph
-        ["https://data.example.test/users/{{username}}"]
+        ["https://data.example.test/_site/users/{{username}}"]
         (unified-installer-map RESOURCE_SERVER)
         {"username" "fred"
          "fullname" "Fred"})))

@@ -145,7 +145,7 @@
                           :client (str "https://auth.example.test/clients/" client)}
                    requested-scope (assoc :scope (absolute-scope requested-scope))))]
             (oauth/with-bearer-token access-token
-              (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/users/hannah"}))
+              (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/_site/users/hannah"}))
                     request {:juxt.site/uri "https://data.example.test/_site/users"
                              :ring.request/method :post
                              :ring.request/headers
@@ -234,11 +234,11 @@
    {})
 
   (converge!
-   ["https://data.example.test/users/alice"]
+   ["https://data.example.test/_site/users/alice"]
    RESOURCE_SERVER
    {})
 
-  {:alice (repl/e "https://data.example.test/users/alice")
+  {:alice (repl/e "https://data.example.test/_site/users/alice")
    :api-get-user (repl/e "https://data.example.test/_site/users/{username}")
    :api-get-users (repl/e "https://data.example.test/_site/users")}
 
@@ -257,6 +257,6 @@
           (*handler*
            {:ring.request/method :get
             :ring.request/headers {"accept" "application/json"}
-            :juxt.site/uri "https://data.example.test/users/alice"}))]
+            :juxt.site/uri "https://data.example.test/_site/users/alice"}))]
 
     (json/read-value body)))

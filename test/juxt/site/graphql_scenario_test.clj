@@ -38,7 +38,7 @@
        {:xt/id id
         :juxt.site/operation "https://example.org/operations/get-graphql-type"
         :juxt.site/purpose nil
-        :juxt.site/user (format "https://example.org/users/%s" (get params "username"))}})}
+        :juxt.site/user (format "https://example.org/_site/users/%s" (get params "username"))}})}
 
    "https://example.org/operations/delete-graphql-type"
    {:create
@@ -107,7 +107,7 @@
        {:xt/id id
         :juxt.site/operation "https://example.org/operations/delete-graphql-type"
         :juxt.site/purpose nil
-        :juxt.site/user (format "https://example.org/users/%s" (get params "username"))}})}
+        :juxt.site/user (format "https://example.org/_site/users/%s" (get params "username"))}})}
 
    "https://example.org/operations/install-graphql-type"
    {:create
@@ -181,7 +181,7 @@
        {:xt/id id
         :juxt.site/operation "https://example.org/operations/install-graphql-type"
         :juxt.site/purpose nil
-        :juxt.site/user (format "https://example.org/users/%s" (get params "username"))}})}
+        :juxt.site/user (format "https://example.org/_site/users/%s" (get params "username"))}})}
 
    "https://example.org/graphql/schema/"
    {:deps #{"https://example.org/protection-spaces/bearer"}

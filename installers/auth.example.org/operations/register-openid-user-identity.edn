@@ -11,7 +11,7 @@
    :juxt.site.malli/input-schema
    [:map
     [:xt/id [:re "https://data.example.org/.*"]]
-    [:juxt.site/user [:re "https://data.example.org/users/.+"]]
+    [:juxt.site/user [:re "https://data.example.org/_site/users/.+"]]
 
     [:juxt.site.jwt.claims/iss [:re "https://.+"]]
     [:juxt.site.jwt.claims/sub {:optional true} [:string {:min 1}]]
