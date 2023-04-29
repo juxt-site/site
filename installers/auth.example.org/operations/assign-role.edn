@@ -32,7 +32,7 @@
           (assert rolename)
           (assoc doc
                  :xt/id (format "https://data.example.org/_site/role-assignments/%s-%s" username rolename)
-                 :juxt.site/type "https://auth.example.org/_site/types/role-assignment"
+                 :juxt.site/type "https://meta.juxt.site/types/role-assignment"
                  :juxt.site/methods
                  {:get {:juxt.site/operation "https://auth.example.org/operations/get-role-assignment"}}))))}
 
