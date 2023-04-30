@@ -24,6 +24,7 @@
      :openapi.v3/tags ["Users"]
      :juxt.site/variants
      [{:juxt.http/content-type "application/json"}
+      {:juxt.http/content-type "application/edn"}
       {:juxt.http/content-type "text/html;charset=utf-8"}]}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
