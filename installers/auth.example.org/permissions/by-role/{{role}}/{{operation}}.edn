@@ -5,4 +5,4 @@
   {:xt/id "{{$id}}"
    :juxt.site/operation "https://auth.example.org/operations/{{operation}}"
    :juxt.site/purpose nil
-   :juxt.site/role "https://auth.example.org/roles/{{role}}"}}}
+   :juxt.site/role "https://data.example.org/_site/roles/{{role}}"}}}

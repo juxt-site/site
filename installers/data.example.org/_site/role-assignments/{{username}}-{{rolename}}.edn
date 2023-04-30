@@ -7,4 +7,4 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/user "https://data.example.org/_site/users/{{username}}"
-   :juxt.site/role "https://auth.example.org/roles/{{rolename}}"}}}
+   :juxt.site/role "https://data.example.org/_site/roles/{{rolename}}"}}}

@@ -27,7 +27,7 @@
                    clojure.edn/read-string
                    juxt.site.malli/validate-input)
               [_ username] (re-matches (re-pattern "https://data.example.org/_site/users/(.+)") (:juxt.site/user doc))
-              [_ rolename] (re-matches (re-pattern "https://auth.example.org/roles/(.+)") (:juxt.site/role doc))]
+              [_ rolename] (re-matches (re-pattern "https://data.example.org/_site/roles/(.+)") (:juxt.site/role doc))]
           (assert username)
           (assert rolename)
           (assoc doc

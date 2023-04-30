@@ -22,9 +22,9 @@
    "https://data.example.org/_site/users.json"
    "https://data.example.org/_site/users/{username}"
    ;; Roles
-   {:juxt.site/target-uri "https://auth.example.org/roles/{{role}}"
+   {:juxt.site/target-uri "https://data.example.org/_site/roles/{{role}}"
     :juxt.site/parameters {"role" "System"}}
-   {:juxt.site/target-uri "https://auth.example.org/roles/{{role}}"
+   {:juxt.site/target-uri "https://data.example.org/_site/roles/{{role}}"
     :juxt.site/parameters {"role" "SystemReadonly"}}
 
    ;; Whoami

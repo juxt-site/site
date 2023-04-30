@@ -7,7 +7,7 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:xt/id [:re "https://auth.example.org/.*"]]]
+    [:xt/id [:re "https://data.example.org/_site/roles/.*"]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
