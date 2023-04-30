@@ -5,7 +5,7 @@
   {:xt/id "{{$id}}"
 
    :juxt.site/operation-contexts
-   {"https://auth.example.org/operations/get-doctor"
+   {"https://data.example.org/hospital-demo/_site/operations/get-doctor"
     {:juxt.site/additional-where-clauses
      [[ass :juxt.site/type "https://data.example.org/types/doctor-patient-assignment"]
       [ass :patient e]

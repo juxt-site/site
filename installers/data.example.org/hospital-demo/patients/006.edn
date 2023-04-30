@@ -1,9 +1,9 @@
 {:deps
- ["https://auth.example.org/operations/register-patient"
-  "https://auth.example.org/permissions/system/register-patient"]
+ ["https://data.example.org/hospital-demo/_site/operations/register-patient"
+  "https://data.example.org/hospital-demo/_site/permissions/system/register-patient"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-id "https://auth.example.org/operations/register-patient"
+  :juxt.site/operation-id "https://data.example.org/hospital-demo/_site/operations/register-patient"
   :juxt.site/input
   {:xt/id "{{$id}}"
    :name "Floyd Castro"}}}

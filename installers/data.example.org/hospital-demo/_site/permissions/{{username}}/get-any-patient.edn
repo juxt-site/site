@@ -3,7 +3,7 @@
   :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/operation "https://auth.example.org/operations/get-patient"
+   :juxt.site/operation "https://data.example.org/hospital-demo/_site/operations/get-patient"
    :juxt.site/user "https://data.example.org/_site/users/{{username}}"
-   :patient "https://data.example.org/hospital-demo/patients/{{pid}}"
+   :patient :all
    :juxt.site/purpose nil}}}

@@ -99,7 +99,7 @@
   (call-operation-with-init-data!
    *xt-node*
    {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
+    :juxt.site/operation-id "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
     :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
                       :patient "https://hospital.com/hospital-demo/patients/004"
                       :reading {"heartRate" "120"
@@ -108,7 +108,7 @@
   (call-operation-with-init-data!
    *xt-node*
    {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
+    :juxt.site/operation-id "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
     :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
                       :patient "https://hospital.com/hospital-demo/patients/006"
                       :reading {"heartRate" "82"
@@ -117,7 +117,7 @@
   (call-operation-with-init-data!
    *xt-node*
    {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
+    :juxt.site/operation-id "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
     :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/eeda3b49-2e96-42fc-9e6a-e89e2eb68c24"
                       :patient "https://hospital.com/hospital-demo/patients/010"
                       :reading {"heartRate" "85"
@@ -126,7 +126,7 @@
   (call-operation-with-init-data!
    *xt-node*
    {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
+    :juxt.site/operation-id "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
     :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1d"
                       :patient "https://hospital.com/hospital-demo/patients/010"
                       :reading {"heartRate" "87"
@@ -161,7 +161,7 @@
 
     ;; Add a /patient/XXX resource to serve an individual patient.
 
-    ;; https://auth.hospital.com/operations/get-patient must perform an XT query.
+    ;; https://hospital.com/hospital-demo/_site/operations/get-patient must perform an XT query.
 
     ;; In the future, it would be good if the http request can include a
     ;; header indicating the minimum required version in order to provide
@@ -176,7 +176,7 @@
     ;; make it safer to allow people to add their own Flip quotations.
 
     ;; Here we have the conundrum: when the
-    ;; https://example.org/operations/get-patient operation rule has the clause
+    ;; https://example.org/hospital-demo/_site/operations/get-patient operation rule has the clause
     ;; '[resource :juxt.site/type
     ;; "https://example.org/types/patient"]' then it is not a permitted
     ;; operation. We must separate the operations that allow access to a
@@ -290,11 +290,11 @@
                    db
                    (eql/query->ast
                     '[
-                      {(:patients {:juxt.site/operation "https://auth.hospital.com/operations/get-patient"})
+                      {(:patients {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-patient"})
                        [:xt/id
                         :name
                         :juxt.site/type
-                        {(:measurements {:juxt.site/operation "https://auth.hospital.com/operations/read-any-measurement"})
+                        {(:measurements {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/read-any-measurement"})
                          [:reading]}]}])))]
 
           (testing "Alice's view"
@@ -405,15 +405,15 @@
                   (eqlc/compile-ast
                    db
                    (eql/query->ast
-                    '[{(:doctors {:juxt.site/operation "https://auth.hospital.com/operations/get-doctor"})
+                    '[{(:doctors {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-doctor"})
                        [:xt/id
                         :name
                         :juxt.site/type
-                        {(:patients {:juxt.site/operation "https://auth.hospital.com/operations/get-patient"})
+                        {(:patients {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-patient"})
                          [:xt/id
                           :name
                           :juxt.site/type
-                          {(:readings {:juxt.site/operation "https://auth.hospital.com/operations/read-any-measurement"})
+                          {(:readings {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/read-any-measurement"})
                            [:reading]}]}]}])))]
 
           (testing "Alice's view"
@@ -506,16 +506,16 @@
                   (eqlc/compile-ast
                    db
                    (eql/query->ast
-                    '[{(:doctor {:juxt.site/operation "https://auth.hospital.com/operations/get-doctor"
+                    '[{(:doctor {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-doctor"
                                  :search "jack"})
                        [:xt/id
                         :name
                         :juxt.site/type
-                        {(:patients {:juxt.site/operation "https://auth.hospital.com/operations/get-patient"})
+                        {(:patients {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-patient"})
                          [:xt/id
                           :name
                           :juxt.site/type
-                          {(:readings {:juxt.site/operation "https://auth.hospital.com/operations/read-any-measurement"})
+                          {(:readings {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/read-any-measurement"})
                            [:reading]}]}]}])))]
 
           (testing "Alice's view"
@@ -599,19 +599,19 @@
 
     ;; 1. GraphQL schemas where fields in queries reference operations. For example:
     ;;
-    ;; type Hospital { patients: [String] @site(operation: https://auth.hospital.com/operations/list-patients) }
+    ;; type Hospital { patients: [String] @site(operation: https://hospital.com/hospital-demo/_site/operations/list-patients) }
     ;;
-    ;; type Doctor { patients: [String] @site(operation: https://auth.hospital.com/operations/list-patients-by-doctor) }
+    ;; type Doctor { patients: [String] @site(operation: https://hospital.com/hospital-demo/_site/operations/list-patients-by-doctor) }
 
-    ;; Should https://auth.hospital.com/operations/list-patients-by-doctor exist
+    ;; Should https://hospital.com/hospital-demo/_site/operations/list-patients-by-doctor exist
     ;; independently or instead be a reference to
-    ;; https://auth.hospital.com/operations/list-patients with a join key? The former
+    ;; https://hospital.com/hospital-demo/_site/operations/list-patients with a join key? The former
     ;; is overly cumbersome and would require a lot of extra operations and
     ;; associated admin costs. (DONE: we have gone with the notion of an operation being called in the context of another)
 
     ;; type Doctor {
     ;;   id ID
-    ;;   patients(gender: String, costBasis: String): [Patient] @site(operation: "https://auth.hospital.com/operations/list-patients" join: "primary-doctor")
+    ;;   patients(gender: String, costBasis: String): [Patient] @site(operation: "https://hospital.com/hospital-demo/_site/operations/list-patients" join: "primary-doctor")
     ;; }
 
     ;; The `patients` field transforms to a sub-query.
