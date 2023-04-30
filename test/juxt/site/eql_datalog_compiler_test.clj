@@ -100,8 +100,8 @@
    *xt-node*
    {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
-    :juxt.site/input {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
-                      :patient "https://hospital.com/patients/004"
+    :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
+                      :patient "https://hospital.com/hospital-demo/patients/004"
                       :reading {"heartRate" "120"
                                 "bloodPressure" "137/80"}}})
 
@@ -109,8 +109,8 @@
    *xt-node*
    {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
-    :juxt.site/input {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
-                      :patient "https://hospital.com/patients/006"
+    :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
+                      :patient "https://hospital.com/hospital-demo/patients/006"
                       :reading {"heartRate" "82"
                                 "bloodPressure" "198/160"}}})
 
@@ -118,8 +118,8 @@
    *xt-node*
    {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
-    :juxt.site/input {:xt/id "https://hospital.com/measurements/eeda3b49-2e96-42fc-9e6a-e89e2eb68c24"
-                      :patient "https://hospital.com/patients/010"
+    :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/eeda3b49-2e96-42fc-9e6a-e89e2eb68c24"
+                      :patient "https://hospital.com/hospital-demo/patients/010"
                       :reading {"heartRate" "85"
                                 "bloodPressure" "120/80"}}})
 
@@ -127,8 +127,8 @@
    *xt-node*
    {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/operation-id "https://auth.hospital.com/operations/register-patient-measurement"
-    :juxt.site/input {:xt/id "https://hospital.com/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1d"
-                      :patient "https://hospital.com/patients/010"
+    :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1d"
+                      :patient "https://hospital.com/hospital-demo/patients/010"
                       :reading {"heartRate" "87"
                                 "bloodPressure" "127/80"}}})
 
@@ -190,7 +190,7 @@
       (let [response
             (*handler*
              {:ring.request/method :get
-              :juxt.site/uri "https://hospital.com/patients/005"
+              :juxt.site/uri "https://hospital.com/hospital-demo/patients/005"
               :ring.request/headers
               {"authorization" (format "Bearer %s" alice-access-token)
                "accept" "application/json"}})]
@@ -202,7 +202,7 @@
       ;; Bob can't see the patient details of Angie Solis
       (let [response (*handler*
                       {:ring.request/method :get
-                       :juxt.site/uri "https://hospital.com/patients/005"
+                       :juxt.site/uri "https://hospital.com/hospital-demo/patients/005"
                        :ring.request/headers
                        {"authorization" (format "Bearer %s" bob-access-token)
                         "accept" "application/json"}})]
@@ -214,7 +214,7 @@
       (let [response
             (*handler*
              {:ring.request/method :get
-              :juxt.site/uri "https://hospital.com/patients/"
+              :juxt.site/uri "https://hospital.com/hospital-demo/patients/"
               :ring.request/headers
               {"authorization" (format "Bearer %s" alice-access-token)
                "accept" "application/json"}})
@@ -231,7 +231,7 @@
       (let [response
             (*handler*
              {:ring.request/method :get
-              :juxt.site/uri "https://hospital.com/patients/"
+              :juxt.site/uri "https://hospital.com/hospital-demo/patients/"
               :ring.request/headers
               {"authorization" (format "Bearer %s" bob-access-token)
                "accept" "application/json"}})
@@ -301,103 +301,103 @@
           (testing "Alice's view"
             (is (= #{{:name "Terry Levine"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/001"
+                      :xt/id "https://hospital.com/hospital-demo/patients/001"
                       :measurements nil}
                      {:name "Moshe Lynch"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/015"
+                      :xt/id "https://hospital.com/hospital-demo/patients/015"
                       :measurements nil}
                      {:name "Hazel Huynh"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/013"
+                      :xt/id "https://hospital.com/hospital-demo/patients/013"
                       :measurements nil}
                      {:name "Valarie Campos"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/019"
+                      :xt/id "https://hospital.com/hospital-demo/patients/019"
                       :measurements nil}
                      {:name "Lila Dickson"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/004"
+                      :xt/id "https://hospital.com/hospital-demo/patients/004"
                       :measurements nil}
                      {:name "Floyd Castro"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/006"
+                      :xt/id "https://hospital.com/hospital-demo/patients/006"
                       :measurements
                       [{:reading {"bloodPressure" "198/160" "heartRate" "82"}}]}
                      {:name "Jeannie Finley"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/002"
+                      :xt/id "https://hospital.com/hospital-demo/patients/002"
                       :measurements nil}
                      {:name "Beulah Leonard"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/008"
+                      :xt/id "https://hospital.com/hospital-demo/patients/008"
                       :measurements nil}
                      {:name "Francesco Casey"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/014"
+                      :xt/id "https://hospital.com/hospital-demo/patients/014"
                       :measurements nil}
                      {:name "Angie Solis"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/005"
+                      :xt/id "https://hospital.com/hospital-demo/patients/005"
                       :measurements nil}
                      {:name "Jewel Blackburn"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/003"
+                      :xt/id "https://hospital.com/hospital-demo/patients/003"
                       :measurements nil}
                      {:name "Sondra Richardson"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/010"
+                      :xt/id "https://hospital.com/hospital-demo/patients/010"
                       :measurements
                       [{:reading {"bloodPressure" "127/80" "heartRate" "87"}}
                        {:reading {"bloodPressure" "120/80" "heartRate" "85"}}]}
                      {:name "Monica Russell"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/009"
+                      :xt/id "https://hospital.com/hospital-demo/patients/009"
                       :measurements nil}
                      {:name "Rudy King"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/018"
+                      :xt/id "https://hospital.com/hospital-demo/patients/018"
                       :measurements nil}
                      {:name "Mark Richard"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/012"
+                      :xt/id "https://hospital.com/hospital-demo/patients/012"
                       :measurements nil}
                      {:name "Blanca Lindsey"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/017"
+                      :xt/id "https://hospital.com/hospital-demo/patients/017"
                       :measurements nil}
                      {:name "Elisabeth Riddle"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/020"
+                      :xt/id "https://hospital.com/hospital-demo/patients/020"
                       :measurements nil}
                      {:name "Melanie Black"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/007"
+                      :xt/id "https://hospital.com/hospital-demo/patients/007"
                       :measurements nil}
                      {:name "Kim Robles"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/011"
+                      :xt/id "https://hospital.com/hospital-demo/patients/011"
                       :measurements nil}
                      {:name "Darrel Schwartz"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/016"
+                      :xt/id "https://hospital.com/hospital-demo/patients/016"
                       :measurements nil}}
                    (eqlc/prune-result (xt/q db q1 alice nil)))))
 
           (testing "Bob's view"
             (is (= #{{:name "Lila Dickson"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/004"
+                      :xt/id "https://hospital.com/hospital-demo/patients/004"
                       :measurements nil}
                      {:name "Sondra Richardson"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/010"
+                      :xt/id "https://hospital.com/hospital-demo/patients/010"
                       :measurements
                       [{:reading {"bloodPressure" "127/80" "heartRate" "87"}}
                        {:reading {"bloodPressure" "120/80" "heartRate" "85"}}]}
                      {:name "Monica Russell"
                       :juxt.site/type "https://hospital.com/types/patient"
-                      :xt/id "https://hospital.com/patients/009"
+                      :xt/id "https://hospital.com/hospital-demo/patients/009"
                       :measurements nil}}
                    (eqlc/prune-result (xt/q db q1 bob nil)))))))
 
@@ -420,83 +420,83 @@
           (testing "Alice's view"
             (is (= #{{:name "Dr. Jack Conway"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/001"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/001"
                       :patients
                       [{:name "Terry Levine"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/001"
+                        :xt/id "https://hospital.com/hospital-demo/patients/001"
                         :readings nil}
                        {:name "Jeannie Finley"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/002"
+                        :xt/id "https://hospital.com/hospital-demo/patients/002"
                         :readings nil}
                        {:name "Jewel Blackburn"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/003"
+                        :xt/id "https://hospital.com/hospital-demo/patients/003"
                         :readings nil}
                        {:name "Angie Solis"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/005"
+                        :xt/id "https://hospital.com/hospital-demo/patients/005"
                         :readings nil}]}
                      {:name "Dr. Murillo"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/002"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/002"
                       :patients
                       [{:name "Lila Dickson"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/004"
+                        :xt/id "https://hospital.com/hospital-demo/patients/004"
                         :readings nil}
                        {:name "Angie Solis"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/005"
+                        :xt/id "https://hospital.com/hospital-demo/patients/005"
                         :readings nil}]}
                      {:name "Dr. Jackson"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/003"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/003"
                       :patients
                       [{:name "Floyd Castro"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/006"
+                        :xt/id "https://hospital.com/hospital-demo/patients/006"
                         :readings
                         [{:reading {"bloodPressure" "198/160" "heartRate" "82"}}]}
                        {:name "Sondra Richardson"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/010"
+                        :xt/id "https://hospital.com/hospital-demo/patients/010"
                         :readings
                         [{:reading {"bloodPressure" "127/80" "heartRate" "87"}}
                          {:reading {"bloodPressure" "120/80" "heartRate" "85"}}]}]}
                      {:name "Dr. Kim"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/004"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/004"
                       :patients nil}}
                    (eqlc/prune-result (xt/q db q1 alice nil)))))
 
           (testing "Bob's view"
             (is (= #{{:name "Dr. Jack Conway"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/001"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/001"
                       :patients nil}
                      {:name "Dr. Murillo"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/002"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/002"
                       :patients
                       [{:name "Lila Dickson"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/004"
+                        :xt/id "https://hospital.com/hospital-demo/patients/004"
                         :readings nil}]}
                      {:name "Dr. Jackson"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/003"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/003"
                       :patients
                       [{:name "Sondra Richardson"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/010"
+                        :xt/id "https://hospital.com/hospital-demo/patients/010"
                         :readings
                         [{:reading {"bloodPressure" "127/80" "heartRate" "87"}}
                          {:reading {"bloodPressure" "120/80" "heartRate" "85"}}]}]}
                      {:name "Dr. Kim"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/004"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/004"
                       :patients nil}}
                    (eqlc/prune-result (xt/q db q1 bob nil)))))))
 
@@ -522,36 +522,36 @@
           (testing "Alice's view"
             (is (= #{{:name "Dr. Jack Conway"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/001"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/001"
                       :patients
                       [{:name "Terry Levine"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/001"
+                        :xt/id "https://hospital.com/hospital-demo/patients/001"
                         :readings nil}
                        {:name "Jeannie Finley"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/002"
+                        :xt/id "https://hospital.com/hospital-demo/patients/002"
                         :readings nil}
                        {:name "Jewel Blackburn"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/003"
+                        :xt/id "https://hospital.com/hospital-demo/patients/003"
                         :readings nil}
                        {:name "Angie Solis"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/005"
+                        :xt/id "https://hospital.com/hospital-demo/patients/005"
                         :readings nil}]}
                      {:name "Dr. Jackson"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/003"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/003"
                       :patients
                       [{:name "Floyd Castro"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/006"
+                        :xt/id "https://hospital.com/hospital-demo/patients/006"
                         :readings
                         [{:reading {"bloodPressure" "198/160" "heartRate" "82"}}]}
                        {:name "Sondra Richardson"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/010"
+                        :xt/id "https://hospital.com/hospital-demo/patients/010"
                         :readings
                         [{:reading {"bloodPressure" "127/80" "heartRate" "87"}}
                          {:reading {"bloodPressure" "120/80" "heartRate" "85"}}]}]}}
@@ -560,15 +560,15 @@
           (testing "Bob's view"
             (is (= #{{:name "Dr. Jack Conway"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/001"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/001"
                       :patients nil}
                      {:name "Dr. Jackson"
                       :juxt.site/type "https://hospital.com/types/doctor"
-                      :xt/id "https://hospital.com/doctors/003"
+                      :xt/id "https://hospital.com/hospital-demo/doctors/003"
                       :patients
                       [{:name "Sondra Richardson"
                         :juxt.site/type "https://hospital.com/types/patient"
-                        :xt/id "https://hospital.com/patients/010"
+                        :xt/id "https://hospital.com/hospital-demo/patients/010"
                         :readings
                         [{:reading {"bloodPressure" "127/80" "heartRate" "87"}}
                          {:reading {"bloodPressure" "120/80" "heartRate" "85"}}]}]}}
@@ -581,7 +581,7 @@
     ;; From the doctor, you can see patients.
     ;; A patient should be able to see their own medical file.
 
-    #_(repl/e "https://hospital.com/patients/014")
+    #_(repl/e "https://hospital.com/hospital-demo/patients/014")
 
     ;; See NHS National role-based access control (RBAC) for developers
     ;; "The database consists of:
@@ -742,49 +742,49 @@
       (testing "Alice's view"
         (is (= #{{:name "Dr. Jack Conway",
                   :juxt.site/type "https://hospital.com/types/doctor",
-                  :xt/id "https://hospital.com/doctors/001",
+                  :xt/id "https://hospital.com/hospital-demo/doctors/001",
                   :patients
                   [{:name "Terry Levine",
                     :juxt.site/type "https://hospital.com/types/patient",
-                    :xt/id "https://hospital.com/patients/001",
+                    :xt/id "https://hospital.com/hospital-demo/patients/001",
                     :readings nil}
                    {:name "Jeannie Finley",
                     :juxt.site/type "https://hospital.com/types/patient",
-                    :xt/id "https://hospital.com/patients/002",
+                    :xt/id "https://hospital.com/hospital-demo/patients/002",
                     :readings nil}
                    {:name "Jewel Blackburn",
                     :juxt.site/type "https://hospital.com/types/patient",
-                    :xt/id "https://hospital.com/patients/003",
+                    :xt/id "https://hospital.com/hospital-demo/patients/003",
                     :readings nil}
                    {:name "Angie Solis",
                     :juxt.site/type "https://hospital.com/types/patient",
-                    :xt/id "https://hospital.com/patients/005",
+                    :xt/id "https://hospital.com/hospital-demo/patients/005",
                     :readings nil}]}
                  {:name "Dr. Jackson",
                   :juxt.site/type "https://hospital.com/types/doctor",
-                  :xt/id "https://hospital.com/doctors/003",
+                  :xt/id "https://hospital.com/hospital-demo/doctors/003",
                   :patients
                   [{:name "Floyd Castro",
                     :juxt.site/type "https://hospital.com/types/patient",
-                    :xt/id "https://hospital.com/patients/006",
+                    :xt/id "https://hospital.com/hospital-demo/patients/006",
                     :readings nil}
                    {:name "Sondra Richardson",
                     :juxt.site/type "https://hospital.com/types/patient",
-                    :xt/id "https://hospital.com/patients/010",
+                    :xt/id "https://hospital.com/hospital-demo/patients/010",
                     :readings nil}]}}
                (eqlc/prune-result (xt/q db q alice nil))))))
 
     (testing "Bob's view"
       (is (= #{{:name "Dr. Jack Conway",
                 :juxt.site/type "https://hospital.com/types/doctor",
-                :xt/id "https://hospital.com/doctors/001",
+                :xt/id "https://hospital.com/hospital-demo/doctors/001",
                 :patients nil}
                {:name "Dr. Jackson",
                 :juxt.site/type "https://hospital.com/types/doctor",
-                :xt/id "https://hospital.com/doctors/003",
+                :xt/id "https://hospital.com/hospital-demo/doctors/003",
                 :patients
                 [{:name "Sondra Richardson",
                   :juxt.site/type "https://hospital.com/types/patient",
-                  :xt/id "https://hospital.com/patients/010",
+                  :xt/id "https://hospital.com/hospital-demo/patients/010",
                   :readings nil}]}}
              (eqlc/prune-result (xt/q db q bob nil)))))))

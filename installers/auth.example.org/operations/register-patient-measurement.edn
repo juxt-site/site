@@ -6,8 +6,8 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:xt/id [:re "https://data.example.org/measurements/.*"]]
-    [:patient [:re "https://data.example.org/patients/.*"]]]
+    [:xt/id [:re "https://data.example.org/hospital-demo/measurements/.*"]]
+    [:patient [:re "https://data.example.org/hospital-demo/patients/.*"]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program

@@ -6,7 +6,7 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:xt/id [:re "https://data.example.org/doctors/.*"]]
+    [:xt/id [:re "https://data.example.org/hospital-demo/doctors/.*"]]
     [:name [:string {:min 3}]]]
 
    :juxt.site/prepare
