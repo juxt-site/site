@@ -219,8 +219,7 @@
               {"authorization" (format "Bearer %s" alice-access-token)
                "accept" "application/json"}})
             body (:ring.response/body response)
-            result (some-> body json/read-value)
-            ]
+            result (some-> body json/read-value)]
         (is (= "application/json" (get-in response [:ring.response/headers "content-type"])))
         (is body)
         (is result)
