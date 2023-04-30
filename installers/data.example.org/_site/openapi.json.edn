@@ -33,7 +33,8 @@ Some useful links:
       {"implicit"
        {"scopes"
         {"https://auth.example.org/scopes/system/read" "Read system info"
-         "https://auth.example.org/scopes/system/write" "Administer system"}
+         "https://auth.example.org/scopes/system/write" "Administer system"
+         "https://auth.example.org/scopes/system/self-identification" "Self identification"}
         "authorizationUrl"
         "https://auth.example.org/oauth/authorize"}}}}
     "schemas" {}

@@ -9,7 +9,10 @@
    :openapi.v3/path "/whoami"
 
    :juxt.site/methods
-   {:get {:juxt.site/operation "https://auth.example.org/operations/whoami"}}
+   {:get
+    {:juxt.site/description "Find out information about the requestor."
+     :juxt.site/operation "https://auth.example.org/operations/whoami"
+     :openapi.v3/tags ["Users"]}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 

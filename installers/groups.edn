@@ -26,26 +26,34 @@
     :juxt.site/parameters {"role" "System"}}
    {:juxt.site/target-uri "https://auth.example.org/roles/{{role}}"
     :juxt.site/parameters {"role" "SystemReadonly"}}
+
    ;; Whoami
-   "https://auth.example.org/permissions/whoami"
    "https://data.example.org/_site/whoami"
    "https://data.example.org/_site/whoami.json"
    "https://data.example.org/_site/whoami.html"
+   "https://auth.example.org/permissions/whoami"
    ;; Permissions (mapping roles to operations)
+
+   ;; System role
    {:juxt.site/target-uri "https://auth.example.org/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "System" "operation" "get-users"}}
    {:juxt.site/target-uri "https://auth.example.org/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "System" "operation" "get-user"}}
    {:juxt.site/target-uri "https://auth.example.org/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "System" "operation" "put-user"}}
+
+   ;; SystemReadonly role
    {:juxt.site/target-uri "https://auth.example.org/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-users"}}
    {:juxt.site/target-uri "https://auth.example.org/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-user"}}
 
    ;; Scopes
+   ;; TODO: use these descriptions in the generation of openapi.json
    "https://auth.example.org/scopes/system/read"
-   "https://auth.example.org/scopes/system/write"]}
+   "https://auth.example.org/scopes/system/write"
+   "https://auth.example.org/scopes/system/self-identification"
+   ]}
 
  "juxt/site/sessions"
  {:juxt.site/description "Sessions"

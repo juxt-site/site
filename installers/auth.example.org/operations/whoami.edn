@@ -21,8 +21,11 @@
       '[* {:juxt.site/user-identity [* {:juxt.site/user [*]}]}]
       (:xt/id (:juxt.site/subject *ctx*)))}}
 
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/system/self-identification"}
+
+   ;; Anyone should be able to call whoami
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)
-     [subject :juxt.site/user-identity id]
-     [permission :xt/id]]]}}}
+     [subject :xt/id]]]}}}
