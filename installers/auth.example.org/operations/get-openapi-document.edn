@@ -52,8 +52,13 @@
                               (fn [acc variant]
                                 (assoc acc (:juxt.http/content-type variant) {}))
                               {}
-                              (sort-by :juxt.http/content-type (:variants path)))
-                             "description" "Successful operation"}}
+                              (or
+                               (:juxt.site/variants metadata) ; explicit
+                               (sort-by :juxt.http/content-type (:variants path)) ; implicit
+                               ))
+                             "description" "Successful operation"}
+                            "401"
+                            {"description" "Unauthorized"}}
                            {})
                          "tags" (:openapi.v3/tags metadata)
                          "description" (:juxt.site/description metadata)})))))

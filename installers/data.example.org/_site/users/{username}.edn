@@ -21,7 +21,10 @@
    {:get
     {:juxt.site/description "Get the details for an individual user."
      :juxt.site/operation "https://auth.example.org/operations/get-user"
-     :openapi.v3/tags ["Users"]}}
+     :openapi.v3/tags ["Users"]
+     :juxt.site/variants
+     [{:juxt.http/content-type "application/json"}
+      {:juxt.http/content-type "text/html;charset=utf-8"}]}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 
