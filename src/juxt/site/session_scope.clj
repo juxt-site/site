@@ -34,10 +34,6 @@
 
     (let [scope-id (:juxt.site/session-scope resource)
 
-          _ (when scope-id
-              (log/debugf "session-scope for %s is %s" uri scope-id)
-              (log/debugf "resource is %s" (pr-str resource)))
-
           scope (when scope-id (xt/entity db scope-id))
 
           cookie-name (when scope (:juxt.site/cookie-name scope))
