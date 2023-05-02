@@ -249,8 +249,7 @@
                        (xt/pull (:juxt.site/db req) query eid))
                      'q
                      (fn [query & args]
-                       (apply xt/q (:juxt.site/db req) query args))
-                     }
+                       (apply xt/q (:juxt.site/db req) query args))}
 
                     'juxt.site
                     {'pull-allowed-resources

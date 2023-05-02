@@ -1,0 +1,40 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [permission :xt/id]]]
+
+   :juxt.site/transact
+   {
+    :juxt.site.sci/program
+    #juxt.pprint
+    (let [session-scope (:juxt.site/session-scope *ctx*)
+
+
+
+          query-params (some-> *ctx* :ring.request/query ring.util.codec/form-decode)
+          return-to (get query-params "return-to")
+          cookie-name (:juxt.site/cookie-name session-scope)
+          cookie-path (or (:juxt.site/cookie-path session-scope) "/")
+
+          session-token (:juxt.site/session-token *ctx*)
+          session (:juxt.site/session *ctx*)]
+
+      (cond-> []
+        session-token (conj [:xtdb.api/delete (:xt/id session-token)])
+        session (conj [:xtdb.api/delete (:xt/id session)])
+        cookie-name
+        (conj [:ring.response/headers
+               {"set-cookie"
+                (format "%s=\"\"; Path=%s; Max-Age: 0"
+                        cookie-name cookie-path)}])
+
+        ;; This start-with check is to avoid an open-redirect
+        (and return-to (clojure.string/starts-with? return-to "https://auth.example.org"))
+        (conj
+         [:ring.response/status 303]
+         [:ring.response/headers {"location" return-to}])))}}}}

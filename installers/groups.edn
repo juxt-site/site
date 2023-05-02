@@ -90,6 +90,13 @@
    "https://auth.example.org/operations/create-login-resource"
    "https://auth.example.org/login-with-form"]}
 
+ "juxt/site/logout"
+ {:juxt.site/installers
+  ["https://auth.example.org/operations/create-logout-resource"
+   "https://auth.example.org/permissions/system/create-logout-resource"
+   "https://auth.example.org/operations/logout"
+   "https://auth.example.org/logout"]}
+
  "juxt/site/test-scopes"
  {:juxt.site/description "Test scopes"
   :juxt.site/installers

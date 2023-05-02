@@ -30,6 +30,11 @@
          :response response})))
     token))
 
+(defn logout! []
+  (let [req {:juxt.site/uri "https://auth.example.test/logout"
+             :ring.request/method :get}]
+    (*handler* req)))
+
 (defn lookup-session-details [session-token]
   (when session-token
     (let [db (xt/db *xt-node*)]
