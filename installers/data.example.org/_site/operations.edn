@@ -11,9 +11,10 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/description "Get all permitted operations"
-     :juxt.site/operation "https://auth.example.org/operations/get-operations"
-     :openapi.v3/tags ["Operations"]}}
+    {:juxt.site/operation "https://auth.example.org/operations/get-operations"
+     :openapi.v3/metadata
+     {"tags" ["Operations"]
+      "summary" "Get all permitted operations"}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 

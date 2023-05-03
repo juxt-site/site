@@ -10,14 +10,16 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/description "Get users"
-     :juxt.site/operation "https://auth.example.org/operations/get-users"
-     :openapi.v3/tags ["Users"]}
+    {:juxt.site/operation "https://auth.example.org/operations/get-users"
+     :openapi.v3/metadata
+     {"tags" ["Users"]
+      "summary" "Get users"}}
 
     :post
-    {:juxt.site/description "Add a user"
-     :juxt.site/operation "https://auth.example.org/operations/put-user"
-     :openapi.v3/tags ["Users"]}}
+    {:juxt.site/operation "https://auth.example.org/operations/put-user"
+     :openapi.v3/metadata
+     {"tags" ["Users"]
+      "summary" "Add a user"}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 
