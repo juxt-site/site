@@ -155,8 +155,7 @@
                               "content-length" (str (count payload))}
                              :ring.request/body (io/input-stream payload)}
                     response (*handler* request)]
-                (is (= expected-status (:ring.response/status response)))
-                ))))
+                (is (= expected-status (:ring.response/status response)))))))
 
       ;; Alice has permission, and using a client with global-scope
         "alice" "global-scope-app" "authorization_code" nil 200
