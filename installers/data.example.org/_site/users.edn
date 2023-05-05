@@ -19,7 +19,15 @@
     {:juxt.site/operation "https://auth.example.org/operations/put-user"
      :openapi.v3/metadata
      {"tags" ["Users"]
-      "summary" "Add a user"}}}
+      "summary" "Add a user"
+      "requestBody"
+      {"description" "User to add to the system"
+       "content"
+       {"application/edn" {}
+        "application/json"
+        {"schema"
+         {"type" "object"
+          "properties" {"id" {"type" "string"}}}}}}}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 
