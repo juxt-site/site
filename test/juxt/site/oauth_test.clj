@@ -24,7 +24,7 @@
     "jti-length" 12})
 
   (converge!
-   ["https://auth.example.test/scopes/test/read"]
+   [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/scopes/test/read"}]
    AUTH_SERVER
    {"description" "Read stuff"
     "operations-in-scope" #{}}))

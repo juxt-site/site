@@ -3,37 +3,46 @@
 (ns juxt.site.installer-test
   (:require
    [clojure.test :refer [deftest is use-fixtures]]
-   [jsonista.core :as json]
-   [juxt.site.installer :refer [call-operation-with-init-data!]]
-   [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge! unified-installer-map]]
-   [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
-   [juxt.site.test-helpers.install :as install]
-   [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
-   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.repl :as repl]
+   [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
    [clojure.edn :as edn]
+   [juxt.site.test-helpers.install :as install]
    [clojure.java.io :as io]
+   [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
+   [juxt.site.test-helpers.handler :refer [handler-fixture]]
    [juxt.site.install.common-install-util :as ciu]))
 
 (use-fixtures :once system-xt-fixture handler-fixture)
 
 #_(with-fixtures
-  (let [uri-map AUTH_SERVER
-        graph (unified-installer-map uri-map)
-        groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
+  (let [uri-map RESOURCE_SERVER
+        graph (ciu/unified-installer-map (io/file "installers") uri-map)
+        groups (edn/read-string (slurp (io/file "installers/groups.edn")))
+        parameter-map {}]
 
-    (install/map-uris
-     (some-> groups (get "juxt/site/bootstrap") :juxt.site/resources)
-     uri-map)
-
-    (map :juxt.site/uri
-         (ciu/installer-seq
+    (let [installer-specs
           (install/map-uris
-           (some-> groups (get "juxt/site/bootstrap") :juxt.site/resources)
-           uri-map)
-          graph {}))))
+           (:juxt.site/installers
+            (get groups "juxt/site/system-api")) uri-map)]
+      (ciu/installer-seq graph {} installer-specs)
+      )))
+
+#_(with-fixtures
+    (let [uri-map AUTH_SERVER
+          graph (unified-installer-map uri-map)
+          groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
+
+      (install/map-uris
+       (some-> groups (get "juxt/site/bootstrap") :juxt.site/resources)
+       uri-map)
+
+      (map :juxt.site/uri
+           (ciu/installer-seq
+            graph {}
+            (install/map-uris
+             (some-> groups (get "juxt/site/bootstrap") :juxt.site/resources)
+             uri-map)))))
 
 #_(with-fixtures
   (install-resource-groups!

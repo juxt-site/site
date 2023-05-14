@@ -45,7 +45,8 @@
 
   ;; Alice has the System role which confers access to put-user
   (converge!
-   [{:juxt.site/target-uri "https://data.example.test/_site/role-assignments/{{username}}-{{rolename}}"
+   [{:juxt.site/base-uri "https://data.example.test"
+     :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"
      :juxt.site/parameters
      {"username" "alice"
       "rolename" "System"}}]
@@ -54,7 +55,8 @@
 
   ;; ... whereas Bob has the SystemReadonly role which doesn't
   (converge!
-   [{:juxt.site/target-uri "https://data.example.test/_site/role-assignments/{{username}}-{{rolename}}"
+   [{:juxt.site/base-uri "https://data.example.test"
+     :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"
      :juxt.site/parameters
      {"username" "bob"
       "rolename" "SystemReadonly"}}]
@@ -67,9 +69,9 @@
 
   (converge!
    ;; TODO: Add these resources to a group
-   ["https://auth.example.test/clients/global-scope-app"
-    "https://auth.example.test/clients/read-only-app"
-    "https://auth.example.test/clients/read-write-app"]
+   [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/global-scope-app"}
+    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/read-only-app"}
+    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/read-write-app"}]
    RESOURCE_SERVER
    {}))
 

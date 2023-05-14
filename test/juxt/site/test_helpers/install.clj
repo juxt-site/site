@@ -28,7 +28,7 @@
   (assert (map? parameter-map) "Parameter map arg must be a map")
   ;;(assert (every? map? resources) "Resources must be maps")
 
-  (->> (ciu/installer-seq resources graph parameter-map)
+  (->> (ciu/installer-seq graph parameter-map resources)
        (mapv #(installer/call-installer xt-node %))))
 
 (defn normalize-uri-map [uri-map]

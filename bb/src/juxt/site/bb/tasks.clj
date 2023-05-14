@@ -167,7 +167,7 @@
         installer-map (ciu/unified-installer-map
                        (io/file (System/getenv "SITE_HOME") "installers")
                        uri-map)
-        installers-seq (ciu/installer-seq installers installer-map parameter-map)
+        installers-seq (ciu/installer-seq installer-map parameter-map installers)
         existing (set (edn/read-string (push! `(~'find-resources ~(mapv :juxt.site/uri installers-seq)) {:title "Retrieving existing resources"})))
         remaining-installers (remove (comp existing :juxt.site/uri) installers-seq)
         heading (or (:title install-opts) *heading* "TITLE")]
@@ -252,10 +252,7 @@
 (defn bootstrap [{:keys [auth-base-uri]}]
   ;; Use install-resource-groups!
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-        installers
-        (->>
-         (get-in GROUPS ["juxt/site/bootstrap" :juxt.site/installers])
-         (mapv #(str/replace % "https://auth.example.org" auth-base-uri)))]
+        installers (get-group-installers "juxt/site/bootstrap")]
     (install!
      installers
      {"https://auth.example.org" auth-base-uri}
@@ -323,7 +320,8 @@
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           client-id (or client-id (input {:prompt "Client ID" :value client-id}))
           uri-map {"https://auth.example.org" auth-base-uri}
-          installers [(format "https://auth.example.org/clients/%s" client-id)]]
+          installers [{:juxt.site/base-uri "https://auth.example.org"
+                       :juxt.site/installer-path (format "/clients/%s" client-id)}]]
 
       (install! installers uri-map {}
        {:title (format "Adding OAuth client: %s" client-id)}))))
@@ -382,9 +380,16 @@
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
 
-          installers (cond-> ["https://data.example.org/_site/users/{{username}}"]
-                       (= user-type :openid) (conj "https://data.example.org/_site/openid-user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
-                       (= user-type :password (conj "https://data.example.org/_site/user-identities/{{username}}")))]
+          installers
+          (cond-> [{:juxt.site/base-uri "https://data.example.org"
+                    :juxt.site/installer-path "/_site/users/{{username}}"}]
+            (= user-type :openid)
+            (conj
+             {:juxt.site/base-uri "https://data.example.org"
+              :juxt.site/installer-path "/_site/openid-user-identities/{{iss|urlescape}}/nickname/{{nickname}}"})
+            (= user-type :password
+               (conj {:juxt.site/base-uri "https://data.example.org"
+                      :juxt.site/installer-path "/_site/user-identities/{{username}}"})))]
 
       (install! installers uri-map parameters
                 {:title (case user-type
@@ -399,7 +404,9 @@
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
 
-          installers ["https://data.example.org/_site/role-assignments/{{username}}-{{rolename}}"]]
+          installers
+          [{:juxt.site/base-uri "https://data.example.org"
+            :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"}]]
 
       (install! installers uri-map
                 (select-keys parameters ["username" "rolename"])
@@ -412,10 +419,16 @@
                  "https://data.example.org" data-base-uri}
 
         installers
-        (cond-> ["https://data.example.org/_site/users/{{username}}"
-                 "https://data.example.org/_site/role-assignments/{{username}}-{{rolename}}"]
-          (= user-type :openid) (conj "https://data.example.org/_site/openid-user-identities/{{iss|urlescape}}/nickname/{{nickname}}")
-          (= user-type :password) (conj "https://data.example.org/_site/user-identities/{{username}}"))]
+        (cond-> [{:juxt.site/base-uri "https://data.example.org"
+                  :juxt.site/installer-path "/_site/users/{{username}}"}
+                 {:juxt.site/base-uri "https://data.example.org"
+                  :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"}]
+          (= user-type :openid)
+          (conj {:juxt.site/base-uri "https://data.example.org"
+                 :juxt.site/installer-path "/_site/openid-user-identities/{{iss|urlescape}}/nickname/{{nickname}}"})
+          (= user-type :password)
+          (conj {:juxt.site/base-uri "https://data.example.org"
+                 :juxt.site/installer-path "/_site/user-identities/{{username}}"}))]
 
     (install!
      installers
@@ -433,7 +446,8 @@
   (binding [*heading* "Install login form"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           uri-map {"https://auth.example.org" auth-base-uri}
-          installers ["https://auth.example.org/login-with-form"]]
+          installers [{:juxt.site/base-uri "https://auth.example.org"
+                       :juxt.site/installer-path "/login-with-form"}]]
 
       (install! installers uri-map {} {:title "Installing login form"}))))
 
@@ -453,8 +467,10 @@
             ["session-scope" "openid-login-session"]]))]
 
     (install!
-     [(str auth-base-uri "/login-with-openid")
-      (str auth-base-uri "/openid/callback")]
+     [{:juxt.site/base-uri "https://auth.example.org"
+       :juxt.site/installer-path "/login-with-openid"}
+      {:juxt.site/base-uri "https://auth.example.org"
+       :juxt.site/installer-path "/openid/callback"}]
      {"https://auth.example.org" auth-base-uri}
      params
      {:title "Installing OpenAPI"})))
