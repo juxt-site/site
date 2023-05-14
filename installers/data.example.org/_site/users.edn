@@ -2,9 +2,10 @@
  ["https://auth.example.org/operations/get-users"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
- {:juxt.site/input
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/operations/put-openapi-path"
+  :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/type "https://meta.juxt.site/types/openapi-path"
 
    :openapi.v3/path "/users"
 

@@ -60,13 +60,19 @@
         (catch Exception cause
           (throw (ex-info "Failed to perform operation" {:init-data init-data} cause)))))
 
-    ;; Go direct!
+    ;; Go direct! (but only on certain conditions)
+    #_(do
+      #_(println "init-data: %s" (pr-str init-data))
+      (throw
+       (ex-info
+        (format "Should not install this without a subject/operation: %s" (get-in init-data [:juxt.site/input :xt/id]))
+        {})))
     (do
-      (assert (get-in init-data [:juxt.site/input :xt/id]))
-      (log/infof
-       "Installing id %s"
-       (get-in init-data [:juxt.site/input :xt/id]))
-      (put! xt-node (:juxt.site/input init-data)))))
+        (assert (get-in init-data [:juxt.site/input :xt/id]))
+        (log/infof
+         "Installing id %s"
+         (get-in init-data [:juxt.site/input :xt/id]))
+        (put! xt-node (:juxt.site/input init-data)))))
 
 (defn call-installer
   [xt-node
@@ -88,6 +94,8 @@
         (throw (ex-info "Puts does not contain uri" {:juxt.site/uri uri :puts puts})))
       {:juxt.site/uri uri :status :installed :result result})
     (catch Throwable cause
-      (throw (ex-info (format "Failed to converge uri: '%s'" uri) {:juxt.site/uri uri} cause))
-      ;;{:id id :status :error :error cause}
-      )))
+      (throw
+       (ex-info
+        (format "Failed to converge uri: '%s'" uri)
+        {:juxt.site/uri uri}
+        cause)))))

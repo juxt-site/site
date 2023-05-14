@@ -1,8 +1,12 @@
 {:deps
  ["https://auth.example.org/operations/whoami"
+  "https://auth.example.org/operations/put-resource"
+  "https://auth.example.org/permissions/system/put-resource"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
- {:juxt.site/input
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/operations/put-resource"
+  :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
    {:get {:juxt.site/operation "https://auth.example.org/operations/whoami"}}

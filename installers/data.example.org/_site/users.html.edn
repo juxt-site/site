@@ -2,7 +2,9 @@
  ["https://data.example.org/_site/users"
   "https://auth.example.org/operations/get-users"]
  :install
- {:juxt.site/input
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/operations/put-resource"
+  :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
    {:get {:juxt.site/operation "https://auth.example.org/operations/get-users"}}

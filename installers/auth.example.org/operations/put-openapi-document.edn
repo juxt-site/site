@@ -1,0 +1,78 @@
+{:deps
+ ["https://auth.example.org/operations/get-openapi-document"
+  "https://auth.example.org/permissions/get-openapi-document" ; arguably in groups, not here
+  "https://auth.example.org/scopes/system/write"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site.malli/input-schema
+   [:map
+    [:xt/id [:re "https://data.example.org/.*"]]
+    ;; How to do map of string->string?
+    ;;[:openapi.v3/info ]
+    ]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content-type (-> *ctx*
+                           :juxt.site/received-representation
+                           :juxt.http/content-type)
+          body (-> *ctx*
+                   :juxt.site/received-representation
+                   :juxt.http/body)]
+      (case content-type
+        "application/edn"
+        (let [edn (some->
+                   body
+                   (String.)
+                   clojure.edn/read-string
+                   juxt.site.malli/validate-input)
+              id (:xt/id edn)]
+          [[:xtdb.api/put
+            (merge
+             edn
+             {:juxt.site/type "https://meta.juxt.site/types/openapi-document"
+
+              :juxt.site/methods
+              {:get {:juxt.site/operation "https://auth.example.org/operations/get-openapi-document"}}
+
+              :juxt.site/access-control-allow-origins
+              [[".*" {:juxt.site/access-control-allow-origin "*"
+                      :juxt.site/access-control-allow-methods [:get]}]]
+
+              :juxt.http/content-type "application/json"
+
+              :juxt.site/respond
+              {:juxt.site.sci/program
+               #juxt.pprint
+               (let [content (str (jsonista.core/write-value-as-string *state*) "
+")]
+                 (-> *ctx*
+                     (assoc :ring.response/body content)
+                     (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}})]])))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    *prepare*}
+
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/system/write"}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [permission :juxt.site/subject subject]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/user-identity id]
+     [id :juxt.site/user user]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://auth.example.org/_site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/user user]]]}}}

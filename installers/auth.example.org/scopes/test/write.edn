@@ -1,6 +1,6 @@
 {:deps
  ["https://auth.example.org/operations/oauth/register-scope"
-  "https://auth.example.test/permissions/system/oauth/register-scope"]
+  "https://auth.example.org/permissions/system/oauth/register-scope"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-scope"

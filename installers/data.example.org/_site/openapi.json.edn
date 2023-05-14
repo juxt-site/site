@@ -1,11 +1,11 @@
 {:deps
- ["https://auth.example.org/operations/get-openapi-document"
-  "https://auth.example.org/permissions/get-openapi-document"]
+ ["https://auth.example.org/operations/put-openapi-document"]
  :install
- {:juxt.site/input
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/operations/put-openapi-document"
+  :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/description ""
-   :juxt.site/type "https://meta.juxt.site/types/openapi-document"
 
    :openapi.v3/info
    {"title" "Site System API"
@@ -43,20 +43,4 @@ Some useful links:
    :openapi.v3/tags
    ["Users" "Operations"]
 
-   :juxt.site/methods
-   {:get {:juxt.site/operation "https://auth.example.org/operations/get-openapi-document"}}
-
-   :juxt.site/access-control-allow-origins
-   [[".*" {:juxt.site/access-control-allow-origin "*"
-           :juxt.site/access-control-allow-methods [:get]}]]
-
-   :juxt.http/content-type "application/json"
-
-   :juxt.site/respond
-   {:juxt.site.sci/program
-    #juxt.pprint
-    (let [content (str (jsonista.core/write-value-as-string *state*) "
-")]
-      (-> *ctx*
-          (assoc :ring.response/body content)
-          (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}}}
+   }}}
