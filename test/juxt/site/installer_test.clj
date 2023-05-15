@@ -54,7 +54,7 @@
     "juxt/site/example-users"
     "juxt/site/oauth-authorization-server"
     ]
-   AUTH_SERVER
+   RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
     "kid" "test-kid"
     "authorization-code-length" 12

@@ -1,0 +1,10 @@
+{:deps
+ ["https://auth.example.org/_site/do-operation"
+  "https://auth.example.org/_site/subjects/system"
+  "https://auth.example.org/_site/operations/install-not-found"
+  "https://auth.example.org/_site/permissions/system/install-not-found"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/install-not-found"
+  :juxt.site/input
+  {:xt/id "{{$id}}"}}}

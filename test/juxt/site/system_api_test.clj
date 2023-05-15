@@ -25,7 +25,7 @@
 ;; 'authorization code'.
 
 (defn bootstrap []
-  (install-installer-groups! ["juxt/site/bootstrap"] AUTH_SERVER {})
+  (install-installer-groups! ["juxt/site/bootstrap"] RESOURCE_SERVER {})
   (install-installer-groups! ["juxt/site/system-api"] RESOURCE_SERVER {})
 
   ;; Need some test users and a way for them to authenticate

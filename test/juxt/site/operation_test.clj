@@ -16,7 +16,7 @@
 ;; Test a simple operation that will log something simple
 
 (defn bootstrap []
-  (install-installer-groups! ["juxt/site/bootstrap"] AUTH_SERVER {}))
+  (install-installer-groups! ["juxt/site/bootstrap"] RESOURCE_SERVER {}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)

@@ -55,7 +55,7 @@
 (defn install-hospital! []
   (install-installer-groups!
    ["juxt/site/bootstrap"]
-   AUTH_SERVER {})
+   RESOURCE_SERVER {})
 
   (install-installer-groups!
    ["juxt/site/user-model"

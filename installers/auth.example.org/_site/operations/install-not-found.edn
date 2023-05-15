@@ -11,7 +11,9 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:xt/id [:re "https://auth.example.org/.*"]]]
+    [:xt/id [:or
+             [:re "https://auth.example.org/.*"]
+             [:re "https://data.example.org/.*"]]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
