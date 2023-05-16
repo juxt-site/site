@@ -375,7 +375,8 @@
 
    'jsonista.core
    {'write-value-as-string (fn [x] (json/write-value-as-string x (json/object-mapper {:pretty true})))
-    'read-value json/read-value}
+    'read-value json/read-value
+    'read-value-with-keywords (fn [x] (json/read-value x (json/object-mapper {:decode-key-fn true})))}
 
    'juxt.site
    {'decode-id-token juxt.site.openid-connect/decode-id-token

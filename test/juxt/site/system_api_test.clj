@@ -227,37 +227,75 @@
         "bob" "read-only-app" "implicit" #{"system/read"} 403
         )))
 
+(deftest put-user-with-json-test
+ (let [session-token (login/login-with-form! "alice" "garden")
+       {access-token "access_token"}
+       (oauth/acquire-access-token!
+        (cond-> {:grant-type "authorization_code"
+                 :authorization-uri "https://auth.example.test/oauth/authorize"
+                 :token-uri "https://auth.example.test/oauth/token"
+                 :session-token session-token
+                 :client (str "https://auth.example.test/clients/global-scope-app")}))]
+   (oauth/with-bearer-token access-token
+     ;; TODO: Also try with a batch of multiple users
+     (let [payload (json/write-value-as-bytes {"xt/id" "https://data.example.test/_site/users/hannah"
+                                               "fullname" "Hannah"
+                                               "username" "hannah"})
+           request {:juxt.site/uri "https://data.example.test/_site/users"
+                    :ring.request/method :post
+                    :ring.request/headers
+                    {"content-type" "application/json"
+                     "content-length" (str (count payload))}
+                    :ring.request/body (io/input-stream payload)}
+           response (*handler* request)]
+       (is (= 200 (:ring.response/status response)))
+
+       (let [request {:juxt.site/uri "https://data.example.test/_site/users/hannah"
+                      :ring.request/method :get
+                      :ring.request/headers
+                      {"accept" "application/json"}
+                      }
+             response (*handler* request)]
+         (is (= 200 (:ring.response/status response)))
+         (is (= {"username" "hannah", "fullname" "Hannah"} (json/read-value (:ring.response/body response)))))))))
+
+
+#_(jsonista.core/read-value
+ (json/write-value-as-bytes {:xt/id "https://data.example.test/_site/users/hannah"})
+ (json/object-mapper {:decode-key-fn true}))
+
+
 
 #_(with-fixtures
-  (converge!
-   ["https://data.example.test/_site/users/{username}"]
-   RESOURCE_SERVER
-   {})
+    (converge!
+     ["https://data.example.test/_site/users/{username}"]
+     RESOURCE_SERVER
+     {})
 
-  (converge!
-   ["https://data.example.test/_site/users/alice"]
-   RESOURCE_SERVER
-   {})
+    (converge!
+     ["https://data.example.test/_site/users/alice"]
+     RESOURCE_SERVER
+     {})
 
-  {:alice (repl/e "https://data.example.test/_site/users/alice")
-   :api-get-user (repl/e "https://data.example.test/_site/users/{username}")
-   :api-get-users (repl/e "https://data.example.test/_site/users")}
+    {:alice (repl/e "https://data.example.test/_site/users/alice")
+     :api-get-user (repl/e "https://data.example.test/_site/users/{username}")
+     :api-get-users (repl/e "https://data.example.test/_site/users")}
 
-  (repl/e "https://data.example.test/_site/users/{username}")
+    (repl/e "https://data.example.test/_site/users/{username}")
 
-  ;; Direct read of user
-  (let [session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
-        (oauth/acquire-access-token!
-         {:grant-type "implicit"
-          :session-token session-token
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :client "https://auth.example.test/clients/global-scope-app"})
-        {:ring.response/keys [body] :as response}
-        (oauth/with-bearer-token access-token
-          (*handler*
-           {:ring.request/method :get
-            :ring.request/headers {"accept" "application/json"}
-            :juxt.site/uri "https://data.example.test/_site/users/alice"}))]
+    ;; Direct read of user
+    (let [session-token (login/login-with-form! "alice" "garden")
+          {access-token "access_token"}
+          (oauth/acquire-access-token!
+           {:grant-type "implicit"
+            :session-token session-token
+            :authorization-uri "https://auth.example.test/oauth/authorize"
+            :client "https://auth.example.test/clients/global-scope-app"})
+          {:ring.response/keys [body] :as response}
+          (oauth/with-bearer-token access-token
+            (*handler*
+             {:ring.request/method :get
+              :ring.request/headers {"accept" "application/json"}
+              :juxt.site/uri "https://data.example.test/_site/users/alice"}))]
 
-    (json/read-value body)))
+      (json/read-value body)))

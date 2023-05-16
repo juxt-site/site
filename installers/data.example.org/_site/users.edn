@@ -17,7 +17,9 @@
       "summary" "Get users"}}
 
     :post
-    {:juxt.site/operation "https://auth.example.org/operations/put-user"
+    {:juxt.site/operation
+     ;; TODO: Rename to register-users
+     "https://auth.example.org/operations/put-user"
      :openapi.v3/metadata
      {"tags" ["Users"]
       "summary" "Add a user"
@@ -28,7 +30,8 @@
         "application/json"
         {"schema"
          {"type" "object"
-          "properties" {"id" {"type" "string"}}}}}}}}}
+          "properties" {"id" {"type" "string"}}}}}}}
+     :juxt.site/acceptable {"accept" "application/edn,application/json"}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 
