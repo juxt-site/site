@@ -794,8 +794,12 @@
          'java.security.KeyPairGenerator java.security.KeyPairGenerator
          }})
       (catch clojure.lang.ExceptionInfo e
-        ;; Ignore and unwrap the SCI error
-        (throw (.getCause e))))))
+        (throw e)
+        #_(if-let [cause (.getCause e)]
+          ;; Ignore and unwrap the SCI error
+          (throw cause)
+          (throw e))
+        ))))
 
 (defn do-operation!
   [{:juxt.site/keys [xt-node db resource subject operation] :as ctx}]
