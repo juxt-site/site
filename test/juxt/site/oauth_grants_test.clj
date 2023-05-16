@@ -101,13 +101,13 @@
            (oauth/make-authorization-request
             "https://auth.example.test/oauth/authorize"
             {"response_type" "foo"
-             "client_id" "test/public-app2"
+             "client_id" "test/unknown-client"
              "state" state})))]
     (is (= 400 status))
-    ;; Why is this not HTML?
-    (is (= "text/plain;charset=utf-8" (get headers "content-type")))
-    ;; Is there no description or hint we could add here?
-    (is (= "Bad Request\r\n" (String. body)))))
+    (is (= "application/json" (get headers "content-type")))
+    (is (= {"error" "invalid_client"
+            "error_description" "No client registered with that client_id"}
+           (json/read-value body)))))
 
 ;; If an authorization request is missing the "response_type"
 ;; parameter, or if the response type is not understood, the
@@ -366,6 +366,27 @@
           "error_description" "Refresh token invalid or expired",}
          (oauth/refresh-token!
           {:refresh-token "fake"})))))
+
+;; Resource owner password credentials grant
+
+;; Even though this grant is (highly) discouraged (see
+;; https://oauth.net/2/grant-types/password/), it is sometimes useful
+;; in local development. It is possible to effectively disable this
+;; grant in production by not having any password-based user
+;; identities in the system (e.g. having only OpenID identities). So
+;; we defer the choice to the deploying user.
+
+(deftest bad-grant-type-test
+  (let [token-request
+        (oauth/make-token-request
+         "https://auth.example.test/oauth/token"
+         {"grant_type" "BAD"
+          "username" "alice"
+          "password" "garden"})
+        response (*handler* token-request)]
+    (is (= 400 (:ring.response/status response)))
+    (is (= "unsupported_grant_type"
+           (get (json/read-value (:ring.response/body response)) "error")))))
 
 ;; Scopes
 

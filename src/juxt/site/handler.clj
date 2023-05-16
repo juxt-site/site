@@ -825,6 +825,10 @@
 
         representation
         (or
+         ;; If we have already set a body, then we assume the request
+         ;; contains the response representation
+         (when (:ring.response/body req) req)
+
          (when (= method :put) (put-error-representation req))
          (when (= method :post) (post-error-representation req))
          (error-resource-representation req)
@@ -879,9 +883,8 @@
                                    :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]]}
 
                         ;; For the error itself
-                        (cond->
-                            {:juxt.site/resource representation}
-                            original-resource (assoc :juxt.site/original-resource original-resource)))
+                        (cond-> {:juxt.site/resource representation}
+                          original-resource (assoc :juxt.site/original-resource original-resource)))
 
         error-resource (assoc
                         error-resource
@@ -920,9 +923,11 @@
               headers (merge
                        (:ring.response/headers ctx)
                        (:ring.response/headers ex-data))
+              body (or (:ring.response/body ex-data) (:ring.response/body ctx))
               ctx (cond-> ctx
                     status (assoc :ring.response/status status)
-                    headers (assoc :ring.response/headers headers))]
+                    headers (assoc :ring.response/headers headers)
+                    body (assoc :ring.response/body body))]
 
           (if (:juxt.site/start-date ctx)
             (do

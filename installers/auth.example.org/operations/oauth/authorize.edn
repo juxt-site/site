@@ -70,17 +70,17 @@
    {:juxt.site.sci/program
     #juxt.pprint
     (let [resource-owner-error
-          (fn [^String message data]
-            (let [body-bytes (.getBytes message)]
+          (fn [data]
+            (let [body-bytes (jsonista.core/write-value-as-bytes data)]
               (throw
                (ex-info
-                message
+                (or (get data "error_description") (get data "error"))
                 (merge
                  {:ring.response/status 400
                   :ring.response/headers
-                  {"content-type" "text/plain"
+                  {"content-type" "application/json"
                    "content-length" (count body-bytes)}
-                  :ring.response/body (.getBytes message)}
+                  :ring.response/body body-bytes}
                  data)))))
 
           {:keys [response-type client-id query subject]} *prepare*
@@ -103,13 +103,12 @@
 
           _ (when-not client-doc
               (resource-owner-error
-               (format "No client registered with client-id of %s" client-id)
-               {:client-id client-id}))
+               {"error" "invalid_client"
+                "error_description" "No client registered with that client_id"}))
           _ (when others
               (resource-owner-error
-               (format "Multiple clients registered with client-id of %s" client-id)
-               {:client-id client-id}))
-
+               {"error" "invalid_client"
+                "error_description" "Multiple clients registered with that client_id"}))
 
           ;; "If the request fails due to a missing, invalid, or
           ;; mismatching redirection URI, or if the client identifier
@@ -153,8 +152,8 @@
 
               (when-not redirect-uri
                 (resource-owner-error
-                 "Redirection URI is required as a query parameter"
-                 {})))
+                 {"error" "invalid_request"
+                  "error_description" "Redirection URI is required as a query parameter"})))
 
           redirect-uri
           (if redirect-uri

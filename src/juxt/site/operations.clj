@@ -375,6 +375,7 @@
 
    'jsonista.core
    {'write-value-as-string (fn [x] (json/write-value-as-string x (json/object-mapper {:pretty true})))
+    'write-value-as-bytes (fn [x] (json/write-value-as-bytes x (json/object-mapper {:pretty true})))
     'read-value json/read-value
     'read-value-with-keywords (fn [x] (json/read-value x (json/object-mapper {:decode-key-fn true})))}
 
@@ -794,12 +795,21 @@
          'java.security.KeyPairGenerator java.security.KeyPairGenerator
          }})
       (catch clojure.lang.ExceptionInfo e
-        (throw e)
-        #_(if-let [cause (.getCause e)]
-          ;; Ignore and unwrap the SCI error
-          (throw cause)
-          (throw e))
-        ))))
+        (throw
+         (ex-info
+          (format "Prepare failed for operation %s" (:xt/id operation-doc))
+          ;; The point of this is that we want to allow the
+          ;; thrower to set status, headers.
+          ;;
+          ;; TODO: We should take the latest ctx (given as a
+          ;; parameter), and return it as the
+          ;; juxt.site/request-context entry in the ex-info but
+          ;; with the status, headers, and body merged into
+          ;; it. This is a common idiom so there should be a
+          ;; convenience function to help do this.
+          (merge (ex-data e) (ex-data (.getCause e)))
+          e))))))
+
 
 (defn do-operation!
   [{:juxt.site/keys [xt-node db resource subject operation] :as ctx}]
