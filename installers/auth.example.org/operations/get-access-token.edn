@@ -1,0 +1,19 @@
+{:install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site/state
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (get-in *ctx* [:juxt.site/access-token :juxt.site/token])}
+
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/system/self-identification"}
+
+   ;; Anyone should be able to call whoami
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [subject :xt/id]]]}}}

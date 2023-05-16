@@ -1,7 +1,6 @@
 {:deps
- ["https://auth.example.org/operations/whoami"
+ ["https://auth.example.org/operations/get-access-token"
   "https://auth.example.org/operations/put-openapi-path"
-  "https://auth.example.org/permissions/system/put-openapi-path"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
@@ -9,13 +8,13 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
 
-   :openapi.v3/path "/whoami"
+   :openapi.v3/path "/access-token"
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation "https://auth.example.org/operations/whoami"
+    {:juxt.site/operation "https://auth.example.org/operations/get-access-token"
      :openapi.v3/metadata {"tags" ["Introspection"]
-                           "summary" "Find out information about the requestor"}}}
+                           "summary" "Show the access token as text so it can be saved"}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 
