@@ -70,6 +70,9 @@
    {:juxt.site.sci/program
     #juxt.pprint
     (let [resource-owner-error
+          ;; TODO: create-access-token.edn arguably has a superior
+          ;; error-handler, which also checks the description
+          ;; characters. Consider using the same here instead of this.
           (fn [data]
             (let [body-bytes (jsonista.core/write-value-as-bytes data)]
               (throw
