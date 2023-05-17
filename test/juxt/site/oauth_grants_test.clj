@@ -389,7 +389,7 @@
 ;; identities in the system (e.g. having only OpenID identities). So
 ;; we defer the choice to the deploying user.
 
-#_(with-fixtures
+(deftest resource-owner-password-credentials-grant-test
   (let [token-request
         (oauth/make-token-request
          "https://auth.example.test/oauth/token"
@@ -397,9 +397,12 @@
           "username" "alice"
           "password" "garden"
           "client_id" "site-cli"})
-        response (*handler* token-request)]
-    {:body (:ring.response/body response)
-     :ls (repl/ls)}))
+        response (*handler* token-request)
+        {access-token "access_token"} (jsonista.core/read-value (:ring.response/body response))
+        db (xt/db *xt-node*)
+        access-token-doc (xt/entity db (str "https://auth.example.test/access-tokens/" access-token))]
+
+    (is (= access-token (:juxt.site/token access-token-doc)))))
 
 ;; Scopes
 
