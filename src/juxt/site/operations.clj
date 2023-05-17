@@ -490,6 +490,10 @@
                              (log/infof "Result: %s" result)
                              result)))
 
+                       ;; TODO: Rather than password check in the
+                       ;; transaction function (requiring the password
+                       ;; to be stored in the transaction-log), this
+                       ;; should be moved to the prepare step.
                        'match-identity-with-password
                        (fn [m password password-hash-key]
                          (ffirst
@@ -568,6 +572,9 @@
                                           :in [token]}
                                      token))))
 
+                       ;; TODO: Rename to make it clear this is a JWT
+                       ;; access token. Other access tokens might be
+                       ;; possible.
                        'make-access-token
                        (fn [claims keypair-id]
                          (let [keypair (xt/entity db keypair-id)]

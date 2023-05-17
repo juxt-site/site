@@ -24,7 +24,8 @@
    ["juxt/site/login-form"
     "juxt/site/example-users"
     "juxt/site/test-scopes"
-    "juxt/site/test-clients"]
+    "juxt/site/test-clients"
+    "juxt/site/site-cli-client"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
   (f))
@@ -367,15 +368,6 @@
          (oauth/refresh-token!
           {:refresh-token "fake"})))))
 
-;; Resource owner password credentials grant
-
-;; Even though this grant is (highly) discouraged (see
-;; https://oauth.net/2/grant-types/password/), it is sometimes useful
-;; in local development. It is possible to effectively disable this
-;; grant in production by not having any password-based user
-;; identities in the system (e.g. having only OpenID identities). So
-;; we defer the choice to the deploying user.
-
 (deftest bad-grant-type-test
   (let [token-request
         (oauth/make-token-request
@@ -387,6 +379,27 @@
     (is (= 400 (:ring.response/status response)))
     (is (= "unsupported_grant_type"
            (get (json/read-value (:ring.response/body response)) "error")))))
+
+;; Resource owner password credentials grant
+
+;; Even though this grant is (highly) discouraged (see
+;; https://oauth.net/2/grant-types/password/), it is sometimes useful
+;; in local development. It is possible to effectively disable this
+;; grant in production by not having any password-based user
+;; identities in the system (e.g. having only OpenID identities). So
+;; we defer the choice to the deploying user.
+
+#_(with-fixtures
+  (let [token-request
+        (oauth/make-token-request
+         "https://auth.example.test/oauth/token"
+         {"grant_type" "password"
+          "username" "alice"
+          "password" "garden"
+          "client_id" "site-cli"})
+        response (*handler* token-request)]
+    {:body (:ring.response/body response)
+     :ls (repl/ls)}))
 
 ;; Scopes
 

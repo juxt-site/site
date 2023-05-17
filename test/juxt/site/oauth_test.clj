@@ -120,7 +120,7 @@
 	     ["https://auth.example.test/scopes/test/read"]
              "response_types_supported" ["code" "token"]
              "response_modes_supported" ["query" "fragment"]
-	     "grant_types_supported" ["authorization_code" "implicit" "refresh_token"]
+	     "grant_types_supported" ["authorization_code" "implicit" "password" "refresh_token"]
              "token_endpoint_auth_signing_alg_values_supported" ["RS256"]
 	     "token_endpoint_auth_methods_supported" ["none" "client_secret_post"]
              "code_challenge_methods_supported" ["S256"]}
