@@ -41,6 +41,7 @@
                  ;; TODO: This is the intention, to signal back the
                  ;; error to the resource owner. However, currently it
                  ;; fails because SCI doesn't propagate the ex-data.
+                 ;; 2023-05-17: I'm not sure this is correct
                  :juxt.site/request-context *ctx*})))
 
           response-type (get query "response_type")
