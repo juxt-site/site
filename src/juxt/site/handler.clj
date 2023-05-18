@@ -1079,6 +1079,9 @@
                             :ring.response/headers :headers
                             :ring.response/body :body})))))
 
+;; TODO: It's wasteful to call ->storable for each of these
+;; middleware. Call the ->storable once.
+
 (defn wrap-store-request-in-request-cache [h]
   (fn [req]
     (let [req (h req)]
