@@ -13,6 +13,7 @@
    [juxt.site.openid-connect :as openid-connect]
    [juxt.site.util :refer [make-nonce as-b64-str sha]]
    [malli.core :as malli]
+   [malli.error :as malli.error]
    [ring.util.codec :as codec]
    [sci.core :as sci]
    [xtdb.api :as xt]
@@ -397,7 +398,10 @@
 
    'juxt.site.malli
    {'validate (fn validate [schema value] (malli/validate schema value))
-    'explain (fn explain [schema value] (malli/explain schema value))
+    'explain-input (fn explain [input]
+                     (->
+                      (malli/explain (get-in operation-doc [:juxt.site.malli/input-schema]) input)
+                      (malli.error/humanize)))
     'validate-input
     (fn validate-input [input]
       (let [schema (get-in operation-doc [:juxt.site.malli/input-schema])
