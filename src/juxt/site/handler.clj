@@ -999,6 +999,8 @@
     :http (if-let [[_ x] (re-matches #"(.*):80" s)] x s)
     :https (if-let [[_ x] (re-matches #"(.*):443" s)] x s)))
 
+
+
 (defn wrap-initialize-request
   "Initialize request state."
   [h {:juxt.site/keys [xt-node uri-prefix] :as opts}]
@@ -1011,32 +1013,38 @@
     (let [db (xt/db xt-node)
           req-id (new-request-id)
 
-          uri (or uri
-                  (let [host (or
-                              (get-in req [:ring.request/headers "x-forwarded-host"])
-                              (get-in req [:ring.request/headers "host"]))
-                        scheme+authority
-                        (or uri-prefix
-                            (when host
-                              (->
-                               (let [{::rfc7230/keys [host]}
-                                     (host-header-parser
-                                      (re/input
-                                       host))]
-                                 (str (or (get-in req [:ring.request/headers "x-forwarded-proto"])
-                                          (name scheme))
-                                      "://" host))
-                               (str/lower-case) ; See Section 6.2.2.1 of RFC 3986
-                               (http-scheme-normalize scheme)))
-                            (throw (ex-info "Failed to resolve uri-prefix" {:ctx :req})))]
+          {:keys [uri scheme+authority]}
+          (cond
+            uri {:uri uri
+                 :scheme+authority (second (re-matches #"(https?://[^/]+)(/.*)" uri))}
+            :else
+            (let [host (or
+                        (get-in req [:ring.request/headers "x-forwarded-host"])
+                        (get-in req [:ring.request/headers "host"]))
+                  scheme+authority
+                  (or uri-prefix
+                      (when host
+                        (->
+                         (let [{::rfc7230/keys [host]}
+                               (host-header-parser
+                                (re/input
+                                 host))]
+                           (str (or (get-in req [:ring.request/headers "x-forwarded-proto"])
+                                    (name scheme))
+                                "://" host))
+                         (str/lower-case) ; See Section 6.2.2.1 of RFC 3986
+                         (http-scheme-normalize scheme)))
+                      (throw (ex-info "Failed to resolve uri-prefix" {:ctx :req})))]
 
-                    ;; The scheme+authority is already normalized (by transforming to
-                    ;; lower-case). The path, however, needs to be normalized here.
-                    (str scheme+authority (normalize-path (:ring.request/path req)))))
+              ;; The scheme+authority is already normalized (by transforming to
+              ;; lower-case). The path, however, needs to be normalized here.
+              [:uri (str scheme+authority (normalize-path (:ring.request/path req)))
+               :scheme+authority scheme+authority]))
 
           req (into req (merge
                          {:juxt.site/start-date (java.util.Date.)
                           :juxt.site/request-id req-id
+                          :juxt.site/base-uri scheme+authority
                           :juxt.site/uri uri
                           :juxt.site/db db}
                          (dissoc opts :juxt.site/uri-prefix)))]
