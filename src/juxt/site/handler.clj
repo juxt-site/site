@@ -971,7 +971,7 @@
 (defn new-request-id []
   (str "https://example.org/_site/requests/"
        (subs (util/hexdigest
-              (.getBytes (str (java.util.UUID/randomUUID)) "US-ASCII")) 0 24)))
+              (.getBytes (str (java.util.UUID/randomUUID)) "us-ascii")) 0 24)))
 
 (defn normalize-path
   "Normalize path prior to constructing URL used for resource lookup. This is to
