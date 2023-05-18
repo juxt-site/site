@@ -1092,19 +1092,19 @@
 (defn wrap-store-request [h]
   (fn [req]
     (let [req (h req)]
-      (when-let [req-id (:juxt.site/request-id req)]
+      (when (:juxt.site/request-id req)
         (let [{:ring.request/keys [method] :juxt.site/keys [xt-node]} req]
           (when (or (= method :post) (= method :put))
             (xt/submit-tx
              xt-node
              [[:xtdb.api/put (-> req ->storable
-                                (select-keys [:juxt.site/subject
-                                              :juxt.site/date
-                                              :juxt.site/uri
-                                              :ring.request/method
-                                              :ring.response/status])
-                                (assoc :xt/id req-id
-                                       :juxt.site/type "Request"))]]))))
+                                 (select-keys [:juxt.site/subject
+                                               :juxt.site/date
+                                               :juxt.site/uri
+                                               :ring.request/method
+                                               :ring.response/status
+                                               :xt/id
+                                               :juxt.site/type]))]]))))
       req)))
 
 (defn wrap-log-request [h]
