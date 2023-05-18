@@ -1013,15 +1013,15 @@
     (let [db (xt/db xt-node)
           req-id (new-request-id)
 
-          {:keys [uri scheme+authority]}
+          {:keys [uri base-uri]}
           (cond
             uri {:uri uri
-                 :scheme+authority (second (re-matches #"(https?://[^/]+)(/.*)" uri))}
+                 :base-uri (second (re-matches #"(https?://[^/]+)(/.*)" uri))}
             :else
             (let [host (or
                         (get-in req [:ring.request/headers "x-forwarded-host"])
                         (get-in req [:ring.request/headers "host"]))
-                  scheme+authority
+                  base-uri
                   (or uri-prefix
                       (when host
                         (->
@@ -1036,15 +1036,15 @@
                          (http-scheme-normalize scheme)))
                       (throw (ex-info "Failed to resolve uri-prefix" {:ctx :req})))]
 
-              ;; The scheme+authority is already normalized (by transforming to
+              ;; The base-uri is already normalized (by transforming to
               ;; lower-case). The path, however, needs to be normalized here.
-              [:uri (str scheme+authority (normalize-path (:ring.request/path req)))
-               :scheme+authority scheme+authority]))
+              [:uri (str base-uri (normalize-path (:ring.request/path req)))
+               :base-uri base-uri]))
 
           req (into req (merge
                          {:juxt.site/start-date (java.util.Date.)
                           :juxt.site/request-id req-id
-                          :juxt.site/base-uri scheme+authority
+                          :juxt.site/base-uri base-uri
                           :juxt.site/uri uri
                           :juxt.site/db db}
                          (dissoc opts :juxt.site/uri-prefix)))]
