@@ -252,7 +252,7 @@
          (cond->> (q '{:find [(pull e [*])]
                        :where [[e :xt/id]]})
            true (map first)
-           true (filter #(not= (:juxt.site/type %) "Request"))
+           true (filter #(not= (:juxt.site/type %) "https://meta.juxt.site/types/request"))
            pred (filter pred)
            uri-mapping (map (apply-uri-mappings uri-mapping))
            true (sort-by :xt/id))]

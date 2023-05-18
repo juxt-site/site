@@ -566,7 +566,7 @@
 (defn ->storable [{:juxt.site/keys [request-id db] :as req}]
   (-> req
       (into (select-keys db [:xtdb.api/valid-time :xtdb.api/tx-id]))
-      (assoc :xt/id request-id :juxt.site/type "Request")
+      (assoc :xt/id request-id :juxt.site/type "https://meta.juxt.site/types/request")
       redact
       (dissoc :juxt.site/xt-node :juxt.site/db :ring.request/body :ring.response/body)
       (util/deep-replace
