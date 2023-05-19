@@ -2,7 +2,8 @@
  [:reset]
 
  [:bootstrap
-  {:auth-base-uri "http://localhost:4440"}]
+  {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"}]
 
  [:system-api
   {:auth-base-uri "http://localhost:4440"

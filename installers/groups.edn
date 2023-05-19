@@ -124,6 +124,9 @@
    {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/not-found"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/get-not-found"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/get-not-found"}
+   ;; Config
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/config"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/config"}
    ]}
 
  "juxt/site/user-model"

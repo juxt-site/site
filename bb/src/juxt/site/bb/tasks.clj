@@ -249,13 +249,15 @@
   (input-uri {:prompt "Enter data base URI"
               :default "https://"}))
 
-(defn bootstrap [{:keys [auth-base-uri]}]
+(defn bootstrap [{:keys [auth-base-uri data-base-uri]}]
   ;; Use install-resource-groups!
   (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+        data-base-uri (or data-base-uri (input-data-base-uri))
         installers (get-group-installers "juxt/site/bootstrap")]
     (install!
      installers
-     {"https://auth.example.org" auth-base-uri}
+     {"https://auth.example.org" auth-base-uri
+      "https://data.example.org" data-base-uri}
      {}
      {:title "Bootstrapping"
       :success-message "Bootstrap succeeded"})))
