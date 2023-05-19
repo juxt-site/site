@@ -40,8 +40,10 @@
                      (let [operation (xt/entity (:juxt.site/operation method-details))
                            scope (:juxt.site/scope operation)]
                        (merge
-                        {"operationId" (:juxt.site/operation method-details)
-                         "description" (:juxt.site/description method-details)}
+                        {"operationId" (:xt/id operation)
+                         "description" (or
+                                        (:juxt.site/description method-details)
+                                        (:juxt.site/description operation))}
                         (when (seq scope)
                           {"security" [{"oauth" (vec (seq scope))}]})
                         {"responses"
