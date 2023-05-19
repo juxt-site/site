@@ -429,6 +429,7 @@
         (is (nil? (find response "scope"))
             "Scope should not be reported in JSON response")))))
 
+;; TODO: Refactor and support 'password' grant
 (deftest app-with-global-scope-with-specific-scope-requested
   (let [session-token (login-with-form! "alice" "garden")]
     (testing "authorization_code"
