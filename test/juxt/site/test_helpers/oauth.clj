@@ -105,9 +105,7 @@
   a convenience function which can be useful for further testing."
   [{:keys [grant-type authorization-uri token-uri
            session-token client code-challenge-method redirect-uri scope]
-    :or {;;authorization-uri "https://auth.example.test/oauth/authorize"
-         ;;token-uri "https://auth.example.test/oauth/token"
-         code-challenge-method "S256"}
+    :or {code-challenge-method "S256"}
     :as args}]
   (assert authorization-uri "Must provide authorization-uri")
   (assert grant-type "Must provide grant-type")
