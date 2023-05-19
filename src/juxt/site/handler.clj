@@ -1006,12 +1006,11 @@
   [h {:juxt.site/keys [xt-node uri-prefix] :as opts}]
   (assert xt-node)
   (fn [{:ring.request/keys [scheme path]
-        :juxt.site/keys [uri vhost-config] :as req}]
+        :juxt.site/keys [uri] :as req}]
 
     (assert (not (and uri path)))
 
     (let [db (xt/db xt-node)
-          req-id (new-request-id vhost-config)
 
           {:keys [uri base-uri]}
           (cond
@@ -1043,20 +1042,19 @@
 
           ;; Virtual host config lets us know where to put requests
           ;; and events.
-          vhost-config (xt/entity db (str base-uri "_/site/config"))
+          vhost-config (xt/entity db (str base-uri "/_site/config"))
+
+          req-id (new-request-id vhost-config)
 
           req (into req
                     (cond-> (merge
                              {:juxt.site/start-date (java.util.Date.)
                               :juxt.site/uri uri
                               :juxt.site/base-uri base-uri
-                              :juxt.site/db db
-                              }
+                              :juxt.site/db db}
                              (dissoc opts :juxt.site/uri-prefix))
                       req-id (assoc :juxt.site/request-id req-id)
-                      vhost-config (assoc :juxt.site/vhost-config vhost-config)
-                      )
-                    )]
+                      vhost-config (assoc :juxt.site/vhost-config vhost-config)))]
 
       ;; The Ring request map becomes the container for all state collected
       ;; along the request processing pathway.
@@ -1107,21 +1105,20 @@
       req)))
 
 (defn wrap-store-request [h]
-  (fn [req]
+  (fn [{:juxt.site/keys [xt-node] :as req}]
     (let [req (h req)]
       (when (:juxt.site/request-id req)
-        (let [{:ring.request/keys [method] :juxt.site/keys [xt-node]} req]
-          (when (or (= method :post) (= method :put))
-            (xt/submit-tx
-             xt-node
-             [[:xtdb.api/put (-> req ->storable
-                                 (select-keys [:juxt.site/subject
-                                               :juxt.site/date
-                                               :juxt.site/uri
-                                               :ring.request/method
-                                               :ring.response/status
-                                               :xt/id
-                                               :juxt.site/type]))]]))))
+        (xt/submit-tx
+         xt-node
+         [[:xtdb.api/put
+           (-> req ->storable
+               (select-keys [:juxt.site/subject
+                             :juxt.site/date
+                             :juxt.site/uri
+                             :ring.request/method
+                             :ring.response/status
+                             :xt/id
+                             :juxt.site/type]))]]))
       req)))
 
 (defn wrap-log-request [h]

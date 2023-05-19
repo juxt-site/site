@@ -98,7 +98,8 @@
              :where [[e :xt/id]]})
         (map first)
         (filter (fn [e]
-                  (not (#{"https://meta.juxt.site/types/event"}
+                  (not (#{"https://meta.juxt.site/types/event"
+                          "https://meta.juxt.site/types/request"}
                         (:juxt.site/type e)))))
         (map :xt/id)
         (sort-by str)))
