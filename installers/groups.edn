@@ -22,7 +22,8 @@
    ;; API resources
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapi.json"}
-   ;; /operations
+
+   ;; Operations
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/get-operations"}
    {:juxt.site/base-uri "https://auth.example.org"
@@ -33,9 +34,12 @@
     :juxt.site/installer-path "/_site/operations.html"}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/operations.json"}
-   ;; /users
+
+   ;; Users
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/get-users"}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/operations/get-user"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-user"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -46,6 +50,7 @@
     :juxt.site/installer-path "/_site/users.json"}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users/{username}"}
+
    ;; Roles
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/roles/{{role}}"
@@ -70,6 +75,12 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/get-access-token"}
 
+   ;; Requests
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/operations/get-requests"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/requests"}
+
    ;; Permissions (mapping roles to operations)
 
    ;; System role
@@ -82,6 +93,9 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "System" "operation" "put-user"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "System" "operation" "get-requests"}}
 
    ;; SystemReadonly role
    {:juxt.site/base-uri "https://auth.example.org"
@@ -90,6 +104,9 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-user"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-requests"}}
 
    ;; Scopes
    ;; TODO: use these descriptions in the generation of openapi.json
@@ -175,7 +192,7 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/clients/test/public-read-write-scope-app"}
    ]}
 
-  "juxt/site/site-cli-client"
+ "juxt/site/site-cli-client"
  {:juxt.site/description "Test clients"
   :juxt.site/installers
   [
