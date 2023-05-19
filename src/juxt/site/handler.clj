@@ -968,10 +968,12 @@
     (catch Exception e
       (throw (ex-info "Illegal host format" {:host host} e)))))
 
-(defn new-request-id []
-  (str "https://example.org/_site/requests/"
-       (subs (util/hexdigest
-              (.getBytes (str (java.util.UUID/randomUUID)) "us-ascii")) 0 24)))
+(defn new-request-id [vhost-config]
+  (when-let [base-uri (:juxt.site/requests-base-uri vhost-config)]
+    (str base-uri
+         "/_site/requests/"
+         (subs (util/hexdigest
+                (.getBytes (str (java.util.UUID/randomUUID)) "us-ascii")) 0 24))))
 
 (defn normalize-path
   "Normalize path prior to constructing URL used for resource lookup. This is to
@@ -999,19 +1001,17 @@
     :http (if-let [[_ x] (re-matches #"(.*):80" s)] x s)
     :https (if-let [[_ x] (re-matches #"(.*):443" s)] x s)))
 
-
-
 (defn wrap-initialize-request
   "Initialize request state."
   [h {:juxt.site/keys [xt-node uri-prefix] :as opts}]
   (assert xt-node)
   (fn [{:ring.request/keys [scheme path]
-        :juxt.site/keys [uri] :as req}]
+        :juxt.site/keys [uri vhost-config] :as req}]
 
     (assert (not (and uri path)))
 
     (let [db (xt/db xt-node)
-          req-id (new-request-id)
+          req-id (new-request-id (:juxt.site/vhost-config req))
 
           {:keys [uri base-uri]}
           (cond
@@ -1041,13 +1041,22 @@
               [:uri (str base-uri (normalize-path (:ring.request/path req)))
                :base-uri base-uri]))
 
-          req (into req (merge
-                         {:juxt.site/start-date (java.util.Date.)
-                          :juxt.site/request-id req-id
-                          :juxt.site/base-uri base-uri
-                          :juxt.site/uri uri
-                          :juxt.site/db db}
-                         (dissoc opts :juxt.site/uri-prefix)))]
+          ;; Virtual host config lets us know where to put requests
+          ;; and events.
+          vhost-config (xt/entity db (str base-uri "_/site/config"))
+
+          req (into req
+                    (cond-> (merge
+                             {:juxt.site/start-date (java.util.Date.)
+                              :juxt.site/uri uri
+                              :juxt.site/base-uri base-uri
+                              :juxt.site/db db
+                              }
+                             (dissoc opts :juxt.site/uri-prefix))
+                      req-id (assoc :juxt.site/request-id req-id)
+                      vhost-config (assoc :juxt.site/vhost-config vhost-config)
+                      )
+                    )]
 
       ;; The Ring request map becomes the container for all state collected
       ;; along the request processing pathway.
