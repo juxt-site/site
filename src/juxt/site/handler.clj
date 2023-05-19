@@ -1011,7 +1011,7 @@
     (assert (not (and uri path)))
 
     (let [db (xt/db xt-node)
-          req-id (new-request-id (:juxt.site/vhost-config req))
+          req-id (new-request-id vhost-config)
 
           {:keys [uri base-uri]}
           (cond
@@ -1038,8 +1038,8 @@
 
               ;; The base-uri is already normalized (by transforming to
               ;; lower-case). The path, however, needs to be normalized here.
-              [:uri (str base-uri (normalize-path (:ring.request/path req)))
-               :base-uri base-uri]))
+              {:uri (str base-uri (normalize-path (:ring.request/path req)))
+               :base-uri base-uri}))
 
           ;; Virtual host config lets us know where to put requests
           ;; and events.
