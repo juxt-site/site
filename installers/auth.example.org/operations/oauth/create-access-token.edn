@@ -120,21 +120,13 @@
          :new-refresh-token (juxt.site.util/make-nonce 16)}
 
         "password"
-        {:grant-type "password"
-
-         :form form
-
-         ;;:username (get form "username")
-
-         ;; TODO: Is there a way of hashing this now, prior to sending
-         ;; to an XT node, to avoid sending a password in plain-text?
-         ;;:password (get form "password")
-         ;;:client-id (get form "client_id")
-         ;;:scope (get form "scope")
-
-         :new-subject-id (juxt.site.util/make-nonce 10)
-         :new-access-token (juxt.site.util/make-nonce 16)
-         :new-refresh-token (juxt.site.util/make-nonce 16)}))}
+        (let [scope (get form "scope")]
+          (cond-> {:grant-type "password"
+                   :form form
+                   :new-subject-id (juxt.site.util/make-nonce 10)
+                   :new-access-token (juxt.site.util/make-nonce 16)
+                   :new-refresh-token (juxt.site.util/make-nonce 16)}
+            scope (assoc :scope (set (clojure.string/split scope (re-pattern " "))))))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
@@ -387,7 +379,11 @@
             (let [client-id (get-in *prepare* [:form "client_id"])
                   _ (assert client-id)
 
-                  [{:juxt.site/keys [origin resource-server] :as client-doc} & others]
+                  requested-scope (:scope *prepare*)
+
+                  [{:juxt.site/keys [origin resource-server]
+                    client-scope :juxt.site/scope
+                    :as client-doc} & others]
                   (juxt.site/lookup-client client-id)
 
                   _ (when-not client-doc
@@ -400,6 +396,30 @@
                         "error_description" "Multiple clients registered with that client_id"}))
 
                   _ (assert resource-server)
+
+                  available-scope
+                  (set
+                   (map first
+                        (xt/q '{:find [e]
+                                :where [[e :juxt.site/type "https://meta.juxt.site/types/scope"]
+                                        [e :juxt.site/issuer "https://auth.example.org"]]})))
+
+                  scope (cond
+                          (and requested-scope client-scope)
+                          (clojure.set/intersection requested-scope client-scope available-scope)
+
+                          (and requested-scope (nil? client-scope))
+                          (clojure.set/intersection requested-scope available-scope)
+
+                          (and (nil? requested-scope) client-scope)
+                          (clojure.set/intersection client-scope available-scope)
+
+                          :otherwise nil)
+
+                  _ (when (= #{} scope)
+                      (error
+                       {"error" "invalid_scope"
+                        "error_description" "No intersection between requested scope and available scope"}))
 
                   now (java.time.Instant/now)
                   issued-at (java.util.Date/from now)
@@ -419,7 +439,7 @@
                   (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" access-token)
                            :juxt.site/type "https://meta.juxt.site/types/access-token"
                            :juxt.site/grant-type "password"
-                           :juxt.site/subject subject
+                           :juxt.site/subject (:xt/id subject)
                            :juxt.site/issuer "https://auth.example.org"
                            :juxt.site/issued-at issued-at
                            :juxt.site/not-before not-before
@@ -434,6 +454,7 @@
                            :juxt.site/token access-token
                            ;;:juxt.site/keypair keypair
                            }
+                    scope (assoc :juxt.site/scope scope)
                     username (assoc :juxt.site/username username))
 
                   new-refresh-token (get *prepare* :new-refresh-token)
@@ -452,18 +473,21 @@
                                   :juxt.site/issuer
                                   :juxt.site/issued-at
                                   :juxt.site/application])
+                          scope (assoc :juxt.site/scope scope)
                           username (assoc :juxt.site/username username)))]
 
               (let [body (->>
-                          {"access_token" access-token
-                           "token_type" "bearer"
-                           "expires_in" (.getSeconds access-token-expires-in)
-                           "refresh_token" new-refresh-token}
+                          (cond-> {"access_token" access-token
+                                   "token_type" "bearer"
+                                   "expires_in" (.getSeconds access-token-expires-in)
+                                   "refresh_token" new-refresh-token}
+                            scope (assoc "scope" (clojure.string/join " " scope)))
                           jsonista.core/write-value-as-string
                           (format "%s\r\n"))]
                 [
                  [:xtdb.api/put access-token-doc issued-at access-token-expiry]
                  [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
+                 [:xtdb.api/put subject issued-at refresh-token-expiry]
                  [:ring.response/status 200]
                  [:ring.response/headers
                   {"content-type" "application/json"

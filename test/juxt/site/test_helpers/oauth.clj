@@ -104,7 +104,8 @@
   "Having thoroughly tested the authorization flows, we can now provide
   a convenience function which can be useful for further testing."
   [{:keys [grant-type authorization-uri token-uri
-           session-token client code-challenge-method redirect-uri scope]
+           session-token client code-challenge-method redirect-uri scope
+           username password]
     :or {code-challenge-method "S256"}
     :as args}]
   (assert authorization-uri "Must provide authorization-uri")
@@ -206,7 +207,31 @@
 
         (codec/form-decode encoded-access-token))
 
-      )))
+      "password"
+      (let [_ (assert username "Must provide username")
+            _ (assert password "Must provide username")
+            token-request (make-token-request
+                           token-uri
+                           ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.3.2
+                           (merge
+                            ;; REQUIRED
+                            {"grant_type" "password"
+                             "username" username
+                             "password" password
+                             "client_id" client-id}
+                            ;; OPTIONAL
+                            (when scope {"scope" (str/join " " scope)})))
+
+            {:ring.response/keys [status body] :as response}
+            (*handler* token-request)]
+
+        (when (= status 500)
+          (throw (ex-info "Error on token acquisition" {:response response})))
+
+        ;; Avoid confusion later
+        (assert (contains? #{200 400} status) (str status))
+
+        (json/read-value body)))))
 
 (malli/=>
  acquire-access-token!

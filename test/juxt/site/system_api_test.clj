@@ -13,7 +13,8 @@
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
+   [xtdb.api :as xt]))
 
 ;; Welcome to the System API test suite
 
@@ -126,14 +127,18 @@
 ;; TODO: Can a client-id be a URI?
 
 (deftest put-user-combinations-test
-  (letfn [(login [username]
+  (letfn [(password [username]
+            (case username
+              "alice" "garden"
+              "bob" "walrus"))
+          (login [username]
             (login/login-with-form!
              username
-             (case username
-               "alice" "garden"
-               "bob" "walrus")))
+             (password username)))
+
           (absolute-scope [scopes]
             (set (map (fn [scope] (str "https://auth.example.test/scopes/" scope)) scopes)))]
+
     (are [username client grant-type requested-scope expected-status]
         (testing (cond-> (format "%s using %s with %s grant" username client grant-type)
                    requested-scope (str " requesting " (str/join ", " requested-scope)))
@@ -144,7 +149,9 @@
                           :authorization-uri "https://auth.example.test/oauth/authorize"
                           :token-uri "https://auth.example.test/oauth/token"
                           :session-token session-token
-                          :client (str "https://auth.example.test/clients/" client)}
+                          :client (str "https://auth.example.test/clients/" client)
+                          :username username
+                          :password (password username)}
                    requested-scope (assoc :scope (absolute-scope requested-scope))))]
             (oauth/with-bearer-token access-token
               (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/_site/users/hannah"}))
@@ -160,53 +167,63 @@
       ;; Alice has permission, and using a client with global-scope
         "alice" "global-scope-app" "authorization_code" nil 200
         "alice" "global-scope-app" "implicit" nil 200
+        "alice" "global-scope-app" "password" nil 200
 
         ;; Alice has permission, requesting write scope from a client
         ;; with global scope
         "alice" "global-scope-app" "authorization_code" #{"system/read" "system/write"} 200
         "alice" "global-scope-app" "implicit" #{"system/read" "system/write"} 200
+        "alice" "global-scope-app" "password" #{"system/read" "system/write"} 200
 
         ;; Alice has permission, but not requesting sufficient scope
         ;; from a client with global scope means she cannot create a
         ;; user.
         "alice" "global-scope-app" "authorization_code" #{"system/read"} 403
         "alice" "global-scope-app" "implicit" #{"system/read"} 403
+        "alice" "global-scope-app" "password" #{"system/read"} 403
 
         ;; Alice has permission, and can use a client with sufficient
         ;; scope to create a user.
         "alice" "read-write-app" "authorization_code" nil 200
         "alice" "read-write-app" "implicit" nil 200
+        "alice" "read-write-app" "password" nil 200
 
         ;; Alice has permission, using a client with sufficient scope
         ;; but requesting insufficient scope to create a user.  scope to
         ;; create a user results in a Forbidden response.
         "alice" "read-write-app" "authorization_code" #{"system/read"} 403
         "alice" "read-write-app" "implicit" #{"system/read"} 403
+        "alice" "read-write-app" "password" #{"system/read"} 403
 
         ;; Alice has permission, using a client with sufficient scope
         ;; and explicitly requesting sufficient scope to create a user.
         "alice" "read-write-app" "authorization_code" #{"system/write"} 200
         "alice" "read-write-app" "implicit" #{"system/write"} 200
+        "alice" "read-write-app" "password" #{"system/write"} 200
 
         ;; Alice has permission, but using a client with insufficient
         ;; scope.
         "alice" "read-only-app" "authorization_code" nil 403
         "alice" "read-only-app" "implicit" nil 403
+        "alice" "read-only-app" "password" nil 403
 
         ;; Alice has permission, but using a client with insufficient
         ;; scope and explicitly requesting insufficient scope.
         "alice" "read-only-app" "authorization_code" #{"system/read"} 403
         "alice" "read-only-app" "implicit" #{"system/read"} 403
+        "alice" "read-only-app" "password" #{"system/read"} 403
 
         ;; Bob can't add users, regardless of the application he uses.
         "bob" "global-scope-app" "authorization_code" nil 403
         "bob" "global-scope-app" "implicit" nil 403
+        "bob" "global-scope-app" "password" nil 403
 
         ;; Bob doesn't have permission to add users, and this means he
         ;; can't add users even if he's able to request sufficient
         ;; scope with a client that is configured with global scope.
         "bob" "global-scope-app" "authorization_code" #{"system/read" "system/write"} 403
         "bob" "global-scope-app" "implicit" #{"system/read" "system/write"} 403
+        "bob" "global-scope-app" "password" #{"system/read" "system/write"} 403
 
         ;; Bob doesn't have permission to add users, and this means he
         ;; can't add users even if he's able to request sufficient
@@ -214,21 +231,24 @@
         ;; scope.
         "bob" "read-write-app" "authorization_code" #{"system/read" "system/write"} 403
         "bob" "read-write-app" "implicit" #{"system/read" "system/write"} 403
+        "bob" "read-write-app" "password" #{"system/read" "system/write"} 403
 
         ;; Bob doesn't have permission to add users, using a client
         ;; with insufficient scope.
         "bob" "read-only-app" "authorization_code" nil 403
         "bob" "read-only-app" "implicit" nil 403
+        "bob" "read-only-app" "password" nil 403
 
         ;; Bob doesn't have permission to add users, using a client
         ;; with insufficient scope, explicitly request insufficient
         ;; scope.
         "bob" "read-only-app" "authorization_code" #{"system/read"} 403
         "bob" "read-only-app" "implicit" #{"system/read"} 403
+        "bob" "read-only-app" "password" #{"system/read"} 403
         )))
 
 (deftest put-user-with-json-test
- (let [session-token (login/login-with-form! "alice" "garden")
+  (let [session-token (login/login-with-form! "alice" "garden")
        {access-token "access_token"}
        (oauth/acquire-access-token!
         (cond-> {:grant-type "authorization_code"
