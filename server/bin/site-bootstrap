@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export SITE_HOME=$(dirname $0)/../..
+bb --config $SITE_HOME/server/init/site-bootstrap.edn $*

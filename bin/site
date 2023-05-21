@@ -1,4 +1,0 @@
-#!/bin/bash
-
-export SITE_HOME=$(dirname $0)/..
-bb --config $SITE_HOME/bb.edn $*

@@ -1,0 +1,5 @@
+[
+ [:auth-server
+  {:auth-base-uri "http://localhost:4440"
+   :session-scope "http://localhost:4440/session-scopes/form-login-session"
+   }]]

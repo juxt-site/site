@@ -1,10 +1,10 @@
 ;; See https://book.babashka.org/#tasks
 {:min-bb-version "0.6.2"
- :paths ["bb/src"]
+ :paths ["src"]
  :deps {io.github.lispyclouds/bblgum {:git/sha "7ebae0e2231899fe2a6ad44bc9ef5fca64099fcd"}
         org.babashka/cli {:mvn/version "0.4.39"}}
  :tasks
- {:requires (juxt.site.bb.tasks
+ {:requires (juxt.site.bb.bootstrap.tasks
              [clojure.core.async :as async]
              [clojure.edn :as edn]
              [clojure.java.io :as io]
@@ -12,50 +12,50 @@
 
   debug
   {:doc "DEBUG"
-   :task (juxt.site.bb.tasks/debug)}
+   :task (juxt.site.bb.bootstrap.tasks/debug)}
 
   reset
   {:doc "Factory reset"
-   :task (juxt.site.bb.tasks/reset)}
+   :task (juxt.site.bb.bootstrap.tasks/reset)}
 
   bootstrap
   {:doc "Bootstrap system"
-   :task (juxt.site.bb.tasks/bootstrap {})}
+   :task (juxt.site.bb.bootstrap.tasks/bootstrap {})}
 
-  ls {:task (juxt.site.bb.tasks/ls)}
-  ls-site-type {:task (juxt.site.bb.tasks/ls-site-type (first *command-line-args*))}
-  users {:task (juxt.site.bb.tasks/ls-type "user")}
-  access-tokens {:task (juxt.site.bb.tasks/ls-type "access-token")}
+  ls {:task (juxt.site.bb.bootstrap.tasks/ls)}
+  ls-site-type {:task (juxt.site.bb.bootstrap.tasks/ls-site-type (first *command-line-args*))}
+  users {:task (juxt.site.bb.bootstrap.tasks/ls-type "user")}
+  access-tokens {:task (juxt.site.bb.bootstrap.tasks/ls-type "access-token")}
 
   install-login-form
-  {:task (juxt.site.bb.tasks/install-login-form {})}
+  {:task (juxt.site.bb.bootstrap.tasks/install-login-form {})}
 
   openid
-  {:task (juxt.site.bb.tasks/openid {})}
+  {:task (juxt.site.bb.bootstrap.tasks/openid {})}
 
   system-api
-  {:task (juxt.site.bb.tasks/system-api {})}
+  {:task (juxt.site.bb.bootstrap.tasks/system-api {})}
 
   auth-server
-  {:task (juxt.site.bb.tasks/auth-server {})}
+  {:task (juxt.site.bb.bootstrap.tasks/auth-server {})}
 
   add-user
-  {:task (juxt.site.bb.tasks/add-user {})}
+  {:task (juxt.site.bb.bootstrap.tasks/add-user {})}
 
   add-system
-  {:task (juxt.site.bb.tasks/add-system-user {})}
+  {:task (juxt.site.bb.bootstrap.tasks/add-system-user {})}
 
   grant-role
-  {:task (juxt.site.bb.tasks/grant-role {})}
+  {:task (juxt.site.bb.bootstrap.tasks/grant-role {})}
 
   register-application
-  {:task (juxt.site.bb.tasks/register-application {})}
+  {:task (juxt.site.bb.bootstrap.tasks/register-application {})}
 
   register-scope
-  {:task (juxt.site.bb.tasks/register-scope {})}
+  {:task (juxt.site.bb.bootstrap.tasks/register-scope {})}
 
   request-access-token
-  {:task (juxt.site.bb.tasks/request-access-token {})}
+  {:task (juxt.site.bb.bootstrap.tasks/request-access-token {})}
 
   apply
   {:task
@@ -71,9 +71,9 @@
 
          config (edn/read-string (slurp config-file))]
 
-     (binding [juxt.site.bb.tasks/*no-confirm* no-confirm]
+     (binding [juxt.site.bb.bootstrap.tasks/*no-confirm* no-confirm]
        (doseq [[task-kw args] config
-               :let [task (ns-resolve 'juxt.site.bb.tasks (symbol task-kw))]]
+               :let [task (ns-resolve 'juxt.site.bb.bootstrap.tasks (symbol task-kw))]]
          (if args
            (task args)
            (task)))))}}}

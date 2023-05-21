@@ -1,6 +1,6 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site.bb.tasks
+(ns juxt.site.bb.bootstrap.tasks
   (:require
    [juxt.site.install.common-install-util :as ciu]
    [bblgum.core :as b]
@@ -142,7 +142,7 @@
 (defn push! [expr opts]
   (let [{:keys [status result]}
         (b/gum {:cmd :spin
-                :args ["/bin/bash" (format "%s/bin/site-push" (System/getenv "SITE_HOME")) "-e" (pr-str expr)]
+                :args ["/bin/bash" (format "%s/server/bin/site-push" (System/getenv "SITE_HOME")) "-e" (pr-str expr)]
                 :opts (->
                        (merge
                         {:spinner "points"

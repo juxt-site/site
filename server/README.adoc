@@ -1,0 +1,7 @@
+= Site Server
+
+== Running the tests
+
+----
+make test
+----

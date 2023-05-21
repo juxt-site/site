@@ -9,10 +9,16 @@
    [clojure.java.io :as io]
    [juxt.site.install.common-install-util :as ciu]))
 
+(defn get-root-dir []
+  ;; Just assume where we're calling the tests from for now, but allow
+  ;; an override in future.
+  (io/file ".."))
+
 (defn install-installer-groups!
   ([names uri-map parameter-map]
-   (let [graph (ciu/unified-installer-map (io/file "installers") uri-map)
-         groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
+   (let [root-dir (get-root-dir)
+         graph (ciu/unified-installer-map (io/file root-dir "installers") uri-map)
+         groups (edn/read-string (slurp (io/file root-dir "installers/groups.edn")))]
      (doseq [n names
              :let [resources (some-> groups (get n) :juxt.site/installers)]]
        (install/converge!
@@ -21,5 +27,5 @@
         graph parameter-map)))))
 
 (defn converge! [resources uri-map parameter-map]
-  (let [graph (ciu/unified-installer-map (io/file "installers") uri-map)]
+  (let [graph (ciu/unified-installer-map (io/file (get-root-dir) "installers") uri-map)]
     (install/converge! *xt-node* resources graph parameter-map)))
