@@ -317,11 +317,14 @@
        {:title "Installing authorization server"}))))
 
 (defn register-application
-  [{:keys [auth-base-uri client-id origin resource-server redirect-uris scope]}]
+  [{:keys [auth-base-uri data-base-uri
+           client-id origin resource-server redirect-uris scope]}]
   (binding [*heading* "Register application"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          data-base-uri (or data-base-uri (input-data-base-uri))
           client-id (or client-id (input {:prompt "Client ID" :value client-id}))
-          uri-map {"https://auth.example.org" auth-base-uri}
+          uri-map {"https://auth.example.org" auth-base-uri
+                   "https://data.example.org" data-base-uri}
           installers [{:juxt.site/base-uri "https://auth.example.org"
                        :juxt.site/installer-path (format "/clients/%s" client-id)}]]
 

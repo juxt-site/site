@@ -21,10 +21,12 @@
 
  [:register-application
   {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"
    :client-id "swagger-ui"}]
 
  [:register-application
   {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"
    :client-id "site-cli"}]
 
  ;; Add password-based admin user
