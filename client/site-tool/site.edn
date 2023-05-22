@@ -14,4 +14,12 @@
   {:doc "DEBUG"
    :task (juxt.site.bb.tasks/debug)}
 
+  ping
+  {:doc "Check server health"
+   :task (juxt.site.bb.tasks/ping)}
+
+  get-token
+  {:doc "get-token using the resource owner credentials grant"
+   :task (juxt.site.bb.tasks/get-token)}
+
   }}
