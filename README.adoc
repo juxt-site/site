@@ -62,6 +62,15 @@ site$ bb --version
 babashka v1.1.172
 ----
 
+. Ensure you have https://clojure.org/[Clojure] version v1.11 or later installed.
++
+----
+site$ clj --version
+Clojure CLI version 1.11.1.1273
+----
+
+. Ensure you have https://github.com/charmbracelet/gum/[gum] installed.
+
 . Copy `server/etc/config.edn` to `$HOME/.config/site/config.edn`
 +
 ----
@@ -97,7 +106,7 @@ Site OK!
 site$ server/bin/site-bootstrap apply -c server/init/scripts/localhost/clean-eval-deploy.edn
 ----
 +
-Follow the prompts to bootstrap the system and add your initial user.
+Follow the prompts, accepting all the defaults, to bootstrap the system and add your initial user.
 
 . With a browser, navigate to https://petstore.swagger.io/
 .. Change the main text-input to http://localhost:4444/_site/openapi.json
