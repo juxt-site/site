@@ -61,6 +61,9 @@
                   'object (fn [x] (pr-str x))}}
                 reader)]
     (pprint result)
+    (.close writer)
+    (.close reader)
+    (.close s)
     (if (:error result)
       (System/exit 1)
       (System/exit 0))))
