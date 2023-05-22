@@ -19,6 +19,14 @@ products are great for simple CRUD applications but don't work well
 for more sophisticated use-cases.  Site is intended to handle the more
 complex projects which many BaaS products can't.
 
+== Status
+
+Site 2.0 is not yet ready for evaluation and is in the process of
+maturing. We are developing 'in the open', please treat this
+repository in that spirit.
+
+The previous 1.0 generation of Site is maintained at https://github.com/juxt/site.
+
 == What is Site and how would I use it?
 
 * You work for an organisation and want to provide a platform to
@@ -54,32 +62,56 @@ site$ bb --version
 babashka v1.1.172
 ----
 
-. Copy `etc/config.edn` to `$HOME/.config/site/config.edn`
+. Copy `server/etc/config.edn` to `$HOME/.config/site/config.edn`
 +
 ----
 site$ mkdir -p $HOME/.config/site
-site$ cp etc/config.edn $HOME/.config/site/config.edn
+site$ cp server/etc/config.edn $HOME/.config/site/config.edn
 ----
 Review the config at `$HOME/.config/site/config.edn` and make any appropriate modifications.
 
 . Start the Site instance
 +
 ----
-site$ bin/site-server
+site$ server/bin/site-server
 ----
 
-. Start a new terminal and `cd` into your Site directory.
+. Check the server starts up
++
+----
+Site by JUXT. Copyright (c) 2020-2023, JUXT LTD.
+2023-05-22 11:02:46.508:INFO::main: Logging initialized @5804ms to org.eclipse.jetty.util.log.StdErrLog
+----
++
+----
+site$ curl http://localhost:4444/_site/healthcheck
+----
++
+----
+Site OK!
+----
 
 . Bootstrap your Site instance by deploying a minimal set of resources
 +
 ----
-site$ site apply -c scripts/localhost/clean-deploy.edn
+site$ server/bin/site-bootstrap apply -c server/init/scripts/localhost/clean-eval-deploy.edn
 ----
++
+Follow the prompts to bootstrap the system and add your initial user.
 
-
+. With a browser, navigate to https://petstore.swagger.io/
+.. Change the main text-input to http://localhost:4444/_site/openapi.json
+.. Click on /whoami, 'Try it out' and 'Execute' (this should yield a `401 Error: Unauthorized`)
+.. Click on 'Authorize', ensure client_id is set to `swagger-ui`, under Scopes, click on `select-all`
+.. Login if necessary with the username/password that you entered when bootstrapping the system
+.. If the login succeeded, click on `Close`.
+.. Click again on `Execute` of the `/whoami` resource. This should now return a 200.
 
 
 == (Old instructions)
+
+NOTE: We're keeping these instructions as they're useful if you want
+to configure a reverse-proxy with proper hostnames.
 
 If you're really keen, you can try out Site and use Swagger UI as a test client.
 Follow these instructions:
@@ -211,12 +243,6 @@ Some types of resource, such as 'operations', may contain Site 'programs' that a
 All resources are stored in the database, including all program code.
 
 Currently, the only available programming language is https://github.com/babashka/sci/[SCI].
-
-== Status
-
-The previous 1.0 generation of Site is maintained at https://github.com/juxt/site.
-
-This 2.0 generation is in development. Please do not use until further notice.
 
 == Consulting
 
