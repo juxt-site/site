@@ -18,7 +18,8 @@
    [sci.core :as sci]
    [xtdb.api :as xt]
    juxt.site.schema
-   [juxt.site.jwt :as jwt]))
+   [juxt.site.jwt :as jwt]
+   [juxt.site.util :as util]))
 
 (defn operation->rules
   "Determine rules for the given operation id. A rule is bound to the
@@ -388,17 +389,11 @@
       (assert code-challenge)
       (assert code-challenge-method)
       (case code-challenge-method
-        "S256" (let [new-code-challenge (-> code-verifier
-                                            (.getBytes)
-                                            (sha "SHA-256")
-                                            as-b64-str
-                                            (str/replace "=" ""))]
+        "S256" (let [new-code-challenge (util/code-challenge code-verifier)]
                  {:verified? (= code-challenge new-code-challenge)
                   :code-challenge code-challenge
                   :code-verifier code-verifier
-                  :new-code-challenge new-code-challenge
-                  }
-                 )))}
+                  :new-code-challenge new-code-challenge})))}
 
    'juxt.site.malli
    {'validate (fn validate [schema value] (malli/validate schema value))

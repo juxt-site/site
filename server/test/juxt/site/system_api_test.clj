@@ -249,35 +249,35 @@
 
 (deftest put-user-with-json-test
   (let [session-token (login/login-with-form! "alice" "garden")
-       {access-token "access_token"}
-       (oauth/acquire-access-token!
-        (cond-> {:grant-type "authorization_code"
-                 :authorization-uri "https://auth.example.test/oauth/authorize"
-                 :token-uri "https://auth.example.test/oauth/token"
-                 :session-token session-token
-                 :client (str "https://auth.example.test/clients/global-scope-app")}))]
-   (oauth/with-bearer-token access-token
-     ;; TODO: Also try with a batch of multiple users
-     (let [payload (json/write-value-as-bytes {"xt/id" "https://data.example.test/_site/users/hannah"
-                                               "fullname" "Hannah"
-                                               "username" "hannah"})
-           request {:juxt.site/uri "https://data.example.test/_site/users"
-                    :ring.request/method :post
-                    :ring.request/headers
-                    {"content-type" "application/json"
-                     "content-length" (str (count payload))}
-                    :ring.request/body (io/input-stream payload)}
-           response (*handler* request)]
-       (is (= 200 (:ring.response/status response)))
+        {access-token "access_token"}
+        (oauth/acquire-access-token!
+         (cond-> {:grant-type "authorization_code"
+                  :authorization-uri "https://auth.example.test/oauth/authorize"
+                  :token-uri "https://auth.example.test/oauth/token"
+                  :session-token session-token
+                  :client (str "https://auth.example.test/clients/global-scope-app")}))]
+    (oauth/with-bearer-token access-token
+      ;; TODO: Also try with a batch of multiple users
+      (let [payload (json/write-value-as-bytes {"xt/id" "https://data.example.test/_site/users/hannah"
+                                                "fullname" "Hannah"
+                                                "username" "hannah"})
+            request {:juxt.site/uri "https://data.example.test/_site/users"
+                     :ring.request/method :post
+                     :ring.request/headers
+                     {"content-type" "application/json"
+                      "content-length" (str (count payload))}
+                     :ring.request/body (io/input-stream payload)}
+            response (*handler* request)]
+        (is (= 200 (:ring.response/status response)))
 
-       (let [request {:juxt.site/uri "https://data.example.test/_site/users/hannah"
-                      :ring.request/method :get
-                      :ring.request/headers
-                      {"accept" "application/json"}
-                      }
-             response (*handler* request)]
-         (is (= 200 (:ring.response/status response)))
-         (is (= {"username" "hannah", "fullname" "Hannah"} (json/read-value (:ring.response/body response)))))))))
+        (let [request {:juxt.site/uri "https://data.example.test/_site/users/hannah"
+                       :ring.request/method :get
+                       :ring.request/headers
+                       {"accept" "application/json"}
+                       }
+              response (*handler* request)]
+          (is (= 200 (:ring.response/status response)))
+          (is (= {"username" "hannah", "fullname" "Hannah"} (json/read-value (:ring.response/body response)))))))))
 
 
 #_(jsonista.core/read-value

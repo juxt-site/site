@@ -2,7 +2,8 @@
 
 (ns juxt.site.util
   (:require
-   [juxt.clojars-mirrors.nippy.v3v1v1.taoensso.nippy.utils :refer [freezable?]]))
+   [juxt.clojars-mirrors.nippy.v3v1v1.taoensso.nippy.utils :refer [freezable?]]
+   [clojure.string :as str]))
 
 (defn assoc-when-some [m k v]
   (cond-> m v (assoc k v)))
@@ -137,5 +138,13 @@
                              (range (int \0) (inc (int \9)))
                              [\- \. \_ \~]))))))
 
+(defn base64-urlencode [arg]
+  (let [b64 (as-b64-str arg)]
+    (-> (str/split b64 #"=")
+        first
+        (str/replace \+ \-)
+        (str/replace \/ \_))))
+
+;; See https://www.rfc-editor.org/rfc/rfc7636#appendix-A
 (defn code-challenge [code-verifier]
-  (as-b64-str (sha (.getBytes code-verifier) "SHA-256")))
+  (base64-urlencode (sha (.getBytes code-verifier) "SHA-256")))
