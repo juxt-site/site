@@ -206,7 +206,7 @@
                            :juxt.site/type "https://meta.juxt.site/types/access-token"
                            :juxt.site/grant-type "authorization_code"
                            :juxt.site/subject subject
-                           :juxt.site/issuer (get jwt-claims "issuer")
+                           :juxt.site/issuer (get jwt-claims "iss")
                            :juxt.site/issued-at issued-at
                            :juxt.site/not-before not-before
                            :juxt.site/expiry access-token-expiry
@@ -266,7 +266,7 @@
                     {"scope" (clojure.string/join " " scope)})))]]))
 
           "refresh_token"
-          (let [{:juxt.site/keys [subject application keypair] :as existing-refresh-token-doc}
+          (let [{:juxt.site/keys [subject application keypair scope] :as existing-refresh-token-doc}
                 (juxt.site/lookup-refresh-token (:refresh-token *prepare*))
 
                 client-id application ;; TODO: Consider a rename
@@ -306,7 +306,7 @@
                          :juxt.site/type "https://meta.juxt.site/types/access-token"
                          :juxt.site/grant-type "refresh_token"
                          :juxt.site/subject subject
-                         :juxt.site/issuer (get jwt-claims "issuer")
+                         :juxt.site/issuer (get jwt-claims "iss")
                          :juxt.site/issued-at issued-at
                          :juxt.site/not-before not-before
                          :juxt.site/expiry access-token-expiry
@@ -319,7 +319,7 @@
                          :juxt.site/application client-id
                          :juxt.site/token access-token
                          :juxt.site/keypair keypair}
-                  ;;scopes (assoc :juxt.site/scope scopes)
+                  scope (assoc :juxt.site/scope scope)
                   username (assoc :juxt.site/username username))
 
                 refresh-token-expires-in (java.time.Duration/parse "PT6H")
@@ -338,15 +338,16 @@
                                 :juxt.site/issued-at
                                 :juxt.site/application
                                 :juxt.site/keypair])
-                        ;;scopes (assoc :juxt.site/scope scopes)
+                        scope (assoc :juxt.site/scope scope)
                         username (assoc :juxt.site/username username)))]
 
             (let [body
                   (jsonista.core/write-value-as-string
-                   {"access_token" access-token
-                    "token_type" "bearer"
-                    "expires_in" (.getSeconds access-token-expires-in)
-                    "refresh_token" new-refresh-token})]
+                   (cond-> {"access_token" access-token
+                            "token_type" "bearer"
+                            "expires_in" (.getSeconds access-token-expires-in)
+                            "refresh_token" new-refresh-token}
+                     scope (assoc "scope" (clojure.string/join " " scope))))]
               [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
                [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
                ;; Delete the old refresh-token and access-token
@@ -359,6 +360,7 @@
                          "content-length" (str (count (.getBytes body)))
                          "cache-control" "no-store"
                          "pragma" "no-cache"}
+
                   origin (assoc "access-control-allow-origin" origin))]
                [:ring.response/body body]]))
 
