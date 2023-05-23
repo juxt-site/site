@@ -1,4 +1,4 @@
 #!/bin/bash
 
-export SITE_HOME=$(dirname $0)/..
+export SITE_HOME=$(dirname $0)/../..
 tail -f $SITE_HOME/server/log/app.log
