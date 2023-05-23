@@ -388,7 +388,11 @@
       (assert code-challenge)
       (assert code-challenge-method)
       (case code-challenge-method
-        "S256" (let [new-code-challenge (as-b64-str (sha (.getBytes code-verifier) "SHA-256"))]
+        "S256" (let [new-code-challenge (-> code-verifier
+                                            (.getBytes)
+                                            (sha "SHA-256")
+                                            as-b64-str
+                                            (str/replace "=" ""))]
                  {:verified? (= code-challenge new-code-challenge)
                   :code-challenge code-challenge
                   :code-verifier code-verifier
