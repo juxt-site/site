@@ -1,0 +1,12 @@
+{:deps
+ ["https://auth.example.org/operations/oauth/register-client"
+  "https://auth.example.org/permissions/system/register-client"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-client"
+  :juxt.site/input
+  {:juxt.site/client-id "insite"
+   :juxt.site/client-type "public"
+   :juxt.site/supported-grant-types ["authorization_code"]
+   :juxt.site/authorization-server "https://auth.example.org"
+   :juxt.site/resource-server "https://data.example.org"}}}

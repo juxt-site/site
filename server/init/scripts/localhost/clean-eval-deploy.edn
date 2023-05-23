@@ -29,6 +29,11 @@
    :data-base-uri "http://localhost:4444"
    :client-id "site-cli"}]
 
+ [:register-application
+  {:auth-base-uri "http://localhost:4440"
+   :data-base-uri "http://localhost:4444"
+   :client-id "insite"}]
+
  ;; Add password-based admin user
 
  [:add-system-user
