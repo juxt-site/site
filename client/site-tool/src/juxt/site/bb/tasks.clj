@@ -3,6 +3,7 @@
 (ns juxt.site.bb.tasks
   (:require
    [babashka.http-client :as http]
+   [clj-yaml.core :as yaml]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [cheshire.core :as json]
@@ -31,57 +32,75 @@
    (when (System/getenv "HOME")
      (io/file (System/getenv "HOME") ".curlrc"))))
 
+(defn config []
+  (or
+   (let [config-file (io/file (System/getenv "HOME") ".config/site/client.edn")]
+     (when (.exists config-file)
+       (edn/read-string (slurp config-file))))
+
+   (let [config-file (io/file (System/getenv "HOME") ".config/site/client.json")]
+     (when (.exists config-file)
+       (json/parse-string (slurp config-file))))
+
+   (let [config-file (io/file (System/getenv "HOME") ".config/site/client.yaml")]
+     (when (.exists config-file)
+       (yaml/parse-string (slurp config-file) {:keywords false})))
+
+   {"empty_configuration" true}))
+
 (defn get-token []
-  (let [config-file (io/file (System/getenv "HOME") ".config/site/client.edn")]
-    (when-not (.exists config-file)
-      (println "Config file not found:" (.getAbsolutePath config-file))
-      (System/exit 1))
-    (let [{:juxt.site/keys [authorization-server curl]}
-          (edn/read-string (slurp config-file))
+  (let [{authorization-server "authorization_server"
+         curl "curl"}
+        (config)
 
-          {:juxt.site/keys [token-endpoint grant-type username password client-id]}
-          authorization-server
+        {token-endpoint "token_endpoint"
+         grant-type "grant_type"
+         username "username"
+         password "password"
+         client-id "client_id"}
+        authorization-server
 
-          {:keys [status body]}
-          (http/post token-endpoint
-                     {:headers {"content-type" "application/x-www-form-urlencoded"}
-                      :body (format
-                             "grant_type=%s&username=%s&password=%s&client_id=%s"
-                             grant-type
-                             (java.net.URLEncoder/encode username)
-                             (java.net.URLEncoder/encode password)
-                             client-id)})
+        {:keys [status body]}
+        (http/post token-endpoint
+                   {:headers {"content-type" "application/x-www-form-urlencoded"}
+                    :body (format
+                           "grant_type=%s&username=%s&password=%s&client_id=%s"
+                           grant-type
+                           (java.net.URLEncoder/encode username)
+                           (java.net.URLEncoder/encode password)
+                           client-id)})
 
-          _ (when-not (= status 200)
-              (println "Not OK, status was" status)
-              (System/exit 1))
+        _ (when-not (= status 200)
+            (println "Not OK, status was" status)
+            (System/exit 1))
 
-          {access-token "access_token"} (json/parse-string body)
+        {access-token "access_token"} (json/parse-string body)
 
-          {:juxt.site/keys [bearer-token-file
-                            save-bearer-token-to-default-config-file]} curl]
+        {bearer-token-file "bearer_token_file"
+         save-bearer-token-to-default-config-file "save_bearer_token_to_default_config_file"}
+        curl]
 
-      (cond
-        save-bearer-token-to-default-config-file
-        (let [config-file (curl-config-file)
-              lines (if (.exists config-file)
-                      (with-open [rdr (io/reader config-file)]
-                        (into [] (line-seq rdr)))
-                      [])
-              new-lines
-              (mapv (fn [line]
-                      (if (re-matches #"oauth-bearer \p{Alnum}+" line)
-                        (format "oauth-bearer %s" access-token)
-                        line)) lines)]
+    (cond
+      save-bearer-token-to-default-config-file
+      (let [config-file (curl-config-file)
+            lines (if (.exists config-file)
+                    (with-open [rdr (io/reader config-file)]
+                      (into [] (line-seq rdr)))
+                    [])
+            new-lines
+            (mapv (fn [line]
+                    (if (re-matches #"oauth2-bearer \p{Alnum}+" line)
+                      (format "oauth2-bearer %s" access-token)
+                      line)) lines)]
 
-          (spit config-file
-                (clojure.string/join
-                 (System/getProperty "line.separator")
-                 (cond-> new-lines
-                   (= lines new-lines)
-                   (conj
-                    "# This was added by site get-token"
-                    (format "oauth-bearer %s" access-token))))))
+        (spit config-file
+              (clojure.string/join
+               (System/getProperty "line.separator")
+               (cond-> new-lines
+                 (= lines new-lines)
+                 (conj
+                  "# This was added by site get-token"
+                  (format "oauth2-bearer %s" access-token))))))
 
-        bearer-token-file (spit bearer-token-file (format "oauth-bearer %s" access-token))
-        :else (println access-token)))))
+      bearer-token-file (spit bearer-token-file (format "oauth2-bearer %s" access-token))
+      :else (println access-token))))

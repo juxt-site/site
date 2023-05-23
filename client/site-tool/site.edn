@@ -22,4 +22,9 @@
   {:doc "get-token using the resource owner credentials grant"
    :task (juxt.site.bb.tasks/get-token)}
 
+  config
+  {:doc "get-token using the resource owner credentials grant"
+   :task (prn (juxt.site.bb.tasks/config))}
+
+
   }}
