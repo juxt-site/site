@@ -7,6 +7,10 @@
   :juxt.site/input
   {:juxt.site/client-id "insite"
    :juxt.site/client-type "public"
+   :juxt.site/origin "https://surveyor.apps.com"
    :juxt.site/supported-grant-types ["authorization_code"]
    :juxt.site/authorization-server "https://auth.example.org"
-   :juxt.site/resource-server "https://data.example.org"}}}
+   :juxt.site/resource-server "https://data.example.org"
+   :juxt.site/redirect-uris ["https://surveyor.apps.com/oauth-redirect.html"]
+   :juxt.site/scope #{"https://auth.example.org/scopes/system/read"
+                      "https://auth.example.org/scopes/system/self-identification"}}}}
