@@ -58,14 +58,14 @@ $ cd site
 . Ensure you have https://github.com/babashka/babashka[Babashka] version v1.1.172 or later installed.
 +
 ----
-site$ bb --version
+bb --version
 babashka v1.1.172
 ----
 
 . Ensure you have https://clojure.org/[Clojure] version v1.11 or later installed.
 +
 ----
-site$ clj --version
+clj --version
 Clojure CLI version 1.11.1.1273
 ----
 
@@ -74,15 +74,15 @@ Clojure CLI version 1.11.1.1273
 . Copy `server/etc/config.edn` to `$HOME/.config/site/config.edn`
 +
 ----
-site$ mkdir -p $HOME/.config/site
-site$ cp server/etc/config.edn $HOME/.config/site/config.edn
+mkdir -p $HOME/.config/site
+cp server/etc/config.edn $HOME/.config/site/config.edn
 ----
 Review the config at `$HOME/.config/site/config.edn` and make any appropriate modifications.
 
 . Start the Site instance
 +
 ----
-site$ server/bin/site-server
+server/bin/site-server
 ----
 
 . Check the server starts up
@@ -93,7 +93,7 @@ Site by JUXT. Copyright (c) 2020-2023, JUXT LTD.
 ----
 +
 ----
-site$ curl http://localhost:4444/_site/healthcheck
+curl http://localhost:4444/_site/healthcheck
 ----
 +
 ----
@@ -103,7 +103,7 @@ Site OK!
 . Bootstrap your Site instance by deploying a minimal set of resources
 +
 ----
-site$ server/bin/site-bootstrap apply -c server/init/scripts/localhost/clean-eval-deploy.edn
+server/bin/site-bootstrap apply -c server/init/scripts/localhost/clean-eval-deploy.edn
 ----
 +
 Follow the prompts, accepting all the defaults, to bootstrap the system and add your initial user.
