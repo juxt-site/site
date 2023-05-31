@@ -321,6 +321,9 @@
            client-id origin resource-server redirect-uris scope]}]
   (binding [*heading* "Register application"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          ;; Each application is regsitered for a particular resource
+          ;; server, which will be the 'aud' claim on JWT
+          ;; access-tokens.
           data-base-uri (or data-base-uri (input-data-base-uri))
           client-id (or client-id (input {:prompt "Client ID" :value client-id}))
           uri-map {"https://auth.example.org" auth-base-uri
