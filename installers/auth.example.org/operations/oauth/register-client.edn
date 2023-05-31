@@ -29,7 +29,7 @@
      ;; allowed to use.
      {:optional true}
      [:sequential
-      [:re "https://.+"]]]
+      [:re "https?://.+"]]]
 
     ;; In the case that scope is not provided, or provided but nil,
     ;; the scope MUST be requested dynamically in the authorization
