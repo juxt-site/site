@@ -25,19 +25,15 @@ Some useful links:
 
    :openapi.v3/servers [{"url" "https://data.example.org/_site"}]
 
+   :openapi.v3/oauth-flows #{"authorizationCode" "implicit" "password" "clientCredentials"}
+   :openapi.v3/oauth-authorization-url "https://auth.example.org/oauth/authorize"
+   :openapi.v3/oauth-token-url "https://auth.example.org/oauth/token"
+   :openapi.v3/oauth-scopes {"https://auth.example.org/scopes/system/read" "Read system info"
+                             "https://auth.example.org/scopes/system/write" "Administer system"
+                             "https://auth.example.org/scopes/system/self-identification" "Self identification"}
+
    :openapi.v3/components
-   {"securitySchemes"
-    {"oauth"
-     {"type" "oauth2"
-      "flows"
-      {"implicit"
-       {"scopes"
-        {"https://auth.example.org/scopes/system/read" "Read system info"
-         "https://auth.example.org/scopes/system/write" "Administer system"
-         "https://auth.example.org/scopes/system/self-identification" "Self identification"}
-        "authorizationUrl"
-        "https://auth.example.org/oauth/authorize"}}}}
-    "schemas" {}
+   {"schemas" {}
     "requestBodies" {}}
 
    :openapi.v3/tags

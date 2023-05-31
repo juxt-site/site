@@ -117,7 +117,47 @@
     (is (= 200 status))
     (is (= "application/json" (get headers "content-type")))
     (let [json (json/read-value body)]
-      (is (= 2 (count (get-in json ["paths" "/users"])))))))
+      (is (= 2 (count (get-in json ["paths" "/users"]))))
+      (is (= {"type" "oauth2",
+              "flows"
+              {"implicit"
+               {"scopes"
+                {"https://auth.example.test/scopes/system/self-identification"
+                 "Self identification",
+                 "https://auth.example.test/scopes/system/read"
+                 "Read system info",
+                 "https://auth.example.test/scopes/system/write"
+                 "Administer system"},
+                "authorizationUrl" "https://auth.example.test/oauth/authorize"},
+               "authorizationCode"
+               {"tokenUrl" "https://auth.example.test/oauth/token",
+                "scopes"
+                {"https://auth.example.test/scopes/system/self-identification"
+                 "Self identification",
+                 "https://auth.example.test/scopes/system/read"
+                 "Read system info",
+                 "https://auth.example.test/scopes/system/write"
+                 "Administer system"},
+                "authorizationUrl" "https://auth.example.test/oauth/authorize"},
+               "password"
+               {"tokenUrl" "https://auth.example.test/oauth/token",
+                "scopes"
+                {"https://auth.example.test/scopes/system/self-identification"
+                 "Self identification",
+                 "https://auth.example.test/scopes/system/read"
+                 "Read system info",
+                 "https://auth.example.test/scopes/system/write"
+                 "Administer system"}},
+               "clientCredentials"
+               {"tokenUrl" "https://auth.example.test/oauth/token",
+                "scopes"
+                {"https://auth.example.test/scopes/system/self-identification"
+                 "Self identification",
+                 "https://auth.example.test/scopes/system/read"
+                 "Read system info",
+                 "https://auth.example.test/scopes/system/write"
+                 "Administer system"}}}}
+             (get-in json ["components" "securitySchemes" "oauth"]))))))
 
 ;; So we need a system-api call that will allow us to add a
 ;; user. We'll still need the site tool to bootstrap users, but it

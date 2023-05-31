@@ -72,7 +72,37 @@
        "info" (:openapi.v3/info *resource*)
        "servers" (:openapi.v3/servers *resource*)
        "paths" paths
-       "components" (:openapi.v3/components *resource*)
+       "components"
+       (let [{:openapi.v3/keys [oauth-flows
+                                oauth-authorization-url
+                                oauth-token-url
+                                oauth-scopes]} *resource*]
+         (->
+          (:openapi.v3/components *resource*)
+          (assoc
+           "securitySchemes"
+           {"oauth"
+            {"type" "oauth2"
+             "flows"
+             (cond-> {}
+               (contains? oauth-flows "authorizationCode")
+               (assoc "authorizationCode"
+                      {"authorizationUrl" oauth-authorization-url
+                       "tokenUrl" oauth-token-url
+                       "scopes" oauth-scopes})
+               (contains? oauth-flows "implicit")
+               (assoc "implicit"
+                      {"authorizationUrl" oauth-authorization-url
+                       "scopes" oauth-scopes})
+               (contains? oauth-flows "password")
+               (assoc "password"
+                      {"tokenUrl" oauth-token-url
+                       "scopes" oauth-scopes})
+               (contains? oauth-flows "clientCredentials")
+               (assoc "clientCredentials"
+                      {"tokenUrl" oauth-token-url
+                       "scopes" oauth-scopes}))}})))
+
        "tags" (or (:openapi.v3/tags *resource*) [])
        ;;"externalDocs" {}
        })}
