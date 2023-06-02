@@ -18,13 +18,16 @@
   {:doc "Check server health"
    :task (juxt.site.bb.tasks/ping)}
 
-  get-token
-  {:doc "get-token using the resource owner credentials grant"
-   :task (juxt.site.bb.tasks/get-token)}
+  login
+  {:doc "Acquire a token using the resource owner credentials grant"
+   :task (juxt.site.bb.tasks/login)}
 
   config
-  {:doc "get-token using the resource owner credentials grant"
+  {:doc "show configuration"
    :task (prn (juxt.site.bb.tasks/config))}
+
+  add-user
+  {:doc "Add user"}
 
 
   }}

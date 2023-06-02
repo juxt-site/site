@@ -48,7 +48,7 @@
 
    {"empty_configuration" true}))
 
-(defn get-token []
+(defn login []
   (let [{authorization-server "authorization_server"
          curl "curl"}
         (config)
@@ -99,8 +99,12 @@
                (cond-> new-lines
                  (= lines new-lines)
                  (conj
-                  "# This was added by site get-token"
+                  "# This was added by site login"
                   (format "oauth2-bearer %s" access-token))))))
 
       bearer-token-file (spit bearer-token-file (format "oauth2-bearer %s" access-token))
       :else (println access-token))))
+
+(defn add-user []
+
+  )
