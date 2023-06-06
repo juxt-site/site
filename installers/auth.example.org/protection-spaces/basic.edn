@@ -6,6 +6,6 @@
   :juxt.site/operation-id "https://auth.example.org/operations/put-protection-space"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/canonical-root-uri "https://auth.example.org"
+   :juxt.site/canonical-root-uri "https://data.example.org"
    :juxt.site/realm "Wonderland"        ; optional
    :juxt.site/auth-scheme "Basic"}}}

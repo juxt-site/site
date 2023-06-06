@@ -65,33 +65,30 @@
            (String. (.decode (java.util.Base64/getDecoder) token68)))
 
           query '{:find [(pull e [*])]
-                  :where [
-                          (matches? e username password authorization-server)
-                          ;; TODO: Re-add these two clauses
-                          ;;[e :juxt.site/canonical-root-uri canonical-root-uri]
-                          ;;[e :juxt.site/realm realm]
-                          ]
-                  :rules [
-                          [(matches? e username password authorization-server)
+                  :where [(matches? e username password canonical-root-uri authorization-server)]
+
+                  :rules [[(matches? e username password canonical-root-uri authorization-server)
                            [e :juxt.site/type "https://meta.juxt.site/types/user-identity"]
                            [e :juxt.site/username username]
                            [e :juxt.site/password-hash password-hash]
+                           [e :juxt.site/canonical-root-uri canonical-root-uri]
+                           ;; TODO: We could also add an operation realm here
                            [(crypto.password.bcrypt/check password password-hash)]]
 
                           ;; Basic HTTP Authentication can also used
                           ;; to authenticate OAuth2 clients
-                          [(matches? e username password authorization-server)
+                          [(matches? e username password canonical-root-uri authorization-server)
                            [e :juxt.site/type "https://meta.juxt.site/types/client"]
                            [e :juxt.site/client-id username]
                            [e :juxt.site/client-secret password]
                            [e :juxt.site/authorization-server authorization-server]
                            ]]
 
-                  :in [username password authorization-server]}
+                  :in [username password canonical-root-uri authorization-server]}
 
           candidates
           (map first
-               (xt/q db query username password authorization-server
+               (xt/q db query username password canonical-root-uri authorization-server
                      ;;canonical-root-uri realm
                      ))]
 

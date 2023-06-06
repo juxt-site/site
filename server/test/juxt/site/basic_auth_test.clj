@@ -28,6 +28,9 @@
 
 (use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
 
+;; TODO: We should also test with protection spaces that don't contain correct canonical root uris.
+;; TODO: We could also implement optional realms.
+
 (deftest basic-resource-access-with-user-credentials
   (testing "correctly authorized"
     (let [response
@@ -38,7 +41,6 @@
              (format "Basic %s"
                      (util/as-b64-str (.getBytes (format "%s:%s" "alice" "garden"))))}
             :juxt.site/uri "https://data.example.test/_site/testing/basic-auth-protected-resource"})]
-
 
       (is (= 200 (:ring.response/status response)))
       (is (= "Hello World!" (String. (:ring.response/body response))))))
@@ -52,7 +54,6 @@
              (format "Basic %s"
                      (util/as-b64-str (.getBytes (format "%s:%s" "alice" "bad-password"))))}
             :juxt.site/uri "https://data.example.test/_site/testing/basic-auth-protected-resource"})]
-
 
       (is (= 401 (:ring.response/status response))))))
 
