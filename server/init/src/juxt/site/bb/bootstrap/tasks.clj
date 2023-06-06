@@ -499,29 +499,42 @@
           :duration ~duration})
        {}))))
 
-#_(defn register-scope
-  [{:keys [auth-base-uri scope description operations]}]
-  (binding [*heading* "Register scope"]
+(defn reset-client-secret
+  [{:keys [auth-base-uri client-id client-secret]}]
+  (binding [*heading* "Rotate client secret"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+          client-id (input {:prompt "Client-id" :value client-id})
+          ]
+      (push!
+       `(~'reset-client-secret!
+         {:authorization-server ~auth-base-uri
+          :client-id ~client-id
+          :client-secret ~client-secret})
+       {}))))
 
-          scope (input {:prompt "Scope" :value (or scope (str auth-base-uri "/scopes/"))})
+#_(defn register-scope
+    [{:keys [auth-base-uri scope description operations]}]
+    (binding [*heading* "Register scope"]
+      (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
 
-          description
-          (input {:prompt "Description"
-                  :value (or description "")})
+            scope (input {:prompt "Scope" :value (or scope (str auth-base-uri "/scopes/"))})
 
-          operations-as-csv
-          (input {:prompt "Operations (comma separated)"
-                  :value (or (str/join ", " operations) (str auth-base-uri "/operations/"))})
+            description
+            (input {:prompt "Description"
+                    :value (or description "")})
 
-          installers [scope]
-          uri-map {"https://auth.example.org" auth-base-uri}]
+            operations-as-csv
+            (input {:prompt "Operations (comma separated)"
+                    :value (or (str/join ", " operations) (str auth-base-uri "/operations/"))})
 
-      (install!
-       installers uri-map
-       {"operations-in-scope" (set (map str/trim (str/split operations-as-csv #",")))
-        "description" description}
-       {:title (format "Adding scope: %s" scope)}))))
+            installers [scope]
+            uri-map {"https://auth.example.org" auth-base-uri}]
+
+        (install!
+         installers uri-map
+         {"operations-in-scope" (set (map str/trim (str/split operations-as-csv #",")))
+          "description" description}
+         {:title (format "Adding scope: %s" scope)}))))
 
 (defn reinstall [{:keys [auth-base-uri resource]}]
   (install!

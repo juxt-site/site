@@ -511,19 +511,20 @@
 
                        'lookup-client
                        (fn [client-id]
-                         (map first
-                              (try
-                                (xt/q
-                                 db
-                                 '{:find [(pull e [*])]
-                                   :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
-                                           [e :juxt.site/client-id client-id]]
-                                   :in [client-id]} client-id)
-                                (catch Exception cause
-                                  (throw
-                                   (ex-info
-                                    (format "Failed to lookup client: %s" client-id)
-                                    {:client-id client-id} cause))))))
+                         (seq
+                          (map first
+                               (try
+                                 (xt/q
+                                  db
+                                  '{:find [(pull e [*])]
+                                    :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
+                                            [e :juxt.site/client-id client-id]]
+                                    :in [client-id]} client-id)
+                                 (catch Exception cause
+                                   (throw
+                                    (ex-info
+                                     (format "Failed to lookup client: %s" client-id)
+                                     {:client-id client-id} cause)))))))
 
                        'lookup-scope
                        (fn [scope]

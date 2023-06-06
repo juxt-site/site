@@ -12,11 +12,13 @@
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [juxt.site.util :as util]))
 
 (defn bootstrap []
   (install-installer-groups!
-   ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
+   ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"
+    "juxt/site/test-clients"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
     "kid" "test-kid"
@@ -103,28 +105,41 @@
                          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
                          :juxt.site/scope #{"https://auth.example.test/scopes/dummy"}}}))))
 
+(deftest set-client-secret-test
+  (let [old (repl/e "https://auth.example.test/clients/test/clientA")]
+    (call-operation-with-init-data!
+     *xt-node*
+     {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
+      :juxt.site/operation-id "https://auth.example.test/operations/oauth/set-client-secret"
+      :juxt.site/input
+      {:juxt.site/client-id "test/clientA"
+       :juxt.site/client-secret "fcc5814ed1218ee5a4bb86864cb9666c792822a8"
+       }})
+    (is (= "fcc5814ed1218ee5a4bb86864cb9666c792822a8"
+           (:juxt.site/client-secret (repl/e "https://auth.example.test/clients/test/clientA"))))))
+
 (deftest authorization-server-metadata
   ;; oauth-authorization-server is public
   (testing "RFC 8414: Authorization Server Metadata"
 
-   (let [{:ring.response/keys [status headers body]}
-         (*handler* {:ring.request/method :get
-                     :juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"})]
-     (is (= 200 status))
-     (is (= "application/json" (get headers "content-type")))
-     (is (= {"issuer" "https://auth.example.test"
-             "authorization_endpoint" "https://auth.example.test/oauth/authorize"
-             "token_endpoint" "https://auth.example.test/oauth/token"
-             "jwks_uri" "https://auth.example.test/.well-known/jwks.json"
-             "scopes_supported"
-	     ["https://auth.example.test/scopes/test/read"]
-             "response_types_supported" ["code" "token"]
-             "response_modes_supported" ["query" "fragment"]
-	     "grant_types_supported" ["authorization_code" "implicit" "password" "refresh_token"]
-             "token_endpoint_auth_signing_alg_values_supported" ["RS256"]
-	     "token_endpoint_auth_methods_supported" ["none" "client_secret_post"]
-             "code_challenge_methods_supported" ["S256"]}
-            (json/read-value body))))))
+    (let [{:ring.response/keys [status headers body]}
+          (*handler* {:ring.request/method :get
+                      :juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"})]
+      (is (= 200 status))
+      (is (= "application/json" (get headers "content-type")))
+      (is (= {"issuer" "https://auth.example.test"
+              "authorization_endpoint" "https://auth.example.test/oauth/authorize"
+              "token_endpoint" "https://auth.example.test/oauth/token"
+              "jwks_uri" "https://auth.example.test/.well-known/jwks.json"
+              "scopes_supported"
+	      ["https://auth.example.test/scopes/test/read"]
+              "response_types_supported" ["code" "token"]
+              "response_modes_supported" ["query" "fragment"]
+	      "grant_types_supported" ["authorization_code" "implicit" "password" "refresh_token"]
+              "token_endpoint_auth_signing_alg_values_supported" ["RS256"]
+	      "token_endpoint_auth_methods_supported" ["none" "client_secret_post"]
+              "code_challenge_methods_supported" ["S256"]}
+             (json/read-value body))))))
 
 #_(with-fixtures
   (call-operation-with-init-data!

@@ -6,7 +6,7 @@
   :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-client"
   :juxt.site/input
   {:juxt.site/client-id "site-cli"
-   :juxt.site/client-type "public"
+   :juxt.site/client-type "confidential"
 ;;   :juxt.site/supported-grant-types ["password"]
    :juxt.site/authorization-server "https://auth.example.org"
    :juxt.site/resource-server "https://data.example.org"}}}
