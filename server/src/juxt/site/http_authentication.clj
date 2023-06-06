@@ -56,9 +56,8 @@
 ;; TODO: This needs to work with OAuth2 clients too!
 ;; TODO: See client_credentials grant
 (defn authenticate-with-basic-auth [req db token68 protection-spaces]
-  (when-let [{:juxt.site/keys [canonical-root-uri realm authorization-server]
+  (when-let [{:juxt.site/keys [canonical-root-uri authorization-server]
               :as protection-space} (first protection-spaces)]
-    (log/infof "Hello log! as=%s" authorization-server)
     (let [[_ username password]
           (re-matches
            #"([^:]*):([^:]*)"
