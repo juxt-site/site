@@ -105,6 +105,6 @@
       bearer-token-file (spit bearer-token-file (format "oauth2-bearer %s" access-token))
       :else (println access-token))))
 
-(defn add-user []
-
+#_(defn add-user []
+(http/get "http://localhost:4444/_site/healthcheck")
   )

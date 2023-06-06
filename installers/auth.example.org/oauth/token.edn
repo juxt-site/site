@@ -4,10 +4,14 @@
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/operations/oauth/install-token-endpoint"
+
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.http/content-type "text/html;charset=utf-8"
    :juxt.http/content "<p>Welcome to the Site token endpoint server.</p>"
    ;;:juxt.site/session-scope "{{session-scope}}"
    :juxt.site/keypair "https://auth.example.org/keypairs/{{kid}}"
+
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/client-credentials"}
+
    }}}

@@ -404,6 +404,67 @@
 
     (is (= access-token (:juxt.site/token access-token-doc)))))
 
+(deftest client-credentials-grant-type-test
+  (let [db (xt/db *xt-node*)
+        client-id "test/clientA"
+        test-client (xt/entity db (format "https://auth.example.test/clients/%s" client-id))
+        client-secret (:juxt.site/client-secret test-client)]
+
+    (testing "correctly authorized client"
+      (let [token-request
+            (-> (oauth/make-token-request
+                 "https://auth.example.test/oauth/token"
+                 {"grant_type" "client_credentials"})
+
+                ;; Add the authorization header
+                (assoc-in [:ring.request/headers "authorization"]
+                          (format "Basic %s" (util/as-b64-str (.getBytes (str client-id ":" client-secret))))))
+
+            response (*handler* token-request)]
+        (is (= 200 (:ring.response/status response)))
+        (is (= "bearer" (get (jsonista.core/read-value (:ring.response/body response)) "token_type")))))
+
+    (testing "bad client id"
+      (let [token-request
+            (-> (oauth/make-token-request
+                 "https://auth.example.test/oauth/token"
+                 {"grant_type" "client_credentials"})
+
+                ;; Add the authorization header
+                (assoc-in [:ring.request/headers "authorization"]
+                          (format "Basic %s" (util/as-b64-str (.getBytes (str "bad-client" ":" client-secret))))))
+
+            response (*handler* token-request)]
+        ;; TODO: Make this return a 401
+        ;;(is (= 401 (:ring.response/status response)))
+        (is (= {"error_description" "Unauthorized", "error" "invalid_client"} (jsonista.core/read-value (:ring.response/body response))))))
+
+    (testing "bad client secret"
+      (let [token-request
+            (-> (oauth/make-token-request
+                 "https://auth.example.test/oauth/token"
+                 {"grant_type" "client_credentials"})
+
+                ;; Add the authorization header
+                (assoc-in [:ring.request/headers "authorization"]
+                          (format "Basic %s" (util/as-b64-str (.getBytes (str client-id ":" "bad-client-secret"))))))
+
+            response (*handler* token-request)]
+        ;;(is (= 401 (:ring.response/status response)))
+        (is (= {"error_description" "Unauthorized", "error" "invalid_client"} (jsonista.core/read-value (:ring.response/body response))))))))
+
+
+(deftest unsupported-grant-type-test
+  (let [token-request
+        (oauth/make-token-request
+         "https://auth.example.test/oauth/token"
+         {"grant_type" "unsupported"})
+        response (*handler* token-request)]
+    (is (= 400 (:ring.response/status response)))
+    (is (= {"error" "unsupported_grant_type"
+            "error_description" "This grant type is not supported"}
+           (jsonista.core/read-value (:ring.response/body response))))))
+
 ;; Scopes
 
 (deftest app-with-global-scope-with-no-scope-requested

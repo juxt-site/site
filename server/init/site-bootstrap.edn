@@ -57,6 +57,9 @@
   request-access-token
   {:task (juxt.site.bb.bootstrap.tasks/request-access-token {})}
 
+  basic-auth-example
+  {:task (juxt.site.bb.bootstrap.tasks/basic-auth-example {})}
+
   apply
   {:task
    (let [spec {:alias {:c :config

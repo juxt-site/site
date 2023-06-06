@@ -279,14 +279,14 @@
 
 (defn random-string [size]
   (apply str
-       (map char
-            (repeatedly size
-                        (fn []
-                          (rand-nth
-                           (concat
-                            (range (int \A) (inc (int \Z)))
-                            (range (int \a) (inc (int \z)))
-                            (range (int \0) (inc (int \9))))))))))
+         (map char
+              (repeatedly size
+                          (fn []
+                            (rand-nth
+                             (concat
+                              (range (int \A) (inc (int \Z)))
+                              (range (int \a) (inc (int \z)))
+                              (range (int \0) (inc (int \9))))))))))
 
 (defn auth-server [{:keys [auth-base-uri session-scope]}]
   (binding [*heading* "Deploy OAuth2 Authorization Server"]
@@ -529,3 +529,14 @@
    {"https://auth.example.org" auth-base-uri}
    {}
    {:title (format "Reinstalling %s" resource)}))
+
+(defn basic-auth-example [{:keys [auth-base-uri data-base-uri]}]
+  (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
+        data-base-uri (or data-base-uri (input-data-base-uri))
+
+        uri-map {"https://auth.example.org" auth-base-uri
+                 "https://data.example.org" data-base-uri}
+
+        installers (get-group-installers "juxt/site/testing/basic-auth-protected-resource")]
+
+    (install! installers uri-map {} {:title "Installing HTTP Basic Authentication example"})))

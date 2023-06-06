@@ -13,6 +13,7 @@
    :juxt.site/resource [:map [:xt/id]]
    :juxt.site/subject (m/schema [:map [:xt/id [:string {:min 1}]]])
    :juxt.site/purpose [:string {:min 1}]
+
    :xt/id [:string {:min 5}]})
 
 (mr/set-default-registry!

@@ -1,0 +1,19 @@
+{:deps
+ ["https://auth.example.org/operations/put-resource"
+  "https://auth.example.org/protection-spaces/basic"
+  "https://auth.example.org/operations/testing/basic-auth-protected-resource-operation"]
+ :install
+ {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-id "https://auth.example.org/operations/put-resource"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/basic"}
+   :juxt.site/methods
+   {:get
+    {:juxt.site/operation "https://auth.example.org/operations/testing/basic-auth-protected-resource-operation"}}
+
+   :juxt.http/content-type "text/plain"
+   :juxt.http/content "Hello World!"
+
+
+   }}}

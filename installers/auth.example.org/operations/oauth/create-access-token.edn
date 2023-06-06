@@ -24,7 +24,10 @@
      ["username" :string]
      ["password" :string]
      ["scope" {:optional true} :string]
-     ["client_id" :string]]]
+     ["client_id" :string]]
+    [:map
+     ["grant_type" [:enum "client_credentials"]]
+     ["scope" {:optional true} :string]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
@@ -77,7 +80,8 @@
           ;; First, check the grant_type
           _ (when-not (contains? #{"authorization_code"
                                    "refresh_token"
-                                   "password"} grant-type)
+                                   "password"
+                                   "client_credentials"} grant-type)
               (throw
                (ex-info
                 "unsupported_grant_type"
@@ -126,6 +130,16 @@
                    :new-subject-id (juxt.site.util/make-nonce 10)
                    :new-access-token (juxt.site.util/make-nonce 16)
                    :new-refresh-token (juxt.site.util/make-nonce 16)}
+            scope (assoc :scope (set (clojure.string/split scope (re-pattern " "))))))
+
+        "client_credentials"
+        (let [scope (get form "scope")]
+          (cond-> {:grant-type "client_credentials"
+                   :form form
+                   :new-subject-id (juxt.site.util/make-nonce 10)
+                   :jwt-claims {"iss" "https://auth.example.org"
+                                "jti" (juxt.site.util/make-nonce jti-length)}
+                   :new-access-token (juxt.site.util/make-nonce 16)}
             scope (assoc :scope (set (clojure.string/split scope (re-pattern " "))))))))}
 
    :juxt.site/transact
@@ -364,7 +378,6 @@
                   origin (assoc "access-control-allow-origin" origin))]
                [:ring.response/body body]]))
 
-          ;; TODO: Add scope support to this
           "password"
           (let [username (get-in *prepare* [:form "username"])
                 user-identity
@@ -496,7 +509,119 @@
                    "content-length" (str (count (.getBytes body)))
                    "cache-control" "no-store"
                    "pragma" "no-cache"}]
-                 [:ring.response/body body]]))))
+                 [:ring.response/body body]])))
+
+          ;; TODO: Is it possible to analyse SCI code ahead-of-time
+          ;; and store the analysed result in the database, to save us
+          ;; from analysing the same code on every transaction
+          ;; function. Also, this will have the fail-fast advantage of
+          ;; telling the developer about bad code and not waiting for
+          ;; the user to find it!
+
+          "client_credentials"
+          (let [subject-of-request (get *ctx* :juxt.site/subject)
+
+                _ (when-not subject-of-request
+                    (error
+                     ;; TODO: We need a mechanism of returning a 401
+                     {"error" "invalid_client"
+                      "error_description" "Unauthorized"}))
+
+                ;; When no subject we must fail
+                client (:juxt.site/application subject-of-request)
+
+                _ (when-not client
+                    (error
+                     ;; TODO: We need a mechanism of returning a 401
+                     {"error" "invalid_client"
+                      "error_description" "Unauthorized"}))
+
+                client-doc (xt/entity client)
+
+                _ (when-not client-doc
+                    (error
+                     ;; TODO: We need a mechanism of returning a 401
+                     {"error" "invalid_client"
+                      "error_description" "No such client"}))
+
+                client-id (:juxt.site/client-id client-doc)
+
+                _ (when-not client-id
+                    (error
+                     {"error" "invalid_client"
+                      "error_description" "No client-id in client-doc"}))
+
+                now (java.time.Instant/now)
+                issued-at (java.util.Date/from now)
+                not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
+
+                access-token-expires-in (java.time.Duration/parse "PT24H") ; 24 hours
+                access-token-expiry (java.util.Date/from (.plus now access-token-expires-in))
+
+                ;; The client-id will be given to us in the Authorization header
+                ;; client-id -> client-document -> resource-server
+
+                ;; application
+
+                subject
+                {:xt/id (str "https://auth.example.org/subjects/" (get *prepare* :new-subject-id))
+                 :juxt.site/type "https://meta.juxt.site/types/subject"
+                 ;;:juxt.site/application application
+                 }
+
+                ;; resource-server  will be part of the client document, and specified during the registration of a client
+
+                jwt-claims
+                (into jwt-claims
+                      (cond-> {"iat" issued-at
+                               "nbf" not-before
+                               "exp" access-token-expiry
+                               ;;"aud" resource-server
+                               "sub" (:xt/id subject)
+                               "client_id" client-id
+                               }
+                        ;;scope (assoc "scope" (clojure.string/join " " scope))
+                        ))
+
+                access-token (juxt.site/make-access-token
+                              jwt-claims
+                              (:juxt.site/keypair *resource*))
+
+                access-token-doc
+                (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
+                         :juxt.site/type "https://meta.juxt.site/types/access-token"
+                         :juxt.site/grant-type "client-credentials"
+                         :juxt.site/subject (:xt/id subject)
+                         :juxt.site/issuer (get jwt-claims "iss")
+                         :juxt.site/issued-at issued-at
+                         :juxt.site/not-before not-before
+                         :juxt.site/expiry access-token-expiry
+                         ;;:juxt.site/audience resource-server
+                         :juxt.site/application client-id
+                         :juxt.site/token access-token
+                         :juxt.site/keypair (:juxt.site/keypair *resource*)}
+                  ;;scope (assoc :juxt.site/scope scope)
+                  )
+
+                body (->>
+                      (cond-> {"access_token" access-token
+                               "token_type" "bearer"
+                               "expires_in" (.getSeconds access-token-expires-in)}
+                        ;;scope (assoc "scope" (clojure.string/join " " scope))
+                        )
+                      jsonista.core/write-value-as-string
+                      (format "%s\r\n"))]
+            [
+             [:xtdb.api/put access-token-doc issued-at access-token-expiry]
+             [:ring.response/status 200]
+             [:ring.response/headers
+              {"content-type" "application/json"
+               "content-length" (str (count (.getBytes body)))
+               "cache-control" "no-store"
+               "pragma" "no-cache"}]
+             [:ring.response/body body]
+             #_[:xtdb.api/put access-token-doc issued-at access-token-expiry]])
+          )
 
         (catch clojure.lang.ExceptionInfo error
           ;; TODO: This may be an attack. Log this?

@@ -44,4 +44,6 @@
      [id :juxt.site/user user]
      [subject :juxt.site/user-identity id]
      [user :role role]
-     [permission :role role]]]}}}
+     [permission :role role]]
+
+    ]}}}
