@@ -11,7 +11,8 @@
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.repl :as repl]
    [juxt.site.util :as util]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [clojure.test :as t]))
 
 (defn bootstrap []
   (install-installer-groups!
@@ -28,36 +29,65 @@
 (use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
 
 (deftest basic-resource-access-with-user-credentials
-  (let [response
-        (*handler*
-         {:ring.request/method :get
-          :ring.request/headers
-          {"authorization"
-           (format "Basic %s"
-                   (util/as-b64-str (.getBytes (format "%s:%s" "alice" "garden"))))}
-          :juxt.site/uri "https://data.example.test/_site/testing/basic-auth-protected-resource"})]
+  (testing "correctly authorized"
+    (let [response
+          (*handler*
+           {:ring.request/method :get
+            :ring.request/headers
+            {"authorization"
+             (format "Basic %s"
+                     (util/as-b64-str (.getBytes (format "%s:%s" "alice" "garden"))))}
+            :juxt.site/uri "https://data.example.test/_site/testing/basic-auth-protected-resource"})]
 
-    response
-    (is (= 200 (:ring.response/status response)))
-    (is (= "Hello World!" (String. (:ring.response/body response))))))
+
+      (is (= 200 (:ring.response/status response)))
+      (is (= "Hello World!" (String. (:ring.response/body response))))))
+
+  (testing "bad password"
+    (let [response
+          (*handler*
+           {:ring.request/method :get
+            :ring.request/headers
+            {"authorization"
+             (format "Basic %s"
+                     (util/as-b64-str (.getBytes (format "%s:%s" "alice" "bad-password"))))}
+            :juxt.site/uri "https://data.example.test/_site/testing/basic-auth-protected-resource"})]
+
+
+      (is (= 401 (:ring.response/status response))))))
 
 ;; TODO: Should presenting client credentials allow a user to access
 ;; any basic auth protected resource?  Or should it depend on the
 ;; resource?
 
 (deftest basic-resource-access-with-client-credentials
-  (let [db (xt/db *xt-node*)
-        {:juxt.site/keys [client-secret]}
-        (xt/entity db "https://auth.example.test/clients/test/clientA")
 
-        response
-        (*handler*
-         {:ring.request/method :get
-          :ring.request/headers
-          {"authorization"
-           (format "Basic %s"
-                   (util/as-b64-str (.getBytes (format "%s:%s" "test/clientA" client-secret))))}
-          :juxt.site/uri "https://data.example.test/_site/testing/basic-auth-protected-resource"})]
+  (testing "good credentials"
+    (let [db (xt/db *xt-node*)
+          {:juxt.site/keys [client-secret]}
+          (xt/entity db "https://auth.example.test/clients/test/clientA")
 
-    (is (= 200 (:ring.response/status response)))
-    (is (= "Hello World!" (String. (:ring.response/body response))))))
+          response
+          (*handler*
+           {:ring.request/method :get
+            :ring.request/headers
+            {"authorization"
+             (format "Basic %s"
+                     (util/as-b64-str (.getBytes (format "%s:%s" "test/clientA" client-secret))))}
+            :juxt.site/uri "https://data.example.test/_site/testing/client-credentials-protected-resource"})]
+
+      (is (= 200 (:ring.response/status response)))
+      (is (= "Hello World!" (String. (:ring.response/body response))))))
+
+  (testing "bad credentials"
+    (let [db (xt/db *xt-node*)
+          response
+          (*handler*
+           {:ring.request/method :get
+            :ring.request/headers
+            {"authorization"
+             (format "Basic %s"
+                     (util/as-b64-str (.getBytes (format "%s:%s" "test/clientA" "bad-password"))))}
+            :juxt.site/uri "https://data.example.test/_site/testing/client-credentials-protected-resource"})]
+
+      (is (= 401 (:ring.response/status response))))))

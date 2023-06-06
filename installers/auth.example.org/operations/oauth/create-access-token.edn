@@ -619,9 +619,7 @@
                "content-length" (str (count (.getBytes body)))
                "cache-control" "no-store"
                "pragma" "no-cache"}]
-             [:ring.response/body body]
-             #_[:xtdb.api/put access-token-doc issued-at access-token-expiry]])
-          )
+             [:ring.response/body body]]))
 
         (catch clojure.lang.ExceptionInfo error
           ;; TODO: This may be an attack. Log this?

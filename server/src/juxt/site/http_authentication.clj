@@ -56,9 +56,9 @@
 ;; TODO: This needs to work with OAuth2 clients too!
 ;; TODO: See client_credentials grant
 (defn authenticate-with-basic-auth [req db token68 protection-spaces]
-  (log/info "Hello log!")
   (when-let [{:juxt.site/keys [canonical-root-uri realm authorization-server]
               :as protection-space} (first protection-spaces)]
+    (log/infof "Hello log! as=%s" authorization-server)
     (let [[_ username password]
           (re-matches
            #"([^:]*):([^:]*)"
@@ -84,10 +84,10 @@
                            [e :juxt.site/type "https://meta.juxt.site/types/client"]
                            [e :juxt.site/client-id username]
                            [e :juxt.site/client-secret password]
-                           [e :juxt.site/authorization-server authorization-server]]]
+                           [e :juxt.site/authorization-server authorization-server]
+                           ]]
 
-                  :in [username password authorization-server]
-                  }
+                  :in [username password authorization-server]}
 
           candidates
           (map first
@@ -102,12 +102,17 @@
         (log/warnf "Multiple candidates in basic auth found for username %s, using first found" username))
 
       (when-let [candidate (first candidates)]
-        (assoc-basic-auth-subject
-         req
-         (case (:juxt.site/type candidate)
-           "https://meta.juxt.site/types/user-identity" {:juxt.site/user-identity (:xt/id candidate)}
-           "https://meta.juxt.site/types/client" {:juxt.site/application (:xt/id candidate)})
-         protection-space)))))
+        (let [candidate-types (:juxt.site/type candidate)
+              candidate-types (if (string? candidate-types) #{candidate-types} candidate-types)]
+          (log/infof "candidate-types: %s" (pr-str candidate-types))
+          (assoc-basic-auth-subject
+           req
+           (cond-> {}
+             (contains? candidate-types "https://meta.juxt.site/types/user-identity")
+             (assoc :juxt.site/user-identity (:xt/id candidate))
+             (contains? candidate-types "https://meta.juxt.site/types/client")
+             (assoc :juxt.site/application (:xt/id candidate)))
+           protection-space))))))
 
 (defn www-authenticate-header
   "Create the WWW-Authenticate header value"
