@@ -1,4 +1,4 @@
-{#_#_:deps ;; TODO
+{:deps
  ["https://auth.example.org/operations/oauth/create-access-token"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"

@@ -36,8 +36,14 @@
   system-api
   {:task (juxt.site.bb.bootstrap.tasks/system-api {})}
 
-  auth-server
-  {:task (juxt.site.bb.bootstrap.tasks/auth-server {})}
+  oauth-token-endpoint
+  {:task (juxt.site.bb.bootstrap.tasks/oauth-token-endpoint {})}
+
+  oauth-authorization-endpoint
+  {:task (juxt.site.bb.bootstrap.tasks/oauth-authorization-endpoint {})}
+
+  oauth-extras
+  {:task (juxt.site.bb.bootstrap.tasks/oauth-extras {})}
 
   add-user
   {:task (juxt.site.bb.bootstrap.tasks/add-user {})}

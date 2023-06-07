@@ -1,6 +1,6 @@
 {:deps
  ["https://auth.example.org/operations/oauth/install-token-endpoint"
-  "https://auth.example.org/permissions/system/install-oauth-token-endpoint"]
+  "https://auth.example.org/protection-spaces/client-credentials"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/operations/oauth/install-token-endpoint"
@@ -12,6 +12,16 @@
    ;;:juxt.site/session-scope "{{session-scope}}"
    :juxt.site/keypair "https://auth.example.org/keypairs/{{kid}}"
 
+   ;; The token endpoint is inside a special protection space since
+   ;; client_credentials can use HTTP Basic Authentication
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/client-credentials"}
 
+
+   :juxt.site/access-control-allow-origins
+   [["https://petstore.swagger.io"
+       {:juxt.site/access-control-allow-origin "https://petstore.swagger.io"
+        :juxt.site/access-control-allow-methods [:post]
+        :juxt.site/access-control-allow-headers ["authorization"
+                                                 ;; Swagger requires this
+                                                 "x-requested-with"]}]]
    }}}

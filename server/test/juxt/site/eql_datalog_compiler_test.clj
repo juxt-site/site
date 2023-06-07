@@ -61,8 +61,9 @@
    ["juxt/site/user-model"
     "juxt/site/password-based-user-identity"
     "juxt/site/sessions"
-    "juxt/site/oauth-authorization-server"]
-   AUTH_SERVER
+    "juxt/site/oauth-authorization-endpoint"
+    "juxt/site/oauth-token-endpoint"]
+   RESOURCE_SERVER
    {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"
     "kid" "test-kid"
     "authorization-code-length" 12

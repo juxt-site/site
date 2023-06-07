@@ -1,0 +1,12 @@
+= Permissions
+
+These permissions allow unrestricted, and sometimes anonymous, access
+to their corresponding operations.
+
+These permissions should not depend on their operations. Instead,
+since these permissions are required by their operations, they are
+depended upon by their operations.
+
+If any of these permissions depend on their operations, a recursive
+dependency loop will occur. Currently, Site does not code a defense
+against such infinite loops.

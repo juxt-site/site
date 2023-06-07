@@ -14,7 +14,10 @@
 
 (defn bootstrap []
   (install-installer-groups!
-   ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"]
+   ["juxt/site/bootstrap"
+    "juxt/site/sessions"
+    "juxt/site/oauth-token-endpoint"
+    "juxt/site/oauth-authorization-endpoint"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
     "kid" "test-kid"

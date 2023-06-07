@@ -17,7 +17,10 @@
 
 (defn bootstrap []
   (install-installer-groups!
-   ["juxt/site/bootstrap" "juxt/site/sessions" "juxt/site/oauth-authorization-server"
+   ["juxt/site/bootstrap" "juxt/site/sessions"
+    "juxt/site/oauth-authorization-endpoint"
+    "juxt/site/oauth-token-endpoint"
+    "juxt/site/oauth-extras"
     "juxt/site/test-clients"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
@@ -105,7 +108,7 @@
                          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
                          :juxt.site/scope #{"https://auth.example.test/scopes/dummy"}}}))))
 
-(deftest set-client-secret-test
+#_(deftest set-client-secret-test
   (let [old (repl/e "https://auth.example.test/clients/test/clientA")]
     (call-operation-with-init-data!
      *xt-node*

@@ -37,7 +37,8 @@
 
   ;; Install an authorization server
   (install-installer-groups!
-   ["juxt/site/oauth-authorization-server"]
+   ["juxt/site/oauth-authorization-endpoint"
+    "juxt/site/oauth-token-endpoint"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
     "kid" "test-kid"

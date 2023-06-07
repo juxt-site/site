@@ -1,4 +1,8 @@
-{:install
+{:deps
+ [;; This is necessary to allow anyone to authorize
+  "https://auth.example.org/permissions/oauth/authorize"]
+
+ :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
   :juxt.site/input

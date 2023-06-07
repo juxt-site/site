@@ -1,6 +1,9 @@
 ;; TODO: Rename to 'issue-tokens' or similar. This does a lot more
 ;; than merely create an access token.
-{:install
+{:deps
+ ["https://auth.example.org/permissions/oauth/create-access-token"]
+
+ :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
   :juxt.site/input
@@ -209,6 +212,10 @@
                                  "client_id" client-id}
                           scope (assoc "scope" (clojure.string/join " " scope))
                           username (assoc "username" username)))
+
+                  _ (when-not (:juxt.site/keypair *resource*)
+                      (throw (ex-info "KEYPAIR NOT FOUND" {:resource *resource*}))
+                      )
 
                   access-token
                   (juxt.site/make-access-token
@@ -544,7 +551,7 @@
                      {"error" "invalid_client"
                       "error_description" "No such client"}))
 
-                client-id (:juxt.site/client-id client-doc)
+                {:juxt.site/keys [client-id origin]} client-doc
 
                 _ (when-not client-id
                     (error
@@ -613,12 +620,17 @@
                       (format "%s\r\n"))]
             [
              [:xtdb.api/put access-token-doc issued-at access-token-expiry]
+             [:xtdb.api/put subject issued-at access-token-expiry]
              [:ring.response/status 200]
              [:ring.response/headers
-              {"content-type" "application/json"
-               "content-length" (str (count (.getBytes body)))
-               "cache-control" "no-store"
-               "pragma" "no-cache"}]
+              (cond-> {"content-type" "application/json"
+                       "content-length" (str (count (.getBytes body)))
+                       "cache-control" "no-store"
+                       "pragma" "no-cache"}
+                ;; We do CORS in the endpoint, not here! see
+                ;; /installers/auth.example.org/oauth/token.edn
+                ;; origin (assoc "access-control-allow-origin" origin)
+                )]
              [:ring.response/body body]]))
 
         (catch clojure.lang.ExceptionInfo error

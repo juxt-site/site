@@ -288,37 +288,55 @@
                               (range (int \a) (inc (int \z)))
                               (range (int \0) (inc (int \9))))))))))
 
-(defn auth-server [{:keys [auth-base-uri session-scope]}]
-  (binding [*heading* "Deploy OAuth2 Authorization Server"]
-    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
-          kid (random-string 16)
-          uri-map {"https://auth.example.org" auth-base-uri}
+(defn oauth-token-endpoint [{:keys [auth-base-uri]}]
+  (binding [*heading* "Deploy OAuth2 token endpoint"]
+    (install!
+     (get-group-installers "juxt/site/oauth-token-endpoint")
+     {"https://auth.example.org" (or auth-base-uri (input-auth-base-uri))}
+     {"kid" (random-string 16)}
+     {:title "Installing OAuth2 token endpoint"})))
 
-          session-scope
-          (or
-           session-scope
-           (let [choices [["OpenID (Recommended for production)"
-                           (str auth-base-uri "/session-scopes/openid-login-session")]
-                          ["Login form (dev only)"
-                           (str auth-base-uri "/session-scopes/form-login-session")]]
-                 selected (get (zipmap (map second choices) (map first choices)) session-scope)]
-             (-> (into {} choices)
-                 (get (choose (mapv first choices) (cond-> {} selected (assoc :selected selected)))))))
-
-          installers
-          (get-group-installers "juxt/site/oauth-authorization-server")]
+(defn oauth-authorization-endpoint [{:keys [auth-base-uri session-scope]}]
+  (binding [*heading* "Deploy OAuth2 authorization endpoint"]
+    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))]
       (install!
-       installers
-       uri-map
-       {"session-scope" session-scope
-        "kid" kid
+       (get-group-installers "juxt/site/oauth-authorization-endpoint")
+       {"https://auth.example.org" auth-base-uri}
+       {"session-scope"
+        (or
+         session-scope
+         (let [choices [["OpenID (Recommended for production)"
+                         (str auth-base-uri "/session-scopes/openid-login-session")]
+                        ["Login form (dev only)"
+                         (str auth-base-uri "/session-scopes/form-login-session")]]
+               selected (get (zipmap (map second choices) (map first choices)) session-scope)]
+           (-> (into {} choices)
+               (get (choose (mapv first choices) (cond-> {} selected (assoc :selected selected)))))))
+        "kid" (random-string 16)
         "authorization-code-length" 12
         "jti-length" 12}
        {:title "Installing authorization server"}))))
 
+(defn oauth-extras [{:keys [auth-base-uri session-scope]}]
+  (binding [*heading* "Deploy OAuth2 extras"]
+    (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))]
+      (install!
+       (get-group-installers "juxt/site/oauth-extras")
+       {"https://auth.example.org" auth-base-uri}
+       {"session-scope"
+        (or
+         session-scope
+         (let [choices [["OpenID (Recommended for production)"
+                         (str auth-base-uri "/session-scopes/openid-login-session")]
+                        ["Login form (dev only)"
+                         (str auth-base-uri "/session-scopes/form-login-session")]]
+               selected (get (zipmap (map second choices) (map first choices)) session-scope)]
+           (-> (into {} choices)
+               (get (choose (mapv first choices) (cond-> {} selected (assoc :selected selected)))))))}
+       {:title "Installing OAuth2 extras"}))))
+
 (defn register-application
-  [{:keys [auth-base-uri data-base-uri
-           client-id origin resource-server redirect-uris scope]}]
+  [{:keys [auth-base-uri data-base-uri client-id]}]
   (binding [*heading* "Register application"]
     (let [auth-base-uri (or auth-base-uri (input-auth-base-uri))
           ;; Each application is regsitered for a particular resource
@@ -332,7 +350,7 @@
                        :juxt.site/installer-path (format "/clients/%s" client-id)}]]
 
       (install! installers uri-map {}
-       {:title (format "Adding OAuth client: %s" client-id)}))))
+                {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn- add-user-input [{:keys [auth-base-uri data-base-uri username user-type fullname iss nickname]}]
   (binding [*heading* "Add user"]

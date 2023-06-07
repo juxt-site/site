@@ -6,7 +6,7 @@
   :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-client"
   :juxt.site/input
   {:juxt.site/client-id "insite"
-   :juxt.site/client-type "public"
+   :juxt.site/client-type "confidential"
    :juxt.site/origin "https://surveyor.apps.com"
    :juxt.site/supported-grant-types ["authorization_code"]
    :juxt.site/authorization-server "https://auth.example.org"

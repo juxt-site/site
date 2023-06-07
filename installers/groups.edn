@@ -200,35 +200,68 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/clients/site-cli"}]
   }
 
- "juxt/site/oauth-authorization-server"
- {:juxt.site/description "OAuth2 Authorization Server"
+ "juxt/site/oauth-token-endpoint"
+ {:juxt.site/description "OAuth2 token endpoint"
+  ;; TODO: We could declare needed parameters in an ordered map. This
+  ;; would help the bb script introspect which parameters are required
+  ;; for each group, saving us the trouble of having to custom code a
+  ;; bb task for the installation of each group.
+  #_#_:juxt.site/parameters [["kid" {}]]
   :juxt.site/installers
   [
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/authorize"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/token"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/authorize"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/create-access-token"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/install-authorize-endpoint"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/install-token-endpoint"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/oauth/install-authorize-endpoint"}
+   ;; System permissions required
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/install-oauth-token-endpoint"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/register-client"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/oauth/authorize"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/oauth/create-access-token"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/put-protection-space"}
+
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/token"}
+
+   ;; A keypair to sign JWT tokens
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/keypairs/{{kid}}"}
-   ;; Introspection endpoint - see RFC 7662
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/token-info"}
-   ;; Metadata endpoint -see RFC 8414
+
+   ;; Necessary to allow bootstrap registration of clients
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/register-client"}
+   ;; Necessary to allow rotation of client-secrets and external setting initial client-secret for a given app.
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/system/oauth/set-client-secret"
+    :juxt.site/parameters {"client-id" "insite"}}
+   ]}
+
+ "juxt/site/oauth-authorization-endpoint"
+ {:juxt.site/description "OAuth2 authorization endpoint"
+  :juxt.site/parameters [["session-scope" {}]
+                         ["authorization-code-length" {}]
+                         ["kid" {}]]
+  :juxt.site/installers
+  [
+   ;; System permissions required
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/system/oauth/install-authorize-endpoint"
+    ;; This indicates which parameters are required
+    #_#_:juxt.site/parameters {"session-scope" "{{session-scope}}"
+                               "authorization-code-length" "{{authorization-code-length}}"}
+    }
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/authorize"}
+   ]}
+
+ "juxt/site/oauth-extras"
+ {:juxt.site/description "OAuth2 Extras"
+  ;; This group ought to be split up into separate groups
+  :juxt.site/parameters [["session-scope" {}]]
+  :juxt.site/installers
+  [
+   ;; Introspection endpoint -- see RFC 7662
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/install-token-introspection-endpoint"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/token-info"
+    #_#_:juxt.site/parameters {"session-scope" "{{session-scope}}"}
+    }
+
+   ;; Metadata endpoint -- see RFC 8414
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/oauth/install-metadata-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/.well-known/oauth-authorization-server"}
+
+   ;; JWKS endpoint -- see RFC 8414 (I think)
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/oauth/install-jwks-document"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/.well-known/jwks.json"}
-   ;; From https://www.rfc-editor.org/rfc/rfc8414#section-3
-
-   ;; The token endpoint is inside a special protection space since
-   ;; client_credentials uses HTTP Basic Authentication
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/protection-spaces/client-credentials"}
-
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/set-client-secret"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/oauth/set-client-secret"}
    ]}
 
  "juxt/site/example-users"
@@ -387,7 +420,7 @@
    ]}
 
  "juxt/site/openid"
- {:juxt.site/description "OpenID Connect"
+ {:juxt.site/description "Configure Site as an OpenID Connect client to authenticate resource owners"
   :juxt.site/installers
   [
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/openid/exchange-code-for-id-token"}

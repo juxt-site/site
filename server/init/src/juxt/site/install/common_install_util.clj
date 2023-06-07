@@ -213,20 +213,28 @@
   installers."
   [root uri-map]
   (->>
-   (for [dir (.listFiles root)
-         :when (.isDirectory dir)
-         installer-file (file-seq dir)
-         :when (.isFile installer-file)
-         :let [filepath (.toPath installer-file)
-               relpath (.toString (.relativize (.toPath root) filepath))
-               [_ auth path1 path2] (re-matches #"([^/]+)(.+?)(?:_index)?\.edn" relpath)
-               url (str "https://" auth path1 path2)
-               url (uri-map-replace url uri-map)
-               content (->
-                        (postwalk (make-uri-map-replace-walk-fn uri-map) (edn/read-string {:readers READERS} (slurp installer-file)))
-                        (merge {:juxt.site.installer-graph/filepath (.toString filepath)
-                                :juxt.site.installer-graph/authority auth
-                                :juxt.site.installer-graph/path (str path1 path2)}))]]
+   (doall
+    (for [dir (.listFiles root)
+          :when (.isDirectory dir)
+          installer-file (file-seq dir)
+          :when (.isFile installer-file)
+          :let [filepath (.toPath installer-file)
+                relpath (.toString (.relativize (.toPath root) filepath))
+                [_ auth path1 path2] (re-matches #"([^/]+)(.+?)(?:_index)?\.edn" relpath)]
+          :when auth ; checks we match an edn file, there could be other notes in here
+          :let [url (str "https://" auth path1 path2)
+                url (uri-map-replace url uri-map)
+                content (try
+                          (->
+                           (postwalk (make-uri-map-replace-walk-fn uri-map) (edn/read-string {:readers READERS} (slurp installer-file)))
+                           (merge {:juxt.site.installer-graph/filepath (.toString filepath)
+                                   :juxt.site.installer-graph/authority auth
+                                   :juxt.site.installer-graph/path (str path1 path2)}))
+                          (catch Exception e
+                            (throw (ex-info "Failure with url" {:url url
+                                                                :auth auth
+                                                                :path1 path1
+                                                                :path2 path2} e))))]]
 
-     [url content])
+      [url content]))
    (into {})))
