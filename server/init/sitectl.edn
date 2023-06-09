@@ -24,8 +24,16 @@
 
   ls {:task (juxt.site.bb.bootstrap.tasks/ls)}
   ls-site-type {:task (juxt.site.bb.bootstrap.tasks/ls-site-type (first *command-line-args*))}
+
   users {:task (juxt.site.bb.bootstrap.tasks/ls-type "user")}
   access-tokens {:task (juxt.site.bb.bootstrap.tasks/ls-type "access-token")}
+
+  install-group {:task (juxt.site.bb.bootstrap.tasks/install-group
+                        {:group (first *command-line-args*)})}
+
+  new-keypair {:task (juxt.site.bb.bootstrap.tasks/new-keypair {})}
+
+  ;; -----------------------------------------------------------------
 
   install-login-form
   {:task (juxt.site.bb.bootstrap.tasks/install-login-form {})}

@@ -1,6 +1,0 @@
-[
-
- [:system-api
-  {:auth-base-uri "http://localhost:4440"
-   :data-base-uri "http://localhost:4444"}]
-]

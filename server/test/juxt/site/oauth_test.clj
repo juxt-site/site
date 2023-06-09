@@ -20,8 +20,8 @@
    ["juxt/site/bootstrap" "juxt/site/sessions"
     "juxt/site/oauth-authorization-endpoint"
     "juxt/site/oauth-token-endpoint"
-    "juxt/site/oauth-extras"
-    "juxt/site/test-clients"]
+    "juxt/site/test-clients"
+    "juxt/site/oauth-metadata-endpoints"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
     "kid" "test-kid"

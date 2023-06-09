@@ -7,11 +7,20 @@
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.pprint
-    ;; Get all keypairs in the system
-    {"keys" [{"kid" "TODO"
-
-              }]}
-    }
+    ;; TODO: What's turning this into JSON??
+    {"keys"
+     ;; Get all keypairs in the system
+     ;; See https://stackoverflow.com/questions/51323689/manually-create-jwk-from-rsa-publickey
+     (for [kp (map first
+                  (xt/q
+                   '{:find [(pull kp [*])]
+                     :where [[kp :juxt.site/type "https://meta.juxt.site/types/keypair"]]}))]
+       {"kty" (:juxt.site/algorithm kp) ;; Java's getAlgorithm() returns kty not algorithm
+        "kid" (:juxt.site/kid kp)
+        "n" (juxt.site.util/base64-urlencode (:juxt.site/public-key-modulus kp))
+        "e" (juxt.site.util/base64-urlencode (:juxt.site/public-key-public-exponent kp))
+        "alg" "RS256"
+        "use" "sig"})}}
 
    :juxt.site/rules
    [

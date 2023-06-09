@@ -1,0 +1,17 @@
+[
+ [:reset]
+ [:bootstrap {}]
+ [:system-api {}]
+ [:oauth-token-endpoint {}]
+
+ [:oauth-authorization-endpoint
+  {:session-scope "http://localhost:4440/session-scopes/form-login-session"}]
+ [:install-login-form {}]
+ [:oauth-extras
+  {:session-scope "http://localhost:4440/session-scopes/form-login-session"}]
+
+ ;; Clients
+ [:register-application {:client-id "swagger-ui"}]
+ [:register-application {:client-id "site-cli"}]
+ [:register-application {:client-id "insite"}]
+]

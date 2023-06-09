@@ -26,7 +26,7 @@
     "juxt/site/test-scopes"
     "juxt/site/test-clients"
     "juxt/site/site-cli-client"
-    "juxt/site/oauth-extras"]
+    "juxt/site/oauth-introspection-endpoint"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
   (f))

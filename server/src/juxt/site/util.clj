@@ -139,11 +139,17 @@
                              [\- \. \_ \~]))))))
 
 (defn base64-urlencode [arg]
-  (let [b64 (as-b64-str arg)]
-    (-> (str/split b64 #"=")
-        first
-        (str/replace \+ \-)
-        (str/replace \/ \_))))
+  (let [bytes
+        (cond
+          (instance? BigInteger arg) (.toByteArray arg)
+          :else arg)]
+    (.encodeToString (java.util.Base64/getUrlEncoder) bytes))
+  ;; Old code incase the above todesn't work
+  #_(let [b64 (as-b64-str bytes)]
+      (-> (str/split b64 #"=")
+          first
+          (str/replace \+ \-)
+          (str/replace \/ \_))))
 
 ;; See https://www.rfc-editor.org/rfc/rfc7636#appendix-A
 (defn code-challenge [code-verifier]

@@ -206,7 +206,7 @@
   ;; would help the bb script introspect which parameters are required
   ;; for each group, saving us the trouble of having to custom code a
   ;; bb task for the installation of each group.
-  #_#_:juxt.site/parameters [["kid" {}]]
+  :juxt.site/parameters [["kid" {}]]
   :juxt.site/installers
   [
    ;; System permissions required
@@ -216,6 +216,8 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/token"}
 
    ;; A keypair to sign JWT tokens
+   ;; (this has to be provisioned prior to this group)
+   ;; TODO: Extract this into its own group
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/keypairs/{{kid}}"}
 
    ;; Necessary to allow bootstrap registration of clients
@@ -229,8 +231,10 @@
  "juxt/site/oauth-authorization-endpoint"
  {:juxt.site/description "OAuth2 authorization endpoint"
   :juxt.site/parameters [["session-scope" {}]
+                         ["kid" {}]
                          ["authorization-code-length" {}]
-                         ["kid" {}]]
+                         ["jti-length" {}]
+                         ]
   :juxt.site/installers
   [
    ;; System permissions required
@@ -243,9 +247,8 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/authorize"}
    ]}
 
- "juxt/site/oauth-extras"
- {:juxt.site/description "OAuth2 Extras"
-  ;; This group ought to be split up into separate groups
+ "juxt/site/oauth-introspection-endpoint"
+ {:juxt.site/description "OAuth2 RFC 7662 introspection endpoint"
   :juxt.site/parameters [["session-scope" {}]]
   :juxt.site/installers
   [
@@ -253,16 +256,19 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/install-token-introspection-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/token-info"
     #_#_:juxt.site/parameters {"session-scope" "{{session-scope}}"}
-    }
+    }]}
 
+ "juxt/site/oauth-metadata-endpoints"
+ {:juxt.site/description "OAuth2 RFC 8414 metadata endpoints"
+  :juxt.site/installers
+  [
    ;; Metadata endpoint -- see RFC 8414
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/oauth/install-metadata-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/.well-known/oauth-authorization-server"}
 
-   ;; JWKS endpoint -- see RFC 8414 (I think)
+   ;; JWKS endpoint -- see RFC 7517 - see https://juxt.eu.auth0.com/.well-known/jwks.json
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/oauth/install-jwks-document"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/.well-known/jwks.json"}
-   ]}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/.well-known/jwks.json"}]}
 
  "juxt/site/example-users"
  {:juxt.site/description "Example users"
