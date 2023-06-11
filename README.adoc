@@ -100,13 +100,31 @@ curl http://localhost:4444/_site/healthcheck
 Site OK!
 ----
 
+. Add `$SITE_HOME/server/bin` to your `PATH` environment variable.
+
 . Bootstrap your Site instance by deploying a minimal set of resources
 +
 ----
-server/bin/site-bootstrap apply -c server/init/scripts/localhost/clean-eval-deploy.edn
+sitectl install-group juxt/site/bootstrap
 ----
 +
-Follow the prompts, accepting all the defaults, to bootstrap the system and add your initial user.
+NOTE: At any time, you can start over with `sitectl reset`.
+
+. Install the Site System API
++
+----
+sitectl install-group juxt/site/system-api
+----
+
+. Install the Site System API
++
+----
+sitectl register-application insite
+----
+
+
+
+. Test that the System API has been installed by opening a browser at https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
 
 . With a browser, navigate to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
 .. Click on /whoami, 'Try it out' and 'Execute' (this should yield a `401 Error: Unauthorized`)
