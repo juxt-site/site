@@ -35,8 +35,8 @@
 
   ;; -----------------------------------------------------------------
 
-  install-login-form
-  {:task (juxt.site.bb.bootstrap.tasks/install-login-form {})}
+  #_install-login-form
+  #_{:task (juxt.site.bb.bootstrap.tasks/install-login-form {})}
 
   openid
   {:task (juxt.site.bb.bootstrap.tasks/openid {})}
