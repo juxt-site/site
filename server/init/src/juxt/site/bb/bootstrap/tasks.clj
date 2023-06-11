@@ -352,7 +352,9 @@
           data-base-uri (or data-base-uri
                             (get-in (config) ["resource_server" "base_uri"])
                             (input-data-base-uri))
-          client-id (or client-id (input {:prompt "Client ID" :value client-id}))
+          client-id (or client-id
+                        (first *command-line-args*)
+                        (input {:prompt "Client ID" :value client-id}))
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
           installers [{:juxt.site/base-uri "https://auth.example.org"
