@@ -38,6 +38,9 @@
 
    {"empty_configuration" true}))
 
+(defn config-as-json []
+  (println (json/generate-string (config))))
+
 (defn ping []
   (let [{resource-server "resource_server"} (config)
         {data-base-uri "base_uri"} resource-server

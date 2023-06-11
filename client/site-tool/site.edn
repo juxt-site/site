@@ -20,7 +20,7 @@
 
   config
   {:doc "Show configuration"
-   :task (prn (juxt.site.bb.tasks/config))}
+   :task (juxt.site.bb.tasks/config-as-json)}
 
   add-user
   {:doc "Add user"}
