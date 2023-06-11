@@ -6,8 +6,12 @@
 
 (ns notebooks.index
   (:require
-   [sci.core :as sci])
+   [sci.core :as sci]
+   ;;[juxt.site.repl :as repl :refer :all]
+   [jsonista.core :as json])
   )
+
+;; ## SCI transaction functions
 
 ;; Site transaction functions run on every node in the database cluster.
 ;; It's essential that a transaction function is determinstic, always returning the same result.
