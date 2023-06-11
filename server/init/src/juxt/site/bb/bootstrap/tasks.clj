@@ -396,7 +396,7 @@
 (defn oauth-token-endpoint [{:keys [auth-base-uri]}]
   (binding [*heading* "Deploy OAuth2 token endpoint"]
     ;; TODO: Look for a kid?
-    #_(install!
+    (install!
      (get-group-installers "juxt/site/oauth-token-endpoint")
      {"https://auth.example.org" (or auth-base-uri
                                      (get-in (config) ["authorization_server" "base_uri"])
@@ -524,9 +524,10 @@
             (conj
              {:juxt.site/base-uri "https://data.example.org"
               :juxt.site/installer-path "/_site/openid-user-identities/{{iss|urlescape}}/nickname/{{nickname}}"})
-            (= user-type :password
-               (conj {:juxt.site/base-uri "https://data.example.org"
-                      :juxt.site/installer-path "/_site/user-identities/{{username}}"})))]
+            (= user-type :password)
+            (conj
+             {:juxt.site/base-uri "https://data.example.org"
+              :juxt.site/installer-path "/_site/user-identities/{{username}}"}))]
 
       (install!
        installers
