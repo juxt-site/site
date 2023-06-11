@@ -180,6 +180,17 @@
        (map first)
        (postwalk group-by-reference)))
 
+(defn ^::public client-secret
+  "Return the client-secret for the given client-id"
+  [client-id]
+  (->> (q '{:find [(pull e [:juxt.site/client-secret])]
+            :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
+                    [e :juxt.site/client-id client-id]]
+            :in [client-id]} client-id)
+       (map first)
+       first
+       :juxt.site/client-secret))
+
 (defn now-id []
   (.format
    (.withZone

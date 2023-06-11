@@ -363,6 +363,10 @@
       (install! installers uri-map {}
                 {:title (format "Adding OAuth client: %s" client-id)}))))
 
+(defn client-secret [{:keys [client-id]}]
+  (println
+   (push! `(println (~'client-secret ~client-id)) {})))
+
 ;; Deprecated?
 
 (defn system-api [{:keys [auth-base-uri data-base-uri]}]
