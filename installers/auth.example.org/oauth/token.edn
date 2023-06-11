@@ -23,5 +23,10 @@
         :juxt.site/access-control-allow-methods [:post]
         :juxt.site/access-control-allow-headers ["authorization"
                                                  ;; Swagger requires this
-                                                 "x-requested-with"]}]]
-   }}}
+                                                 "x-requested-with"]}]
+    ["https://swagger-ui.apps.com/"
+       {:juxt.site/access-control-allow-origin "https://swagger-ui.apps.com/"
+        :juxt.site/access-control-allow-methods [:post]
+        :juxt.site/access-control-allow-headers ["authorization"
+                                                 ;; Swagger requires this
+                                                 "x-requested-with"]}]]}}}
