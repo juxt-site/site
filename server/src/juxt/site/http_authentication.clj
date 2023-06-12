@@ -4,7 +4,7 @@
   (:require
    [juxt.reap.alpha.encoders :refer [www-authenticate]]
    [clojure.tools.logging :as log]
-   [crypto.password.bcrypt :as password]
+   crypto.password.bcrypt
    [juxt.reap.alpha.decoders :as reap]
    [juxt.reap.alpha.rfc7235 :as rfc7235]
    [xtdb.api :as xt]
@@ -34,12 +34,14 @@
 ;; intercepted. This can be extended to other claims in the JWT,
 ;; restricting the token to time periods.
 
-(defn find-or-create-basic-auth-subject [req user-identity protection-space]
+;; One downside of Basic Authentication is the lack of a 'session'
+
+(defn assoc-basic-auth-subject [req seed protection-space]
   (let [xt-node (:juxt.site/xt-node req)
-        subject {:xt/id (format "https://example.org/_site/subjects/%s" (random-uuid))
-                 :juxt.site/type "https://meta.juxt.site/types/subject"
-                 :juxt.site/user-identity (:xt/id user-identity)
-                 :juxt.site/protection-space (:xt/id protection-space)}
+        subject (into seed
+                      {:xt/id (format "https://example.org/_site/subjects/%s" (random-uuid))
+                       :juxt.site/type "https://meta.juxt.site/types/subject"
+                       :juxt.site/protection-space (:xt/id protection-space)})
         ;; TODO: Replace this with a Flip tx-fn to ensure database consistency
         tx (xt/submit-tx xt-node [[:xtdb.api/put subject]])]
     (xt/await-tx xt-node tx)
@@ -51,31 +53,62 @@
       ;; need to be in the database for authorization rules to work.
       subject (assoc :juxt.site/db (xt/db xt-node)))))
 
+;; TODO: This needs to work with OAuth2 clients too!
+;; TODO: See client_credentials grant
 (defn authenticate-with-basic-auth [req db token68 protection-spaces]
-  (when-let [{:juxt.site/keys [canonical-root-uri realm] :as protection-space} (first protection-spaces)]
+  (when-let [{:juxt.site/keys [canonical-root-uri authorization-server]
+              :as protection-space} (first protection-spaces)]
     (let [[_ username password]
           (re-matches
            #"([^:]*):([^:]*)"
            (String. (.decode (java.util.Base64/getDecoder) token68)))
 
-          query (cond-> '{:find [(pull e [*])]
-                          :keys [identity]
-                          :where [[e :juxt.site/type "https://meta.juxt.site/types/user-identity"]
-                                  [e :juxt.site/canonical-root-uri canonical-root-uri]
-                                  [e :juxt.site/username username]]
-                          :in [username canonical-root-uri realm]}
-                  realm (update :where conj '[e :juxt.site/realm realm]))
+          query '{:find [(pull e [*])]
+                  :where [(matches? e username password canonical-root-uri authorization-server)]
+
+                  :rules [[(matches? e username password canonical-root-uri authorization-server)
+                           [e :juxt.site/type "https://meta.juxt.site/types/user-identity"]
+                           [e :juxt.site/username username]
+                           [e :juxt.site/password-hash password-hash]
+                           [e :juxt.site/canonical-root-uri canonical-root-uri]
+                           ;; TODO: We could also add an operation realm here
+                           [(crypto.password.bcrypt/check password password-hash)]]
+
+                          ;; Basic HTTP Authentication can also used
+                          ;; to authenticate OAuth2 clients
+                          [(matches? e username password canonical-root-uri authorization-server)
+                           [e :juxt.site/type "https://meta.juxt.site/types/client"]
+                           [e :juxt.site/client-id username]
+                           [e :juxt.site/client-secret password]
+                           [e :juxt.site/authorization-server authorization-server]
+                           ]]
+
+                  :in [username password canonical-root-uri authorization-server]}
 
           candidates
-          (xt/q db query username canonical-root-uri realm)]
+          (map first
+               (xt/q db query username password canonical-root-uri authorization-server
+                     ;;canonical-root-uri realm
+                     ))]
 
+      ;; It's unlikely, but if there are multiple user-identities or
+      ;; clients with the same username/password then we will just
+      ;; take the first one, but warn of this case.
       (when (> (count candidates) 1)
         (log/warnf "Multiple candidates in basic auth found for username %s, using first found" username))
 
-      (when-let [user-identity (:identity (first candidates))]
-        (when-let [password-hash (:juxt.site/password-hash user-identity)]
-          (when (password/check password password-hash)
-            (find-or-create-basic-auth-subject req user-identity protection-space)))))))
+      (when-let [candidate (first candidates)]
+        (let [candidate-types (:juxt.site/type candidate)
+              candidate-types (if (string? candidate-types) #{candidate-types} candidate-types)]
+          (log/infof "candidate-types: %s" (pr-str candidate-types))
+          (assoc-basic-auth-subject
+           req
+           (cond-> {}
+             (contains? candidate-types "https://meta.juxt.site/types/user-identity")
+             (assoc :juxt.site/user-identity (:xt/id candidate))
+             (contains? candidate-types "https://meta.juxt.site/types/client")
+             (assoc :juxt.site/application (:xt/id candidate)))
+           protection-space))))))
 
 (defn www-authenticate-header
   "Create the WWW-Authenticate header value"

@@ -1,6 +1,8 @@
 {:deps
  ["https://auth.example.org/operations/whoami"
   "https://auth.example.org/operations/put-resource"
+  ;; TODO: Idiom is not to depend on permissions but to install them
+  ;; explicitly. So remove this dependency.
   "https://auth.example.org/permissions/system/put-resource"
   "https://auth.example.org/protection-spaces/bearer"]
  :install

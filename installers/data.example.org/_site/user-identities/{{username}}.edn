@@ -8,4 +8,5 @@
   {:xt/id "{{$id}}"
    :juxt.site/user "https://data.example.org/_site/users/{{username}}"
    :juxt.site/username "{{username}}"
-   :juxt.site/password "{{password}}"}}}
+   :juxt.site/password "{{password}}"
+   :juxt.site/canonical-root-uri "https://data.example.org"}}}

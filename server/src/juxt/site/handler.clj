@@ -251,6 +251,9 @@
                      (fn [query & args]
                        (apply xt/q (:juxt.site/db req) query args))}
 
+                    'juxt.site.util
+                    {'base64-urlencode util/base64-urlencode}
+
                     'juxt.site
                     {'pull-allowed-resources
                      (fn [m]

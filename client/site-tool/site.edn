@@ -10,24 +10,24 @@
              [clojure.java.io :as io]
              [babashka.cli :as cli])
 
-  debug
-  {:doc "DEBUG"
-   :task (juxt.site.bb.tasks/debug)}
-
   ping
   {:doc "Check server health"
    :task (juxt.site.bb.tasks/ping)}
 
-  login
-  {:doc "Acquire a token using the resource owner credentials grant"
-   :task (juxt.site.bb.tasks/login)}
+  get-token
+  {:doc "Acquire a token"
+   :task (juxt.site.bb.tasks/get-token)}
 
   config
-  {:doc "show configuration"
+  {:doc "Show configuration"
    :task (prn (juxt.site.bb.tasks/config))}
 
   add-user
   {:doc "Add user"}
+
+  jwks
+  {:doc "Show JSON Web Key Set"
+   :task (juxt.site.bb.tasks/jwks)}
 
 
   }}

@@ -511,19 +511,20 @@
 
                        'lookup-client
                        (fn [client-id]
-                         (map first
-                              (try
-                                (xt/q
-                                 db
-                                 '{:find [(pull e [*])]
-                                   :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
-                                           [e :juxt.site/client-id client-id]]
-                                   :in [client-id]} client-id)
-                                (catch Exception cause
-                                  (throw
-                                   (ex-info
-                                    (format "Failed to lookup client: %s" client-id)
-                                    {:client-id client-id} cause))))))
+                         (seq
+                          (map first
+                               (try
+                                 (xt/q
+                                  db
+                                  '{:find [(pull e [*])]
+                                    :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
+                                            [e :juxt.site/client-id client-id]]
+                                    :in [client-id]} client-id)
+                                 (catch Exception cause
+                                   (throw
+                                    (ex-info
+                                     (format "Failed to lookup client: %s" client-id)
+                                     {:client-id client-id} cause)))))))
 
                        'lookup-scope
                        (fn [scope]
@@ -783,8 +784,7 @@
            (fn [id] (xt/entity db id))}
 
           'juxt.site.util
-          {'make-nonce make-nonce
-           }
+          {'make-nonce make-nonce}
 
           'juxt.site
           {'generate-key-pair
@@ -793,6 +793,8 @@
            'get-public-key (fn [kp] (.getPublic kp))
            'get-private-key (fn [kp] (.getPrivate kp))
            'get-encoded (fn [k] (as-b64-str (.getEncoded k)))
+           'get-modulus (fn [k] (.getModulus k))
+           'get-public-exponent (fn [k] (.getPublicExponent k))
            'get-key-format (fn [k] (.getFormat k))}}
 
          (common-sci-namespaces operation-doc))
@@ -976,10 +978,10 @@
            :scope scope
            :juxt.site/request-context req}))
 
-        :else
-        (if-let [protection-spaces (:juxt.site/protection-spaces resource)]
-          ;; We are in a protection space, so this is HTTP Authentication (401
-          ;; + WWW-Authenticate header)
+        ;; We are in a protection space, so this is HTTP Authentication (401
+        ;; + WWW-Authenticate header)
+        (:juxt.site/protection-spaces resource)
+        (let [protection-spaces (:juxt.site/protection-spaces resource)]
           (throw
            (ex-info
             (format "No anonymous permission for operation (try authenticating!): %s" (pr-str operation))
@@ -987,45 +989,46 @@
              :ring.response/headers
              {"www-authenticate" (http-authn/www-authenticate-header db protection-spaces)
               "access-control-allow-origin" "*"}
-             :juxt.site/request-context req}))
+             :juxt.site/request-context req})))
 
-          ;; We are outside a protection space, there is nothing we can do
-          ;; except return a 403 status.
+        (:juxt.site/session-scope req)
+        ;; We are inside a session-scope. Therefore, we can
+        ;; respond with a redirect to a page that will establish (immediately
+        ;; or eventually), the cookie.
+        (let [session-scope (:juxt.site/session-scope req)
+              login-uri (:juxt.site/login-uri session-scope)
+              redirect (str
+                        login-uri
+                        "?return-to="
+                        (codec/url-encode
+                         (cond-> uri
+                           (not (str/blank? (:ring.request/query req)))
+                           (str "?" (:ring.request/query req)))))]
+          ;; If we are in a session-scope that contains a login-uri, let's redirect to that
+          ;;                (def req req)
+          (throw
+           (ex-info
+            (format "No anonymous permission for operation (try logging in!): %s" (pr-str operation))
+            {:ring.response/status 302
+             :ring.response/headers {"location" redirect}
+             :juxt.site/request-context req})))
 
-          ;; We MUST NOT return a 401 UNLESS we can
-          ;; set a WWW-Authenticate header (which we can't, as there is no
-          ;; protection space). 403 is the only option afforded by RFC 7231: "If
-          ;; authentication credentials were provided in the request ... the
-          ;; client MAY repeat the request with new or different credentials. "
-          ;; -- Section 6.5.3, RFC 7231
+        :else
+        ;; We are outside a protection space, there is nothing we can do
+        ;; except return a 403 status.
 
-          ;; TODO: But are we inside a session-scope ? If so, we can
-          ;; respond with a redirect to a page that will establish (immediately
-          ;; or eventually), the cookie.
-
-          (if-let [session-scope (:juxt.site/session-scope req)]
-            (let [login-uri (:juxt.site/login-uri session-scope)
-                  redirect (str
-                            login-uri
-                            "?return-to="
-                            (codec/url-encode
-                             (cond-> uri
-                               (not (str/blank? (:ring.request/query req)))
-                               (str "?" (:ring.request/query req)))))]
-              ;; If we are in a session-scope that contains a login-uri, let's redirect to that
-              ;;                (def req req)
-              (throw
-               (ex-info
-                (format "No anonymous permission for operation (try logging in!): %s" (pr-str operation))
-                {:ring.response/status 302
-                 :ring.response/headers {"location" redirect}
-                 :juxt.site/request-context req})))
-            (throw
-             (ex-info
-              (format "No anonymous permission for operation: %s" (pr-str operation))
-              {:ring.response/status 403
-               :ring.response/headers {"access-control-allow-origin" "*"}
-               :juxt.site/request-context req}))))))))
+        ;; We MUST NOT return a 401 UNLESS we can
+        ;; set a WWW-Authenticate header (which we can't, as there is no
+        ;; protection space). 403 is the only option afforded by RFC 7231: "If
+        ;; authentication credentials were provided in the request ... the
+        ;; client MAY repeat the request with new or different credentials. "
+        ;; -- Section 6.5.3, RFC 7231
+        (throw
+         (ex-info
+          (format "No anonymous permission for operation: %s" (pr-str operation))
+          {:ring.response/status 403
+           :ring.response/headers {"access-control-allow-origin" "*"}
+           :juxt.site/request-context req}))))))
 
 (comment
   (sci/eval-string

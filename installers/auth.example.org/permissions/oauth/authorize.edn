@@ -1,6 +1,4 @@
-{:deps
- ["https://auth.example.org/operations/oauth/authorize"]
- :install
+{:install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input

@@ -43,6 +43,7 @@
                                              [:juxt.site/base-installer-path [:ref :juxt.site/base-installer-path]]]])
    })
 
+
 (mr/set-default-registry!
    (mr/composite-registry
     (m/default-schemas)

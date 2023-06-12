@@ -1,6 +1,5 @@
 {:deps
- ["https://auth.example.org/operations/oauth/install-token-introspection-endpoint"
-  "https://auth.example.org/permissions/system/install-token-introspection-endpoint"]
+ ["https://auth.example.org/operations/oauth/install-token-introspection-endpoint"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-id "https://auth.example.org/operations/oauth/install-token-introspection-endpoint"

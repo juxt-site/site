@@ -20,7 +20,9 @@
          graph (ciu/unified-installer-map (io/file root-dir "installers") uri-map)
          groups (edn/read-string (slurp (io/file root-dir "installers/groups.edn")))]
      (doseq [n names
-             :let [resources (some-> groups (get n) :juxt.site/installers)]]
+             :let [group (get groups n)
+                   _ (when-not group (throw (ex-info (format "Group not found: %s" n) {:group n})))
+                   resources (some-> groups (get n) :juxt.site/installers)]]
        (install/converge!
         *xt-node*
         (install/map-uris resources uri-map)

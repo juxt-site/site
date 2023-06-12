@@ -13,16 +13,6 @@
   (println "DEBUG")
   )
 
-(defn ping []
-  (let [{:keys [status body]} (http/get "http://localhost:4444/_site/healthcheck")]
-    (cond
-      (= status 200)
-      (println body)
-      :else
-      (do
-        (println "Not OK")
-        (println body)))))
-
 (defn curl-config-file []
   (or
    (when (System/getenv "CURL_HOME")
@@ -48,17 +38,33 @@
 
    {"empty_configuration" true}))
 
-(defn login []
+(defn ping []
+  (let [{resource-server "resource_server"} (config)
+        {data-base-uri "base_uri"} resource-server
+        url (str data-base-uri "/_site/healthcheck")
+        {:keys [status body]} (http/get url)]
+    (println "Checking" url)
+    (cond
+      (= status 200)
+      (println "Response:" body)
+      :else
+      (do
+        (println "Not OK")
+        (println body)))))
+
+(defn get-token []
   (let [{authorization-server "authorization_server"
          curl "curl"}
         (config)
 
-        {token-endpoint "token_endpoint"
+        {auth-base-uri "base_uri"
          grant-type "grant_type"
          username "username"
          password "password"
          client-id "client_id"}
         authorization-server
+
+        token-endpoint (str auth-base-uri "/oauth/token")
 
         {:keys [status body]}
         (http/post token-endpoint
@@ -99,12 +105,22 @@
                (cond-> new-lines
                  (= lines new-lines)
                  (conj
-                  "# This was added by site login"
+                  "# This was added by site get-token"
                   (format "oauth2-bearer %s" access-token))))))
 
       bearer-token-file (spit bearer-token-file (format "oauth2-bearer %s" access-token))
       :else (println access-token))))
 
 (defn add-user []
+  (throw (ex-info "Unsupported currently" {})))
 
-  )
+(defn jwks []
+  (let [{authorization-server "authorization_server"} (config)
+        {data-base-uri "base_uri"} authorization-server
+        url (str data-base-uri "/.well-known/jwks.json")
+        {:keys [status body]} (http/get url)]
+    (cond
+      (= status 200)
+      (println body)
+      :else
+      (prn (json/generate-string "Not OK")))))

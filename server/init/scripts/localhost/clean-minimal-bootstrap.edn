@@ -1,0 +1,10 @@
+;; This is a minimal bootstrap that doesn't require any decisions on
+;; the part of a user. This allows further bootstrapping to be done
+;; remotely, via insite, which will use the client_credentials flow in
+;; order to acquire its bearer token.
+[[:reset]
+ [:bootstrap {}]
+ [:oauth-token-endpoint {}]
+ [:system-api {}]
+ [:register-application {:client-id "insite"}]
+ [:register-application {:client-id "swagger-ui"}]]
