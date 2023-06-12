@@ -35,14 +35,25 @@
       (n/spaces 1)
       (n/token-node host)])))
 
-(defn collect-juxt-site-keywords [s]
-  (map
-   (comp #(keyword "juxt.site" %) name keyword)
-   (re-seq #":juxt.site\/[^\s]+" s)))
+(defn zloc-map [f zloc]
+  (if zloc
+    (cons (f zloc) (zloc-map f (z/right zloc)))
+    nil))
 
-(defn keyword-locs [zloc kw]
-  (when-let [nextloc (z/find-value zloc z/next kw)]
-    (cons nextloc (keyword-locs (z/next nextloc) kw))))
+(defn zloc-reduce [f acc zloc]
+  (if zloc
+    (zloc-reduce f (f acc zloc) (z/right zloc))
+    acc ))
+
+(defn zloc-walk [f acc zloc]
+  (zloc-reduce
+   (fn [acc z]
+     (if (z/down z)
+       (zloc-walk f acc (z/down z))
+       (f acc z)))
+   acc
+   zloc))
+
 
 (defn determine-fn-type [fn-sym]
   (case fn-sym
@@ -110,48 +121,47 @@
       (determine-zloc-context zloc (z/up zloc))
       (guess-zloc-type zloc (z/next zloc))))
 
-(defn assess-instances-for-schema [kw-map]
+(defn propose-schema [instances]
   ;; TODO expand
-  (assoc kw-map
-         :proposed-schema
-         (reduce
-          (fn [acc k]
-            (cond
-              (not= acc :any) acc
-              :else (:next-type k)))
-          :any
-          (:instances kw-map))))
+  (reduce
+   (fn [acc k]
+     (cond
+       (not= acc :any) acc
+       :else (:next-type k)))
+   :any
+   instances))
 
-(defn analyze-juxt-site-keywords [file]
-  ;; Finds all references to keywords in a file, analyzes them
-  ;; Issues with this method
-  ;; 1. Only capturing direct references, what if stored in a variable and used later?
-  ;; 2. Can mostly only analyze vectors and maps right now, otherwise it's difficult to deduce the type being used
-  ;; 3. No guarantee of correctness, this is more speculative, and constrained
+(defn analyze-juxt-site-keywords [zloc]
+  (update-vals
+   (zloc-walk
+    (fn [acc z]
+      (let [sexpr (z/sexpr z)]
+        (if (and (keyword? sexpr) (= "juxt.site" (namespace sexpr)))
+          (update acc sexpr #(conj % (analyze-keyword-loc z)))
+          acc)))
+    {}
+    zloc)
+   (fn [instances]
+     {:count (count instances)
+      :instances instances
+      :proposed-schema (propose-schema instances)})))
+
+
+(defn analyze-file [file]
   (let [fs (slurp (io/file file))
-        keywords (collect-juxt-site-keywords fs)
         zloc (z/of-string fs {:track-position? true})]
-    (map
-     #'assess-instances-for-schema
-     (sort-by :count
-              #(compare %2 %1)
-              (map
-               (fn [kw]
-                 (let [locs
-                       ;; Right now only return naive assignments
-                       (map analyze-keyword-loc (keyword-locs zloc kw))]
-                   {:keyword kw
-                    :count (count locs)
-                    :instances locs}))
-               (set keywords))))))
+    ;; (z/sexpr (z/right (z/down zloc)))
+    (analyze-juxt-site-keywords zloc)
+    
+    #_(zloc-walk
+       (fn [acc z]
+         (if (symbol? (z/sexpr z))
+           (conj acc (z/sexpr z))
+           acc))
+       []
+       zloc)))
 
-(analyze-juxt-site-keywords "src/juxt/site/operations.clj")
-
-(analyze-juxt-site-keywords "../installers/auth.example.org/operations/oauth/create-access-token.edn")
-
-#_(defn analyze-juxt-site-symbols [file]
-  (let [fs (slurp (io/file file))
-        ]))
+(analyze-file "src/juxt/site/operations.clj")
 
 ;; Todoc debug this
 ;; (analyze-juxt-site-keywords "src/juxt/site/handler.clj")
