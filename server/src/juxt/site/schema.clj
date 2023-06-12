@@ -36,9 +36,9 @@
    :juxt.site/username [:string {:min 1}]
    :juxt.site/password [:string {:min 1}]
    :juxt.site/description [:string {:min 1}]
-   :juxt.site/base-uri (m/schema [:and [:string {:min 1}] [:fn string-uri?]])
-   :juxt.site/base-installer-path (m/schema [:string {:min 1}])
-   :juxt.site/installers (m/schema [:vector [:map
+   #_#_:juxt.site/base-uri (m/schema [:and [:string {:min 1}] [:fn string-uri?]])
+   #_#_:juxt.site/base-installer-path (m/schema [:string {:min 1}])
+   #_#_:juxt.site/installers (m/schema [:vector [:map
                                              [:juxt.site/base-uri [:ref :juxt.site/base-uri]]
                                              [:juxt.site/base-installer-path [:ref :juxt.site/base-installer-path]]]])
    })
