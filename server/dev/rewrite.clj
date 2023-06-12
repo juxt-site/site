@@ -43,7 +43,7 @@
 (defn zloc-reduce [f acc zloc]
   (if zloc
     (zloc-reduce f (f acc zloc) (z/right zloc))
-    acc ))
+    acc))
 
 (defn zloc-walk [f acc zloc]
   (zloc-reduce
@@ -54,8 +54,10 @@
    acc
    zloc))
 
+;; We will definitely want different kinds of walks, a further abstraction, such as L-fold upwards walks etc
 
 (defn determine-fn-type [fn-sym]
+  ;; TODO manually add more
   (case fn-sym
     clojure.string/lower-case :string
     :any))
@@ -99,6 +101,7 @@
          :next-type (guess-sexpr-type (z/sexpr nextloc))}))
 
 (defn determine-zloc-context [template zloc parentloc]
+  ;; TODO we can improve this by an 'unwinding' algorithm
   (into template
         {:parent (z/sexpr parentloc)
          :parent-type
@@ -117,6 +120,7 @@
            "unknown")}))
 
 (defn analyze-keyword-loc [zloc]
+  ;; TODO shouldn't just be parent and the next (which should really say right) 
   (-> {:position (z/position zloc)}
       (determine-zloc-context zloc (z/up zloc))
       (guess-zloc-type zloc (z/next zloc))))
@@ -148,6 +152,20 @@
 
 
 (defn analyze-file [file]
+  "
+Analyze a file for juxt.site keyword references, and understand the references in context
+Algorithm works as follows:
+ Collect all juxt.site keywords and for each juxt.site keyword
+   1. Understand and define what the context is E.G., is this a datalog triple, a simple assignment, a destructuring, etc
+      1a. This can be done by analysis of the structure of the expression
+      1b. References to symbols means that further context must be understood, so one will need to look up the context until more symbol references are made by looking backwards ('unwinding') until we can derive the type.
+      1c. It is likely we will need a concept of subcontexts
+   2. Store that information
+   3. Propose a malli schema for that keyword
+      3a. Default is :any
+      3b. References to juxt.site keywords result in the need for a :ref
+
+"
   (let [fs (slurp (io/file file))
         zloc (z/of-string fs {:track-position? true})]
     ;; (z/sexpr (z/right (z/down zloc)))
