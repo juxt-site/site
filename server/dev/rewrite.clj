@@ -44,6 +44,11 @@
   (when-let [nextloc (z/find-value zloc z/next kw)]
     (cons nextloc (keyword-locs (z/next nextloc) kw))))
 
+(defn determine-fn-type [fn-sym]
+  (case fn-sym
+    clojure.string/lower-case :string
+    :any))
+
 (defn guess-sexpr-type [sexpr]
   (cond
     (symbol? sexpr)
@@ -60,14 +65,22 @@
     (into [:map] (mapv
                   (fn [[k v]]
                     [k (guess-sexpr-type v)])
-                  nextloc))
+                  sexpr))
 
     (vector? sexpr)
     ;; TODO improve this 
     [:vector (guess-sexpr-type (first sexpr))]
+
+    (list? sexpr)
+    ;; Assume fn
+    ;; TODO Based on the function maybe we can determine the type without reference 
+    (determine-fn-type (first sexpr))
+
+    (boolean? sexpr)
+    :boolean
     
     :else
-    (type sexpr)))
+    :any))
 
 (defn guess-zloc-type [template zloc nextloc]
   (into template
@@ -97,6 +110,18 @@
       (determine-zloc-context zloc (z/up zloc))
       (guess-zloc-type zloc (z/next zloc))))
 
+(defn assess-instances-for-schema [kw-map]
+  ;; TODO expand
+  (assoc kw-map
+         :proposed-schema
+         (reduce
+          (fn [acc k]
+            (cond
+              (not= acc :any) acc
+              :else (:next-type k)))
+          :any
+          (:instances kw-map))))
+
 (defn analyze-juxt-site-keywords [file]
   ;; Finds all references to keywords in a file, analyzes them
   ;; Issues with this method
@@ -106,21 +131,27 @@
   (let [fs (slurp (io/file file))
         keywords (collect-juxt-site-keywords fs)
         zloc (z/of-string fs {:track-position? true})]
-    (sort-by :count
-             #(compare %2 %1)
-             (map
-              (fn [kw]
-                (let [locs
-                      ;; Right now only return naive assignments
-                      (map analyze-keyword-loc (keyword-locs zloc kw))]
-                  {:keyword kw
-                   :count (count locs)
-                   :instances locs}))
-              (set keywords)))))
+    (map
+     #'assess-instances-for-schema
+     (sort-by :count
+              #(compare %2 %1)
+              (map
+               (fn [kw]
+                 (let [locs
+                       ;; Right now only return naive assignments
+                       (map analyze-keyword-loc (keyword-locs zloc kw))]
+                   {:keyword kw
+                    :count (count locs)
+                    :instances locs}))
+               (set keywords))))))
 
 (analyze-juxt-site-keywords "src/juxt/site/operations.clj")
 
 (analyze-juxt-site-keywords "../installers/auth.example.org/operations/oauth/create-access-token.edn")
+
+#_(defn analyze-juxt-site-symbols [file]
+  (let [fs (slurp (io/file file))
+        ]))
 
 ;; Todoc debug this
 ;; (analyze-juxt-site-keywords "src/juxt/site/handler.clj")

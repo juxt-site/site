@@ -25,7 +25,7 @@
    :juxt.site/uri [:and [:string {:min 1}] [:fn string-uri?]]
    :juxt.site/type [:and [:string {:min 1}] [:fn string-uri?]]
    :juxt.site/issuer [:string {:min 1}]
-   :juxt.site/grant-type [:enum "authorization_code" "refresh_token" "password" "client_credentials"]
+   :juxt.site/grant-type (m/schema [:enum "authorization_code" "refresh_token" "password" "client_credentials"])
    :juxt.site/client-type [:enum "confidential" "public"]
    :juxt.site/redirect-uris [:sequential [:and [:string {:min 1}] [:fn string-uri?]]]
    :juxt.site/subject-id [:and [:string {:min 1}] [:fn string-uri?]]
@@ -36,10 +36,11 @@
    :juxt.site/username [:string {:min 1}]
    :juxt.site/password [:string {:min 1}]
    :juxt.site/description [:string {:min 1}]
-   :juxt.site/base-uri [:and [:string {:min 1}] [:fn string-uri?]]
-   :juxt.site/base-installer-path [:string {:min 1}]
-   :juxt.site/installers [:vector [:map [:juxt.site/base-uri [:ref :juxt.site/base-uri]]
-                                   [:juxt.site/base-installer-path [:ref :juxt.site/base-installer-path]]]]
+   :juxt.site/base-uri (m/schema [:and [:string {:min 1}] [:fn string-uri?]])
+   :juxt.site/base-installer-path (m/schema [:string {:min 1}])
+   :juxt.site/installers (m/schema [:vector [:map
+                                             [:juxt.site/base-uri [:ref :juxt.site/base-uri]]
+                                             [:juxt.site/base-installer-path [:ref :juxt.site/base-installer-path]]]])
    })
 
 (mr/set-default-registry!
