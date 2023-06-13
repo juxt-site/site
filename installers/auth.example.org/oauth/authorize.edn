@@ -14,5 +14,5 @@
    ;; create a signed access-token via this endpoint (rather than the
    ;; token endpoint). Therefore, this resource needs a keypair in
    ;; order to sign the access token.
-   :juxt.site/keypair "https://auth.example.org/keypairs/{{kid}}"
+   :juxt.site/keypair "https://auth.example.org/keypairs/current-signing-key"
    }}}

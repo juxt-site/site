@@ -9,13 +9,11 @@
   {:xt/id "{{$id}}"
    :juxt.http/content-type "text/html;charset=utf-8"
    :juxt.http/content "<p>Welcome to the Site token endpoint server.</p>"
-   ;;:juxt.site/session-scope "{{session-scope}}"
-   :juxt.site/keypair "https://auth.example.org/keypairs/{{kid}}"
+   :juxt.site/keypair "https://auth.example.org/keypairs/current-signing-key"
 
    ;; The token endpoint is inside a special protection space since
    ;; client_credentials can use HTTP Basic Authentication
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/client-credentials"}
-
 
    :juxt.site/access-control-allow-origins
    [["https://petstore.swagger.io"

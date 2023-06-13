@@ -38,13 +38,17 @@
                        :juxt.site/public-key-modulus (juxt.site/get-modulus public-key)
                        :juxt.site/public-key-public-exponent (juxt.site/get-public-exponent public-key)
                        :juxt.site/private-key (juxt.site/get-encoded private-key)
-                       :juxt.site/private-key-format (juxt.site/get-key-format private-key))]
-        doc))}
+                       :juxt.site/private-key-format (juxt.site/get-key-format private-key))
+            active-doc (assoc doc :xt/id "https://auth.example.org/keypairs/current-signing-key")]
+
+        {:doc doc
+         :active-doc active-doc}))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    [[:xtdb.api/put *prepare*]]}
+    [[:xtdb.api/put (:doc *prepare*)]
+     [:xtdb.api/put (:active-doc *prepare*)]]}
 
    :juxt.site/rules
    [

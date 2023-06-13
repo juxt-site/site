@@ -61,23 +61,20 @@
         (config)
 
         {auth-base-uri "base_uri"
-         grant-type "grant_type"
-         username "username"
-         password "password"
-         client-id "client_id"}
+         ;;grant-type "grant_type"
+         ;;username "username"
+         ;;password "password"
+         ;;client-id "client_id"
+         }
         authorization-server
 
         token-endpoint (str auth-base-uri "/oauth/token")
 
         {:keys [status body]}
-        (http/post token-endpoint
-                   {:headers {"content-type" "application/x-www-form-urlencoded"}
-                    :body (format
-                           "grant_type=%s&username=%s&password=%s&client_id=%s"
-                           grant-type
-                           (java.net.URLEncoder/encode username)
-                           (java.net.URLEncoder/encode password)
-                           client-id)})
+        (http/post
+         token-endpoint
+         {:headers {"content-type" "application/x-www-form-urlencoded"}
+          :body (format "grant_type=%s" "client_credentials")})
 
         _ (when-not (= status 200)
             (println "Not OK, status was" status)
