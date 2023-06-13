@@ -122,11 +122,19 @@ sitectl install-group juxt/site/system-api
 sitectl register-application insite
 ----
 
+Much of the System API can only be accessed by a client that is appropriately authorized.
+
+To support the ability to authorize clients we must first add an OAuth2 token endpoint.
+
+
+
 . Retrieve this application's client_secret value
 +
 ----
 client_secret=$(sitectl client-secret insite)
 ----
+
+
 
 
 . Test that the System API has been installed by opening a browser at https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
