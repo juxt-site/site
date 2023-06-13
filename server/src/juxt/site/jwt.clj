@@ -96,6 +96,8 @@
         private-key (.generatePrivate kf key-spec)]
     (make-jwt header payload private-key)))
 
+;; TODO: This should make it explicit that we're creating a new
+;; JWT. There may be other types of access token.
 (defn new-access-token [claims keypair]
   (assert (map? claims))
   (assert (map? keypair))
@@ -108,6 +110,7 @@
 (defn verify-jwt [jwt keypair]
   (assert (string? jwt))
   (assert (map? keypair))
+  ;; TODO: Replace "RSA" with (juxt.site/algorithm keypair)
   (let [kf (java.security.KeyFactory/getInstance "RSA")
         key-spec (case (:juxt.site/public-key-format keypair)
                    "X.509" (new java.security.spec.X509EncodedKeySpec (.decode (java.util.Base64/getDecoder) (:juxt.site/public-key keypair))))
@@ -115,6 +118,7 @@
         jwt (decode-jwt jwt public-key)]
     jwt))
 
+;; TODO: Rename from get-kid to extract-kid ?
 (defn get-kid [jwt]
   (.asString (.getHeaderClaim (JWT/decode jwt) "kid")))
 
