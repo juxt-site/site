@@ -11,15 +11,14 @@
    [jsonista.core :as json]
    [juxt.site.http-authentication :as http-authn]
    [juxt.site.openid-connect :as openid-connect]
-   [juxt.site.util :refer [make-nonce as-b64-str sha]]
+   [juxt.site.util :refer [make-nonce as-b64-str sha] :as util]
    [malli.core :as malli]
    [malli.error :as malli.error]
    [ring.util.codec :as codec]
    [sci.core :as sci]
    [xtdb.api :as xt]
    juxt.site.schema
-   [juxt.site.jwt :as jwt]
-   [juxt.site.util :as util]))
+   [juxt.site.jwt :as jwt]))
 
 (defn operation->rules
   "Determine rules for the given operation id. A rule is bound to the
