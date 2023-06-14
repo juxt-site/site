@@ -16,7 +16,7 @@
 
   get-token
   {:doc "Acquire a token"
-   :task (juxt.site.bb.tasks/get-token)}
+   :task (juxt.site.bb.tasks/get-token-with-client-secret)}
 
   config
   {:doc "Show configuration"

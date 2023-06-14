@@ -116,26 +116,77 @@ NOTE: At any time, you can start over with `sitectl reset`.
 sitectl install-group juxt/site/system-api
 ----
 
-. Install the Site System API
+. Register a command-line app
 +
 ----
-sitectl register-application insite
+sitectl register-application site-cli
 ----
 
-Much of the System API can only be accessed by a client that is appropriately authorized.
+Much of the System API can only be accessed by a client that makes requests with a bearer token.
+Bearer tokens are signed JSON Web Tokens (JWTs).
 
-To support the ability to authorize clients we must first add an OAuth2 token endpoint.
+We must generate a keypair that Site can use to sign these JWTs.
 
+----
+sitectl new-keypair
+----
 
+NOTE: You can use `sitectl new-keypair` whenever it is appropriate to rotate the keypair.
 
-. Retrieve this application's client_secret value
+We must also install a token endpoint for a client to be able to request a bearer token.
+
+----
+sitectl install-group juxt/site/oauth-token-endpoint
+----
+
+Create a file called `$HOME/.config/site/client.yaml` with the following content:
+
+----
+curl:
+  save_bearer_token_to_default_config_file: true
+
+resource_server:
+  base_uri: http://localhost:4444
+
+authorization_server:
+  base_uri: http://localhost:4440
+----
+
+. Get a bearer token, saved to .curlrc
 +
 ----
-client_secret=$(sitectl client-secret insite)
+site get-token site-cli $(sitectl client-secret site-cli)
 ----
 
+. Test
++
+----
+curl -i -H accept:application/json http://localhost:4444/_site/whoami
+----
 
+This should return something similar to the following:
 
+----
+HTTP/1.1 200 OK
+Date: Wed, 14 Jun 2023 14:43:21 GMT
+Site-Request-Id: http://localhost:4444/_site/requests/d4d9fd1626bb20015cbf93d0
+Content-Type: application/json
+Content-Location: http://localhost:4444/_site/whoami.json
+Vary: accept
+Permissions-Policy: interest-cohort=()
+Content-Length: 141
+Server: Jetty(9.4.44.v20210927)
+
+{"juxt.site/subject":{"juxt.site/type":"https://meta.juxt.site/types/subject","xt/id":"http://localhost:4440/subjects/ea50d0d1ecc31112e1b2"}}
+----
+
+=== Swagger UI
+
+. Register the swagger-ui app
++
+----
+sitectl register-application swagger-ui
+----
 
 . Test that the System API has been installed by opening a browser at https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
 
