@@ -10,10 +10,6 @@
    [cheshire.core :as json]
    [clojure.string :as str]))
 
-(defn debug []
-  (println "DEBUG")
-  )
-
 (defn curl-config-file []
   (or
    (when (System/getenv "CURL_HOME")
