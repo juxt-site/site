@@ -3,7 +3,6 @@
 (ns user
   (:require
    [ring.util.codec :as codec]
-   [nextjournal.clerk :as clerk]
    [clojure.java.io :as io]
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
