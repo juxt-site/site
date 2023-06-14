@@ -75,328 +75,328 @@
    {:juxt.site.sci/program
     #juxt.pprint
     (let [resource-owner-error
-          ;; TODO: create-access-token.edn arguably has a superior
-          ;; error-handler, which also checks the description
-          ;; characters. Consider using the same here instead of this.
-          (fn [data]
-            (let [body-bytes (jsonista.core/write-value-as-bytes data)]
-              (throw
-               (ex-info
-                (or (get data "error_description") (get data "error"))
-                (merge
-                 {:ring.response/status 400
-                  :ring.response/headers
-                  {"content-type" "application/json"
-                   "content-length" (count body-bytes)}
-                  :ring.response/body body-bytes}
-                 data)))))
+            ;; TODO: create-access-token.edn arguably has a superior
+            ;; error-handler, which also checks the description
+            ;; characters. Consider using the same here instead of this.
+            (fn [data]
+              (let [body-bytes (jsonista.core/write-value-as-bytes data)]
+                (throw
+                 (ex-info
+                  (or (get data "error_description") (get data "error"))
+                  (merge
+                   {:ring.response/status 400
+                    :ring.response/headers
+                    {"content-type" "application/json"
+                     "content-length" (count body-bytes)}
+                    :ring.response/body body-bytes}
+                   data)))))
 
-          {:keys [response-type client-id query subject]} *prepare*
+            {:keys [response-type client-id query subject]} *prepare*
 
-          ;; "If the request fails due to a missing, invalid, or
-          ;; mismatching redirection URI, or if the client identifier
-          ;; is missing or invalid, the authorization server SHOULD
-          ;; inform the resource owner of the error and MUST NOT
-          ;; automatically redirect the user-agent to the invalid
-          ;; redirection URI."
-          ;;
-          ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1
+            ;; "If the request fails due to a missing, invalid, or
+            ;; mismatching redirection URI, or if the client identifier
+            ;; is missing or invalid, the authorization server SHOULD
+            ;; inform the resource owner of the error and MUST NOT
+            ;; automatically redirect the user-agent to the invalid
+            ;; redirection URI."
+            ;;
+            ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1
 
-          ;; Therefore, we first establish the redirect-uri and
-          ;; client-id, and communicate any errors directly to the
-          ;; resource owner by an error message.
+            ;; Therefore, we first establish the redirect-uri and
+            ;; client-id, and communicate any errors directly to the
+            ;; resource owner by an error message.
 
-          [{:juxt.site/keys [origin] :as client-doc} & others]
-          (juxt.site/lookup-client client-id)
+            [{:juxt.site/keys [origin] :as client-doc} & others]
+            (juxt.site/lookup-client client-id)
 
-          _ (when-not client-doc
-              (resource-owner-error
-               {"error" "invalid_client"
-                "error_description" "No client registered with that client_id"}))
-          _ (when others
-              (resource-owner-error
-               {"error" "invalid_client"
-                "error_description" "Multiple clients registered with that client_id"}))
-
-          ;; "If the request fails due to a missing, invalid, or
-          ;; mismatching redirection URI, or if the client identifier
-          ;; is missing or invalid, the authorization server SHOULD
-          ;; inform the resource owner of the error"
-          ;;
-          ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1
-
-          ;; "If an authorization request fails validation due to a
-          ;; missing, invalid, or mismatching redirection URI, the
-          ;; authorization server SHOULD inform the resource owner of
-          ;; the error and MUST NOT automatically redirect the
-          ;; user-agent to the invalid redirection URI."
-          ;;
-          ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.4
-
-          redirect-uri (get query "redirect_uri")
-
-          ;; "The authorization server MAY allow the client to
-          ;; register multiple redirection endpoints."
-          ;;
-          ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.2
-
-          registered-redirect-uris (:juxt.site/redirect-uris client-doc)
-
-          ;; "If multiple redirection URIs have been registered, if
-          ;; only part of the redirection URI has been registered, or
-          ;; if no redirection URI has been registered, the client
-          ;; MUST include a redirection URI with the authorization
-          ;; request using the "redirect_uri" request parameter."
-          ;;
-          ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.3
-          _ (when (or
-                   ;; if multiple redirection URIs have been registered
-                   (< 1 (count registered-redirect-uris))
-
-                   ;; TODO: if only part of the redirection URI has been registered
-
-                   ;; or if no redirection URI has been registered
-                   (zero? (count registered-redirect-uris)))
-
-              (when-not redirect-uri
+            _ (when-not client-doc
                 (resource-owner-error
-                 {"error" "invalid_request"
-                  "error_description" "Redirection URI is required as a query parameter"})))
+                 {"error" "invalid_client"
+                  "error_description" "No client registered with that client_id"}))
+            _ (when others
+                (resource-owner-error
+                 {"error" "invalid_client"
+                  "error_description" "Multiple clients registered with that client_id"}))
 
-          redirect-uri
-          (if redirect-uri
-            ;; "When a redirection URI is included in an authorization
-            ;; request, the authorization server MUST compare and match
-            ;; the value received against at least one of the registered
-            ;; redirection URIs"
+            ;; "If the request fails due to a missing, invalid, or
+            ;; mismatching redirection URI, or if the client identifier
+            ;; is missing or invalid, the authorization server SHOULD
+            ;; inform the resource owner of the error"
+            ;;
+            ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1
+
+            ;; "If an authorization request fails validation due to a
+            ;; missing, invalid, or mismatching redirection URI, the
+            ;; authorization server SHOULD inform the resource owner of
+            ;; the error and MUST NOT automatically redirect the
+            ;; user-agent to the invalid redirection URI."
+            ;;
+            ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.4
+
+            redirect-uri (get query "redirect_uri")
+
+            ;; "The authorization server MAY allow the client to
+            ;; register multiple redirection endpoints."
+            ;;
+            ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.2
+
+            registered-redirect-uris (:juxt.site/redirect-uris client-doc)
+
+            ;; "If multiple redirection URIs have been registered, if
+            ;; only part of the redirection URI has been registered, or
+            ;; if no redirection URI has been registered, the client
+            ;; MUST include a redirection URI with the authorization
+            ;; request using the "redirect_uri" request parameter."
             ;;
             ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.3
-            (if (some (fn [x] (= redirect-uri x)) registered-redirect-uris)
-              redirect-uri
-              (throw (ex-info "Invalid redirect URI" {:ring.response/status 400})))
+            _ (when (or
+                     ;; if multiple redirection URIs have been registered
+                     (< 1 (count registered-redirect-uris))
 
-            ;; Presumably, if there's no redirect-uri in the request,
-            ;; then we pick the registered redirect-uri. By logical
-            ;; infererence with the check above we know there can only
-            ;; be one.
-            (do
-              (assert (= 1 (count registered-redirect-uris)))
-              (first registered-redirect-uris)))
+                     ;; TODO: if only part of the redirection URI has been registered
 
-          _ (assert redirect-uri)
+                     ;; or if no redirection URI has been registered
+                     (zero? (count registered-redirect-uris)))
 
-          state (get query "state")
+                (when-not redirect-uri
+                  (resource-owner-error
+                   {"error" "invalid_request"
+                    "error_description" "Redirection URI is required as a query parameter"})))
 
-          ;; From now on, if we encounter an error we can inform the
-          ;; client via redirect-uri.
+            redirect-uri
+            (if redirect-uri
+              ;; "When a redirection URI is included in an authorization
+              ;; request, the authorization server MUST compare and match
+              ;; the value received against at least one of the registered
+              ;; redirection URIs"
+              ;;
+              ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.3
+              (if (some (fn [x] (= redirect-uri x)) registered-redirect-uris)
+                redirect-uri
+                (throw (ex-info "Invalid redirect URI" {:ring.response/status 400})))
 
-          ;; "If the resource owner denies the access request or if
-          ;; the request fails for reasons other than a missing or
-          ;; invalid redirection URI, the authorization server informs
-          ;; the client by adding the following parameters to the
-          ;; query component of the redirection URI using
-          ;; the "application/x-www-form-urlencoded" format"
-          ;;
-          ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1
+              ;; Presumably, if there's no redirect-uri in the request,
+              ;; then we pick the registered redirect-uri. By logical
+              ;; infererence with the check above we know there can only
+              ;; be one.
+              (do
+                (assert (= 1 (count registered-redirect-uris)))
+                (first registered-redirect-uris)))
 
-          ;; Therefore, this function can now be called to throw an
-          ;; error which informs the client via the query component of
-          ;; the redirect uri.
-          client-error
-          (fn [m]
-            (throw
-             (ex-info
-              "Redirect"
-              (assoc m :oauth-redirect "error"))))]
+            _ (assert redirect-uri)
 
-      (try
+            state (get query "state")
 
-        (when-not response-type
-          (client-error
-           {"error" "invalid_request"
-            "error_description" "A response_type query parameter is required."}))
+            ;; From now on, if we encounter an error we can inform the
+            ;; client via redirect-uri.
 
-        (when (sequential? response-type)
-          (client-error
-           {"error" "invalid_request"
-            "error_description" "A response_type query parameter must only be provided once."}))
+            ;; "If the resource owner denies the access request or if
+            ;; the request fails for reasons other than a missing or
+            ;; invalid redirection URI, the authorization server informs
+            ;; the client by adding the following parameters to the
+            ;; query component of the redirection URI using
+            ;; the "application/x-www-form-urlencoded" format"
+            ;;
+            ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1
 
-        (when-not (contains? #{"code" "token"} response-type)
-          (client-error
-           {"error" "unsupported_response_type"
-            "error_description" "The response_type query parameter must either by 'code' or 'token'."}))
+            ;; Therefore, this function can now be called to throw an
+            ;; error which informs the client via the query component of
+            ;; the redirect uri.
+            client-error
+            (fn [m]
+              (throw
+               (ex-info
+                "Redirect"
+                (assoc m :oauth-redirect "error"))))]
 
-        (when-not state
-          (client-error
-           {"error" "invalid_request"
-            "error_description" "A state query parameter is required."}))
+        (try
 
-        (when-not subject
-          (client-error
-           {"error" "invalid_request"
-            "error_description" "Missing subject. Resource owner has not been authenticated"}))
-
-        ;; See https://www.rfc-editor.org/rfc/rfc6749#section-3.3
-        (let [requested-scope (:scope *prepare*)
-              client-scope (:juxt.site/scope client-doc)
-              available-scope
-              (set
-               (map first
-                    (xt/q '{:find [e]
-                            :where [[e :juxt.site/type "https://meta.juxt.site/types/scope"]
-                                    [e :juxt.site/issuer "https://auth.example.org"]]})))
-
-              scope (cond
-                      (and requested-scope client-scope)
-                      (clojure.set/intersection requested-scope client-scope available-scope)
-
-                      (and requested-scope (nil? client-scope))
-                      (clojure.set/intersection requested-scope available-scope)
-
-                      (and (nil? requested-scope) client-scope)
-                      (clojure.set/intersection client-scope available-scope)
-
-                      :otherwise nil)]
-
-          (when (= #{} scope)
+          (when-not response-type
             (client-error
-             {"error" "invalid_scope"
-              "error_description" "No intersection between requested scope and available scope"}))
+             {"error" "invalid_request"
+              "error_description" "A response_type query parameter is required."}))
 
-          (case response-type
+          (when (sequential? response-type)
+            (client-error
+             {"error" "invalid_request"
+              "error_description" "A response_type query parameter must only be provided once."}))
 
-            "code"
-            (let [{:keys [code]} *prepare*
+          (when-not (contains? #{"code" "token"} response-type)
+            (client-error
+             {"error" "unsupported_response_type"
+              "error_description" "The response_type query parameter must either by 'code' or 'token'."}))
 
-                  code-challenge (get query "code_challenge")
-                  code-challenge-method (get query "code_challenge_method")
+          (when-not state
+            (client-error
+             {"error" "invalid_request"
+              "error_description" "A state query parameter is required."}))
 
-                  now (java.time.Instant/now)
+          (when-not subject
+            (client-error
+             {"error" "invalid_request"
+              "error_description" "Missing subject. Resource owner has not been authenticated"}))
 
-                  ;; "A maximum authorization code lifetime of 10 minutes
-                  ;; is RECOMMENDED"
-                  ;;
-                  ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2
-                  code-doc-expires-in (java.time.Duration/parse "PT10M")
-                  code-doc-expiry (java.util.Date/from (.plus now code-doc-expires-in))
+          ;; See https://www.rfc-editor.org/rfc/rfc6749#section-3.3
+          (let [requested-scope (:scope *prepare*)
+                client-scope (:juxt.site/scope client-doc)
+                available-scope
+                (set
+                 (map first
+                      (xt/q '{:find [e]
+                              :where [[e :juxt.site/type "https://meta.juxt.site/types/scope"]
+                                      [e :juxt.site/issuer "https://auth.example.org"]]})))
 
-                  code-doc
-                  (cond-> {:xt/id (str "https://auth.example.org/authorization-codes/" code)
-                           :juxt.site/type "https://meta.juxt.site/types/authorization-code"
-                           :juxt.site/subject subject
-                           :juxt.site/application (:xt/id client-doc)
-                           :juxt.site/code code}
-                    code-challenge (assoc :juxt.site/code-challenge code-challenge)
-                    code-challenge-method (assoc :juxt.site/code-challenge-method code-challenge-method)
-                    scope (assoc :juxt.site/scope scope))
+                scope (cond
+                        (and requested-scope client-scope)
+                        (clojure.set/intersection requested-scope client-scope available-scope)
 
-                  query-component
-                  (ring.util.codec/form-encode
-                   {"code" code
-                    "state" state})
+                        (and requested-scope (nil? client-scope))
+                        (clojure.set/intersection requested-scope available-scope)
 
-                  location (format "%s?%s" redirect-uri query-component)]
+                        (and (nil? requested-scope) client-scope)
+                        (clojure.set/intersection client-scope available-scope)
 
-              [
-               [:xtdb.api/put code-doc (java.util.Date/from now) code-doc-expiry]
-               [:ring.response/status 303]
-               [:ring.response/headers
-                (cond-> {"location" location
-                         "content-type" "application/json"}
-                  origin (assoc "access-control-allow-origin" origin
-                                "access-control-allow-credentials" "true"))]])
+                        :otherwise nil)]
 
-            "token"
-            (let [{:keys [jwt-claims]} *prepare*
+            (when (= #{} scope)
+              (client-error
+               {"error" "invalid_scope"
+                "error_description" "No intersection between requested scope and available scope"}))
 
-                  {:juxt.site/keys [origin resource-server]} client-doc
-                  _ (assert resource-server)
+            (case response-type
 
-                  now (java.time.Instant/now)
-                  issued-at (java.util.Date/from now)
-                  not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
-                  expires-in (java.time.Duration/parse "PT15M")
-                  expiry (java.util.Date/from (.plus now expires-in))
+              "code"
+              (let [{:keys [code]} *prepare*
 
-                  username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
+                    code-challenge (get query "code_challenge")
+                    code-challenge-method (get query "code_challenge_method")
 
-                  jwt-claims
-                  (into jwt-claims
-                        (cond-> {"iat" issued-at
-                                 "nbf" not-before
-                                 "exp" expiry
-                                 "aud" resource-server
-                                 "sub" subject
-                                 "client_id" client-id}
-                          scope (assoc "scope" (clojure.string/join " " scope))
-                          username (assoc "username" username)))
+                    now (java.time.Instant/now)
 
-                  access-token
-                  (juxt.site/make-access-token
-                   jwt-claims
-                   (:juxt.site/keypair *resource*))
+                    ;; "A maximum authorization code lifetime of 10 minutes
+                    ;; is RECOMMENDED"
+                    ;;
+                    ;; https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2
+                    code-doc-expires-in (java.time.Duration/parse "PT10M")
+                    code-doc-expiry (java.util.Date/from (.plus now code-doc-expires-in))
 
-                  access-token-doc
-                  (cond->
-                      {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
-                       :juxt.site/type "https://meta.juxt.site/types/access-token"
-                       :juxt.site/subject subject
-                       :juxt.site/issuer (get jwt-claims "iss")
-                       :juxt.site/issued-at issued-at
-                       :juxt.site/not-before not-before
-                       :juxt.site/expiry expiry
-                       :juxt.site/audience resource-server
-                       :juxt.site/application client-id
-                       :juxt.site/token access-token
-                       :juxt.site/keypair (:juxt.site/keypair *resource*)}
-                      scope (assoc :juxt.site/scope scope)
-                      username (assoc :juxt.site/username username))
+                    code-doc
+                    (cond-> {:xt/id (str "https://auth.example.org/authorization-codes/" code)
+                             :juxt.site/type "https://meta.juxt.site/types/authorization-code"
+                             :juxt.site/subject subject
+                             :juxt.site/application (:xt/id client-doc)
+                             :juxt.site/code code}
+                      code-challenge (assoc :juxt.site/code-challenge code-challenge)
+                      code-challenge-method (assoc :juxt.site/code-challenge-method code-challenge-method)
+                      scope (assoc :juxt.site/scope scope))
 
-                  fragment
-                  (ring.util.codec/form-encode
-                   ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.2.2
-                   (merge
-                    {"access_token" access-token
-                     "token_type" "bearer"
-                     "expires_in" (.getSeconds expires-in)}
-                    (when scope {"scope" (clojure.string/join " " scope)})
-                    {"state" (get query "state")}))
+                    query-component
+                    (ring.util.codec/form-encode
+                     {"code" code
+                      "state" state})
 
-                  location (format "%s#%s" redirect-uri fragment)]
+                    location (format "%s?%s" redirect-uri query-component)]
 
-              [[:xtdb.api/put access-token-doc issued-at expiry]
-               [:ring.response/status 303]
-               [:ring.response/headers
-                (cond-> {"location" location}
-                  origin (assoc "access-control-allow-origin" origin
-                                "access-control-allow-credentials" "true"))]])))
+                [
+                 [:xtdb.api/put code-doc (java.util.Date/from now) code-doc-expiry]
+                 [:ring.response/status 303]
+                 [:ring.response/headers
+                  (cond-> {"location" location
+                           "content-type" "application/json"}
+                    origin (assoc "access-control-allow-origin" origin
+                                  "access-control-allow-credentials" "true"))]])
 
-        (catch clojure.lang.ExceptionInfo cause
-          (if (:oauth-redirect (ex-data cause))
-            (let [state (get query "state")
-                  encoded
-                  (ring.util.codec/form-encode
-                   (cond->
-                       (cond
-                         (:oauth-redirect (ex-data cause))
-                         (-> cause ex-data (dissoc :oauth-redirect))
-                         :else
-                         {"error" "server_error"
-                          "error_description" (.getMessage cause)})
-                       state (assoc "state" state)))
+              "token"
+              (let [{:keys [jwt-claims]} *prepare*
 
-                  location
-                  (format
-                   (if (= response-type "token") "%s#%s" "%s?%s")
-                   redirect-uri encoded)]
+                    {:juxt.site/keys [origin resource-server]} client-doc
+                    _ (assert resource-server)
 
-              [[:ring.response/status 303]
-               [:ring.response/headers
-                (cond-> {"location" location}
-                  origin (assoc "access-control-allow-origin" origin
-                                "access-control-allow-credentials" "true"))]])
+                    now (java.time.Instant/now)
+                    issued-at (java.util.Date/from now)
+                    not-before (java.util.Date/from (.minus now 2 java.time.temporal.ChronoUnit/MINUTES))
+                    expires-in (java.time.Duration/parse "PT15M")
+                    expiry (java.util.Date/from (.plus now expires-in))
 
-            (throw cause)))))}
+                    username (some-> subject xt/entity :juxt.site/user-identity xt/entity :juxt.site/user xt/entity :username)
+
+                    jwt-claims
+                    (into jwt-claims
+                          (cond-> {"iat" issued-at
+                                   "nbf" not-before
+                                   "exp" expiry
+                                   "aud" resource-server
+                                   "sub" subject
+                                   "client_id" client-id}
+                            scope (assoc "scope" (clojure.string/join " " scope))
+                            username (assoc "username" username)))
+
+                    access-token
+                    (juxt.site/make-access-token
+                     jwt-claims
+                     (:juxt.site/keypair *resource*))
+
+                    access-token-doc
+                    (cond->
+                        {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
+                         :juxt.site/type "https://meta.juxt.site/types/access-token"
+                         :juxt.site/subject subject
+                         :juxt.site/issuer (get jwt-claims "iss")
+                         :juxt.site/issued-at issued-at
+                         :juxt.site/not-before not-before
+                         :juxt.site/expiry expiry
+                         :juxt.site/audience resource-server
+                         :juxt.site/application client-id
+                         :juxt.site/token access-token
+                         :juxt.site/keypair (:juxt.site/keypair *resource*)}
+                        scope (assoc :juxt.site/scope scope)
+                        username (assoc :juxt.site/username username))
+
+                    fragment
+                    (ring.util.codec/form-encode
+                     ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.2.2
+                     (merge
+                      {"access_token" access-token
+                       "token_type" "bearer"
+                       "expires_in" (.getSeconds expires-in)}
+                      (when scope {"scope" (clojure.string/join " " scope)})
+                      {"state" (get query "state")}))
+
+                    location (format "%s#%s" redirect-uri fragment)]
+
+                [[:xtdb.api/put access-token-doc issued-at expiry]
+                 [:ring.response/status 303]
+                 [:ring.response/headers
+                  (cond-> {"location" location}
+                    origin (assoc "access-control-allow-origin" origin
+                                  "access-control-allow-credentials" "true"))]])))
+
+          (catch clojure.lang.ExceptionInfo cause
+            (if (:oauth-redirect (ex-data cause))
+              (let [state (get query "state")
+                    encoded
+                    (ring.util.codec/form-encode
+                     (cond->
+                         (cond
+                           (:oauth-redirect (ex-data cause))
+                           (-> cause ex-data (dissoc :oauth-redirect))
+                           :else
+                           {"error" "server_error"
+                            "error_description" (.getMessage cause)})
+                         state (assoc "state" state)))
+
+                    location
+                    (format
+                     (if (= response-type "token") "%s#%s" "%s?%s")
+                     redirect-uri encoded)]
+
+                [[:ring.response/status 303]
+                 [:ring.response/headers
+                  (cond-> {"location" location}
+                    origin (assoc "access-control-allow-origin" origin
+                                  "access-control-allow-credentials" "true"))]])
+
+              (throw cause)))))}
 
    :juxt.site/rules
    [

@@ -6,7 +6,7 @@
    [jsonista.core :as json]
    [juxt.site.installer :refer [call-operation-with-init-data!]]
    [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -14,13 +14,24 @@
 
 (defn bootstrap []
   (install-installer-groups!
-   ["juxt/site/bootstrap"
-    "juxt/site/sessions"
+   ["juxt/site/bootstrap"]
+   RESOURCE_SERVER
+   {})
+
+  ;; Install a private-key for signing
+  (converge!
+   [{:juxt.site/base-uri "https://auth.example.test"
+     :juxt.site/installer-path "/keypairs/{{kid}}"
+     :juxt.site/parameters {"kid" "test-kid"}}]
+   RESOURCE_SERVER
+   {})
+
+  (install-installer-groups!
+   ["juxt/site/sessions"
     "juxt/site/oauth-token-endpoint"
     "juxt/site/oauth-authorization-endpoint"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "kid" "test-kid"
     "authorization-code-length" 12
     "jti-length" 12})
 

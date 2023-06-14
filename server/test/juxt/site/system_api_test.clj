@@ -35,6 +35,14 @@
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
+  ;; Install a private-key for signing
+  (converge!
+   [{:juxt.site/base-uri "https://auth.example.test"
+     :juxt.site/installer-path "/keypairs/{{kid}}"
+     :juxt.site/parameters {"kid" "test-kid"}}]
+   RESOURCE_SERVER
+   {})
+
   ;; Install an authorization server
   (install-installer-groups!
    ["juxt/site/oauth-authorization-endpoint"

@@ -17,7 +17,20 @@
 
 (defn bootstrap []
   (install-installer-groups!
-   ["juxt/site/bootstrap" "juxt/site/sessions"
+   ["juxt/site/bootstrap"]
+   RESOURCE_SERVER
+   {})
+
+  ;; Install a private-key for signing
+  (converge!
+   [{:juxt.site/base-uri "https://auth.example.test"
+     :juxt.site/installer-path "/keypairs/{{kid}}"
+     :juxt.site/parameters {"kid" "test-kid"}}]
+   RESOURCE_SERVER
+   {})
+
+  (install-installer-groups!
+   ["juxt/site/sessions"
     "juxt/site/oauth-authorization-endpoint"
     "juxt/site/oauth-token-endpoint"
     "juxt/site/test-clients"

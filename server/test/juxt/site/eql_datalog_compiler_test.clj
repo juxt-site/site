@@ -15,13 +15,15 @@
    [juxt.site.installer :refer [call-operation-with-init-data!]]
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
+   [juxt.site.test-helpers.login :as login :refer [with-session-token]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
    [juxt.site.test-helpers.oauth :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [ring.util.codec :as codec]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [juxt.site.util :as util]))
 
 (def AUTH_SERVER
   {"https://auth.example.org" "https://auth.hospital.com"})
@@ -57,6 +59,13 @@
    ["juxt/site/bootstrap"]
    RESOURCE_SERVER {})
 
+  (converge!
+   [{:juxt.site/base-uri "https://auth.hospital.com"
+     :juxt.site/installer-path "/keypairs/{{kid}}"
+     :juxt.site/parameters {"kid" "test-kid"}}]
+   RESOURCE_SERVER
+   {})
+
   (install-installer-groups!
    ["juxt/site/user-model"
     "juxt/site/password-based-user-identity"
@@ -65,7 +74,6 @@
     "juxt/site/oauth-token-endpoint"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"
-    "kid" "test-kid"
     "authorization-code-length" 12
     "jti-length" 12})
 
@@ -668,9 +676,10 @@
     ;; {:xt/id "list-patients" :juxt.site/rules "get-patient"}
     ))
 
-#_(with-fixtures
+(with-fixtures
   (let [session-token (login-with-form! "alice" "garden")]
-    (oauth/acquire-access-token!
+    session-token
+    #_(oauth/acquire-access-token!
        {:grant-type "implicit"
         :authorization-uri "https://auth.hospital.com/oauth/authorize"
         :token-uri "https://auth.hospital.com/oauth/token"
@@ -678,7 +687,7 @@
         :session-token session-token
         ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
         })
-      )
+    )
   )
 
 (deftest graphql-test
