@@ -225,7 +225,7 @@
                   access-token-doc
                   (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
                            :juxt.site/type "https://meta.juxt.site/types/access-token"
-                           :juxt.site/grant-type "authorization_code"
+                           :juxt.site/grant-type grant-type
                            :juxt.site/subject subject
                            :juxt.site/issuer (get jwt-claims "iss")
                            :juxt.site/issued-at issued-at
@@ -325,7 +325,7 @@
                 access-token-doc
                 (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
                          :juxt.site/type "https://meta.juxt.site/types/access-token"
-                         :juxt.site/grant-type "refresh_token"
+                         :juxt.site/grant-type grant-type
                          :juxt.site/subject subject
                          :juxt.site/issuer (get jwt-claims "iss")
                          :juxt.site/issued-at issued-at
@@ -460,7 +460,7 @@
                   access-token-doc
                   (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" access-token)
                            :juxt.site/type "https://meta.juxt.site/types/access-token"
-                           :juxt.site/grant-type "password"
+                           :juxt.site/grant-type grant-type
                            :juxt.site/subject (:xt/id subject)
                            :juxt.site/issuer "https://auth.example.org"
                            :juxt.site/issued-at issued-at
@@ -597,7 +597,7 @@
                 access-token-doc
                 (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" (get jwt-claims "jti"))
                          :juxt.site/type "https://meta.juxt.site/types/access-token"
-                         :juxt.site/grant-type "client-credentials"
+                         :juxt.site/grant-type grant-type
                          :juxt.site/subject (:xt/id subject)
                          :juxt.site/issuer (get jwt-claims "iss")
                          :juxt.site/issued-at issued-at
