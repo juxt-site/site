@@ -365,7 +365,8 @@
 
 (defn client-secret [{:keys [client-id]}]
   (println
-   (push! `(println (~'client-secret ~client-id)) {})))
+   (edn/read-string
+    (push! `(prn (~'client-secret ~client-id)) {}))))
 
 ;; Deprecated?
 
