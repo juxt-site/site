@@ -206,7 +206,6 @@
   ;; would help the bb script introspect which parameters are required
   ;; for each group, saving us the trouble of having to custom code a
   ;; bb task for the installation of each group.
-  :juxt.site/parameters [["kid" {}]]
   :juxt.site/installers
   [
    ;; System permissions required
