@@ -113,14 +113,14 @@ NOTE: At any time, you can start over with `sitectl reset`.
 . Install the Site System API
 +
 ----
-sitectl install-group juxt/site/openapi
+sitectl install-group juxt/site/openapi # this will soon be unnecessary
 sitectl install-group juxt/site/system-api
 ----
 
 . Register a command-line app
 +
 ----
-sitectl register-application site-cli
+sitectl install-group juxt/site/site-cli-client
 ----
 
 Much of the System API can only be accessed by a client that makes requests with a bearer token.
@@ -182,6 +182,12 @@ Server: Jetty(9.4.44.v20210927)
 ----
 
 === Swagger UI
+
+. Install the OpenAPI support
++
+----
+sitectl install-group juxt/site/openapi
+----
 
 . Register the swagger-ui app
 +
