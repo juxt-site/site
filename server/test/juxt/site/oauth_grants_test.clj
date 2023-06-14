@@ -361,7 +361,7 @@
             :authorization-uri "https://auth.example.test/oauth/authorize"
             :token-uri "https://auth.example.test/oauth/token"
             :session-token session-token
-            :client "https://auth.example.test/clients/test/public-global-scope-app"
+            :client "https://auth.example.test/applications/test/public-global-scope-app"
             })]
     (is (=
          {"error" "invalid_grant"
@@ -408,7 +408,7 @@
 (deftest client-credentials-grant-type-test
   (let [db (xt/db *xt-node*)
         client-id "test/clientA"
-        test-client (xt/entity db (format "https://auth.example.test/clients/%s" client-id))
+        test-client (xt/entity db (format "https://auth.example.test/applications/%s" client-id))
         client-secret (:juxt.site/client-secret test-client)]
 
     (testing "correctly authorized client"
@@ -477,7 +477,7 @@
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
               :token-uri "https://auth.example.test/oauth/token"
-              :client "https://auth.example.test/clients/test/public-global-scope-app"})]
+              :client "https://auth.example.test/applications/test/public-global-scope-app"})]
         (is (nil? (find response "scope"))
             "Scope should not be reported in JSON response")))
 
@@ -487,7 +487,7 @@
              {:grant-type "implicit"
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
-              :client "https://auth.example.test/clients/test/public-global-scope-app"})]
+              :client "https://auth.example.test/applications/test/public-global-scope-app"})]
         (is (nil? (find response "scope"))
             "Scope should not be reported in JSON response")))))
 
@@ -501,7 +501,7 @@
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
               :token-uri "https://auth.example.test/oauth/token"
-              :client "https://auth.example.test/clients/test/public-global-scope-app"
+              :client "https://auth.example.test/applications/test/public-global-scope-app"
               :scope #{"https://auth.example.test/scopes/test/read"
                        "https://auth.example.test/scopes/test/write"
                        "https://auth.example.test/scopes/test/dummy"}})
@@ -522,7 +522,7 @@
              {:grant-type "implicit"
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
-              :client "https://auth.example.test/clients/test/public-global-scope-app"
+              :client "https://auth.example.test/applications/test/public-global-scope-app"
               :scope #{"https://auth.example.test/scopes/test/read"
                        "https://auth.example.test/scopes/test/write"
                        "https://auth.example.test/scopes/test/dummy"}})
@@ -546,7 +546,7 @@
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
               :token-uri "https://auth.example.test/oauth/token"
-              :client "https://auth.example.test/clients/test/public-global-scope-app"
+              :client "https://auth.example.test/applications/test/public-global-scope-app"
               :scope #{"https://auth.example.test/scopes/test/read"
                        "https://auth.example.test/scopes/test/write"
                        "https://auth.example.test/scopes/test/dummy"}})
@@ -573,7 +573,7 @@
              {:grant-type "implicit"
               :session-token session-token
               :authorization-uri "https://auth.example.test/oauth/authorize"
-              :client "https://auth.example.test/clients/test/public-global-scope-app"
+              :client "https://auth.example.test/applications/test/public-global-scope-app"
               :scope #{"https://auth.example.test/scopes/test/read"
                        "https://auth.example.test/scopes/test/write"
                        "https://auth.example.test/scopes/test/dummy"}})
@@ -604,7 +604,7 @@
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
                 :token-uri "https://auth.example.test/oauth/token"
-                :client "https://auth.example.test/clients/test/public-read-write-scope-app"})]
+                :client "https://auth.example.test/applications/test/public-read-write-scope-app"})]
           (is (= #{"https://auth.example.test/scopes/test/read"
                    "https://auth.example.test/scopes/test/write"}
                  (set (str/split scope #" "))))))
@@ -615,7 +615,7 @@
                {:grant-type "implicit"
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
-                :client "https://auth.example.test/clients/test/public-read-write-scope-app"})]
+                :client "https://auth.example.test/applications/test/public-read-write-scope-app"})]
           (is (= #{"https://auth.example.test/scopes/test/read"
                    "https://auth.example.test/scopes/test/write"}
                  (set (str/split scope #" ")))))))
@@ -628,7 +628,7 @@
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
                 :token-uri "https://auth.example.test/oauth/token"
-                :client "https://auth.example.test/clients/test/public-read-scope-app"
+                :client "https://auth.example.test/applications/test/public-read-scope-app"
                 :scope #{"https://auth.example.test/scopes/test/read"
                          "https://auth.example.test/scopes/test/write"
                          "https://auth.example.test/scopes/test/dummy"}})]
@@ -641,7 +641,7 @@
                {:grant-type "implicit"
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
-                :client "https://auth.example.test/clients/test/public-read-scope-app"
+                :client "https://auth.example.test/applications/test/public-read-scope-app"
                 :scope #{"https://auth.example.test/scopes/test/read"
                          "https://auth.example.test/scopes/test/write"
                          "https://auth.example.test/scopes/test/dummy"}})]
@@ -656,7 +656,7 @@
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
                 :token-uri "https://auth.example.test/oauth/token"
-                :client "https://auth.example.test/clients/test/public-read-write-scope-app"
+                :client "https://auth.example.test/applications/test/public-read-write-scope-app"
                 :scope #{"https://auth.example.test/scopes/test/read"
                          "https://auth.example.test/scopes/test/write"
                          "https://auth.example.test/scopes/test/dummy"}})]
@@ -671,7 +671,7 @@
                {:grant-type "implicit"
                 :session-token session-token
                 :authorization-uri "https://auth.example.test/oauth/authorize"
-                :client "https://auth.example.test/clients/test/public-read-write-scope-app"
+                :client "https://auth.example.test/applications/test/public-read-write-scope-app"
                 :scope #{"https://auth.example.test/scopes/test/read"
                          "https://auth.example.test/scopes/test/write"
                          "https://auth.example.test/scopes/test/dummy"}})]

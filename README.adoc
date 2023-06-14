@@ -163,6 +163,7 @@ site get-token site-cli $(sitectl client-secret site-cli)
 +
 ----
 curl -i -H accept:application/json http://localhost:4444/_site/whoami
+curl -i -H accept:application/json http://localhost:4444/_site/users
 ----
 
 This should return something similar to the following:

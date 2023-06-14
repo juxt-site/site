@@ -358,7 +358,7 @@
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}
           installers [{:juxt.site/base-uri "https://auth.example.org"
-                       :juxt.site/installer-path (format "/clients/%s" client-id)}]]
+                       :juxt.site/installer-path (format "/applications/%s" client-id)}]]
 
       (install! installers uri-map {}
                 {:title (format "Adding OAuth client: %s" client-id)}))))

@@ -76,7 +76,7 @@
           :grant-type "implicit"
           :authorization-uri "https://auth.example.test/oauth/authorize"
           :session-token session-token
-          :client "https://auth.example.test/clients/test-app"})]
+          :client "https://auth.example.test/applications/test-app"})]
 
     (oauth/with-bearer-token access-token
       (let [{:ring.response/keys [headers body]}

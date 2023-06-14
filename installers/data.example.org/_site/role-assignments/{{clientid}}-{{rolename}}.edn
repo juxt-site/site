@@ -6,5 +6,5 @@
   :juxt.site/operation-id "https://auth.example.org/operations/assign-role"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/application "https://auth.example.org/clients/{{clientid}}"
+   :juxt.site/application "https://auth.example.org/applications/{{clientid}}"
    :juxt.site/role "https://data.example.org/_site/roles/{{rolename}}"}}}

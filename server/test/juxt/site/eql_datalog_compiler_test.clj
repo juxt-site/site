@@ -148,7 +148,7 @@
         (oauth/acquire-access-token!
          {:grant-type "implicit"
           :authorization-uri "https://auth.hospital.com/oauth/authorize"
-          :client "https://auth.hospital.com/clients/local-terminal"
+          :client "https://auth.hospital.com/applications/local-terminal"
           :session-token alice-session-token
           ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
           })
@@ -161,7 +161,7 @@
         (oauth/acquire-access-token!
          {:grant-type "implicit"
           :authorization-uri "https://auth.hospital.com/oauth/authorize"
-          :client "https://auth.hospital.com/clients/local-terminal"
+          :client "https://auth.hospital.com/applications/local-terminal"
           :session-token bob-session-token
           ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
           }
@@ -683,7 +683,7 @@
        {:grant-type "implicit"
         :authorization-uri "https://auth.hospital.com/oauth/authorize"
         :token-uri "https://auth.hospital.com/oauth/token"
-        :client "https://auth.hospital.com/clients/local-terminal"
+        :client "https://auth.hospital.com/applications/local-terminal"
         :session-token session-token
         ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
         })
@@ -697,7 +697,7 @@
         (oauth/acquire-access-token!
          {:grant-type "implicit"
           :authorization-uri "https://auth.hospital.com/oauth/authorize"
-          :client "https://auth.hospital.com/clients/local-terminal"
+          :client "https://auth.hospital.com/applications/local-terminal"
           :session-token alice-session-token
           ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
           })
@@ -707,7 +707,7 @@
         (oauth/acquire-access-token!
          {:grant-type "implicit"
           :authorization-uri "https://auth.hospital.com/oauth/authorize"
-          :client "https://auth.hospital.com/clients/local-terminal"
+          :client "https://auth.hospital.com/applications/local-terminal"
           :session-token bob-session-token
           ;;"scope" ["https://example.org/oauth/scope/read-personal-data"]
           }

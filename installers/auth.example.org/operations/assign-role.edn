@@ -33,7 +33,7 @@
               [_ username] (when (:juxt.site/user doc)
                              (re-matches (re-pattern "https://data.example.org/_site/users/(.+)") (:juxt.site/user doc)))
               [_ client-id] (when (:juxt.site/application doc)
-                                (re-matches (re-pattern "https://auth.example.org/clients/(.+)") (:juxt.site/application doc)))
+                                (re-matches (re-pattern "https://auth.example.org/applications/(.+)") (:juxt.site/application doc)))
               [_ rolename] (re-matches (re-pattern "https://data.example.org/_site/roles/(.+)") (:juxt.site/role doc))]
           (assert (or username client-id))
           (assert rolename)

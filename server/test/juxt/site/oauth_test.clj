@@ -94,12 +94,12 @@
 
       (is
        (=
-        {:xt/id "https://auth.example.test/clients/test-app"
+        {:xt/id "https://auth.example.test/applications/test-app"
          :juxt.site/type "https://meta.juxt.site/types/client"
          :juxt.site/client-id "test-app"
          :juxt.site/client-type "public"
          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}
-        (xt/entity (xt/db *xt-node*) "https://auth.example.test/clients/test-app")))
+        (xt/entity (xt/db *xt-node*) "https://auth.example.test/applications/test-app")))
 
       (call-operation-with-init-data!
        *xt-node*
@@ -122,7 +122,7 @@
                          :juxt.site/scope #{"https://auth.example.test/scopes/dummy"}}}))))
 
 #_(deftest set-client-secret-test
-  (let [old (repl/e "https://auth.example.test/clients/test/clientA")]
+  (let [old (repl/e "https://auth.example.test/applications/test/clientA")]
     (call-operation-with-init-data!
      *xt-node*
      {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
@@ -132,7 +132,7 @@
        :juxt.site/client-secret "fcc5814ed1218ee5a4bb86864cb9666c792822a8"
        }})
     (is (= "fcc5814ed1218ee5a4bb86864cb9666c792822a8"
-           (:juxt.site/client-secret (repl/e "https://auth.example.test/clients/test/clientA"))))))
+           (:juxt.site/client-secret (repl/e "https://auth.example.test/applications/test/clientA"))))))
 
 (deftest authorization-server-metadata
   ;; oauth-authorization-server is public
@@ -181,5 +181,5 @@
               :grant-type "implicit"
               :authorize-uri "https://auth.example.test/oauth/authorize"
               :session-token session-token
-              :client "https://auth.example.test/clients/test-app"})]
+              :client "https://auth.example.test/applications/test-app"})]
     (jwt/decode-jwt access-token)))

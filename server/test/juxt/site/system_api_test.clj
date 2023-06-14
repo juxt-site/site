@@ -80,10 +80,10 @@
 
   (converge!
    ;; TODO: Add these resources to a group
-   [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/global-scope-app"}
-    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/read-only-app"}
-    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/read-write-app"}
-    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/site-cli"}]
+   [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/global-scope-app"}
+    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/read-only-app"}
+    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/read-write-app"}
+    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/site-cli"}]
    RESOURCE_SERVER
    {})
 
@@ -110,7 +110,7 @@
          {:grant-type "implicit"
           :session-token session-token
           :authorization-uri "https://auth.example.test/oauth/authorize"
-          :client "https://auth.example.test/clients/global-scope-app"})]
+          :client "https://auth.example.test/applications/global-scope-app"})]
 
     (testing "Access achieved with correct permissions and role assignment"
       (oauth/with-bearer-token access-token
@@ -209,7 +209,7 @@
                           :authorization-uri "https://auth.example.test/oauth/authorize"
                           :token-uri "https://auth.example.test/oauth/token"
                           :session-token session-token
-                          :client (str "https://auth.example.test/clients/" client)
+                          :client (str "https://auth.example.test/applications/" client)
                           :username username
                           :password (password username)}
                    requested-scope (assoc :scope (absolute-scope requested-scope))))]
@@ -315,7 +315,7 @@
                   :authorization-uri "https://auth.example.test/oauth/authorize"
                   :token-uri "https://auth.example.test/oauth/token"
                   :session-token session-token
-                  :client (str "https://auth.example.test/clients/global-scope-app")}))]
+                  :client (str "https://auth.example.test/applications/global-scope-app")}))]
     (oauth/with-bearer-token access-token
       ;; TODO: Also try with a batch of multiple users
       (let [payload (json/write-value-as-bytes {"xt/id" "https://data.example.test/_site/users/hannah"
@@ -344,7 +344,7 @@
         (oauth/acquire-access-token!
          {:grant-type "client_credentials"
           :token-uri "https://auth.example.test/oauth/token"
-          :client "https://auth.example.test/clients/site-cli"})]
+          :client "https://auth.example.test/applications/site-cli"})]
 
     (oauth/with-bearer-token access-token
       (let [response
