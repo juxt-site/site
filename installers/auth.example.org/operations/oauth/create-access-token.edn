@@ -178,7 +178,7 @@
                  :code-challenge-method code-challenge-method
                  :verification verification})))
 
-            (let [[{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-client client-id)
+            (let [[{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-applications client-id)
 
                   ;; TODO: If client-id is unknown, we need to return
                   ;; an unauthorized_client error. Add a test for
@@ -296,7 +296,7 @@
                     (error {"error" "invalid_grant"
                             "error_description" "Refresh token invalid or expired"}))
 
-                [{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-client client-id)
+                [{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-applications client-id)
                 _ (assert origin)
                 _ (assert resource-server)
 
@@ -406,7 +406,7 @@
                   [{:juxt.site/keys [origin resource-server]
                     client-scope :juxt.site/scope
                     :as client-doc} & others]
-                  (juxt.site/lookup-client client-id)
+                  (juxt.site/lookup-applications client-id)
 
                   _ (when-not client-doc
                       (error

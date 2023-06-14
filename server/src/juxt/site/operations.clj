@@ -508,7 +508,7 @@
                                             (for [[k v] m] ['id k v]))
                                     :in ['password]} password)))
 
-                       'lookup-client
+                       'lookup-applications
                        (fn [client-id]
                          (seq
                           (map first

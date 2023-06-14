@@ -107,7 +107,7 @@
             ;; resource owner by an error message.
 
             [{:juxt.site/keys [origin] :as client-doc} & others]
-            (juxt.site/lookup-client client-id)
+            (juxt.site/lookup-applications client-id)
 
             _ (when-not client-doc
                 (resource-owner-error
