@@ -4,11 +4,10 @@
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-protection-space"}]}
 
- "juxt/site/system-api"
- {:juxt.site/description "Site System API",
+ "juxt/site/openapi"
+ {:juxt.site/description "OpenAPI"
   :juxt.site/installers
-  [
-   ;; Required permissions (permissions are generally not specified as
+  [ ;; Required permissions (permissions are generally not specified as
    ;; dependencies but must be created out-of-band)
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/get-openapi-document"}
@@ -17,9 +16,12 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-openapi-path"}
    {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/system/put-resource"}
+    :juxt.site/installer-path "/permissions/system/put-resource"}]}
 
-   ;; API resources
+ "juxt/site/system-api"
+ {:juxt.site/description "Site System API"
+  :juxt.site/installers
+  [;; API resources
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapi.json"}
 

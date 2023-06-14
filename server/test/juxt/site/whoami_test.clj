@@ -53,7 +53,10 @@
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
-  (install-installer-groups! ["juxt/site/system-api"] RESOURCE_SERVER {}))
+  (install-installer-groups!
+   ["juxt/site/openapi" "juxt/site/system-api"]
+   RESOURCE_SERVER
+   {}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)

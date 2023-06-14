@@ -113,6 +113,7 @@ NOTE: At any time, you can start over with `sitectl reset`.
 . Install the Site System API
 +
 ----
+sitectl install-group juxt/site/openapi
 sitectl install-group juxt/site/system-api
 ----
 

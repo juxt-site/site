@@ -370,31 +370,6 @@
 
 ;; Deprecated?
 
-(defn system-api [{:keys [auth-base-uri data-base-uri]}]
-  (let [auth-base-uri (or auth-base-uri
-                          (get-in (config) ["authorization_server" "base_uri"])
-                          (input-auth-base-uri))
-        data-base-uri (or data-base-uri
-                          (get-in (config) ["resource_server" "base_uri"])
-                          (input-data-base-uri))]
-    (install!
-     (get-group-installers "juxt/site/system-api")
-     {"https://auth.example.org" auth-base-uri
-      "https://data.example.org" data-base-uri}
-     {}
-     {:title "Installing System API"})))
-
-(defn oauth-token-endpoint [{:keys [auth-base-uri]}]
-  (binding [*heading* "Deploy OAuth2 token endpoint"]
-    ;; TODO: Look for a kid?
-    (install!
-     (get-group-installers "juxt/site/oauth-token-endpoint")
-     {"https://auth.example.org" (or auth-base-uri
-                                     (get-in (config) ["authorization_server" "base_uri"])
-                                     (input-auth-base-uri))}
-     {"kid" (random-string 16)}
-     {:title "Installing OAuth2 token endpoint"})))
-
 (defn oauth-authorization-endpoint [{:keys [auth-base-uri session-scope]}]
   (binding [*heading* "Deploy OAuth2 authorization endpoint"]
     (let [auth-base-uri (or auth-base-uri
