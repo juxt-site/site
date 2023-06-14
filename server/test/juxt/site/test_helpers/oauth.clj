@@ -108,9 +108,8 @@
            username password]
     :or {code-challenge-method "S256"}
     :as args}]
-  (assert authorization-uri "Must provide authorization-uri")
+  (assert (or authorization-uri token-uri) "Must provide either authorization-uri, token-uri or both")
   (assert grant-type "Must provide grant-type")
-  (assert session-token "Must provide session-token")
   (let [db (xt/db *xt-node*)
         client-doc (xt/entity db client)
         _ (assert client-doc (str "Client not registered: " client))
@@ -231,6 +230,32 @@
         ;; Avoid confusion later
         (assert (contains? #{200 400} status) (str status))
 
+        (json/read-value body))
+
+      "client_credentials"
+      (let [client-secret (:juxt.site/client-secret client-doc)
+            authorization
+            (str "Basic " (.encodeToString
+                           (java.util.Base64/getEncoder)
+                           (.getBytes (format "%s:%s" client-id client-secret))))
+            token-request
+            (-> (make-token-request
+                 token-uri
+                 ;; See https://www.rfc-editor.org/rfc/rfc6749#section-4.3.2
+                 (merge
+                  ;; REQUIRED
+                  {"grant_type" "client_credentials"}
+                  ;; OPTIONAL
+                  (when scope {"scope" (str/join " " scope)})))
+                (assoc-in [:ring.request/headers "authorization"] authorization))
+            {:ring.response/keys [status body] :as response}
+            (*handler* token-request)]
+
+        (when (= status 500)
+          (throw (ex-info "Error on token acquisition" {:response response})))
+
+        ;; Avoid confusion later
+        (assert (contains? #{200 400} status) (str status))
         (json/read-value body)))))
 
 (malli/=>

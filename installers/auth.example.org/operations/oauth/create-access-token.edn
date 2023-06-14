@@ -573,7 +573,7 @@
                 subject
                 {:xt/id (str "https://auth.example.org/subjects/" (get *prepare* :new-subject-id))
                  :juxt.site/type "https://meta.juxt.site/types/subject"
-                 ;;:juxt.site/application application
+                 :juxt.site/application client
                  }
 
                 ;; resource-server  will be part of the client document, and specified during the registration of a client

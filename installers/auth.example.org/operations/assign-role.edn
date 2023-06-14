@@ -6,9 +6,13 @@
   {:xt/id "{{$id}}"
 
    :juxt.site.malli/input-schema
-   [:map
-    [:juxt.site/user [:re "https?://.*?/.+"]]
-    [:juxt.site/role [:re "https?://.*?/.+"]]]
+   [:or
+    [:map
+     [:juxt.site/user [:re "https?://.*?/.+"]]
+     [:juxt.site/role [:re "https?://.*?/.+"]]]
+    [:map
+     [:juxt.site/application [:re "https?://.*?/.+"]]
+     [:juxt.site/role [:re "https?://.*?/.+"]]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
@@ -26,12 +30,15 @@
                    (String.)
                    clojure.edn/read-string
                    juxt.site.malli/validate-input)
-              [_ username] (re-matches (re-pattern "https://data.example.org/_site/users/(.+)") (:juxt.site/user doc))
+              [_ username] (when (:juxt.site/user doc)
+                             (re-matches (re-pattern "https://data.example.org/_site/users/(.+)") (:juxt.site/user doc)))
+              [_ client-id] (when (:juxt.site/application doc)
+                                (re-matches (re-pattern "https://auth.example.org/clients/(.+)") (:juxt.site/application doc)))
               [_ rolename] (re-matches (re-pattern "https://data.example.org/_site/roles/(.+)") (:juxt.site/role doc))]
-          (assert username)
+          (assert (or username client-id))
           (assert rolename)
           (assoc doc
-                 :xt/id (format "https://data.example.org/_site/role-assignments/%s-%s" username rolename)
+                 :xt/id (format "https://data.example.org/_site/role-assignments/%s-%s" (or username client-id) rolename)
                  :juxt.site/type "https://meta.juxt.site/types/role-assignment"
                  :juxt.site/methods
                  {:get {:juxt.site/operation "https://auth.example.org/operations/get-role-assignment"}}))))}

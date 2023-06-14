@@ -10,19 +10,22 @@
    [xtdb.api :as xt]
    [clojure.string :as str]))
 
+(defn lookup-access-token [db token]
+  (first
+   (xt/q db '{:find [(pull sub [*]) (pull at [*])]
+              :keys [subject access-token]
+              :where [[at :juxt.site/token tok]
+                      [at :juxt.site/type "https://meta.juxt.site/types/access-token"]
+                      [at :juxt.site/subject sub]
+                      [sub :juxt.site/type "https://meta.juxt.site/types/subject"]]
+              :in [tok]} token)))
+
 (defn authenticate-with-bearer-auth [req db token68 protection-spaces]
   (log/tracef "Protection-spaces are %s" (pr-str protection-spaces))
   (or
    (when (seq protection-spaces)
      (let [{:keys [subject access-token]}
-           (first
-            (xt/q db '{:find [(pull sub [*]) (pull at [*])]
-                       :keys [subject access-token]
-                       :where [[at :juxt.site/token tok]
-                               [at :juxt.site/type "https://meta.juxt.site/types/access-token"]
-                               [at :juxt.site/subject sub]
-                               [sub :juxt.site/type "https://meta.juxt.site/types/subject"]]
-                       :in [tok]} token68))
+           (lookup-access-token db token68)
            scope (:juxt.site/scope access-token)]
        (cond-> req
          subject (assoc :juxt.site/subject subject :juxt.site/access-token access-token)

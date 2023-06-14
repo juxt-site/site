@@ -14,6 +14,8 @@
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
+   [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
+   [juxt.site.http-authentication :refer [lookup-access-token]]
    [xtdb.api :as xt]))
 
 ;; Welcome to the System API test suite
@@ -32,7 +34,8 @@
 
   ;; Need some test users and a way for them to authenticate
   (install-installer-groups!
-   ["juxt/site/login-form" "juxt/site/example-users"]
+   ["juxt/site/login-form"
+    "juxt/site/example-users"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
@@ -82,7 +85,17 @@
    ;; TODO: Add these resources to a group
    [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/global-scope-app"}
     {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/read-only-app"}
-    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/read-write-app"}]
+    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/read-write-app"}
+    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/clients/site-cli"}]
+   RESOURCE_SERVER
+   {})
+
+  (converge!
+   [{:juxt.site/base-uri "https://data.example.test"
+     :juxt.site/installer-path "/_site/role-assignments/{{clientid}}-{{rolename}}"
+     :juxt.site/parameters
+     {"clientid" "site-cli"
+      "rolename" "System"}}]
    RESOURCE_SERVER
    {}))
 
@@ -329,43 +342,25 @@
           (is (= 200 (:ring.response/status response)))
           (is (= {"username" "hannah", "fullname" "Hannah"} (json/read-value (:ring.response/body response)))))))))
 
+(deftest application-access-to-users
+  (let [{access-token "access_token"}
+        (oauth/acquire-access-token!
+         {:grant-type "client_credentials"
+          :token-uri "https://auth.example.test/oauth/token"
+          :client "https://auth.example.test/clients/site-cli"})]
 
-#_(jsonista.core/read-value
- (json/write-value-as-bytes {:xt/id "https://data.example.test/_site/users/hannah"})
- (json/object-mapper {:decode-key-fn true}))
-
-
-
-#_(with-fixtures
-    (converge!
-     ["https://data.example.test/_site/users/{username}"]
-     RESOURCE_SERVER
-     {})
-
-    (converge!
-     ["https://data.example.test/_site/users/alice"]
-     RESOURCE_SERVER
-     {})
-
-    {:alice (repl/e "https://data.example.test/_site/users/alice")
-     :api-get-user (repl/e "https://data.example.test/_site/users/{username}")
-     :api-get-users (repl/e "https://data.example.test/_site/users")}
-
-    (repl/e "https://data.example.test/_site/users/{username}")
-
-    ;; Direct read of user
-    (let [session-token (login/login-with-form! "alice" "garden")
-          {access-token "access_token"}
-          (oauth/acquire-access-token!
-           {:grant-type "implicit"
-            :session-token session-token
-            :authorization-uri "https://auth.example.test/oauth/authorize"
-            :client "https://auth.example.test/clients/global-scope-app"})
-          {:ring.response/keys [body] :as response}
-          (oauth/with-bearer-token access-token
+    (oauth/with-bearer-token access-token
+      (let [response
             (*handler*
-             {:ring.request/method :get
-              :ring.request/headers {"accept" "application/json"}
-              :juxt.site/uri "https://data.example.test/_site/users/alice"}))]
+             {:juxt.site/uri "https://data.example.test/_site/users"
+              :ring.request/method :get
+              :ring.request/headers
+              {"accept" "application/json"}})]
 
-      (json/read-value body)))
+        (is (= 200 (:ring.response/status response)))
+        (is (= "application/json" (get-in response [:ring.response/headers "content-type"])))
+
+        (let [json (some-> response :ring.response/body json/read-value)]
+            (is json)
+            (is (<= 3 (count json)))
+            json)))))
