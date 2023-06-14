@@ -1,11 +1,11 @@
 {:deps
- ["https://auth.example.org/operations/oauth/register-client"
-  "https://auth.example.org/permissions/system/register-client"
+ ["https://auth.example.org/operations/oauth/register-application"
+  "https://auth.example.org/permissions/system/register-application"
   "https://auth.example.org/scopes/system/read"
   "https://auth.example.org/scopes/system/write"]
  :install
  {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-client"
+  :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-application"
   :juxt.site/input
   {:juxt.site/client-id "read-write-app"
    :juxt.site/client-type "public"

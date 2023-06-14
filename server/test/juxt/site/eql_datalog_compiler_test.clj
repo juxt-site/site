@@ -80,7 +80,7 @@
   (call-operation-with-init-data!
    *xt-node*
    {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://auth.hospital.com/operations/oauth/register-client"
+    :juxt.site/operation-id "https://auth.hospital.com/operations/oauth/register-application"
     :juxt.site/input {:juxt.site/client-id "local-terminal"
                       :juxt.site/client-type "confidential"
                       :juxt.site/resource-server "https://hospital.com"
@@ -675,20 +675,6 @@
 
     ;; {:xt/id "list-patients" :juxt.site/rules "get-patient"}
     ))
-
-(with-fixtures
-  (let [session-token (login-with-form! "alice" "garden")]
-    session-token
-    #_(oauth/acquire-access-token!
-       {:grant-type "implicit"
-        :authorization-uri "https://auth.hospital.com/oauth/authorize"
-        :token-uri "https://auth.hospital.com/oauth/token"
-        :client "https://auth.hospital.com/applications/local-terminal"
-        :session-token session-token
-        ;; "scope" ["https://example.org/oauth/scope/read-personal-data"]
-        })
-    )
-  )
 
 (deftest graphql-test
 
