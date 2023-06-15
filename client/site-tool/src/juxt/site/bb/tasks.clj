@@ -4,6 +4,7 @@
   (:require
    [babashka.http-client :as http]
    [babashka.cli :as cli]
+   [clojure.java.io :as io]
    [clj-yaml.core :as yaml]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
@@ -37,7 +38,7 @@
     {"empty_configuration" true})))
 
 (defn config-as-json []
-  (println (json/generate-string (config))))
+  (println (json/generate-string (config) {:pretty true})))
 
 (defn ping []
   (let [{resource-server "resource_server"} (config)
@@ -67,7 +68,7 @@
                     [])
             new-lines
             (mapv (fn [line]
-                    (if (re-matches #"oauth2-bearer \p{Alnum}+" line)
+                    (if (re-matches #"oauth2-bearer\s+.+" line)
                       (format "oauth2-bearer %s" access-token)
                       line)) lines)]
 
@@ -77,13 +78,51 @@
                (cond-> new-lines
                  (= lines new-lines)
                  (conj
-                  "# This was added by site get-token"
+                  "# This was added by site request-token"
                   (format "oauth2-bearer %s" access-token))))))
 
-      bearer-token-file (spit bearer-token-file (format "oauth2-bearer %s" access-token))
+      bearer-token-file (spit bearer-token-file access-token)
       :else (println access-token))))
 
-(defn get-token-with-client-secret []
+(defn check-token []
+  (let [cli-opts {:args->opts [:client-secret]
+                  :require [:client-secret]
+                  :validate {:client-secret {:pred string?}}}
+        {:keys [client-secret]} (cli/parse-opts *command-line-args* cli-opts)
+        {{auth-base-uri "base_uri"} "authorization_server"
+         curl "curl"
+         :as config} (config)
+        {bearer-token-file "bearer_token_file"
+         save-bearer-token-to-default-config-file "save_bearer_token_to_default_config_file"} curl
+        token (cond
+                save-bearer-token-to-default-config-file
+                (let [curl-config-file (curl-config-file)]
+                  (when-not (and (.exists curl-config-file) (.isFile curl-config-file))
+                    (System/exit 1))
+                  (last (keep (comp second #(re-matches #"oauth2-bearer\s+(.+)" %)) (line-seq (io/reader curl-config-file)))))
+                bearer-token-file
+                (do
+                  (when-not (and (.exists bearer-token-file) (.isFile bearer-token-file))
+                    (System/exit 1))
+                  (slurp bearer-token-file)))
+        _ (when-not token (System/exit 1))
+
+        {introspection-status :status
+         introspection-body :body}
+        (http/post
+         (str auth-base-uri "/oauth/introspect")
+         {:basic-auth ["site-cli" client-secret]
+          :form-params {"token" token}
+          :throw false})]
+
+    (println
+     (json/generate-string
+      (cond-> {"bearer-token" token}
+        (= introspection-status 200)
+        (assoc "introspection" (json/parse-string introspection-body)))
+      {:pretty true}))))
+
+(defn request-token-with-client-secret []
   (let [cli-opts {:args->opts [:client-id :client-secret]
                   :require [:client-id :client-secret]
                   :validate {:client-id {:pred string?}
@@ -112,7 +151,7 @@
             (println desc))
       (println "ERROR, status" status ", body:" body))))
 
-(defn get-token-with-password []
+(defn request-token-with-password []
   (let [{authorization-server "authorization_server"} (config)
 
         {auth-base-uri "base_uri"

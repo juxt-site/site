@@ -156,8 +156,20 @@ authorization_server:
 . Get a bearer token, saved to .curlrc
 +
 ----
-site get-token site-cli $(sitectl client-secret site-cli)
+site request-token site-cli $(sitectl client-secret site-cli)
 ----
+
+. Check a bearer token is current
++
+----
+site check-token
+----
+
+. Install an introspection endpoint
+----
+sitectl install-group juxt/site/oauth-introspection-endpoint
+----
+
 
 . Test
 +

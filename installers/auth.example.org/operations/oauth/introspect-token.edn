@@ -50,5 +50,7 @@
 
    :juxt.site/rules
    [
+    ;; This should only be permitted for certain well-known clients,
+    ;; such as site-cli
     [(allowed? subject operation resource permission)
      [subject :xt/id]]]}}}

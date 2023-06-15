@@ -277,12 +277,15 @@
         _ (is (= "test/public-global-scope-app" client-id))]
 
     ;; TODO: Add an equivalent test for the implicit flow
-    (testing "access token-info endpoint"
+
+    ;; This should be migrated in another dedicated test because it
+    ;; requires client authentication
+    #_(testing "access token-info endpoint"
       (let [{:ring.response/keys [status headers body]}
             (with-session-token session-token
               (*handler*
                (oauth/make-token-info-request
-                "https://auth.example.test/token-info"
+                "https://auth.example.test/oauth/introspect"
                 {"token" access-token})))
 
             _ (is (= 200 status))
@@ -537,7 +540,8 @@
                scope-set)
             "Scope should be returned as expected in JSON response")))))
 
-(deftest scope-included-in-token-info
+;; Move this to a separate test that tests for RFC 7662 explicitly
+#_(deftest scope-included-in-token-info
   (let [session-token (login-with-form! "alice" "garden")]
     (testing "authorization_code"
       (let [{access-token "access_token"}

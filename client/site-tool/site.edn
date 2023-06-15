@@ -14,9 +14,9 @@
   {:doc "Check server health"
    :task (juxt.site.bb.tasks/ping)}
 
-  get-token
+  request-token
   {:doc "Acquire a token"
-   :task (juxt.site.bb.tasks/get-token-with-client-secret)}
+   :task (juxt.site.bb.tasks/request-token-with-client-secret)}
 
   config
   {:doc "Show configuration"
@@ -29,5 +29,8 @@
   {:doc "Show JSON Web Key Set"
    :task (juxt.site.bb.tasks/jwks)}
 
+  check-token
+  {:doc "Show current token"
+   :task (juxt.site.bb.tasks/check-token)}
 
   }}

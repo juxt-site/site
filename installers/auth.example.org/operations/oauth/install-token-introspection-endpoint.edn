@@ -1,5 +1,6 @@
-{:deps ["https://auth.example.org/operations/oauth/get-introspect-token-form"
-        "https://auth.example.org/permissions/oauth/get-introspect-token-form"
+;; RFC 7662 - https://www.rfc-editor.org/rfc/rfc7662
+{:deps [#_"https://auth.example.org/operations/oauth/get-introspect-token-form"
+        #_"https://auth.example.org/permissions/oauth/get-introspect-token-form"
         "https://auth.example.org/operations/oauth/introspect-token"
         "https://auth.example.org/permissions/oauth/introspect-token"]
  :install
@@ -11,7 +12,7 @@
    :juxt.site.malli/input-schema
    [:map
     [:xt/id [:re "https://auth.example.org/.*"]]
-    [:juxt.site/session-scope [:re "https://auth.example.org/.*"]]
+    [:juxt.site/protection-spaces [:set [:re "https://auth.example.org/protection-spaces/.*"]]]
     [:juxt.http/content-type [:re "text/html;?.*"]]
     [:juxt.http/content :string]]
 
@@ -30,8 +31,14 @@
          juxt.site.malli/validate-input
          (assoc
           :juxt.site/methods
-          {:get
-           {:juxt.site/operation "https://auth.example.org/operations/oauth/get-introspect-token-form"}
+          {
+           ;; This might be useful, but strictly not necessary to
+           ;; emulate a jwt.io service. RFC 7662 does not specify this
+           ;; and this endpoint is intended for protected resources to
+           ;; use (although we make it available to any client that
+           ;; has been registered).
+           #_:get
+           #_{:juxt.site/operation "https://auth.example.org/operations/oauth/get-introspect-token-form"}
            :post
            {:juxt.site/operation "https://auth.example.org/operations/oauth/introspect-token"
             :juxt.site/acceptable {"accept" "application/x-www-form-urlencoded"}}}))))}

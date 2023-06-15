@@ -5,7 +5,13 @@
   :juxt.site/operation-id "https://auth.example.org/operations/oauth/install-token-introspection-endpoint"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/session-scope "{{session-scope}}"
+
+   ;; The introspect endpoint is inside a special protection space
+   ;; that requires the client to authenticate itself using Basic
+   ;; authentication. See RFC 7662 Section 2.1:
+   ;; https://www.rfc-editor.org/rfc/rfc7662#section-2.1
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/client-credentials"}
+
    :juxt.http/content-type "text/html;charset=utf-8"
    :juxt.http/content "
 <!DOCTYPE html>
