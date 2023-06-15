@@ -2,7 +2,7 @@
 
 (ns juxt.site.bb.bootstrap.tasks
   (:require
-   [juxt.site.install.common-install-util :as ciu]
+   [babashka.cli :as cli]
    [bblgum.core :as b]
    [cheshire.core :as json]
    [clj-yaml.core :as yaml]
@@ -10,7 +10,8 @@
    [clojure.pprint :refer [pprint]]
    [clojure.edn :as edn]
    [clojure.string :as str]
-   [clojure.walk :refer [postwalk]]))
+   [clojure.walk :refer [postwalk]]
+   [juxt.site.install.common-install-util :as ciu]))
 
 (defn curl-config-file []
   (or
@@ -20,6 +21,17 @@
      (io/file (System/getenv "XDG_CONFIG_HOME") ".curlrc"))
    (when (System/getenv "HOME")
      (io/file (System/getenv "HOME") ".curlrc"))))
+
+(defn cache-dir []
+  (or
+   (when (System/getenv "XDG_CACHE_HOME")
+     (let [dir (io/file (System/getenv "XDG_CACHE_HOME") "site")]
+       (.mkdirs dir)
+       dir))
+   (when (System/getenv "HOME")
+     (let [dir (io/file (System/getenv "HOME") ".cache/site")]
+       (.mkdirs dir)
+       dir))))
 
 (memoize
  (defn config []
@@ -363,10 +375,19 @@
       (install! installers uri-map {}
                 {:title (format "Adding OAuth client: %s" client-id)}))))
 
-(defn client-secret [{:keys [client-id]}]
-  (println
-   (edn/read-string
-    (push! `(prn (~'client-secret ~client-id)) {}))))
+(defn client-secret []
+  (let [cli-opts {:args->opts [:client-id]
+                  :require [:client-id]
+                  :coerce {:save :boolean}
+                  :validate {:client-id {:pred string?}}}
+        {:keys [client-id save]} (cli/parse-opts *command-line-args* cli-opts)
+        client-secret (edn/read-string
+                       (push! `(prn (~'client-secret ~client-id)) {}))]
+    (binding [*out* (if save (let [dir (io/file (cache-dir) "client-secrets")]
+                               (.mkdir dir)
+                               (io/writer (io/file dir client-id)))
+                        *out*)]
+      (println client-secret))))
 
 ;; Deprecated?
 

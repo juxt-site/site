@@ -33,7 +33,7 @@
 
   new-keypair {:task (juxt.site.bb.bootstrap.tasks/new-keypair {})}
 
-  client-secret {:task (juxt.site.bb.bootstrap.tasks/client-secret {:client-id (first *command-line-args*)})}
+  client-secret {:task (juxt.site.bb.bootstrap.tasks/client-secret)}
 
   ;; -----------------------------------------------------------------
 

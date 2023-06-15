@@ -84,14 +84,27 @@
       bearer-token-file (spit bearer-token-file access-token)
       :else (println access-token))))
 
+(defn cache-dir []
+  (or
+   (when (System/getenv "XDG_CACHE_HOME")
+     (let [dir (io/file (System/getenv "XDG_CACHE_HOME") "site")]
+       (.mkdirs dir)
+       dir))
+   (when (System/getenv "HOME")
+     (let [dir (io/file (System/getenv "HOME") ".cache/site")]
+       (.mkdirs dir)
+       dir))))
+
+(defn- retrieve-client-secret [client-id]
+  (let [client-secret-file (io/file (cache-dir) (str "client-secrets/" client-id))
+        _ (when-not (.exists client-secret-file)
+            (throw (ex-info (format "No client secret file for '%s'" client-id) {:client-id client-id})))
+        client-secret (str/trim (slurp client-secret-file))]
+    client-secret))
+
 (defn check-token []
-  (let [cli-opts {:args->opts [:client-secret]
-                  :require [:client-secret]
-                  :validate {:client-secret {:pred string?}}}
-        {:keys [client-secret]} (cli/parse-opts *command-line-args* cli-opts)
-        {{auth-base-uri "base_uri"} "authorization_server"
-         curl "curl"
-         :as config} (config)
+  (let [{{auth-base-uri "base_uri"} "authorization_server"
+         curl "curl"} (config)
         {bearer-token-file "bearer_token_file"
          save-bearer-token-to-default-config-file "save_bearer_token_to_default_config_file"} curl
         token (cond
@@ -111,30 +124,42 @@
          introspection-body :body}
         (http/post
          (str auth-base-uri "/oauth/introspect")
-         {:basic-auth ["site-cli" client-secret]
+         {:basic-auth ["site-cli" (retrieve-client-secret "site-cli")]
           :form-params {"token" token}
-          :throw false})]
+          :throw false})
+        claims (when introspection-body
+                 (json/parse-string introspection-body))
+        zone-id (java.time.ZoneId/systemDefault)
+        claim-time (fn [claim]
+                     (java.time.ZonedDateTime/ofInstant
+                      (java.time.Instant/ofEpochSecond (get claims claim))
+                      zone-id))
+        issued-at (.toString (claim-time "iat"))
+        expires-at (.toString (claim-time "exp"))]
 
     (println
      (json/generate-string
       (cond-> {"bearer-token" token}
         (= introspection-status 200)
-        (assoc "introspection" (json/parse-string introspection-body)))
+        (assoc "introspection" {"claims" claims
+                                "issued_at" issued-at
+                                "expires_at" expires-at})
+        (not= introspection-status 200)
+        (assoc "introspection" {"status" introspection-status}))
       {:pretty true}))))
 
 (defn request-token-with-client-secret []
-  (let [cli-opts {:args->opts [:client-id :client-secret]
-                  :require [:client-id :client-secret]
-                  :validate {:client-id {:pred string?}
-                             :client-secret {:pred string?}}}
-        {:keys [client-id client-secret]} (cli/parse-opts *command-line-args* cli-opts)
+  (let [cli-opts {:args->opts [:client-id]
+                  :require [:client-id]
+                  :validate {:client-id {:pred string?}}}
+        {:keys [client-id]} (cli/parse-opts *command-line-args* cli-opts)
         {authorization-server "authorization_server"} (config)
         {auth-base-uri "base_uri"} authorization-server
         token-endpoint (str auth-base-uri "/oauth/token")
         {:keys [status body]}
         (http/post
          token-endpoint
-         {:basic-auth [client-id client-secret]
+         {:basic-auth [client-id (retrieve-client-secret client-id)]
           :form-params {"grant_type" "client_credentials"}
           :throw false})]
     (case status

@@ -48,79 +48,95 @@ an appointment.
 
 == Getting Started
 
-. Clone this repository to your computer, cd into the `site` directory.
-+
+Clone this repository to your computer, cd into the `site` directory:
+
 ----
 $ git clone https://github.com/juxt-site/site
 $ cd site
 ----
 
-. Ensure you have https://github.com/babashka/babashka[Babashka] version v1.1.172 or later installed.
-+
+Ensure you have https://github.com/babashka/babashka[Babashka] version v1.1.172 or later installed:
+
 ----
 bb --version
 babashka v1.1.172
 ----
 
-. Ensure you have https://clojure.org/[Clojure] version v1.11 or later installed.
-+
+Ensure you have https://clojure.org/[Clojure] version v1.11 or later installed:
+
 ----
 clj --version
 Clojure CLI version 1.11.1.1273
 ----
 
-. Ensure you have https://github.com/charmbracelet/gum/[gum] installed.
+Ensure you have https://github.com/charmbracelet/gum/[gum] installed.
 
-. Copy `server/etc/config.edn` to `$HOME/.config/site/config.edn`
-+
+Copy `server/etc/config.edn` to `$HOME/.config/site/config.edn`:
+
 ----
 mkdir -p $HOME/.config/site
 cp server/etc/config.edn $HOME/.config/site/config.edn
 ----
+
 Review the config at `$HOME/.config/site/config.edn` and make any appropriate modifications.
 
-. Start the Site instance
-+
+Start the Site instance:
+
 ----
 server/bin/site-server
 ----
 
-. Check the server starts up
-+
+Check the server starts up.
+
 ----
 Site by JUXT. Copyright (c) 2020-2023, JUXT LTD.
 2023-05-22 11:02:46.508:INFO::main: Logging initialized @5804ms to org.eclipse.jetty.util.log.StdErrLog
 ----
-+
+
+Check the server is up by calling an endpoint with curl:
+
 ----
 curl http://localhost:4444/_site/healthcheck
 ----
-+
+
+This should report:
+
 ----
 Site OK!
 ----
 
-. Add `$SITE_HOME/server/bin` to your `PATH` environment variable.
+Add `$SITE_HOME/server/bin` and `$SITE_HOME/client/bin` to your `PATH` environment variable.
 
-. Bootstrap your Site instance by deploying a minimal set of resources
-+
+NOTE: `sitectl` is a tool that only runs on same host as the Site instance.
+It is only for administrative operations.
+`site` is a tool that runs on any machine.
+It communicates with Site through Site's System API.
+
+Bootstrap your Site instance by deploying a minimal set of resources
+
 ----
 sitectl install-group juxt/site/bootstrap
 ----
-+
+
 NOTE: At any time, you can start over with `sitectl reset`.
 
-. Install the Site System API
-+
+Install the Site System API
+
 ----
 sitectl install-group juxt/site/openapi # this will soon be unnecessary
 sitectl install-group juxt/site/system-api
 ----
 
-. Register a command-line app
-+
+Register a command-line app
+
 ----
 sitectl install-group juxt/site/site-cli-client
+----
+
+Extract the client secret
+
+----
+sitectl client-secret --save site-cli
 ----
 
 Much of the System API can only be accessed by a client that makes requests with a bearer token.
@@ -156,7 +172,7 @@ authorization_server:
 . Get a bearer token, saved to .curlrc
 +
 ----
-site request-token site-cli $(sitectl client-secret site-cli)
+site request-token site-cli
 ----
 
 . Check a bearer token is current
@@ -165,11 +181,31 @@ site request-token site-cli $(sitectl client-secret site-cli)
 site check-token
 ----
 
-. Install an introspection endpoint
+. Install an introspection endpoint (Optional)
++
 ----
 sitectl install-group juxt/site/oauth-introspection-endpoint
 ----
++
+Check the token again with `site check-token $(sitectl client-secret site-cli)`.
 
+. Add a new user
++
+----
+curl --json @client/curl/test-user.json http://localhost:4444/_site/users
+----
+
+. Check the user has been added
++
+----
+curl -H accept:application/json http://localhost:4444/_site/users
+----
+
+. Add a password for the user
++
+----
+TODO
+----
 
 . Test
 +
@@ -213,10 +249,8 @@ sitectl register-application swagger-ui
 . With a browser, navigate to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
 .. Click on /whoami, 'Try it out' and 'Execute' (this should yield a `401 Error: Unauthorized`)
 .. Click on 'Authorize', ensure client_id is set to `swagger-ui`, under Scopes, click on `select-all`
-.. Login if necessary with the username/password that you entered when bootstrapping the system
 .. If the login succeeded, click on `Close`.
 .. Click again on `Execute` of the `/whoami` resource. This should now return a 200.
-
 
 == (Old instructions)
 

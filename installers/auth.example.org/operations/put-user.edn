@@ -76,7 +76,7 @@
          :juxt.site/respond
          {:juxt.site.sci/program
           #juxt.pprint
-          (let [content (jsonista.core/write-value-as-string *state*)]
+          (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
             (-> *ctx*
                 (assoc :ring.response/body content)
                 (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}]
@@ -160,4 +160,12 @@
      [role :juxt.site/type "https://auth.example.org/_site/types/role"]
      [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
      [role-assignment :juxt.site/role role]
-     [role-assignment :juxt.site/user user]]]}}}
+     [role-assignment :juxt.site/user user]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/application app]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://auth.example.org/_site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/application app]]]}}}
