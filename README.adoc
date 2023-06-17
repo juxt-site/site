@@ -1,6 +1,6 @@
 = Site (2.0)
 
-Site is an open-source software platform offering:
+Site is an open-source runtime platform offering:
 
 * Data storage
 * User authentication (including https://openid.net/[OpenID])
@@ -21,28 +21,22 @@ complex projects which many BaaS products can't.
 
 == Status
 
-Site 2.0 is not yet ready for evaluation and is in the process of
-maturing. We are developing 'in the open', please treat this
-repository in that spirit.
+Site 2.0 is not yet ready for evaluation outside of JUXT, and is in
+the process of maturing. We are developing 'in the open', please treat
+this repository in that spirit.
 
 The previous 1.0 generation of Site is maintained at https://github.com/juxt/site.
 
-== What is Site and how would I use it?
+== What is Site and which projects would I use it for?
 
-* You work for an organisation and want to provide a platform to
-  developers which provides built-in benefits such as HTTP
-  conformance, API security and a built-in database.
+* You want to get started on a project quickly, and there are
+  requirements for the project to serve data over an API.
 
 * You have a dataset that you want to make available to
   consumers/customers via a secure OAuth2-compliant API, but don't
   want to build a system from scratch.
 
-* You are a Clojure developer building a new system to allow access to
-  data over a REST API. You can use Site as a jump-start project,
-  fulfilling a similar purpose to our
-  https://github.com/juxt/edge[Edge] project.
-
-In all these cases, https://juxt.pro[JUXT] can provide expert guidance, consulting and
+In these cases, https://juxt.pro[JUXT] can provide expert guidance, consulting and
 development resources, if required. Contact info@juxt.pro to schedule
 an appointment.
 
@@ -133,12 +127,6 @@ Register a command-line app
 sitectl install-group juxt/site/site-cli-client
 ----
 
-Extract the client secret
-
-----
-sitectl client-secret --save site-cli
-----
-
 Much of the System API can only be accessed by a client that makes requests with a bearer token.
 Bearer tokens are signed JSON Web Tokens (JWTs).
 
@@ -156,6 +144,23 @@ We must also install a token endpoint for a client to be able to request a beare
 sitectl install-group juxt/site/oauth-token-endpoint
 ----
 
+Extract the client secret
+
+----
+sitectl client-secret --save site-cli
+----
+
+NOTE: Adding the `--save` option has the effect of writing the value of `client_secret` (for the `site-cli` application) to a cached area on your local disk (usually `$HOME/.cache/site/client-secrets/site-cli`).
+
+We are now finished with `sitectl` and can continue configuring Site remotely if you like.
+If you do want to continue setting up Site on a remote machine you'll need to take a note of the client-secret.
+
+----
+sitectl client-secret site-cli
+----
+
+== Configuring Site remotely
+
 Create a file called `$HOME/.config/site/client.yaml` with the following content:
 
 ----
@@ -169,88 +174,71 @@ authorization_server:
   base_uri: http://localhost:4440
 ----
 
-. Get a bearer token, saved to .curlrc
-+
+Get a bearer token, saved to .curlrc
+
 ----
 site request-token site-cli
 ----
 
-. Check a bearer token is current
-+
+Check a bearer token is current
+
 ----
 site check-token
 ----
 
-. Install an introspection endpoint (Optional)
-+
+Install an introspection endpoint (Optional)
+
 ----
 sitectl install-group juxt/site/oauth-introspection-endpoint
 ----
-+
+
 Check the token again with `site check-token $(sitectl client-secret site-cli)`.
 
-. Add a new user
-+
+Add a new user.
+
 ----
 curl --json @client/curl/test-user.json http://localhost:4444/_site/users
 ----
 
-. Check the user has been added
-+
+Check the user has been added
+
 ----
 curl -H accept:application/json http://localhost:4444/_site/users
 ----
 
-. Add a password for the user
-+
+Add a password for the user
+
 ----
-TODO
+(coming soon)
 ----
 
-. Test
-+
+Test the list of users
+
 ----
-curl -i -H accept:application/json http://localhost:4444/_site/whoami
 curl -i -H accept:application/json http://localhost:4444/_site/users
-----
-
-This should return something similar to the following:
-
-----
-HTTP/1.1 200 OK
-Date: Wed, 14 Jun 2023 14:43:21 GMT
-Site-Request-Id: http://localhost:4444/_site/requests/d4d9fd1626bb20015cbf93d0
-Content-Type: application/json
-Content-Location: http://localhost:4444/_site/whoami.json
-Vary: accept
-Permissions-Policy: interest-cohort=()
-Content-Length: 141
-Server: Jetty(9.4.44.v20210927)
-
-{"juxt.site/subject":{"juxt.site/type":"https://meta.juxt.site/types/subject","xt/id":"http://localhost:4440/subjects/ea50d0d1ecc31112e1b2"}}
 ----
 
 === Swagger UI
 
-. Install the OpenAPI support
-+
+Install the OpenAPI support
+
 ----
 sitectl install-group juxt/site/openapi
 ----
 
-. Register the swagger-ui app
-+
+Register the swagger-ui app
+
 ----
 sitectl register-application swagger-ui
 ----
 
-. Test that the System API has been installed by opening a browser at https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
+Test that the System API has been installed by opening a browser at https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
 
-. With a browser, navigate to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
-.. Click on /whoami, 'Try it out' and 'Execute' (this should yield a `401 Error: Unauthorized`)
-.. Click on 'Authorize', ensure client_id is set to `swagger-ui`, under Scopes, click on `select-all`
-.. If the login succeeded, click on `Close`.
-.. Click again on `Execute` of the `/whoami` resource. This should now return a 200.
+With a browser, navigate to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
+. Click on /whoami, 'Try it out' and 'Execute' (this should yield a `401 Error: Unauthorized`)
+. Click on 'Authorize', ensure client_id is set to `swagger-ui`, under Scopes, click on `select-all`
+. If the login succeeded, click on `Close`.
+. Click again on `Execute` of the `/whoami` resource. This should now return a 200.
 
 == (Old instructions)
 
@@ -394,6 +382,11 @@ Contact info@juxt.pro if you would like help, we can provide professional consul
 
 == References
 
+- https://juxt.slides.com/malcolmsparks/atomic-architecture
+- https://www.juxt.pro/blog/atomic-architecture/
+- https://www.juxt.pro/blog/site-safari/
+- https://podcasts.apple.com/us/podcast/clojurestream-podcast/id1461500416
+- https://www.oauth.com/
 - https://acropolium.com/blog/first-look-at-backend-as-a-service/
 
 == License
