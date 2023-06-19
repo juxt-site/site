@@ -164,20 +164,25 @@ sitectl client-secret site-cli
 Create a file called `$HOME/.config/site/client.yaml` with the following content:
 
 ----
-curl:
-  save_bearer_token_to_default_config_file: true
-
+---
 resource_server:
   base_uri: http://localhost:4444
 
 authorization_server:
   base_uri: http://localhost:4440
+
+client_credentials:
+  ask_for_client_secret: true
+
+curl:
+  save_bearer_token_to_default_config_file: true
+  cache_client_secret: true
 ----
 
 Get a bearer token, saved to .curlrc
 
 ----
-site request-token site-cli
+site request-token
 ----
 
 Check a bearer token is current

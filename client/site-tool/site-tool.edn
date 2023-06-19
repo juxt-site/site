@@ -18,6 +18,10 @@
   {:doc "Acquire a token"
    :task (juxt.site.bb.tasks/request-token-with-client-secret)}
 
+  forget-client-secret
+  {:doc "Forget the client_secret for site-cli"
+   :task (juxt.site.bb.tasks/forget-client-secret)}
+
   config
   {:doc "Show configuration"
    :task (juxt.site.bb.tasks/config-as-json)}

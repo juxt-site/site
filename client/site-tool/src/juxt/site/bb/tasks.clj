@@ -97,8 +97,12 @@
        dir))))
 
 (defn- get-client-secret [client-id]
-  (let [client-secret-file (io/file (cache-dir) (str "client-secrets/" client-id))
-        never-remember-file (io/file (cache-dir) "never-remember")
+  (let [config (config)
+
+        client-secret-file (io/file (cache-dir) (str "client-secrets/" client-id))
+
+        ask-for-client-secret? (get-in config ["client_credentials" "ask_for_client_secret"])
+        cache-client-secret? (get-in config ["client_credentials" "cache_client_secret"])
 
         ;;_ (println "client-secret-file" client-secret-file " exists?" (.exists client-secret-file))
         client-secret (when (.exists client-secret-file)
@@ -107,38 +111,32 @@
 
         client-secret
         (or client-secret
-            (let [{status :status [client-secret] :result}
-                  (b/gum {:cmd :input
-                          :opts (cond-> {:header.foreground "#C72"
-                                         :prompt.foreground "#444"
-                                         :width 60
-                                         :header (format "Input client secret for %s" client-id)})})]
-              (when (zero? status)
-                (if (not (.exists never-remember-file))
-                  (let [{choose-status :status [choice] :result}
-                        (b/gum {:cmd :choose
-                                :args ["Remember" "Don't remember" "Never remember"]
-                                :opts {:header "Save client secret?"
-                                       :header.foreground "#C72"
-                                       :item.foreground "#444"
-                                       :selected.foreground "#C72"
-                                       :cursor.foreground "#AAA"
-                                       :limit 1}})]
+            (when ask-for-client-secret?
+              (let [{status :status [client-secret] :result}
+                    (b/gum {:cmd :input
+                            :opts (cond-> {:header.foreground "#C72"
+                                           :prompt.foreground "#444"
+                                           :width 60
+                                           :header (format "Input client secret for %s" client-id)})})]
+                (when cache-client-secret?
+                  (println "Writing client_secret to" (.getAbsolutePath client-secret-file))
+                  (spit client-secret-file client-secret))
+                client-secret)))]
 
-                    (if (zero? choose-status)
-                      (case choice
-                        "Remember" (do
-                                     (spit client-secret-file client-secret)
-                                     (println "Cached client_secret to" (.getAbsolutePath client-secret-file)))
-                        "Never remember" (do
-                                           (spit never-remember-file "never-remember=true")
-                                           (println "To reset this choice, remove" (.getAbsolutePath never-remember-file)))
-                        nil)
-                      (println "choose-status:" choose-status))
-                    client-secret)
-
-                  client-secret))))]
     client-secret))
+
+(defn forget-client-secret []
+  (let [cli-opts {:args->opts [:client-id]
+                  :require [:client-id]
+                  :exec-args {:client-id "site-cli"}
+                  :validate {:client-id {:pred string?}}}
+        {:keys [client-id]} (cli/parse-opts *command-line-args* cli-opts)
+        client-secret-file (io/file (cache-dir) (str "client-secrets/" client-id))]
+    (if (.exists client-secret-file)
+      (do
+        (println "Deleting" (.getAbsolutePath client-secret-file))
+        (io/delete-file client-secret-file))
+      (println "No such file:" (.getAbsolutePath client-secret-file)))))
 
 (defn check-token []
   (let [{{auth-base-uri "base_uri"} "authorization_server"
@@ -160,10 +158,15 @@
                   (slurp bearer-token-file)))
         _ (when-not token (System/exit 1))
 
+        client-secret (get-client-secret "site-cli")
+        _ (when-not client-secret
+            (println "No client-secret found")
+            (System/exit 1))
+
         {introspection-status :status introspection-body :body}
         (http/post
          (str auth-base-uri "/oauth/introspect")
-         {:basic-auth ["site-cli" (get-client-secret "site-cli")]
+         {:basic-auth ["site-cli" client-secret]
           :form-params {"token" token}
           :throw false})
 
@@ -198,6 +201,9 @@
         {auth-base-uri "base_uri"} authorization-server
         token-endpoint (str auth-base-uri "/oauth/token")
         client-secret (get-client-secret client-id)
+        _ (when-not client-secret
+            (println "No client_secret found")
+            (System/exit 1))
         {:keys [status body]}
         (http/post
          token-endpoint
