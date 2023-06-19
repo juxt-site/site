@@ -24,15 +24,15 @@
 (memoize
  (defn config []
    (or
-    (let [config-file (io/file (System/getenv "HOME") ".config/site/client.edn")]
+    (let [config-file (io/file (System/getenv "HOME") ".config/site/site-tool.edn")]
       (when (.exists config-file)
         (edn/read-string (slurp config-file))))
 
-    (let [config-file (io/file (System/getenv "HOME") ".config/site/client.json")]
+    (let [config-file (io/file (System/getenv "HOME") ".config/site/site-tool.json")]
       (when (.exists config-file)
         (json/parse-string (slurp config-file))))
 
-    (let [config-file (io/file (System/getenv "HOME") ".config/site/client.yaml")]
+    (let [config-file (io/file (System/getenv "HOME") ".config/site/site-tool.yaml")]
       (when (.exists config-file)
         (yaml/parse-string (slurp config-file) {:keywords false})))
 

@@ -161,7 +161,7 @@ sitectl client-secret site-cli
 
 == Configuring Site remotely
 
-Create a file called `$HOME/.config/site/client.yaml` with the following content:
+Create a file called `$HOME/.config/site/site-tool.yaml` with the following content:
 
 ----
 ---
