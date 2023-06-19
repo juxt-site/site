@@ -27,7 +27,7 @@ this repository in that spirit.
 
 The previous 1.0 generation of Site is maintained at https://github.com/juxt/site.
 
-== What is Site and which projects would I use it for?
+== Which types of projects might I use Site for?
 
 * You want to get started on a project quickly, and there are
   requirements for the project to serve data over an API.
@@ -42,12 +42,11 @@ an appointment.
 
 == Getting Started
 
-Clone this repository to your computer, cd into the `site` directory:
+Follow this guide to get up-and-running with your very own Site instance.
 
-----
-$ git clone https://github.com/juxt-site/site
-$ cd site
-----
+=== Checking dependencies
+
+Before we get started, let's check some dependencies.
 
 Ensure you have https://github.com/babashka/babashka[Babashka] version v1.1.172 or later installed:
 
@@ -63,7 +62,27 @@ clj --version
 Clojure CLI version 1.11.1.1273
 ----
 
-Ensure you have https://github.com/charmbracelet/gum/[gum] installed.
+Ensure you have https://github.com/charmbracelet/gum/[`gum`] installed.
+
+For exampe, on Arch Linux you can install `gum` with the following:
+
+----
+pacman -S gum
+----
+
+=== Starting up a Site instance
+
+Clone this repository to your computer, cd into the `site` directory:
+
+----
+$ git clone https://github.com/juxt-site/site
+$ cd site
+----
+
+Set the SITE_HOME environment variable to the location where you have
+cloned the Site git repo.
+
+Add `$SITE_HOME/server/bin` and `$SITE_HOME/client/bin` to your `PATH` environment variable.
 
 Copy `server/etc/config.edn` to `$HOME/.config/site/config.edn`:
 
@@ -99,20 +118,34 @@ This should report:
 Site OK!
 ----
 
-Add `$SITE_HOME/server/bin` and `$SITE_HOME/client/bin` to your `PATH` environment variable.
+=== Installing Site resources
 
-NOTE: `sitectl` is a tool that only runs on same host as the Site instance.
+In this section we introduce `sitectl`.
+This is a command line tool that connects to a running Site instance on same host, via a locally-bound REPL.
 It is only for administrative operations.
-`site` is a tool that runs on any machine.
-It communicates with Site through Site's System API.
 
-Bootstrap your Site instance by deploying a minimal set of resources
+Clear out any existing resources from Site.
+This isn't strictly necessary if you haven't installed Site before, but is worth knowing in case you want to start over.
+
+----
+sitectl reset
+----
+
+Bootstrap your Site instance by deploying a minimal set of resources.
 
 ----
 sitectl install-group juxt/site/bootstrap
 ----
 
-NOTE: At any time, you can start over with `sitectl reset`.
+When prompted, accept the offer to install the resources.
+
+You can now inspect your Site instance's resources.
+
+----
+sitectl ls
+----
+
+These are a minimal set of resources that allow us to create operations and grant permissions to use them.
 
 Install the Site System API
 
