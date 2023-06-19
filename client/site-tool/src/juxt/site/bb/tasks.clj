@@ -4,6 +4,7 @@
   (:require
    [babashka.http-client :as http]
    [babashka.cli :as cli]
+   [bblgum.core :as b]
    [clojure.java.io :as io]
    [clj-yaml.core :as yaml]
    [clojure.edn :as edn]
@@ -95,18 +96,57 @@
        (.mkdirs dir)
        dir))))
 
-(defn- retrieve-client-secret [client-id]
+(defn- get-client-secret [client-id]
   (let [client-secret-file (io/file (cache-dir) (str "client-secrets/" client-id))
-        _ (when-not (.exists client-secret-file)
-            (throw (ex-info (format "No client secret file for '%s'" client-id) {:client-id client-id})))
-        client-secret (str/trim (slurp client-secret-file))]
+        never-remember-file (io/file (cache-dir) "never-remember")
+
+        ;;_ (println "client-secret-file" client-secret-file " exists?" (.exists client-secret-file))
+        client-secret (when (.exists client-secret-file)
+                        (println "Reading client-secret from" (.getAbsolutePath client-secret-file))
+                        (str/trim (slurp client-secret-file)))
+
+        client-secret
+        (or client-secret
+            (let [{status :status [client-secret] :result}
+                  (b/gum {:cmd :input
+                          :opts (cond-> {:header.foreground "#C72"
+                                         :prompt.foreground "#444"
+                                         :width 60
+                                         :header (format "Input client secret for %s" client-id)})})]
+              (when (zero? status)
+                (if (not (.exists never-remember-file))
+                  (let [{choose-status :status [choice] :result}
+                        (b/gum {:cmd :choose
+                                :args ["Remember" "Don't remember" "Never remember"]
+                                :opts {:header "Save client secret?"
+                                       :header.foreground "#C72"
+                                       :item.foreground "#444"
+                                       :selected.foreground "#C72"
+                                       :cursor.foreground "#AAA"
+                                       :limit 1}})]
+
+                    (if (zero? choose-status)
+                      (case choice
+                        "Remember" (do
+                                     (spit client-secret-file client-secret)
+                                     (println "Cached client_secret to" (.getAbsolutePath client-secret-file)))
+                        "Never remember" (do
+                                           (spit never-remember-file "never-remember=true")
+                                           (println "To reset this choice, remove" (.getAbsolutePath never-remember-file)))
+                        nil)
+                      (println "choose-status:" choose-status))
+                    client-secret)
+
+                  client-secret))))]
     client-secret))
 
 (defn check-token []
   (let [{{auth-base-uri "base_uri"} "authorization_server"
          curl "curl"} (config)
+
         {bearer-token-file "bearer_token_file"
          save-bearer-token-to-default-config-file "save_bearer_token_to_default_config_file"} curl
+
         token (cond
                 save-bearer-token-to-default-config-file
                 (let [curl-config-file (curl-config-file)]
@@ -120,13 +160,13 @@
                   (slurp bearer-token-file)))
         _ (when-not token (System/exit 1))
 
-        {introspection-status :status
-         introspection-body :body}
+        {introspection-status :status introspection-body :body}
         (http/post
          (str auth-base-uri "/oauth/introspect")
-         {:basic-auth ["site-cli" (retrieve-client-secret "site-cli")]
+         {:basic-auth ["site-cli" (get-client-secret "site-cli")]
           :form-params {"token" token}
           :throw false})
+
         claims (when introspection-body
                  (json/parse-string introspection-body))
         zone-id (java.time.ZoneId/systemDefault)
@@ -151,15 +191,17 @@
 (defn request-token-with-client-secret []
   (let [cli-opts {:args->opts [:client-id]
                   :require [:client-id]
+                  :exec-args {:client-id "site-cli"}
                   :validate {:client-id {:pred string?}}}
         {:keys [client-id]} (cli/parse-opts *command-line-args* cli-opts)
         {authorization-server "authorization_server"} (config)
         {auth-base-uri "base_uri"} authorization-server
         token-endpoint (str auth-base-uri "/oauth/token")
+        client-secret (get-client-secret client-id)
         {:keys [status body]}
         (http/post
          token-endpoint
-         {:basic-auth [client-id (retrieve-client-secret client-id)]
+         {:basic-auth [client-id client-secret]
           :form-params {"grant_type" "client_credentials"}
           :throw false})]
     (case status
