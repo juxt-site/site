@@ -33,22 +33,18 @@
        (.mkdirs dir)
        dir))))
 
+;; TODO: Replace with Aero library
 (memoize
  (defn config []
-   (or
-    (let [config-file (io/file (System/getenv "HOME") ".config/site/client.edn")]
-      (when (.exists config-file)
-        (edn/read-string (slurp config-file))))
-
-    (let [config-file (io/file (System/getenv "HOME") ".config/site/client.json")]
-      (when (.exists config-file)
-        (json/parse-string (slurp config-file))))
-
-    (let [config-file (io/file (System/getenv "HOME") ".config/site/client.yaml")]
-      (when (.exists config-file)
-        (yaml/parse-string (slurp config-file) {:keywords false})))
-
-    {"empty_configuration" true})))
+   (let [config-file (io/file (System/getenv "HOME") ".config/site/config.edn")]
+     (if (.exists config-file)
+       (edn/read-string {:default (fn [tag value]
+                                    (case (name tag)
+                                      "env" (System/getenv (name value))
+                                      "join" (apply str value)
+                                      nil))}
+                        (slurp config-file))
+       (throw (ex-info (format "No config file: %s" (.getAbsolutePath config-file)) {}))))))
 
 (memoize
  (defn groups []
@@ -174,6 +170,8 @@
                                  :limit 1}
                                 opts)
                          (dissoc :heading :description))})]
+      (when (= status 130)
+         (System/exit 2))
       (when-not (zero? status)
         (throw
          (ex-info "gum process exited with non-zero status" {:status status})))
@@ -296,10 +294,10 @@
 
 (defn install-group [{:keys [auth-base-uri data-base-uri group]}]
   (let [auth-base-uri (or auth-base-uri
-                          (get-in (config) ["authorization_server" "base_uri"])
+                          (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                           (input-auth-base-uri))
         data-base-uri (or data-base-uri
-                          (get-in (config) ["resource_server" "base_uri"])
+                          (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                           (input-data-base-uri))]
 
     (binding [*heading* "Install group"]
@@ -341,7 +339,7 @@
 
 (defn new-keypair [{:keys [auth-base-uri]}]
   (let [auth-base-uri (or auth-base-uri
-                          (get-in (config) ["authorization_server" "base_uri"])
+                          (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                           (input-auth-base-uri))
         kid (random-string 16)]
     (install!
@@ -356,13 +354,13 @@
   [{:keys [auth-base-uri data-base-uri client-id]}]
   (binding [*heading* "Register application"]
     (let [auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))
           ;; Each application is regsitered for a particular resource
           ;; server, which will be the 'aud' claim on JWT
           ;; access-tokens.
           data-base-uri (or data-base-uri
-                            (get-in (config) ["resource_server" "base_uri"])
+                            (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                             (input-data-base-uri))
           client-id (or client-id
                         (first *command-line-args*)
@@ -394,7 +392,7 @@
 (defn oauth-authorization-endpoint [{:keys [auth-base-uri session-scope]}]
   (binding [*heading* "Deploy OAuth2 authorization endpoint"]
     (let [auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))]
       (install!
        (get-group-installers "juxt/site/oauth-authorization-endpoint")
@@ -417,7 +415,7 @@
 (defn oauth-extras [{:keys [auth-base-uri session-scope]}]
   (binding [*heading* "Deploy OAuth2 extras"]
     (let [auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))]
       (install!
        (get-group-installers "juxt/site/oauth-extras")
@@ -437,10 +435,10 @@
 (defn- add-user-input [{:keys [auth-base-uri data-base-uri username user-type fullname iss nickname]}]
   (binding [*heading* "Add user"]
     (let [auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))
           data-base-uri (or data-base-uri
-                            (get-in (config) ["resource_server" "base_uri"])
+                            (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                             (input-data-base-uri))
 
           username (input {:prompt "Username" :value username})
@@ -476,10 +474,10 @@
 (defn- grant-role-input [{:keys [auth-base-uri data-base-uri username rolename]}]
   (binding [*heading* "Grant role to user"]
     (let [auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))
           data-base-uri (or data-base-uri
-                            (get-in (config) ["resource_server" "base_uri"])
+                            (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                             (input-data-base-uri))
           username (or username (input {:prompt "Username" :value username}))
           rolename (or rolename (input {:prompt "Role" :value rolename}))]
@@ -494,11 +492,11 @@
           {:strs [auth-base-uri data-base-uri username user-type]} parameters
 
           auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))
 
           data-base-uri (or data-base-uri
-                            (get-in (config) ["resource_server" "base_uri"])
+                            (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                             (input-data-base-uri))
 
           uri-map {"https://auth.example.org" auth-base-uri
@@ -530,11 +528,11 @@
           (grant-role-input defaults)
 
           auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))
 
           data-base-uri (or data-base-uri
-                            (get-in (config) ["resource_server" "base_uri"])
+                            (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                             (input-data-base-uri))
 
           uri-map {"https://auth.example.org" auth-base-uri
@@ -554,11 +552,11 @@
   (let [{:strs [auth-base-uri data-base-uri username user-type] :as parameters} (add-user-input defaults)
 
         auth-base-uri (or auth-base-uri
-                          (get-in (config) ["authorization_server" "base_uri"])
+                          (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                           (input-auth-base-uri))
 
         data-base-uri (or data-base-uri
-                          (get-in (config) ["resource_server" "base_uri"])
+                          (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                           (input-data-base-uri))
 
         uri-map {"https://auth.example.org" auth-base-uri
@@ -591,7 +589,7 @@
 (defn install-login-form [{:keys [auth-base-uri]}]
   (binding [*heading* "Install login form"]
     (let [auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))
           uri-map {"https://auth.example.org" auth-base-uri}
           installers [{:juxt.site/base-uri "https://auth.example.org"
@@ -601,7 +599,7 @@
 
 (defn openid [{:keys [auth-base-uri iss client-id client-secret]}]
   (let [auth-base-uri (or auth-base-uri
-                          (get-in (config) ["authorization_server" "base_uri"])
+                          (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                           (input-auth-base-uri))
         params
         (binding [*heading* "Register OpenID client"]
@@ -629,10 +627,10 @@
   [{:keys [auth-base-uri data-base-uri username client-id duration]}]
   (binding [*heading* "Requesting access token"]
     (let [auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))
           data-base-uri (or data-base-uri
-                            (get-in (config) ["resource_server" "base_uri"])
+                            (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                             (input-data-base-uri))
           username (input {:prompt "Username" :value username})
           client-id (input {:prompt "Client-id" :value client-id})
@@ -649,7 +647,7 @@
   [{:keys [auth-base-uri client-id client-secret]}]
   (binding [*heading* "Rotate client secret"]
     (let [auth-base-uri (or auth-base-uri
-                            (get-in (config) ["authorization_server" "base_uri"])
+                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))
           client-id (input {:prompt "Client-id" :value client-id})
           ]
@@ -664,7 +662,7 @@
     [{:keys [auth-base-uri scope description operations]}]
     (binding [*heading* "Register scope"]
       (let [auth-base-uri (or auth-base-uri
-                              (get-in (config) ["authorization_server" "base_uri"])
+                              (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                               (input-auth-base-uri))
 
             scope (input {:prompt "Scope" :value (or scope (str auth-base-uri "/scopes/"))})
@@ -695,10 +693,10 @@
 
 (defn basic-auth-example [{:keys [auth-base-uri data-base-uri]}]
   (let [auth-base-uri (or auth-base-uri
-                          (get-in (config) ["authorization_server" "base_uri"])
+                          (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                           (input-auth-base-uri))
         data-base-uri (or data-base-uri
-                          (get-in (config) ["resource_server" "base_uri"])
+                          (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                           (input-data-base-uri))]
 
     (install!
