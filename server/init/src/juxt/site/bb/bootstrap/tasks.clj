@@ -132,6 +132,8 @@
                            }
                           opts
                           )})]
+       (when (= status 130)
+         (System/exit 2))
        (when-not (zero? status)
          (throw
           (ex-info "gum process exited with non-zero status" {:status status})))
@@ -150,6 +152,8 @@
                           true (assoc :header.foreground "#C72" :prompt.foreground "#444" :width 60)
                           true (dissoc :heading :prompt)
                           (nil? header) (assoc :header (str heading "\n\n" prompt)))})]
+      (when (= status 130)
+         (System/exit 2))
       (when-not (zero? status)
         (throw
          (ex-info "gum process exited with non-zero status" {:status status})))
@@ -191,10 +195,11 @@
                         (select-keys opts [:title]))
                        (update :title str "..."))})]
 
+    (when (= status 130)
+      (System/exit 2))
+
     (if (pos? status)
-      (do ;; replace with throwing exception
-        (println "ERROR")
-        (pprint result))
+      (throw (ex-info "gum non-zero exit" {:status status}))
       (str/join " " result))))
 
 (defn install! [installers uri-map parameter-map install-opts]
