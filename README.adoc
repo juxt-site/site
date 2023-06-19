@@ -121,12 +121,6 @@ sitectl install-group juxt/site/openapi # this will soon be unnecessary
 sitectl install-group juxt/site/system-api
 ----
 
-Register a command-line app
-
-----
-sitectl install-group juxt/site/site-cli-client
-----
-
 Much of the System API can only be accessed by a client that makes requests with a bearer token.
 Bearer tokens are signed JSON Web Tokens (JWTs).
 
@@ -144,7 +138,23 @@ We must also install a token endpoint for a client to be able to request a beare
 sitectl install-group juxt/site/oauth-token-endpoint
 ----
 
-Extract the client secret
+== Preparing the Site command line tool
+
+Site comes with a command line application that can be used to configure a Site instance.
+
+However, if you prefer to use a web UI, you may opt to do that instead of the command line application.
+
+=== Register the command line application with Site
+
+Register the command-line app
+
+----
+sitectl install-group juxt/site/site-cli-client
+----
+
+The command line client has a default client_id of `site-cli`.
+
+Extract the client secret for this client_id:
 
 ----
 sitectl client-secret --save site-cli
@@ -155,13 +165,9 @@ NOTE: Adding the `--save` option has the effect of writing the value of `client_
 We are now finished with `sitectl` and can continue configuring Site remotely if you like.
 If you do want to continue setting up Site on a remote machine you'll need to take a note of the client-secret.
 
-----
-sitectl client-secret site-cli
-----
+=== Configuring site-cli
 
-== Configuring Site remotely
-
-Create a file called `$HOME/.config/site/site-tool.yaml` with the following content:
+Create a file called `$HOME/.config/site/site-cli.yaml` with the following content:
 
 ----
 ---
@@ -178,6 +184,8 @@ curl:
   save_bearer_token_to_default_config_file: true
   cache_client_secret: true
 ----
+
+== Using the Site command line tool
 
 Get a bearer token, saved to .curlrc
 
