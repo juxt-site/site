@@ -8,4 +8,4 @@ else
 fi
 
 export SITE_HOME=$(dirname $0)/../..
-bb --config $SITE_HOME/client/site-tool/site.edn $args
+bb --config $SITE_HOME/client/site-tool/site-tool.edn $args
