@@ -1,19 +1,27 @@
-{"juxt/site/protection-spaces"
- {:juxt.site/description "Protection spaces"
+{"juxt/site/bootstrap"
+ {:juxt.site/description "Bootstrap resources"
+  :juxt.site/installers
+  [
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/do-operation"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/subjects/system"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/create-operation"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/grant-permission"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/system/bootstrap"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/install-not-found"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/system/install-not-found"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/not-found"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/not-found"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/get-not-found"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/get-not-found"}
+   ;; Each base-uri has a configuration, allowing us to attach meta-data to it.
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/config"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/config"}
+   ]}
+
+ "juxt/site/api-operations"
+ {:juxt.site/description "API endpoints"
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/put-protection-space"}]}
-
- "juxt/site/openapi"
- {:juxt.site/description "OpenAPI"
-  :juxt.site/installers
-  [ ;; Required permissions (permissions are generally not specified as
-   ;; dependencies but must be created out-of-band)
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/get-openapi-document"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/system/put-openapi-document"}
-   {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-openapi-path"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-resource"}]}
@@ -21,11 +29,7 @@
  "juxt/site/system-api"
  {:juxt.site/description "Site System API"
   :juxt.site/installers
-  [ ;; API resources
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/openapi.json"}
-
-   ;; Operations
+  [ ;; Operations
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/get-operations"}
    {:juxt.site/base-uri "https://auth.example.org"
@@ -120,6 +124,29 @@
     :juxt.site/installer-path "/scopes/system/self-identification"}
    ]}
 
+ "juxt/site/protection-spaces"
+ {:juxt.site/description "Protection spaces"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/operations/put-protection-space"}]}
+
+ "juxt/site/openapi"
+ {:juxt.site/description "OpenAPI"
+  :juxt.site/installers
+  [ ;; Required permissions (permissions are generally not specified as
+   ;; dependencies but must be created out-of-band)
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/get-openapi-document"}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/system/put-openapi-document"}
+   ]}
+
+ "juxt/site/system-api-openapi"
+ {:juxt.site/description "System API OpenAPI docs"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/openapi.json"}]}
+
  "juxt/site/sessions"
  {:juxt.site/description "Sessions"
   :juxt.site/installers
@@ -127,26 +154,6 @@
     :juxt.site/installer-path "/operations/put-session-scope"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-session-scope"}]}
-
- "juxt/site/bootstrap"
- {:juxt.site/description "Bootstrap resources"
-  :juxt.site/installers
-  [
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/do-operation"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/subjects/system"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/create-operation"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/grant-permission"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/system/bootstrap"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/install-not-found"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/system/install-not-found"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/not-found"}
-   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/not-found"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/get-not-found"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/get-not-found"}
-   ;; Config
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/config"}
-   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/config"}
-   ]}
 
  "juxt/site/user-model"
  {:juxt.site/description

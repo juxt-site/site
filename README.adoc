@@ -147,10 +147,15 @@ sitectl ls
 
 These are a minimal set of resources that allow us to create operations and grant permissions to use them.
 
+We can add some operations that allow us to build an API:
+
+----
+sitectl install-group juxt/site/api-operations
+----
+
 Install the Site System API
 
 ----
-sitectl install-group juxt/site/openapi # this will soon be unnecessary
 sitectl install-group juxt/site/system-api
 ----
 
@@ -163,7 +168,7 @@ We must generate a keypair that Site can use to sign these JWTs.
 sitectl new-keypair
 ----
 
-NOTE: You can use `sitectl new-keypair` whenever it is appropriate to rotate the keypair.
+NOTE: You can also use `sitectl new-keypair` whenever you want to rotate the keypair.
 
 We must also install a token endpoint for a client to be able to request a bearer token.
 
@@ -174,7 +179,6 @@ sitectl install-group juxt/site/oauth-token-endpoint
 == Preparing the Site command line tool
 
 Site comes with a command line application that can be used to configure a Site instance.
-
 However, if you prefer to use a web UI, you may opt to do that instead of the command line application.
 
 === Register the command line application with Site
@@ -212,10 +216,10 @@ authorization_server:
 
 client_credentials:
   ask_for_client_secret: true
+  cache_client_secret: true
 
 curl:
   save_bearer_token_to_default_config_file: true
-  cache_client_secret: true
 ----
 
 == Using the Site command line tool
@@ -224,6 +228,13 @@ Get a bearer token, saved to .curlrc
 
 ----
 site request-token
+----
+
+This should output something similar to the following:
+
+----
+Reading client-secret from /home/mal/.cache/site/client-secrets/site-cli
+Access token saved, expires in 86400 seconds
 ----
 
 Check a bearer token is current
@@ -238,7 +249,13 @@ Install an introspection endpoint (Optional)
 sitectl install-group juxt/site/oauth-introspection-endpoint
 ----
 
-Check the token again with `site check-token $(sitectl client-secret site-cli)`.
+Check the token again.
+
+----
+site check-token
+----
+
+=== Adding users
 
 Add a new user.
 

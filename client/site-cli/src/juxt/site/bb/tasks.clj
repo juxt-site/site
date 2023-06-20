@@ -24,15 +24,15 @@
 (memoize
  (defn config []
    (or
-    (let [config-file (io/file (System/getenv "HOME") ".config/site/site-tool.edn")]
+    (let [config-file (io/file (System/getenv "HOME") ".config/site/site-cli.edn")]
       (when (.exists config-file)
         (edn/read-string (slurp config-file))))
 
-    (let [config-file (io/file (System/getenv "HOME") ".config/site/site-tool.json")]
+    (let [config-file (io/file (System/getenv "HOME") ".config/site/site-cli.json")]
       (when (.exists config-file)
         (json/parse-string (slurp config-file))))
 
-    (let [config-file (io/file (System/getenv "HOME") ".config/site/site-tool.yaml")]
+    (let [config-file (io/file (System/getenv "HOME") ".config/site/site-cli.yaml")]
       (when (.exists config-file)
         (yaml/parse-string (slurp config-file) {:keywords false})))
 
@@ -106,7 +106,10 @@
 
         ;;_ (println "client-secret-file" client-secret-file " exists?" (.exists client-secret-file))
         client-secret (when (.exists client-secret-file)
-                        (println "Reading client-secret from" (.getAbsolutePath client-secret-file))
+                        (println "Reading client-secret from"
+                                 (str/replace
+                                  (.getAbsolutePath client-secret-file)
+                                  (System/getenv "HOME") "$HOME"))
                         (str/trim (slurp client-secret-file)))
 
         client-secret
@@ -119,7 +122,10 @@
                                            :width 60
                                            :header (format "Input client secret for %s" client-id)})})]
                 (when cache-client-secret?
-                  (println "Writing client_secret to" (.getAbsolutePath client-secret-file))
+                  (println "Writing client_secret to"
+                           (str/replace
+                            (.getAbsolutePath client-secret-file)
+                            (System/getenv "HOME") "$HOME"))
                   (spit client-secret-file client-secret))
                 client-secret)))]
 
@@ -170,25 +176,28 @@
           :form-params {"token" token}
           :throw false})
 
-        claims (when introspection-body
-                 (json/parse-string introspection-body))
         zone-id (java.time.ZoneId/systemDefault)
-        claim-time (fn [claim]
-                     (java.time.ZonedDateTime/ofInstant
-                      (java.time.Instant/ofEpochSecond (get claims claim))
-                      zone-id))
-        issued-at (.toString (claim-time "iat"))
-        expires-at (.toString (claim-time "exp"))]
+
+        claim-time
+        (fn [seconds]
+          (.toString
+           (java.time.ZonedDateTime/ofInstant
+            (java.time.Instant/ofEpochSecond seconds)
+            zone-id)))
+
+        introspection
+        (when (and (= introspection-status 200) introspection-body)
+          (let [claims (json/parse-string introspection-body)]
+            (-> claims
+                (assoc "issued-at" (claim-time (get claims "iat")))
+                (assoc "expires-at" (claim-time (get claims "exp"))))))]
 
     (println
      (json/generate-string
-      (cond-> {"bearer-token" token}
-        (= introspection-status 200)
-        (assoc "introspection" {"claims" claims
-                                "issued_at" issued-at
-                                "expires_at" expires-at})
-        (not= introspection-status 200)
-        (assoc "introspection" {"status" introspection-status}))
+      (cond-> {"bearer-token" token
+               "introspection-status" introspection-status}
+        introspection
+        (assoc "introspection" introspection))
       {:pretty true}))))
 
 (defn request-token-with-client-secret []
