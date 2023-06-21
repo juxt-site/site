@@ -21,11 +21,15 @@
 
 (defn bootstrap-fixture [f]
   (install-installer-groups!
+   ["juxt/site/system-client"]
+   RESOURCE_SERVER
+   {"client-id" "site-cli"})
+
+  (install-installer-groups!
    ["juxt/site/login-form"
     "juxt/site/example-users"
     "juxt/site/test-scopes"
     "juxt/site/test-clients"
-    "juxt/site/site-cli-client"
     "juxt/site/oauth-introspection-endpoint"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})

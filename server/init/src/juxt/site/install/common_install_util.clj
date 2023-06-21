@@ -130,7 +130,8 @@
        (mapcat
         (fn [installer-spec]
           (let [installer-parameters (:juxt.site/parameters installer-spec)
-                combined-parameters (merge user-parameters installer-parameters)
+                expanded-installer-parameters (render-form-templates installer-parameters user-parameters)
+                combined-parameters (merge user-parameters expanded-installer-parameters)
                 root (lookup-root installer-spec graph combined-parameters)]
 
             (reverse

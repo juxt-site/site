@@ -297,6 +297,14 @@
   (when s
     (java.net.URLEncoder/encode s)))
 
+(defn resolve-parameters [parameters]
+  (reduce
+   (fn [acc [parameter pdef]]
+     (assoc acc parameter
+            (input {:header parameter})))
+   {}
+   parameters))
+
 (defn install-group [{:keys [auth-base-uri data-base-uri group]}]
   (let [auth-base-uri (or auth-base-uri
                           (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
@@ -321,15 +329,12 @@
                         (first result)))
             {:juxt.site/keys [description parameters installers]} (get groups group)]
 
-        (when parameters
-          (throw (ex-info "Cannot install a group which requires parameters" {})))
-
-          (install!
-           installers
-           {"https://auth.example.org" auth-base-uri
-            "https://data.example.org" data-base-uri}
-           {}
-           {:title description})))))
+        (install!
+         installers
+         {"https://auth.example.org" auth-base-uri
+          "https://data.example.org" data-base-uri}
+         (resolve-parameters parameters)
+         {:title description})))))
 
 (defn random-string [size]
   (apply str
