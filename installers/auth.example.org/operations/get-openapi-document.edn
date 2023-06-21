@@ -8,6 +8,16 @@
    {:juxt.site.sci/program
     #juxt.pprint
     (let [openapi-paths
+          ;; This is over-reaching. There should be an explicit
+          ;; mapping between an OpenAPI and its collection of
+          ;; endpoints.
+          ;;
+          ;; A Site instance might 'host' multiple OpenAPIs
+          ;; Some users might not be able to 'see' a given OpenAPI
+          ;; Scopes will likely be shared across an OpenAPI (for a given resource server)
+          ;;
+          ;; A Site instance may host multiple resource servers
+          ;; Each resource server might host multiple OpenAPIs
           (xt/q '{:find [(pull path [* {(:juxt.site/_variant-of {:as :variants}) [*]}])]
                   :where [[path :juxt.site/type "https://meta.juxt.site/types/openapi-path"]]})
 
