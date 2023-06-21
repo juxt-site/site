@@ -1,3 +1,0 @@
-[
- [:add-user {}]
- [:grant-role {:rolename "System"}]]
