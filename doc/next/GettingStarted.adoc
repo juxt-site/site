@@ -260,12 +260,15 @@ We must register one or both of these applications before they can be used.
 
 [IMPORTANT]
 --
-Register the command-line application
+Register the command-line application and InSite UI
 
 ----
-sitectl install-group juxt/site/site-cli-client
+sitectl install-group juxt/site/system-client --client-id site-cli
+sitectl install-group juxt/site/system-client --client-id insite
 ----
 --
+
+=== Preparing to use site-cli
 
 The command line client has a default client_id of `site-cli`.
 
@@ -303,7 +306,7 @@ curl:
   save_bearer_token_to_default_config_file: true
 ----
 
-== Using the Site command line tool
+=== Using the Site command line tool
 
 Get a bearer token, saved to .curlrc
 
