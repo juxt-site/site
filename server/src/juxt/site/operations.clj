@@ -516,7 +516,7 @@
                                  (xt/q
                                   db
                                   '{:find [(pull e [*])]
-                                    :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
+                                    :where [[e :juxt.site/type "https://meta.juxt.site/types/application"]
                                             [e :juxt.site/client-id client-id]]
                                     :in [client-id]} client-id)
                                  (catch Exception cause

@@ -80,7 +80,7 @@
                           ;; Basic HTTP Authentication can also used
                           ;; to authenticate OAuth2 clients
                           [(matches? e username password canonical-root-uri authorization-server)
-                           [e :juxt.site/type "https://meta.juxt.site/types/client"]
+                           [e :juxt.site/type "https://meta.juxt.site/types/application"]
                            [e :juxt.site/client-id username]
                            [e :juxt.site/client-secret password]
                            [e :juxt.site/authorization-server authorization-server]
@@ -109,7 +109,7 @@
            (cond-> {}
              (contains? candidate-types "https://meta.juxt.site/types/user-identity")
              (assoc :juxt.site/user-identity (:xt/id candidate))
-             (contains? candidate-types "https://meta.juxt.site/types/client")
+             (contains? candidate-types "https://meta.juxt.site/types/application")
              (assoc :juxt.site/application (:xt/id candidate)))
            protection-space))))))
 

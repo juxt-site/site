@@ -95,7 +95,7 @@
       (is
        (=
         {:xt/id "https://auth.example.test/applications/test-app"
-         :juxt.site/type "https://meta.juxt.site/types/client"
+         :juxt.site/type "https://meta.juxt.site/types/application"
          :juxt.site/client-id "test-app"
          :juxt.site/client-type "public"
          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}

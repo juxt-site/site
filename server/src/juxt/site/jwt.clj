@@ -138,7 +138,7 @@
                 (xt/q
                  db
                  '{:find [(pull e [*])]
-                   :where [[e :juxt.site/type "https://meta.juxt.site/types/client"]
+                   :where [[e :juxt.site/type "https://meta.juxt.site/types/application"]
                            [e :juxt.site/authorization-server issuer]
                            [e :juxt.site/client-id client-id]]
                    :in [issuer client-id]} authorization-server client-id))

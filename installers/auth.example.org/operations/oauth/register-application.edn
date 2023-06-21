@@ -74,7 +74,7 @@
 
           (cond-> (into input
                         {:xt/id (format "https://auth.example.org/applications/%s" client-id)
-                         :juxt.site/type "https://meta.juxt.site/types/client"
+                         :juxt.site/type "https://meta.juxt.site/types/application"
                          :juxt.site/client-id client-id})
             client-secret (assoc :juxt.site/client-secret client-secret)
             ;; In case the client-secret has been provided in the input
