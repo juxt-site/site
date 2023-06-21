@@ -298,12 +298,16 @@
     (java.net.URLEncoder/encode s)))
 
 (defn resolve-parameters [parameters]
-  (reduce
-   (fn [acc [parameter pdef]]
-     (assoc acc parameter
-            (input {:header parameter})))
-   {}
-   parameters))
+  (let [args (cli/parse-opts *command-line-args* {})]
+    (reduce
+     ;; NOTE: The value of this parameter definition is intended for
+     ;; future use.
+     (fn [acc [parameter _]]
+       (assoc acc parameter
+              (or (get args (keyword parameter))
+                  (input {:header parameter}))))
+     {}
+     parameters)))
 
 (defn install-group [{:keys [auth-base-uri data-base-uri group]}]
   (let [auth-base-uri (or auth-base-uri

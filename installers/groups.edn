@@ -260,7 +260,7 @@
    ]}
 
  "juxt/site/system-client"
- {:juxt.site/description "Site CLI client"
+ {:juxt.site/description "Register a client with the System role"
   ;; We declare required parameters in an ordered map. This helps
   ;; the bb script introspect which parameters are required for each
   ;; group, saving us the trouble of having to custom code a bb task
