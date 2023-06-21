@@ -13,7 +13,7 @@ v1.0, 2022-06-21
 --
 First Edition.
 
-Copyright © 2022, JUXT LTD. All Rights Reserved.
+Copyright © 2023, JUXT LTD. All Rights Reserved.
 
 Published by JUXT Text.
 
