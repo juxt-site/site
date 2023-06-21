@@ -191,7 +191,7 @@
                         {:spinner "points"
                          :spinner.foreground "#C72"
                          :show-output true
-                         :title "Installing"}
+                         :title "Please wait"}
                         (select-keys opts [:title]))
                        (update :title str "..."))})]
 
