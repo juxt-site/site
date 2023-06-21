@@ -1,4 +1,0 @@
-= OpenAPI
-:toc: left
-
-== Introduction

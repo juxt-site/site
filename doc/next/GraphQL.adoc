@@ -1,4 +1,0 @@
-= GraphQL
-:toc: left
-
-== Introduction

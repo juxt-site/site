@@ -1,8 +1,0 @@
-.asciidoctor/
-*.pdf
-*.svg
-identity-model.json
-user-model.json
-cat.json
-fonts/
-stem-*.png
