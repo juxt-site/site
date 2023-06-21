@@ -1,68 +1,153 @@
 = Getting Started
 :toc: left
+:clj-version: 1.11.1
+:bb-version: 1.1.172
+:gum-version: 0.10.0
+:curl-version: 8.0.0
+:java-version: 17
 
-Follow this guide to get up-and-running with your very own Site instance.
+Follow this guide to get up-and-running with your very own Site instance, running locally on your machine.
+If you wish to install Site in production, refer to <<ch-installation>>.
 
-=== Checking dependencies
+=== Dependencies
 
 Before we get started, let's check some dependencies.
 
-Ensure you have https://github.com/babashka/babashka[Babashka] version v1.1.172 or later installed:
+<<gs-dependencies>> shows a table of dependencies that we will need to install before we can get started with Site.
+
+[[gs-dependencies]]
+.Required dependencies
+[options=header,unbreakable,cols="3,3,5m"]
+|===
+|Name|Command|Minimum version
+|java|java|{java-version}
+|Clojure|clj|{clj-version}
+|Babashka|bb|{bb-version}
+|gum|gum|{gum-version}
+|curl|curl|{curl-version}
+|===
+
+==== Java
+
+Site runs on the JVM, and requires a modern installation.
 
 ----
-bb --version
-babashka v1.1.172
+java -version
+openjdk 20.0.1 2023-04-18
+OpenJDK Runtime Environment (build 20.0.1+9)
+OpenJDK 64-Bit Server VM (build 20.0.1+9, mixed mode, sharing)
 ----
 
-Ensure you have https://clojure.org/[Clojure] version v1.11 or later installed:
+==== Clojure
+
+Site is written in Clojure, and requires Clojure to be installed on your machine.
+Ensure you have https://clojure.org/[Clojure] version v{clj-version} or later installed:
 
 ----
 clj --version
 Clojure CLI version 1.11.1.1273
 ----
 
-Ensure you have https://github.com/charmbracelet/gum/[`gum`] installed.
+==== Babashka
 
-For exampe, on Arch Linux you can install `gum` with the following:
+Site uses Babashka for some tools and scripting.
+Ensure you have https://github.com/babashka/babashka[Babashka] version v{bb-version} or later installed:
+
+----
+bb --version
+babashka v1.1.172
+----
+
+==== gum
+
+Some of Site's scripts make use of https://github.com/charmbracelet/gum/[`gum`], which gives a nicer command-line experience.
+Ensure you have `gum` installed.
+
+----
+gum --version
+gum version 0.10.0 (0f0f8e9)
+----
+
+For example, on Arch Linux you can install `gum` with the following:
 
 ----
 pacman -S gum
 ----
 
-=== Starting up a Site instance
+==== curl (optional)
 
-Clone this repository to your computer, cd into the `site` directory:
+For testing certain operations, we will be using https://curl.se/[`curl`].
+Check you have `curl` on your system
+
+----
+curl --version
+----
+
+=== Cloning the Site source repository
+
+[IMPORTANT]
+--
+Clone Site's repository to your computer, and change the current directory to `site`.
 
 ----
 $ git clone https://github.com/juxt-site/site
 $ cd site
 ----
+--
+
+=== Set SITE_HOME and PATH
 
 Set the SITE_HOME environment variable to the location where you have
 cloned the Site git repo.
 
+[IMPORTANT]
+--
 Add `$SITE_HOME/server/bin` and `$SITE_HOME/client/bin` to your `PATH` environment variable.
+--
 
+For example, with Bash, you would put something like the following in your `.bashrc` file and restart the shell:
+
+----
+export SITE_HOME=$HOME/src/github.com/juxt-site/site
+export PATH=$SITE_HOME/client/bin:$SITE_HOME/server/bin:$PATH
+----
+
+=== Copy Site's configuration file
+
+The Site instance requires a configuration file, which specifies important settings such as the base-uri used for new resources, port numbers and the database configuration.
+
+[IMPORTANT]
+--
 Copy `server/etc/config.edn` to `$HOME/.config/site/config.edn`:
 
 ----
 mkdir -p $HOME/.config/site
-cp server/etc/config.edn $HOME/.config/site/config.edn
+cp $SITE_HOME/server/etc/config.edn $HOME/.config/site/config.edn
 ----
+--
 
 Review the config at `$HOME/.config/site/config.edn` and make any appropriate modifications.
 
+=== Start the Site instance
+
+It is now time to start the Site instance, which runs on a JVM on your local machine.
+
+[IMPORTANT]
+--
 Start the Site instance:
 
 ----
-server/bin/site-server
+$SITE_HOME/server/bin/site-server
 ----
+--
 
-Check the server starts up.
+Check the server starts up by looking out for a message on the console similar to the following:
 
 ----
 Site by JUXT. Copyright (c) 2020-2023, JUXT LTD.
 2023-05-22 11:02:46.508:INFO::main: Logging initialized @5804ms to org.eclipse.jetty.util.log.StdErrLog
+...
+2023-06-21 12:36:00,180 INFO  juxt.site.main: System started and ready... [ thread=main]
 ----
 
 Check the server is up by calling an endpoint with curl:
@@ -77,11 +162,11 @@ This should report:
 Site OK!
 ----
 
-=== Installing Site resources
+=== Bootstrapping Site resources
 
 In this section we introduce `sitectl`.
-This is a command line tool that connects to a running Site instance on same host, via a locally-bound REPL.
-It is only for administrative operations.
+This is a command line tool that connects to a running Site instance on same host, via a locally-bound REPL running on port 50505.
+It is used only for administrative operations.
 
 Clear out any existing resources from Site.
 This isn't strictly necessary if you haven't installed Site before, but is worth knowing in case you want to start over.
@@ -90,11 +175,16 @@ This isn't strictly necessary if you haven't installed Site before, but is worth
 sitectl reset
 ----
 
-Bootstrap your Site instance by deploying a minimal set of resources.
+Next we must bootstrap Site by deploying a minimal set of resources.
+
+[IMPORTANT]
+--
+Bootstrap your Site instance:
 
 ----
 sitectl install-group juxt/site/bootstrap
 ----
+--
 
 When prompted, accept the offer to install the resources.
 
@@ -106,55 +196,87 @@ sitectl ls
 
 These are a minimal set of resources that allow us to create operations and grant permissions to use them.
 
+=== Adding API support
+
 We can add some operations that allow us to build an API:
+
+[IMPORTANT]
+--
+Install the operations needed to build an API
 
 ----
 sitectl install-group juxt/site/api-operations
 ----
+--
 
+=== Install the System API
+
+Site can be configured remotely, via its own API, which we need to install now.
+
+[IMPORTANT]
+--
 Install the Site System API
 
 ----
 sitectl install-group juxt/site/system-api
 ----
+--
 
-Much of the System API can only be accessed by a client that makes requests with a bearer token.
+=== Configure Site to issue bearer tokens
+
+Many of the operations of the System API can only be accessed by a client that makes requests with a bearer token.
 Bearer tokens are signed JSON Web Tokens (JWTs).
 
-We must generate a keypair that Site can use to sign these JWTs.
+We must first generate a keypair that Site can use to sign the JWTs that it will issue.
+
+[IMPORTANT]
+--
+Generate a new keypair:
 
 ----
 sitectl new-keypair
 ----
+--
 
 NOTE: You can also use `sitectl new-keypair` whenever you want to rotate the keypair.
 
 We must also install a token endpoint for a client to be able to request a bearer token.
 
+[IMPORTANT]
+--
+Install a token endpoint for issuing bearer tokens:
+
 ----
 sitectl install-group juxt/site/oauth-token-endpoint
 ----
+--
 
-== Preparing the Site command line tool
+=== Register some applications
 
 Site comes with a command line application that can be used to configure a Site instance.
-However, if you prefer to use a web UI, you may opt to do that instead of the command line application.
+There is also a web UI which does the same.
 
-=== Register the command line application with Site
+We must register one or both of these applications before they can be used.
 
-Register the command-line app
+[IMPORTANT]
+--
+Register the command-line application
 
 ----
 sitectl install-group juxt/site/site-cli-client
 ----
+--
 
 The command line client has a default client_id of `site-cli`.
 
+[IMPORTANT]
+--
 Extract the client secret for this client_id:
 
 ----
 sitectl client-secret --save site-cli
 ----
+--
 
 NOTE: Adding the `--save` option has the effect of writing the value of `client_secret` (for the `site-cli` application) to a cached area on your local disk (usually `$HOME/.cache/site/client-secrets/site-cli`).
 
@@ -262,74 +384,7 @@ With a browser, navigate to https://petstore.swagger.io/?url=http://localhost:44
 . If the login succeeded, click on `Close`.
 . Click again on `Execute` of the `/whoami` resource. This should now return a 200.
 
-== (Old instructions)
-
-NOTE: We're keeping these instructions as they're useful if you want
-to configure a reverse-proxy with proper hostnames.
-
-If you're really keen, you can try out Site and use Swagger UI as a test client.
-Follow these instructions:
-
-. Install nginx - see link:doc/next/Installation.adoc[]
-. `git clone https://github.com/juxt-site/swagger-ui`
-. Install `mkcert` as per link:doc/next/Installation.adoc[]
-. Create a cert: `mkcert data.site.test auth.site.test`
-. Create a separate cert for the Swagger UI client: `mkcert swagger-ui.site.test`
-. Move the generated certs (and associated key files) to your `/etc/nginx/` directory.
-. Add the following sub-section to the `http` section of your `/etc/nginx/nginx.conf` file
-+
-----
-    server {
-        listen       443 ssl;
-        server_name  data.site.test auth.site.test;
-
-        ssl_certificate      data.site.test+1.pem;
-        ssl_certificate_key  data.site.test+1-key.pem;
-
-        ssl_session_cache    shared:SSL:1m;
-        ssl_session_timeout  5m;
-
-        ssl_ciphers  HIGH:!aNULL:!MD5;
-        ssl_prefer_server_ciphers  on;
-
-        location / {
-           proxy_pass	http://localhost:2021;
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }
-----
-. Add the following sub-section to the `http` section of your `/etc/nginx/nginx.conf` file
-+
-----
-    server {
-        listen       443 ssl;
-        server_name  swagger-ui.site.test;
-
-        ssl_certificate      swagger-ui.site.test.pem;
-        ssl_certificate_key  swagger-ui.site.test-key.pem;
-
-        ssl_session_cache    shared:SSL:1m;
-        ssl_session_timeout  5m;
-
-        ssl_ciphers  HIGH:!aNULL:!MD5;
-        ssl_prefer_server_ciphers  on;
-
-        location / {
-	  # Replace this with the absolute path of the dist subdir of the swagger-ui clone
-	  root swagger-ui/dist/;
-        }
-    }
-----
-. As noted, replace the `swagger-ui/dist/` line with the right location on your system.
-. Make sure the `ssl_certificate` and `ssl_certificate_key` entries match the filenames of your cert and key files.
-. Check nginx config with `nginx -t` first, which will also check the filenames are correct
-. Start nginx, e.g. `sudo systemctl start nginx`
-. Start a REPL using the provided deps.edn in the usual way.
-. Go to the file `src/juxt/site/repl.clj` and search for `:openid/register-user`. Edit the settings there according to your GitHub username.
-. From the REPL, enter `(init)`. Alternatively, `rlwrap ncat localhost 50505` and type `:init` - this step will require network access as it downloads issuer configuration and keys.
-. Browse to https://swagger-ui.site.test/
-. Click on the green `Authorize` button
-. Initially this will redirect you to Auth0. Click on the Github icon which will take you to Github. You'll need to allow Github to authorize Auth0 to access your basic profile details. These are used to match the identity you've registered with `:open/register-user`.
-. You should now be able to 'try out' the API operations in the Swagger UI.
+// Local Variables:
+// mode: outline
+// outline-regexp: "[=]+"
+// End:
