@@ -35,6 +35,10 @@ include::Values.adoc[leveloffset=+3]
 
 include::Principles.adoc[leveloffset=+3]
 
+= Getting Started
+
+include::GettingStarted.adoc[leveloffset=+1]
+
 = Foundations
 
 In keeping with our value of <<understanding,Understanding>>, we recommended that you invest time in building up both your working and conceptual knowledge of Site.
@@ -63,10 +67,6 @@ include::Subjects.adoc[leveloffset=+1]
 [[ch-creating-users]]
 include::UsersRevisited.adoc[leveloffset=+2]
 ////
-
-
-
-
 
 [[ch-resources]]
 include::Resources.adoc[leveloffset=+1]
@@ -135,6 +135,11 @@ include::OpenAPI.adoc[leveloffset=+1]
 [[ch-graphql]]
 include::GraphQL.adoc[leveloffset=+1]
 
+= Deployment
+
+[[ch-installation]]
+include::Installation.adoc[leveloffset=+1]
+
 = Going further
 
 include::ErrorResources.adoc[leveloffset=+1]
@@ -156,6 +161,12 @@ include::AppDevelopment.adoc[leveloffset=+1]
 include::Templates.adoc[leveloffset=+1]
 
 include::Glossary.adoc[]
+
+= Appendices
+
+[[ch-domain-configuration]]
+[appendix]
+include::DomainConfiguration.adoc[leveloffset=+1]
 
 [bibliography]
 = References

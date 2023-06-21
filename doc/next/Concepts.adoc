@@ -3,12 +3,11 @@
 
 This chapter should give you a basic understanding of the key concepts in Site.
 
-You should read this chapter to gain an overview before diving into the details
-and practical examples in subsequent chapters.
+You should read this chapter to gain an overview before diving into the details and practical examples in subsequent chapters.
 
 == Documents
 
-Site stores data in the form of documents.
+Site stores its data as XTDB documents.
 
 (((document, definition)))
 (((attributes, definition)))
@@ -45,7 +44,7 @@ But the rest of the attributes are entirely up to you.
 Keyword namespaces are used to keep the attributes that Site recognised from conflicting with attributes that represent the domain.
 
 (((keywords, namespaces, reserved)))
-As a rule, Site may recognise attributes under the namespaces of `juxt.site`, `juxt.pass`, `juxt.http`, `xtdb.api` and `xt`, but will ignore attributes in all other namespaces, including those with no namespace.
+As a rule, Site may recognise attributes under the namespaces of `juxt.site`, `juxt.http`, `xtdb.api` and `xt`, but will ignore attributes in all other namespaces, including those with no namespace.
 
 == Entities
 
