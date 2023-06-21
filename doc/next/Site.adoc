@@ -156,10 +156,6 @@ include::NextSteps.adoc[leveloffset=+1]
 
 include::AppDevelopment.adoc[leveloffset=+1]
 
-= Websites with Site
-
-include::Templates.adoc[leveloffset=+1]
-
 include::Glossary.adoc[]
 
 = Appendices
