@@ -1,6 +1,11 @@
 ;; Copy this to $HOME/.config/site/config.edn
 
 {
+ ;; These are used by the sitectl when creating new resources.  Change
+ ;; these to your domain.
+ :juxt.site/authorization-server {:juxt.site/base-uri "http://localhost:4440"}
+ :juxt.site/resource-server {:juxt.site/base-uri "http://localhost:4444"}
+
  :ig/system
  {:juxt.site.db/xt-node
   {:xtdb/tx-log
