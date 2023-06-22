@@ -185,7 +185,7 @@
             (java.time.Instant/ofEpochSecond seconds)
             zone-id)))
 
-        introspection
+        claims
         (when (and (= introspection-status 200) introspection-body)
           (let [claims (json/parse-string introspection-body)]
             (-> claims
@@ -196,8 +196,8 @@
      (json/generate-string
       (cond-> {"bearer-token" token
                "introspection-status" introspection-status}
-        introspection
-        (assoc "introspection" introspection))
+        claims
+        (assoc "claims" claims))
       {:pretty true}))))
 
 (defn request-token-with-client-secret []
