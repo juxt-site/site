@@ -189,6 +189,7 @@
 ;; the system has been bootstrapped.
 
 ;; TODO: Can a client-id be a URI?
+;; See https://indieauth.net/
 
 (deftest put-user-combinations-test
   (letfn [(password [username]
@@ -218,7 +219,7 @@
                           :password (password username)}
                    requested-scope (assoc :scope (absolute-scope requested-scope))))]
             (oauth/with-bearer-token access-token
-              (let [payload (.getBytes (pr-str {:xt/id "https://data.example.test/_site/users/hannah"}))
+              (let [payload (.getBytes (pr-str {:username "hannah"}))
                     request {:juxt.site/uri "https://data.example.test/_site/users"
                              :ring.request/method :post
                              :ring.request/headers
