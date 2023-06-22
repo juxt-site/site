@@ -25,7 +25,6 @@
                         (-> (cli/parse-opts
                              *command-line-args*
                              {:args->opts [:group]
-                              :require [:group]
                               :validate {:group {:pred string?}}})
                             juxt.site.bb.bootstrap.tasks/add-base-uris))}
 
