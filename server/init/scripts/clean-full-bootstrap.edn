@@ -15,6 +15,10 @@
  [:install-group
   {:group "juxt/site/oauth-token-endpoint"}]
 
+ ;; Optional but useful
+ [:install-group
+  {:group "juxt/site/oauth-introspection-endpoint"}]
+
  [:install-group
   {:group "juxt/site/system-client"
    :client-id "site-cli"}]
@@ -22,4 +26,5 @@
  [:install-group
   {:group "juxt/site/system-client"
    :client-id "insite"}]
+
  ]
