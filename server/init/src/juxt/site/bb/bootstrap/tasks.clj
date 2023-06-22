@@ -134,9 +134,6 @@
                           )})]
        (when (= status 130)
          (System/exit 2))
-       (when-not (zero? status)
-         (throw
-          (ex-info "gum process exited with non-zero status" {:status status})))
        result))))
 
 (def ^:dynamic *heading*)
@@ -239,7 +236,7 @@
 
 ;; End of infrastructure
 
-(defn reset []
+(defn reset [opts]
   (when (confirm "Factory reset and delete ALL resources?")
     (eval-and-read!
      (pr-str
@@ -297,48 +294,48 @@
   (when s
     (java.net.URLEncoder/encode s)))
 
-(defn resolve-parameters [parameters]
-  (let [args (cli/parse-opts *command-line-args* {})]
-    (reduce
-     ;; NOTE: The value of this parameter definition is intended for
-     ;; future use.
-     (fn [acc [parameter _]]
-       (assoc acc parameter
-              (or (get args (keyword parameter))
-                  (input {:header parameter}))))
-     {}
-     parameters)))
+(defn resolve-parameters [parameters args]
+  (reduce
+   ;; NOTE: The value of this parameter definition is intended for
+   ;; future use.
+   (fn [acc [parameter _]]
+     (assoc acc parameter
+            (or (get args (keyword parameter))
+                (input {:header parameter}))))
+   {}
+   parameters))
 
-(defn install-group [{:keys [auth-base-uri data-base-uri group]}]
-  (let [auth-base-uri (or auth-base-uri
-                          (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
-                          (input-auth-base-uri))
-        data-base-uri (or data-base-uri
-                          (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
-                          (input-data-base-uri))]
+(defn add-base-uris [m]
+  (merge
+   {:auth-base-uri (or (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
+                       (input-auth-base-uri))
+    :data-base-uri (or (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
+                       (input-data-base-uri))}
+   m))
 
-    (binding [*heading* "Install group"]
-      (let [groups (groups)
-            group (or group
-                      (let [{:keys [status result]}
-                            (b/gum {:cmd :filter
-                                    :opts {:placeholder "Select resource"
-                                           :fuzzy false
-                                           :indicator "⮕"
-                                           :indicator.foreground "#C72"
-                                           :match.foreground "#C72"}
-                                    :in (io/input-stream (.getBytes (str/join "\n"(sort (keys groups)))))})]
-                        (when-not (zero? status)
-                          (throw (ex-info "Error, non-zero status" {})))
-                        (first result)))
-            {:juxt.site/keys [description parameters installers]} (get groups group)]
+(defn install-group [{:keys [auth-base-uri data-base-uri group] :as args}]
+  (binding [*heading* "Install group"]
+    (let [groups (groups)
+          group (or group
+                    (let [{:keys [status result]}
+                          (b/gum {:cmd :filter
+                                  :opts {:placeholder "Select resource"
+                                         :fuzzy false
+                                         :indicator "⮕"
+                                         :indicator.foreground "#C72"
+                                         :match.foreground "#C72"}
+                                  :in (io/input-stream (.getBytes (str/join "\n"(sort (keys groups)))))})]
+                      (when-not (zero? status)
+                        (throw (ex-info "Error, non-zero status" {})))
+                      (first result)))
+          {:juxt.site/keys [description parameters installers]} (get groups group)]
 
-        (install!
-         installers
-         {"https://auth.example.org" auth-base-uri
-          "https://data.example.org" data-base-uri}
-         (resolve-parameters parameters)
-         {:title description})))))
+      (install!
+       installers
+       {"https://auth.example.org" auth-base-uri
+        "https://data.example.org" data-base-uri}
+       (resolve-parameters parameters args)
+       {:title description}))))
 
 (defn random-string [size]
   (apply str
@@ -352,10 +349,7 @@
                               (range (int \0) (inc (int \9))))))))))
 
 (defn new-keypair [{:keys [auth-base-uri]}]
-  (let [auth-base-uri (or auth-base-uri
-                          (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
-                          (input-auth-base-uri))
-        kid (random-string 16)]
+  (let [kid (random-string 16)]
     (install!
      [{:juxt.site/base-uri "https://auth.example.org"
        :juxt.site/installer-path "/keypairs/{{kid}}"
@@ -364,36 +358,10 @@
      {}
      {:title "Installing new keypair"})))
 
-(defn register-application
-  [{:keys [auth-base-uri data-base-uri client-id]}]
-  (binding [*heading* "Register application"]
-    (let [auth-base-uri (or auth-base-uri
-                            (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
-                            (input-auth-base-uri))
-          ;; Each application is regsitered for a particular resource
-          ;; server, which will be the 'aud' claim on JWT
-          ;; access-tokens.
-          data-base-uri (or data-base-uri
-                            (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
-                            (input-data-base-uri))
-          client-id (or client-id
-                        (first *command-line-args*)
-                        (input {:prompt "Client ID" :value client-id}))
-          uri-map {"https://auth.example.org" auth-base-uri
-                   "https://data.example.org" data-base-uri}
-          installers [{:juxt.site/base-uri "https://auth.example.org"
-                       :juxt.site/installer-path (format "/applications/%s" client-id)}]]
-
-      (install! installers uri-map {}
-                {:title (format "Adding OAuth client: %s" client-id)}))))
-
-(defn client-secret []
-  (let [cli-opts {:args->opts [:client-id]
-                  :require [:client-id]
-                  :coerce {:save :boolean}
-                  :validate {:client-id {:pred string?}}}
-        {:keys [client-id save]} (cli/parse-opts *command-line-args* cli-opts)
-        client-secret (edn/read-string
+(defn client-secret [{:keys [client-id save]}]
+  ;; TODO: The repl (client-secret) must also have a where clause to
+  ;; restrict us to the right auth-server! Otherwise we'll be potentially fishing out the first of a group of client-secrets!
+  (let [client-secret (edn/read-string
                        (push! `(prn (~'client-secret ~client-id)) {}))]
     (binding [*out* (if save (let [dir (io/file (cache-dir) "client-secrets")]
                                (.mkdir dir)
@@ -402,6 +370,23 @@
       (println client-secret))))
 
 ;; Deprecated?
+
+(defn ^{:deprecated "Now we can replace with a install-group with paramter"}
+  register-application
+  [{:keys [auth-base-uri data-base-uri client-id]}]
+  (binding [*heading* "Register application"]
+    (let [ ;; Each application is regsitered for a particular resource
+          ;; server, which will be the 'aud' claim on JWT
+          ;; access-tokens.
+          client-id (or client-id
+                        (input {:prompt "Client ID" :value client-id}))
+          uri-map {"https://auth.example.org" auth-base-uri
+                   "https://data.example.org" data-base-uri}
+          installers [{:juxt.site/base-uri "https://auth.example.org"
+                       :juxt.site/installer-path (format "/applications/%s" client-id)}]]
+
+      (install! installers uri-map {}
+                {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn oauth-authorization-endpoint [{:keys [auth-base-uri session-scope]}]
   (binding [*heading* "Deploy OAuth2 authorization endpoint"]

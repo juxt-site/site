@@ -10,17 +10,10 @@
              [clojure.java.io :as io]
              [babashka.cli :as cli])
 
-  debug
-  {:doc "DEBUG"
-   :task (juxt.site.bb.bootstrap.tasks/debug)}
-
   reset
   {:doc "Factory reset"
-   :task (juxt.site.bb.bootstrap.tasks/reset)}
-
-  bootstrap
-  {:doc "Bootstrap system"
-   :task (juxt.site.bb.bootstrap.tasks/bootstrap {})}
+   :task (juxt.site.bb.bootstrap.tasks/reset
+          (cli/parse-opts *command-line-args* {}))}
 
   ls {:task (juxt.site.bb.bootstrap.tasks/ls)}
   ls-site-type {:task (juxt.site.bb.bootstrap.tasks/ls-site-type (first *command-line-args*))}
@@ -29,52 +22,24 @@
   access-tokens {:task (juxt.site.bb.bootstrap.tasks/ls-type "access-token")}
 
   install-group {:task (juxt.site.bb.bootstrap.tasks/install-group
-                        {:group (first *command-line-args*)})}
+                        (-> (cli/parse-opts
+                             *command-line-args*
+                             {:args->opts [:group]
+                              :require [:group]
+                              :validate {:group {:pred string?}}})
+                            juxt.site.bb.bootstrap.tasks/add-base-uris))}
 
-  new-keypair {:task (juxt.site.bb.bootstrap.tasks/new-keypair {})}
+  new-keypair {:task (juxt.site.bb.bootstrap.tasks/new-keypair
+                      (-> {} juxt.site.bb.bootstrap.tasks/add-base-uris))}
 
-  client-secret {:task (juxt.site.bb.bootstrap.tasks/client-secret)}
-
-  ;; -----------------------------------------------------------------
-
-  #_install-login-form
-  #_{:task (juxt.site.bb.bootstrap.tasks/install-login-form {})}
-
-  openid
-  {:task (juxt.site.bb.bootstrap.tasks/openid {})}
-
-  system-api
-  {:task (juxt.site.bb.bootstrap.tasks/system-api {})}
-
-  oauth-token-endpoint
-  {:task (juxt.site.bb.bootstrap.tasks/oauth-token-endpoint {})}
-
-  oauth-authorization-endpoint
-  {:task (juxt.site.bb.bootstrap.tasks/oauth-authorization-endpoint {})}
-
-  oauth-extras
-  {:task (juxt.site.bb.bootstrap.tasks/oauth-extras {})}
-
-  add-user
-  {:task (juxt.site.bb.bootstrap.tasks/add-user {})}
-
-  add-system
-  {:task (juxt.site.bb.bootstrap.tasks/add-system-user {})}
-
-  grant-role
-  {:task (juxt.site.bb.bootstrap.tasks/grant-role {})}
-
-  register-application
-  {:task (juxt.site.bb.bootstrap.tasks/register-application {})}
-
-  register-scope
-  {:task (juxt.site.bb.bootstrap.tasks/register-scope {})}
-
-  request-access-token
-  {:task (juxt.site.bb.bootstrap.tasks/request-access-token {})}
-
-  basic-auth-example
-  {:task (juxt.site.bb.bootstrap.tasks/basic-auth-example {})}
+  client-secret {:task (juxt.site.bb.bootstrap.tasks/client-secret
+                        (-> (cli/parse-opts
+                             *command-line-args*
+                             {:args->opts [:client-id]
+                              :require [:client-id]
+                              :coerce {:save :boolean}
+                              :validate {:client-id {:pred string?}}})
+                            juxt.site.bb.bootstrap.tasks/add-base-uris))}
 
   apply
   {:task
@@ -92,7 +57,49 @@
 
      (binding [juxt.site.bb.bootstrap.tasks/*no-confirm* no-confirm]
        (doseq [[task-kw args] config
-               :let [task (ns-resolve 'juxt.site.bb.bootstrap.tasks (symbol task-kw))]]
-         (if args
-           (task args)
-           (task)))))}}}
+               :let [task (ns-resolve 'juxt.site.bb.bootstrap.tasks (symbol task-kw))
+                     args (juxt.site.bb.bootstrap.tasks/add-base-uris args)]]
+         (task args))))}
+
+  ;; -----------------------------------------------------------------
+
+  #_register-application
+  #_{:task (juxt.site.bb.bootstrap.tasks/register-application {})}
+
+  #_install-login-form
+  #_{:task (juxt.site.bb.bootstrap.tasks/install-login-form {})}
+
+  #_openid
+  #_{:task (juxt.site.bb.bootstrap.tasks/openid {})}
+
+  #_system-api
+  #_{:task (juxt.site.bb.bootstrap.tasks/system-api {})}
+
+  #_oauth-token-endpoint
+  #_{:task (juxt.site.bb.bootstrap.tasks/oauth-token-endpoint {})}
+
+  #_oauth-authorization-endpoint
+  #_{:task (juxt.site.bb.bootstrap.tasks/oauth-authorization-endpoint {})}
+
+  #_oauth-extras
+  #_{:task (juxt.site.bb.bootstrap.tasks/oauth-extras {})}
+
+  #_add-user
+  #_{:task (juxt.site.bb.bootstrap.tasks/add-user {})}
+
+  #_add-system
+  #_{:task (juxt.site.bb.bootstrap.tasks/add-system-user {})}
+
+  #_grant-role
+  #_{:task (juxt.site.bb.bootstrap.tasks/grant-role {})}
+
+  #_register-scope
+  #_{:task (juxt.site.bb.bootstrap.tasks/register-scope {})}
+
+  #_request-access-token
+  #_{:task (juxt.site.bb.bootstrap.tasks/request-access-token {})}
+
+  #_basic-auth-example
+  #_{:task (juxt.site.bb.bootstrap.tasks/basic-auth-example {})}
+
+  }}

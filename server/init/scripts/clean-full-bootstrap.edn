@@ -1,0 +1,25 @@
+[
+ [:reset {}]
+
+ [:install-group
+  {:group "juxt/site/bootstrap"}]
+
+ [:install-group
+  {:group "juxt/site/api-operations"}]
+
+ [:install-group
+  {:group "juxt/site/system-api"}]
+
+ [:new-keypair {}]
+
+ [:install-group
+  {:group "juxt/site/oauth-token-endpoint"}]
+
+ [:install-group
+  {:group "juxt/site/system-client"
+   :client-id "site-cli"}]
+
+ [:install-group
+  {:group "juxt/site/system-client"
+   :client-id "insite"}]
+ ]
