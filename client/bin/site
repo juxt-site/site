@@ -1,11 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bb
 
-if [ $# -eq 0 ]
-then
-    args=tasks
-else
-    args=$*
-fi
+(ns site-cli
+  (:require
+   [babashka.process :refer [shell]]
+   [clojure.string :as str]))
 
-export SITE_HOME=$(dirname $0)/../..
-bb --config $SITE_HOME/client/site-cli/site-cli.edn $args
+(when (str/blank? (System/getenv "SITE_HOME"))
+  (println "SITE_HOME not set")
+  (System/exit 1))
+
+(def CONFIG_FILE (str (System/getenv "SITE_HOME") "/client/site-cli/site-cli.edn"))
+
+(if *command-line-args*
+  (apply shell "bb" "--config" CONFIG_FILE *command-line-args*)
+  (shell "bb" "--config" CONFIG_FILE "tasks"))
+
+;; Local Variables:
+;; mode: clojure
+;; End:

@@ -35,6 +35,4 @@
 
   check-token
   {:doc "Show current token"
-   :task (juxt.site.bb.tasks/check-token)}
-
-  }}
+   :task (juxt.site.bb.tasks/check-token)}}}
