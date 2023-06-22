@@ -144,30 +144,34 @@
         (io/delete-file client-secret-file))
       (println "No such file:" (.getAbsolutePath client-secret-file)))))
 
-(defn check-token []
-  (let [{{auth-base-uri "base_uri"} "authorization_server"
-         curl "curl"} (config)
-
-        {bearer-token-file "bearer_token_file"
-         save-bearer-token-to-default-config-file "save_bearer_token_to_default_config_file"} curl
-
+(defn- retrieve-bearer-token []
+  (let [{curl "curl" bearer-token-file "bearer_token"} (config)
+        {save-bearer-token-to-default-config-file "save_bearer_token_to_default_config_file"} curl
         token (cond
+                (and bearer-token-file save-bearer-token-to-default-config-file)
+                (throw (ex-info "Ambiguous configuration" {}))
+
                 save-bearer-token-to-default-config-file
                 (let [curl-config-file (curl-config-file)]
-                  (when-not (and (.exists curl-config-file) (.isFile curl-config-file))
-                    (System/exit 1))
-                  (last (keep (comp second #(re-matches #"oauth2-bearer\s+(.+)" %)) (line-seq (io/reader curl-config-file)))))
+                  (when (and (.exists curl-config-file) (.isFile curl-config-file))
+                    (last (keep (comp second #(re-matches #"oauth2-bearer\s+(.+)" %)) (line-seq (io/reader curl-config-file))))))
+
                 bearer-token-file
-                (do
-                  (when-not (and (.exists bearer-token-file) (.isFile bearer-token-file))
-                    (System/exit 1))
-                  (slurp bearer-token-file)))
+                (when (and (.exists bearer-token-file) (.isFile bearer-token-file))
+                  (slurp bearer-token-file)))]
+    token))
+
+(defn check-token []
+  (let [token (retrieve-bearer-token)
         _ (when-not token (System/exit 1))
 
         client-secret (get-client-secret "site-cli")
         _ (when-not client-secret
             (println "No client-secret found")
             (System/exit 1))
+
+        {{auth-base-uri "base_uri"} "authorization_server"}
+        (config)
 
         {introspection-status :status introspection-body :body}
         (http/post
@@ -261,8 +265,44 @@
     (when access-token
       (save-bearer-token access-token))))
 
-(defn add-user []
-  (throw (ex-info "Unsupported currently" {})))
+(defn add-user [{:keys [username password] :as opts}]
+  (let [{resource-server "resource_server"} (config)
+        api-endpoint (str (get resource-server "base_uri") "/_site/users")
+
+        token (retrieve-bearer-token)
+        ;; Couldn't we just request the token?
+        _ (when-not token
+            (throw (ex-info "No bearer token" {})))
+
+        cleartext-password
+        (when password
+          (let [{input-status :status [cleartext-password] :result}
+                (b/gum {:cmd :input
+                        :opts (cond-> {:header.foreground "#C72"
+                                       :prompt.foreground "#444"
+                                       :password true
+                                       :width 60
+                                       :header (format "Input client secret for %s" username)})})]
+            (if-not (zero? input-status)
+              (throw (ex-info "Password input failed" {}))
+              cleartext-password)))
+
+        request-body (->
+                      (cond-> opts
+                        (:password opts) (dissoc :password)
+                        cleartext-password (assoc :password cleartext-password))
+                      json/generate-string)
+
+        {post-status :status response-body :body}
+        (http/post
+         api-endpoint
+         {:headers {"content-type" "application/json"
+                    "authorization" (format "Bearer %s" token)}
+          :body request-body})]
+
+
+    (println "post-status:" post-status)
+    (println "request-body:" request-body)))
 
 (defn jwks []
   (let [{authorization-server "authorization_server"} (config)
@@ -274,3 +314,6 @@
       (println body)
       :else
       (prn (json/generate-string "Not OK")))))
+
+
+(cli/parse-opts ["--name" "David Smith"] {})

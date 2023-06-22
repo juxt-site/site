@@ -27,7 +27,13 @@
    :task (juxt.site.bb.tasks/config-as-json)}
 
   add-user
-  {:doc "Add user"}
+  {:doc "Add user"
+   :task (juxt.site.bb.tasks/add-user
+          (cli/parse-opts
+           *command-line-args*
+           {:require [:username]
+            :validate {:username {:pred string?}}
+            :coerce {:password :boolean}}))}
 
   jwks
   {:doc "Show JSON Web Key Set"

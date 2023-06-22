@@ -9,7 +9,7 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:xt/id [:re "https://data.example.org/_site/users/.*"]]]
+    [:username :string #_[:re (re-pattern "[a-z]{3,}")]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
@@ -38,7 +38,23 @@
 
           _ (juxt.site.malli/validate-input edn)
 
+          username (:username edn)
+
+          _ (log/info (str "username is " username))
+
+          id (format "https://data.example.org/_site/users/%s" username)]
+
+      (assoc edn :xt/id id))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [edn *prepare*
           id (:xt/id edn)]
+
+      (log/info (str "edn is " edn))
+
+      ;; TODO: Ensure id doesn't already exist
 
       [[:xtdb.api/put
         (assoc
@@ -101,49 +117,7 @@
             (-> *ctx*
                 (assoc :ring.response/body content)
                 (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}]
-
-       ;; HTML version
-       [:xtdb.api/put
-        {:xt/id (str id ".html")
-         :juxt.site/variant-of id
-         :juxt.http/content-type "text/html;charset=utf-8"
-         :juxt.site/methods
-         {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
-         :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
-
-         :juxt.site/access-control-allow-origins
-         [[".*" {:juxt.site/access-control-allow-origin "*"
-                 :juxt.site/access-control-allow-methods [:get]
-                 :juxt.site/access-control-allow-headers ["authorization"]}]]
-
-         ;; It's nice to be able to access this resource via a browser
-         ;; :juxt.site/session-scope "{{session-scope}}"
-
-         :juxt.site/respond
-         {:juxt.site.sci/program
-          #juxt.pprint
-          (let [content
-                (selmer/render
-                 #juxt.template "
-<div>
-  <dl>
-    <dt>Full name</dt>
-    <dd>{{user.fullname}}</dd>
-    <dt>All</td>
-    <dd>{{user}}</dd>
-  </dl>
-</div>
-\n"
-                 {:user *state*}
-                 )]
-            (-> *ctx*
-                (assoc :ring.response/body content)
-                (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}]])}
-
-   :juxt.site/transact
-   {:juxt.site.sci/program
-    #juxt.pprint
-    *prepare*}
+       ])}
 
    :juxt.site/scope
    #{"https://auth.example.org/scopes/system/write"}
