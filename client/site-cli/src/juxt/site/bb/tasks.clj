@@ -80,7 +80,11 @@
                  (= lines new-lines)
                  (conj
                   "# This was added by site request-token"
-                  (format "oauth2-bearer %s" access-token))))))
+                  (format "oauth2-bearer %s" access-token)))))
+        (println "Bearer token saved to"
+                 (str/replace
+                  (.getAbsolutePath config-file)
+                  (System/getenv "HOME") "$HOME")))
 
       bearer-token-file (spit bearer-token-file access-token)
       :else (println access-token))))
@@ -230,7 +234,7 @@
                 (json/parse-string body)]
             (when access-token
               (save-bearer-token access-token))
-            (println "Access token saved, expires in" expires-in "seconds"))
+            (println (format "Access token expires in %s seconds" expires-in)))
       400 (let [{error "error"
                  desc "error_description"} (json/parse-string body)]
             (println error)
