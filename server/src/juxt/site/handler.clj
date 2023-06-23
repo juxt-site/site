@@ -390,7 +390,7 @@
   [h]
   (fn [{:ring.request/keys [method]
         :as req}]
-    (if (#{:get :head :put} method)
+    (if (#{:get :head :put :post :delete :patch} method)
       (let [cur-reps (seq (conneg/current-representations req))]
         (when (and
                (#{:get :head} method)
