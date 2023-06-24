@@ -9,6 +9,7 @@
    :juxt.site/methods
    {:get {:juxt.site/operation "https://auth.example.org/operations/get-users"}}
    :juxt.site/variant-of "https://data.example.org/_site/users"
+   :juxt.pick/quality-of-source 0.5 ; downgrade HTML in content-negotiation
    :juxt.http/content-type "text/html;charset=utf-8"
    :juxt.site/respond
    {:juxt.site.sci/program
