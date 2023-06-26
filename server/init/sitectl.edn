@@ -18,27 +18,36 @@
   ls {:task (juxt.site.bb.bootstrap.tasks/ls)}
   ls-site-type {:task (juxt.site.bb.bootstrap.tasks/ls-site-type (first *command-line-args*))}
 
-  users {:task (juxt.site.bb.bootstrap.tasks/ls-type "user")}
-  access-tokens {:task (juxt.site.bb.bootstrap.tasks/ls-type "access-token")}
+  users {:task (juxt.site.bb.bootstrap.tasks/ls-site-type "user")}
+  access-tokens {:task (juxt.site.bb.bootstrap.tasks/ls-site-type "access-token")}
 
-  install-group {:task (juxt.site.bb.bootstrap.tasks/install-group
-                        (-> (cli/parse-opts
-                             *command-line-args*
-                             {:args->opts [:group]
-                              :validate {:group {:pred string?}}})
-                            juxt.site.bb.bootstrap.tasks/add-base-uris))}
+  install-group {:task (-> (cli/parse-opts
+                            *command-line-args*
+                            {:args->opts [:group]
+                             :validate {:group {:pred string?}}})
+                           juxt.site.bb.bootstrap.tasks/add-base-uris
+                           juxt.site.bb.bootstrap.tasks/install-group)}
 
-  new-keypair {:task (juxt.site.bb.bootstrap.tasks/new-keypair
-                      (-> {} juxt.site.bb.bootstrap.tasks/add-base-uris))}
+  new-keypair {:task (-> {}
+                         juxt.site.bb.bootstrap.tasks/add-base-uris
+                         juxt.site.bb.bootstrap.tasks/new-keypair)}
 
-  client-secret {:task (juxt.site.bb.bootstrap.tasks/client-secret
-                        (-> (cli/parse-opts
-                             *command-line-args*
-                             {:args->opts [:client-id]
-                              :require [:client-id]
-                              :coerce {:save :boolean}
-                              :validate {:client-id {:pred string?}}})
-                            juxt.site.bb.bootstrap.tasks/add-base-uris))}
+  client-secret {:task (-> (cli/parse-opts
+                            *command-line-args*
+                            {:args->opts [:client-id]
+                             :require [:client-id]
+                             :coerce {:save :boolean}
+                             :validate {:client-id {:pred string?}}})
+                           juxt.site.bb.bootstrap.tasks/add-base-uris
+                           juxt.site.bb.bootstrap.tasks/client-secret)}
+
+  zip {:task (-> (cli/parse-opts
+                  *command-line-args*
+                  {:args->opts [:group]
+                   :require [:group]
+                   :validate {:group {:pred string?}}})
+                 juxt.site.bb.bootstrap.tasks/add-base-uris
+                 juxt.site.bb.bootstrap.tasks/zip)}
 
   apply
   {:task
