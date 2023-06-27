@@ -794,7 +794,8 @@
            'get-encoded (fn [k] (as-b64-str (.getEncoded k)))
            'get-modulus (fn [k] (.getModulus k))
            'get-public-exponent (fn [k] (.getPublicExponent k))
-           'get-key-format (fn [k] (.getFormat k))}}
+           'get-key-format (fn [k] (.getFormat k))
+           'install-resources (fn [bytes] (throw (ex-info "TODO: install-resources from clj" {})))}}
 
          (common-sci-namespaces operation-doc))
 

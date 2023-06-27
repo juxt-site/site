@@ -136,7 +136,7 @@
          (System/exit 2))
        result))))
 
-(def ^:dynamic *heading*)
+(def ^:dynamic *heading* "Input")
 
 (defn input [{:keys [heading prompt header value]
               :or {heading *heading*}
@@ -296,12 +296,17 @@
 
 (defn resolve-parameters [parameters args]
   (reduce
-   ;; NOTE: The value of this parameter definition is intended for
-   ;; future use.
-   (fn [acc [parameter _]]
+   (fn [acc [parameter {:keys [default choices]}]]
      (assoc acc parameter
             (or (get args (keyword parameter))
-                (input {:header parameter}))))
+                default
+                (cond
+                  choices (let [choice-v (map (juxt #(format "%s (%s)" (:label %) (:value %)) identity) choices)
+                                choice (choose (map first choice-v) {:header (format "Choose %s" parameter)})
+                                value (get-in (into {} choice-v) [choice :value])]
+                            value)
+                  :else
+                  (input {:header parameter})))))
    {}
    parameters))
 
@@ -328,13 +333,14 @@
                       (when-not (zero? status)
                         (throw (ex-info "Error, non-zero status" {})))
                       (first result)))
-          {:juxt.site/keys [description parameters installers]} (get groups group)]
+          {:juxt.site/keys [description parameters installers]} (get groups group)
+          uri-map {"https://auth.example.org" auth-base-uri
+                   "https://data.example.org" data-base-uri}]
 
       (install!
        installers
-       {"https://auth.example.org" auth-base-uri
-        "https://data.example.org" data-base-uri}
-       (resolve-parameters parameters args)
+       uri-map
+       (resolve-parameters (apply-uri-map uri-map parameters) args)
        {:title description}))))
 
 (defn random-string [size]
@@ -359,8 +365,11 @@
      {:title "Installing new keypair"})))
 
 (defn client-secret [{:keys [client-id save]}]
+
   ;; TODO: The repl (client-secret) must also have a where clause to
-  ;; restrict us to the right auth-server! Otherwise we'll be potentially fishing out the first of a group of client-secrets!
+  ;; restrict us to the right auth-server! Otherwise we'll be
+  ;; potentially fishing out the first of a group of client-secrets!
+
   (let [client-secret (edn/read-string
                        (push! `(prn (~'client-secret ~client-id)) {}))]
     (binding [*out* (if save (let [dir (io/file (cache-dir) "client-secrets")]
@@ -368,6 +377,58 @@
                                (io/writer (io/file dir client-id)))
                         *out*)]
       (println client-secret))))
+
+;; Try: sitectl zip juxt/site/oauth-authorization-endpoint -o outfile.zip
+;; Set http://localhost:4440/session-scopes/form-login-session
+(defn zip [{:keys [auth-base-uri data-base-uri group outfile] :as args}]
+  (let [args args #_(assoc args
+                    ;;:session-scope (str auth-base-uri "/session-scopes/form-login-session")
+                    ;;
+                    ;; These shouldn't be parameters, but easily
+                    ;; PATCH'd defaults in the resource.
+                    ;;:authorization-code-length 20
+                    ;;:jti-length 20
+                    )
+        groups (groups)
+        {:juxt.site/keys [description parameters installers]} (get groups group)
+        uri-map
+        {"https://auth.example.org" auth-base-uri
+         "https://data.example.org" data-base-uri}
+
+        parameters
+        (resolve-parameters (apply-uri-map uri-map parameters) args)
+
+        installers (apply-uri-map uri-map installers)
+
+        installer-map (ciu/unified-installer-map
+                       (io/file (System/getenv "SITE_HOME") "installers")
+                       uri-map)
+
+        installers-seq (ciu/installer-seq installer-map parameters installers)]
+
+    ;; The reason to use a zip file is to allow future extensions
+    ;; where the zip file can contain binary data, such as images used
+    ;; in login screens. Site is very capable at storing and serving
+    ;; binary assets. It can also contain signatures, such as
+    ;; install.edn.sig.
+    (with-open [out (new java.util.zip.ZipOutputStream (new java.io.FileOutputStream outfile))]
+      (.putNextEntry out (new java.util.zip.ZipEntry "install.edn"))
+      (doseq [op installers-seq
+              :let [edn {:juxt.site/operation-uri (get-in op [:juxt.site/init-data :juxt.site/operation-uri])
+                         :juxt.site/operation-arg (get-in op [:juxt.site/init-data :juxt.site/input])}
+                    content (str (with-out-str (pprint edn)) "\r\n")
+                    bytes (.getBytes content "UTF-8")]]
+        (.write out bytes 0 (count bytes)))
+      (.closeEntry out))
+
+    #_(pprint {:description description
+             :parameters parameters
+             :args args
+             :uri-map uri-map
+             :operations
+             (for [op installers-seq]
+               {:juxt.site/operation-uri (get-in op [:juxt.site/init-data :juxt.site/operation-uri])
+                :juxt.site/operation-arg (get-in op [:juxt.site/init-data :juxt.site/input])})})))
 
 ;; Deprecated?
 

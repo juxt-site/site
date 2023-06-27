@@ -44,8 +44,10 @@
   zip {:task (-> (cli/parse-opts
                   *command-line-args*
                   {:args->opts [:group]
-                   :require [:group]
-                   :validate {:group {:pred string?}}})
+                   :require [:group :outfile]
+                   :validate {:group {:pred string?}
+                              :outfile {:pred string?}}
+                   :alias {:o :outfile}})
                  juxt.site.bb.bootstrap.tasks/add-base-uris
                  juxt.site.bb.bootstrap.tasks/zip)}
 
