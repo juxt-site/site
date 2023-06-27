@@ -1,0 +1,51 @@
+#!/usr/bin/env bb
+
+(ns pack
+  (:require
+   [babashka.cli :as cli]
+   [babashka.process :refer [shell]]
+   [bblgum.core :as b]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
+   [clojure.string :as str]))
+
+(memoize
+ (defn groups []
+   (edn/read-string
+    (slurp (io/file (System/getenv "SITE_HOME") "installers/groups.edn")))))
+
+(defn -main [& args]
+
+  (when (str/blank? (System/getenv "SITE_HOME"))
+    (println "SITE_HOME not set")
+    (System/exit 1))
+
+  (let [{:keys [group]}
+        (cli/parse-opts
+         args
+         {:args->opts [:group]
+          :validate {:group {:pred string?}}})
+
+        grps (groups)
+
+        group (or group
+                  (let [{:keys [status result]}
+                        (b/gum {:cmd :filter
+                                :opts {:placeholder "Select resource"
+                                       :fuzzy false
+                                       :indicator "⮕"
+                                       :indicator.foreground "#C72"
+                                       :match.foreground "#C72"}
+                                :in (io/input-stream (.getBytes (str/join "\n"(sort (keys grps)))))})]
+                    (when-not (zero? status)
+                      (throw (ex-info "Error, non-zero status" {})))
+                    (first result)))]
+
+    (println "PACK:" group)))
+
+(when (= *file* (System/getProperty "babashka.file"))
+  (apply -main *command-line-args*))
+
+;; Local Variables:
+;; mode: clojure
+;; End:
