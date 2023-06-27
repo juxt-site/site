@@ -37,8 +37,8 @@
 
   (call-operation-with-init-data!
    *xt-node*
-   {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-    :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-application"
+   {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
+    :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
     :juxt.site/input
     {:juxt.site/client-id "test-app"
      :juxt.site/client-type "confidential"

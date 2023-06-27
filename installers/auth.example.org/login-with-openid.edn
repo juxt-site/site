@@ -4,8 +4,8 @@
   "https://auth.example.org/operations/install-openid-login-endpoint"
   "https://auth.example.org/permissions/system/install-openid-login-endpoint"]
  :install
- {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-id "https://auth.example.org/operations/install-openid-login-endpoint"
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/install-openid-login-endpoint"
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/openid-client-configuration "https://auth.example.org/openid/clients/{{client-id}}"

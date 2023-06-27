@@ -3,8 +3,8 @@
   "https://auth.example.org/permissions/system/register-application"
   "https://auth.example.org/scopes/system/read"]
  :install
- {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-id "https://auth.example.org/operations/oauth/register-application"
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/oauth/register-application"
   :juxt.site/input
   {:juxt.site/client-id "global-scope-app"
    :juxt.site/client-type "public"

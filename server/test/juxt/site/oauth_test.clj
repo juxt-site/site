@@ -58,8 +58,8 @@
     (let [result
           (call-operation-with-init-data!
            *xt-node*
-           {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-            :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-application"
+           {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
+            :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
             :juxt.site/input {:juxt.site/client-type "public"
                               :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
           doc-id (some-> result :juxt.site/puts first)
@@ -71,8 +71,8 @@
     (let [result
           (call-operation-with-init-data!
            *xt-node*
-           {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-            :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-application"
+           {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
+            :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
             :juxt.site/input {:juxt.site/client-type "confidential"
                               :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
           doc-id (some-> result :juxt.site/puts first)
@@ -88,8 +88,8 @@
                  :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}]
       (call-operation-with-init-data!
        *xt-node*
-       {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-        :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-application"
+       {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
+        :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
         :juxt.site/input input})
 
       (is
@@ -103,8 +103,8 @@
 
       (call-operation-with-init-data!
        *xt-node*
-       {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-        :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-application"
+       {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
+        :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
         :juxt.site/input input})))
 
   (testing "Registration succeeds even if no such scope"
@@ -115,8 +115,8 @@
     (is
      (call-operation-with-init-data!
       *xt-node*
-      {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-       :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-application"
+      {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
+       :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
        :juxt.site/input {:juxt.site/client-type "public"
                          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
                          :juxt.site/scope #{"https://auth.example.test/scopes/dummy"}}}))))
@@ -125,8 +125,8 @@
   (let [old (repl/e "https://auth.example.test/applications/test/clientA")]
     (call-operation-with-init-data!
      *xt-node*
-     {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-      :juxt.site/operation-id "https://auth.example.test/operations/oauth/set-client-secret"
+     {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
+      :juxt.site/operation-uri "https://auth.example.test/operations/oauth/set-client-secret"
       :juxt.site/input
       {:juxt.site/client-id "test/clientA"
        :juxt.site/client-secret "fcc5814ed1218ee5a4bb86864cb9666c792822a8"
@@ -160,8 +160,8 @@
 #_(with-fixtures
   (call-operation-with-init-data!
    *xt-node*
-   {:juxt.site/subject-id "https://auth.example.test/_site/subjects/system"
-    :juxt.site/operation-id "https://auth.example.test/operations/oauth/register-application"
+   {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
+    :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
     :juxt.site/input
     {:juxt.site/client-id "test-app"
      :juxt.site/client-type "confidential"

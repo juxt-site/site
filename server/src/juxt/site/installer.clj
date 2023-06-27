@@ -19,18 +19,18 @@
 (defn call-operation-with-init-data! [xt-node init-data]
   (when-not init-data (throw (ex-info "No init data" {})))
 
-  (if-let [subject-id (:juxt.site/subject-id init-data)]
+  (if-let [subject-id (:juxt.site/subject-uri init-data)]
 
     (let [db (xt/db xt-node)
-          _ (assert (:juxt.site/subject-id init-data))
+          _ (assert (:juxt.site/subject-uri init-data))
           _ (log/infof
              "Calling operation %s by subject %s: input id %s"
-             (:juxt.site/operation-id init-data)
+             (:juxt.site/operation-uri init-data)
              subject-id
              (:xt/id init-data))
 
-          subject (when (:juxt.site/subject-id init-data)
-                    (xt/entity db (:juxt.site/subject-id init-data)))
+          subject (when (:juxt.site/subject-uri init-data)
+                    (xt/entity db (:juxt.site/subject-uri init-data)))
 
           _ (when-not subject
               (throw
@@ -38,12 +38,12 @@
                 (format "No such subject found in database for %s" subject-id)
                 {:subject-id subject-id})))
 
-          operation (xt/entity db (:juxt.site/operation-id init-data))
+          operation (xt/entity db (:juxt.site/operation-uri init-data))
           _ (when-not operation
               (throw
                (ex-info
-                (format "No such operation found in database for %s" (:juxt.site/operation-id init-data))
-                {:operation-id (:juxt.site/operation-id init-data)})))]
+                (format "No such operation found in database for %s" (:juxt.site/operation-uri init-data))
+                {:operation-id (:juxt.site/operation-uri init-data)})))]
 
       (try
         (:juxt.site/operation-result

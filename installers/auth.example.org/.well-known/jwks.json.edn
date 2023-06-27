@@ -1,6 +1,6 @@
 {:deps ["https://auth.example.org/operations/oauth/install-jwks-document"]
  :install
- {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-id "https://auth.example.org/operations/oauth/install-jwks-document"
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/oauth/install-jwks-document"
   :juxt.site/input
   {:xt/id "{{$id}}"}}}

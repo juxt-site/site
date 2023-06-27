@@ -79,8 +79,8 @@
 
   (call-operation-with-init-data!
    *xt-node*
-   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://auth.hospital.com/operations/oauth/register-application"
+   {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-uri "https://auth.hospital.com/operations/oauth/register-application"
     :juxt.site/input {:juxt.site/client-id "local-terminal"
                       :juxt.site/client-type "confidential"
                       :juxt.site/resource-server "https://hospital.com"
@@ -107,8 +107,8 @@
   ;; Create some measurements
   (call-operation-with-init-data!
    *xt-node*
-   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
+   {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
     :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
                       :patient "https://hospital.com/hospital-demo/patients/004"
                       :reading {"heartRate" "120"
@@ -116,8 +116,8 @@
 
   (call-operation-with-init-data!
    *xt-node*
-   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
+   {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
     :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1e"
                       :patient "https://hospital.com/hospital-demo/patients/006"
                       :reading {"heartRate" "82"
@@ -125,8 +125,8 @@
 
   (call-operation-with-init-data!
    *xt-node*
-   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
+   {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
     :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/eeda3b49-2e96-42fc-9e6a-e89e2eb68c24"
                       :patient "https://hospital.com/hospital-demo/patients/010"
                       :reading {"heartRate" "85"
@@ -134,8 +134,8 @@
 
   (call-operation-with-init-data!
    *xt-node*
-   {:juxt.site/subject-id "https://auth.hospital.com/_site/subjects/system"
-    :juxt.site/operation-id "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
+   {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
+    :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
     :juxt.site/input {:xt/id "https://hospital.com/hospital-demo/measurements/5d1cfb88-cafd-4241-8c7c-6719a9451f1d"
                       :patient "https://hospital.com/hospital-demo/patients/010"
                       :reading {"heartRate" "87"

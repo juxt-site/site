@@ -4,8 +4,8 @@
  ["https://auth.example.org/permissions/oauth/create-access-token"]
 
  :install
- {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
   :juxt.site/input
   {:xt/id "{{$id}}"
 

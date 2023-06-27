@@ -15,8 +15,8 @@
   {"https://example.org/operations/get-graphql-type"
    {:create
     (fn [{:keys [id]}]
-      {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/operation-id "https://example.org/_site/operations/create-operation"
+      {:juxt.site/subject-uri "https://example.org/_site/subjects/system"
+       :juxt.site/operation-uri "https://example.org/_site/operations/create-operation"
        :juxt.site/input
        {:xt/id id
         ;; TODO: Do a view
@@ -32,8 +32,8 @@
    {:deps #{"https://example.org/operations/get-graphql-type"}
     :create
     (fn [{:keys [id params]}]
-      {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/operation-id "https://example.org/_site/operations/grant-permission"
+      {:juxt.site/subject-uri "https://example.org/_site/subjects/system"
+       :juxt.site/operation-uri "https://example.org/_site/operations/grant-permission"
        :juxt.site/input
        {:xt/id id
         :juxt.site/operation "https://example.org/operations/get-graphql-type"
@@ -43,8 +43,8 @@
    "https://example.org/operations/delete-graphql-type"
    {:create
     (fn [{:keys [id]}]
-      {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/operation-id "https://example.org/_site/operations/create-operation"
+      {:juxt.site/subject-uri "https://example.org/_site/subjects/system"
+       :juxt.site/operation-uri "https://example.org/_site/operations/create-operation"
        :juxt.site/input
        {:xt/id id
         ;; TODO: The reason we want a transact here is so we can recompile the
@@ -101,8 +101,8 @@
    {:deps #{"https://example.org/operations/delete-graphql-type"}
     :create
     (fn [{:keys [id params]}]
-      {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/operation-id "https://example.org/_site/operations/grant-permission"
+      {:juxt.site/subject-uri "https://example.org/_site/subjects/system"
+       :juxt.site/operation-uri "https://example.org/_site/operations/grant-permission"
        :juxt.site/input
        {:xt/id id
         :juxt.site/operation "https://example.org/operations/delete-graphql-type"
@@ -112,8 +112,8 @@
    "https://example.org/operations/install-graphql-type"
    {:create
     (fn [{:keys [id]}]
-      {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/operation-id "https://example.org/_site/operations/create-operation"
+      {:juxt.site/subject-uri "https://example.org/_site/subjects/system"
+       :juxt.site/operation-uri "https://example.org/_site/operations/create-operation"
        :juxt.site/input
        {:xt/id id
 
@@ -175,8 +175,8 @@
    {:deps #{"https://example.org/operations/install-graphql-type"}
     :create
     (fn [{:keys [id params]}]
-      {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-       :juxt.site/operation-id "https://example.org/_site/operations/grant-permission"
+      {:juxt.site/subject-uri "https://example.org/_site/subjects/system"
+       :juxt.site/operation-uri "https://example.org/_site/operations/grant-permission"
        :juxt.site/input
        {:xt/id id
         :juxt.site/operation "https://example.org/operations/install-graphql-type"

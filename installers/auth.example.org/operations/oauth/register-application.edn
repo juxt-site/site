@@ -1,8 +1,8 @@
 ;; Install an operation to register an application
 ;; See https://www.rfc-editor.org/rfc/rfc6749#section-2
 {:install
- {:juxt.site/subject-id "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-id "https://auth.example.org/_site/operations/create-operation"
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
   :juxt.site/input
   {:xt/id "{{$id}}"
 

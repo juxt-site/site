@@ -4,8 +4,8 @@
 
 #_(defn put-openid-user-identity! [& {:keys [username]
                                     :juxt.site.jwt.claims/keys [iss sub nickname]}]
-  {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-   :juxt.site/operation-id "https://example.org/operations/put-openid-user-identity"
+  {:juxt.site/subject-uri "https://example.org/_site/subjects/system"
+   :juxt.site/operation-uri "https://example.org/operations/put-openid-user-identity"
    :juxt.site/input
    (cond-> {:xt/id (format "https://example.org/user-identities/%s/openid" (str/lower-case username))
             :juxt.site/user ~(format "https://example.org/users/%s" (str/lower-case username))
@@ -16,6 +16,6 @@
 
 #_(defn fetch-jwks!
   [id]
-  {:juxt.site/subject-id "https://example.org/_site/subjects/system"
-   :juxt.site/operation-id "https://example.org/operations/openid/fetch-jwks"
+  {:juxt.site/subject-uri "https://example.org/_site/subjects/system"
+   :juxt.site/operation-uri "https://example.org/operations/openid/fetch-jwks"
    :juxt.site/input {:xt/id id}})
