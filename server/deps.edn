@@ -82,11 +82,12 @@
 
  :aliases
  {:dev
-  {:extra-paths ["dev" "test" "init/src"]
+  {:extra-paths ["dev" "test"]
    :extra-deps
    {org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
     djblue/portal {:mvn/version "0.29.1"}
     borkdude/rewrite-edn {:mvn/version "0.4.6"}
+    juxt.site/installer-graph {:local/root "../installer-graph"}
     ;;lambdaisland/kaocha {:mvn/version "1.0.887"}
     }
    :jvm-opts
@@ -96,11 +97,12 @@
     "--add-opens" "java.base/java.util.concurrent=ALL-UNNAMED"]}
 
   :test
-  {:extra-paths ["test" "init/src"]
+  {:extra-paths ["test"]
    :extra-deps
    {lambdaisland/kaocha {:mvn/version "1.0.887"}
     lambdaisland/kaocha-junit-xml {:mvn/version "0.0.76"}
-    nrepl/nrepl {:mvn/version "1.0.0"}}
+    nrepl/nrepl {:mvn/version "1.0.0"}
+    juxt.site/installer-graph {:local/root "../installer-graph"}}
    :jvm-opts ["--add-opens" "java.base/java.util.concurrent=ALL-UNNAMED"]}
 
   :coverage

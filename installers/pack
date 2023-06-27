@@ -1,0 +1,25 @@
+#!/usr/bin/env bb
+
+(ns pack
+  (:require
+   [babashka.cli :as cli]
+   [babashka.process :refer [shell]]
+   [clojure.string :as str]))
+
+(defn -main [& args]
+  (let [{:keys [group]}
+        (cli/parse-opts
+         args
+         {:args->opts [:group]
+          :validate {:group {:pred string?}}})]
+    (println "PACK:" group)))
+
+(when (= *file* (System/getProperty "babashka.file"))
+  (apply -main *command-line-args*))
+
+
+
+
+;; Local Variables:
+;; mode: clojure
+;; End:

@@ -1,6 +1,6 @@
 #!/usr/bin/env bb
 
-(ns site-cli
+(ns sitectl
   (:require
    [babashka.process :refer [shell]]
    [clojure.string :as str]))
@@ -9,7 +9,7 @@
   (println "SITE_HOME not set")
   (System/exit 1))
 
-(def CONFIG_FILE (str (System/getenv "SITE_HOME") "/server/init/sitectl.edn"))
+(def CONFIG_FILE (str (System/getenv "SITE_HOME") "/sitectl/sitectl.edn"))
 
 (if *command-line-args*
   (apply shell "bb" "--config" CONFIG_FILE *command-line-args*)
