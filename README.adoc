@@ -42,7 +42,7 @@ an appointment.
 
 == Getting Started
 
-See link:doc/next/GettingStarted.adoc[]
+See https://github.com/juxt-site/book[this repository]
 
 == When would you use Site?
 
