@@ -2,10 +2,13 @@
 
 (ns juxt.site.admin-server
   (:require
+   [clojure.pprint :refer [pprint]]
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [ring.adapter.jetty :refer [run-jetty]]
-   [juxt.site.handler :as h])
+   [juxt.site.handler :as h]
+   [juxt.site.installer :as installer]
+   [clojure.edn :as edn])
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
 
@@ -19,11 +22,29 @@
      :juxt.http/content "Admin server\r\n"}
 
     "/resources"
-    {:juxt.site/methods {:post {}}
-     }
+    {:juxt.site/methods
+     {:post
+      {:juxt.site/acceptable {"accept" "application/edn"}
+       ::invoke (fn [{:juxt.site/keys [xt-node] :as req}]
+                  (let [req (h/receive-representation req)
+                        rep (:juxt.site/received-representation req)
+                        installer-seq (edn/read-string (slurp (:juxt.http/body rep)))
+                        c (count installer-seq)
+                        results (reduce (fn [results installer]
+                                          (try
+                                            (conj results (installer/call-installer xt-node installer))
+                                            (catch Throwable e
+                                              (throw (ex-info (format "Failed to install %s" (:id installer)) {:installer (:id installer)} e)))))
+                                        [] installer-seq)
+                        response-body (with-out-str
+                                        (pprint
+                                         {:message "Installed"
+                                          :count c
+                                          :results results}))]
+                    (assoc req :ring.response/body response-body)))}}}
 
-    ;;
-    nil))
+    {:juxt.site/type "https://meta.juxt.site/types/not-found"
+     :juxt.site/methods {}}))
 
 (defn wrap-locate-resource [h]
   (fn [req]
@@ -33,14 +54,15 @@
 
 (defn wrap-invoke-method [h]
   (fn [{:ring.request/keys [method] :as req}]
-
-    (h (case method
-         (:get :head) (h/GET req)
-         :post (h/POST req)
-         :put (h/PUT req)
-         :patch (h/PATCH req)
-         :delete (h/DELETE req)
-         :options (h/OPTIONS req)))))
+    (if-let [f (get-in req [:juxt.site/resource :juxt.site/methods method ::invoke])]
+      (f req)
+      (h (case method
+           (:get :head) (h/GET req)
+           :post (h/POST req)
+           :put (h/PUT req)
+           :patch (h/PATCH req)
+           :delete (h/DELETE req)
+           :options (h/OPTIONS req))))))
 
 (defn wrap-no-op [h]
   (fn [req] (h req)))

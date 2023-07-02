@@ -3,6 +3,7 @@
 (ns juxt.site.bb.bootstrap.tasks
   (:require
    [babashka.cli :as cli]
+   [babashka.http-client :as http]
    [bblgum.core :as b]
    [cheshire.core :as json]
    [clj-yaml.core :as yaml]
@@ -199,7 +200,7 @@
       (throw (ex-info "gum non-zero exit" {:status status}))
       (str/join " " result))))
 
-(defn install! [installers uri-map parameter-map install-opts]
+(defn install-with-push! [installers uri-map parameter-map install-opts]
 
   ;; Can we access juxt.site.test-helpers.local-files-util/install-resource-groups! from here?
 
@@ -233,6 +234,23 @@
   ;; TODO: 3. Amend the installer-seq accordingly
 
   )
+
+(defn install-with-http! [installers uri-map parameter-map install-opts]
+  (let [installers (apply-uri-map uri-map installers)
+        installer-map (ciu/unified-installer-map
+                       (io/file (System/getenv "SITE_HOME") "installers")
+                       uri-map)
+        installers-seq (ciu/installer-seq installer-map parameter-map installers)
+        target "http://localhost:4911/resources"]
+
+    (println "Installing to" target)
+    (let [result
+          (http/post
+           target
+           {:headers {"content-type" "application/edn"}
+            :body (pr-str installers-seq)
+            :throw false})]
+      (println (:status result) (:body result)))))
 
 ;; End of infrastructure
 
@@ -337,7 +355,7 @@
           uri-map {"https://auth.example.org" auth-base-uri
                    "https://data.example.org" data-base-uri}]
 
-      (install!
+      (install-with-http!
        installers
        uri-map
        (resolve-parameters (apply-uri-map uri-map parameters) args)
@@ -356,7 +374,7 @@
 
 (defn new-keypair [{:keys [auth-base-uri]}]
   (let [kid (random-string 16)]
-    (install!
+    (install-with-push!
      [{:juxt.site/base-uri "https://auth.example.org"
        :juxt.site/installer-path "/keypairs/{{kid}}"
        :juxt.site/parameters {"kid" kid}}]
@@ -446,7 +464,7 @@
           installers [{:juxt.site/base-uri "https://auth.example.org"
                        :juxt.site/installer-path (format "/applications/%s" client-id)}]]
 
-      (install! installers uri-map {}
+      (install-with-push! installers uri-map {}
                 {:title (format "Adding OAuth client: %s" client-id)}))))
 
 (defn oauth-authorization-endpoint [{:keys [auth-base-uri session-scope]}]
@@ -454,7 +472,7 @@
     (let [auth-base-uri (or auth-base-uri
                             (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))]
-      (install!
+      (install-with-push!
        (get-group-installers "juxt/site/oauth-authorization-endpoint")
        {"https://auth.example.org" auth-base-uri}
        {"session-scope"
@@ -477,7 +495,7 @@
     (let [auth-base-uri (or auth-base-uri
                             (get-in (config) [:juxt.site/authorization-server :juxt.site/base-uri])
                             (input-auth-base-uri))]
-      (install!
+      (install-with-push!
        (get-group-installers "juxt/site/oauth-extras")
        {"https://auth.example.org" auth-base-uri}
        {"session-scope"
@@ -574,7 +592,7 @@
              {:juxt.site/base-uri "https://data.example.org"
               :juxt.site/installer-path "/_site/user-identities/{{username}}"}))]
 
-      (install!
+      (install-with-push!
        installers
        uri-map
        parameters
@@ -602,7 +620,7 @@
           [{:juxt.site/base-uri "https://data.example.org"
             :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"}]]
 
-      (install!
+      (install-with-push!
        installers
        uri-map
        (select-keys parameters ["username" "rolename"])
@@ -634,7 +652,7 @@
           (conj {:juxt.site/base-uri "https://data.example.org"
                  :juxt.site/installer-path "/_site/user-identities/{{username}}"}))]
 
-    (install!
+    (install-with-push!
      installers
      uri-map
      (assoc
@@ -655,7 +673,7 @@
           installers [{:juxt.site/base-uri "https://auth.example.org"
                        :juxt.site/installer-path "/login-with-form"}]]
 
-      (install! installers uri-map {} {:title "Installing login form"}))))
+      (install-with-push! installers uri-map {} {:title "Installing login form"}))))
 
 (defn openid [{:keys [auth-base-uri iss client-id client-secret]}]
   (let [auth-base-uri (or auth-base-uri
@@ -674,7 +692,7 @@
                :value client-secret})]
             ["session-scope" "openid-login-session"]]))]
 
-    (install!
+    (install-with-push!
      [{:juxt.site/base-uri "https://auth.example.org"
        :juxt.site/installer-path "/login-with-openid"}
       {:juxt.site/base-uri "https://auth.example.org"
@@ -738,14 +756,14 @@
             installers [scope]
             uri-map {"https://auth.example.org" auth-base-uri}]
 
-        (install!
+        (install-with-push!
          installers uri-map
          {"operations-in-scope" (set (map str/trim (str/split operations-as-csv #",")))
           "description" description}
          {:title (format "Adding scope: %s" scope)}))))
 
 (defn reinstall [{:keys [auth-base-uri resource]}]
-  (install!
+  (install-with-push!
    [resource]
    {"https://auth.example.org" auth-base-uri}
    {}
@@ -759,7 +777,7 @@
                           (get-in (config) [:juxt.site/resource-server :juxt.site/base-uri])
                           (input-data-base-uri))]
 
-    (install!
+    (install-with-push!
      (get-group-installers "juxt/site/testing/basic-auth-protected-resource")
      {"https://auth.example.org" auth-base-uri
       "https://data.example.org" data-base-uri}
