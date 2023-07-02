@@ -13,12 +13,17 @@
                         :ring.request/keys [path]
                         :as req}]
   (case path
-    "/" {:juxt.site/methods {:get {}}
-         :juxt.http/content-type "text/plain"
-         :juxt.http/content "Admin server\r\n"
-         }
-    nil)
-  )
+    "/"
+    {:juxt.site/methods {:get {}}
+     :juxt.http/content-type "text/plain"
+     :juxt.http/content "Admin server\r\n"}
+
+    "/resources"
+    {:juxt.site/methods {:post {}}
+     }
+
+    ;;
+    nil))
 
 (defn wrap-locate-resource [h]
   (fn [req]
