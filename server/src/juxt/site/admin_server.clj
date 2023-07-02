@@ -17,13 +17,13 @@
            (org.eclipse.jetty.jmx MBeanContainer)))
 
 (defn locate-resource [{:ring.request/keys [path]}]
-  (case path
-    "/"
+  (condp re-matches path
+    #"/"
     {:juxt.site/methods {:get {}}
      :juxt.http/content-type "text/plain"
      :juxt.http/content "Admin server\r\n"}
 
-    "/resources"
+    #"/resources"
     {:juxt.site/methods
      {:get
       {::invoke
@@ -93,7 +93,7 @@
 
      :juxt.http/content-type "application/json"}
 
-    "/resource"
+    #"/resource"
     {:juxt.site/methods
      {:get
       {::invoke
