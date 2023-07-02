@@ -292,9 +292,14 @@
                             :indicator.foreground "#C72"
                             :match.foreground "#C72"}
                      :in (io/input-stream (.getBytes (.toString sw)))})]
+
          (when (zero? status)
-           (let [expr `(~'e ~(first result))]
-             (pprint (eval-and-read! (pr-str expr))))))))))
+           (let [resource (json/parse-string
+                           (:body
+                            (http/get
+                             (str "http://localhost:4911/resource?uri=" (url-encode (first result)))
+                             {"accept" "application/json"})))]
+             (pprint resource))))))))
 
 (defn ls-type [typ]
   (ls `(~'ls-type ~typ)))

@@ -3,6 +3,7 @@
 (ns juxt.site.admin-server
   (:require
    [clojure.pprint :refer [pprint]]
+   [clojure.walk :refer [postwalk]]
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [ring.adapter.jetty :refer [run-jetty]]
@@ -41,7 +42,7 @@
                               (re-pattern pat))
                         (map first)
                         (sort-by str))
-                   (throw (ex-info "No pattern in query parameters" {:ring.response/status 401})))
+                   (throw (ex-info "No pattern in query parameters" {:ring.response/status 400})))
 
                  (->> (xt/q db '{:find [(pull e [:xt/id :juxt.site/type])]
                                  :where [[e :xt/id]]})
@@ -89,6 +90,37 @@
                    :results results}))]
 
            (assoc req :ring.response/body response-body)))}}
+
+     :juxt.http/content-type "application/json"}
+
+    "/resource"
+    {:juxt.site/methods
+     {:get
+      {::invoke
+       (fn [{:juxt.site/keys [db]
+             :ring.request/keys [query]
+             :as req}]
+         (assert query)
+         (let [result
+               (if-let [uri (get (form-decode query) "uri")]
+                 (postwalk
+                  (fn [x] (if (and (vector? x)
+                                   (#{:juxt.http/content :juxt.http/body} (first x))
+                                   (> (count (second x)) 1024))
+
+                            [(first x)
+                             (cond
+                               (= :juxt.http/content (first x)) (str (subs (second x) 0 80) "…")
+                               :else (format "(%d bytes)" (count (second x))))]
+                            x))
+                  (xt/entity db uri))
+                 (throw (ex-info "No pattern in query parameters" {:ring.response/status 400})))
+               body (str
+                     (json/write-value-as-string result (json/object-mapper {:pretty true}))
+                     "\r\n")]
+           (-> req
+               (assoc-in [:ring.response/headers "content-length"] (str (count body)))
+               (assoc :ring.response/body body))))}}
 
      :juxt.http/content-type "application/json"}
 
