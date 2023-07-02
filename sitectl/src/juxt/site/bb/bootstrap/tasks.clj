@@ -400,8 +400,13 @@
   ;; restrict us to the right auth-server! Otherwise we'll be
   ;; potentially fishing out the first of a group of client-secrets!
 
-  (let [client-secret (edn/read-string
-                       (push! `(prn (~'client-secret ~client-id)) {}))]
+  (let [client-details
+        (json/parse-string
+         (:body
+          (http/get
+           (str "http://localhost:4911/applications/" client-id)
+           {"accept" "application/json"})))
+        client-secret (get client-details "juxt.site/client-secret")]
     (binding [*out* (if save (let [dir (io/file (cache-dir) "client-secrets")]
                                (.mkdir dir)
                                (io/writer (io/file dir client-id)))

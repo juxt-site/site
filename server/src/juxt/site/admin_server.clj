@@ -124,6 +124,32 @@
 
      :juxt.http/content-type "application/json"}
 
+    #"/applications/(.+)"
+    :>>
+    (fn [[_ client-id]]
+      {:juxt.site/methods
+       {:get
+        {::invoke
+         (fn [{:juxt.site/keys [db]
+               :as req}]
+           (let [result
+                 (->> (xt/q
+                       db
+                       '{:find [(pull e [*])]
+                         :where [[e :juxt.site/type "https://meta.juxt.site/types/application"]
+                                 [e :juxt.site/client-id client-id]]
+                         :in [client-id]} client-id)
+                      (map first)
+                      first)
+                 body (str
+                       (json/write-value-as-string result (json/object-mapper {:pretty true}))
+                       "\r\n")]
+             (-> req
+                 (assoc-in [:ring.response/headers "content-length"] (str (count body)))
+                 (assoc :ring.response/body body))))}}
+
+       :juxt.http/content-type "application/json"})
+
     {:juxt.site/type "https://meta.juxt.site/types/not-found"
      :juxt.site/methods {}}))
 
