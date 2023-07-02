@@ -25,23 +25,32 @@
     {:juxt.site/methods
      {:post
       {:juxt.site/acceptable {"accept" "application/edn"}
-       ::invoke (fn [{:juxt.site/keys [xt-node] :as req}]
-                  (let [req (h/receive-representation req)
-                        rep (:juxt.site/received-representation req)
-                        installer-seq (edn/read-string (slurp (:juxt.http/body rep)))
-                        c (count installer-seq)
-                        results (reduce (fn [results installer]
-                                          (try
-                                            (conj results (installer/call-installer xt-node installer))
-                                            (catch Throwable e
-                                              (throw (ex-info (format "Failed to install %s" (:id installer)) {:installer (:id installer)} e)))))
-                                        [] installer-seq)
-                        response-body (with-out-str
-                                        (pprint
-                                         {:message "Installed"
-                                          :count c
-                                          :results results}))]
-                    (assoc req :ring.response/body response-body)))}}}
+       ::invoke
+       (fn [{:juxt.site/keys [xt-node] :as req}]
+         (let [req (h/receive-representation req)
+               rep (:juxt.site/received-representation req)
+               installer-seq (edn/read-string (slurp (:juxt.http/body rep)))
+               c (count installer-seq)
+
+               results
+               (reduce (fn [results installer]
+                         (try
+                           (conj results (installer/call-installer xt-node installer))
+                           (catch Throwable e
+                             (throw
+                              (ex-info
+                               (format "Failed to install %s" (:id installer))
+                               {:installer (:id installer)} e)))))
+                       [] installer-seq)
+
+               response-body
+               (with-out-str
+                 (pprint
+                  {:message "Installed"
+                   :count c
+                   :results results}))]
+
+           (assoc req :ring.response/body response-body)))}}}
 
     {:juxt.site/type "https://meta.juxt.site/types/not-found"
      :juxt.site/methods {}}))
