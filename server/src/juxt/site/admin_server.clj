@@ -15,11 +15,7 @@
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
 
-
-
-(defn locate-resource [{:juxt.site/keys [uri]
-                        :ring.request/keys [path]
-                        :as req}]
+(defn locate-resource [{:ring.request/keys [path]}]
   (case path
     "/"
     {:juxt.site/methods {:get {}}
