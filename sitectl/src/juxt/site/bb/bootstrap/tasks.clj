@@ -200,7 +200,10 @@
       (throw (ex-info "gum non-zero exit" {:status status}))
       (str/join " " result))))
 
-(defn install-with-push! [installers uri-map parameter-map install-opts]
+(defn
+  ^{:deprecated "Replaced with install-with-http!"}
+  install-with-push!
+  [installers uri-map parameter-map install-opts]
 
   ;; Can we access juxt.site.test-helpers.local-files-util/install-resource-groups! from here?
 
@@ -374,7 +377,7 @@
 
 (defn new-keypair [{:keys [auth-base-uri]}]
   (let [kid (random-string 16)]
-    (install-with-push!
+    (install-with-http!
      [{:juxt.site/base-uri "https://auth.example.org"
        :juxt.site/installer-path "/keypairs/{{kid}}"
        :juxt.site/parameters {"kid" kid}}]
