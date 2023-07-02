@@ -2,11 +2,9 @@
 
 (ns juxt.site.bb.bootstrap.tasks
   (:require
-   [babashka.cli :as cli]
    [babashka.http-client :as http]
    [bblgum.core :as b]
    [cheshire.core :as json]
-   [clj-yaml.core :as yaml]
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
    [clojure.edn :as edn]
@@ -72,50 +70,6 @@
        (string? node) (uri-map-replace node uri-map)
        :else node))
    installers))
-
-(defn read-line* [r]
-  (let [sb (java.lang.StringBuilder.)]
-    (loop [c (.read r)]
-      (when (not= c 10)
-        (.append sb (char c))
-        (recur (.read r))))
-    (.toString sb)))
-
-(defn read-object [r]
-  (binding [*read-eval* false]
-    (edn/read {:readers {'error (fn [x] x)}} r)))
-
-(defn read-string* [r]
-  (binding [*read-eval* false]
-    (edn/read-string {:readers {'error (fn [x] x)}} r)))
-
-(defn slurp-prompt [r]
-  (let [prompt (read-object r)]
-    (when-not (= 'site> prompt)
-      (throw (ex-info "Unexpected prompt" {:prompt prompt})))))
-
-(defn eval-and-read [reader writer expr]
-  (binding [*out* writer]
-    (println expr))
-  (let [obj (read-object reader)]
-    (slurp-prompt reader)
-    obj))
-
-(defn connect
-  "Return function that evaluates and expression via the REPL"
-  [host port]
-  (let [s (java.net.Socket. host port)
-        writer (io/writer (.getOutputStream s))
-        reader (java.io.PushbackReader. (java.io.InputStreamReader. (.getInputStream s)))
-        copyright-banner (read-line* reader)
-        _ (assert (re-matches #"Site by JUXT. Copyright.*" copyright-banner))
-        help-message (read-line* reader)
-        _ (assert (re-matches #"Type :quit to exit, :help for help." help-message))]
-
-    (slurp-prompt reader)
-    (partial eval-and-read reader writer)))
-
-(def eval-and-read! (connect "localhost" 50505))
 
 (defn confirm
   ([prompt] (confirm prompt {}))
