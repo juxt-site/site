@@ -37,12 +37,16 @@
          :delete (h/DELETE req)
          :options (h/OPTIONS req)))))
 
+(defn wrap-no-op [h]
+  (fn [req] (h req)))
+
 (defn make-handler [opts]
   (let [pipeline (h/make-pipeline opts)
         new-pipeline
         (replace
          {h/wrap-locate-resource wrap-locate-resource
-          h/wrap-invoke-method wrap-invoke-method}
+          h/wrap-invoke-method wrap-invoke-method
+          h/wrap-security-headers wrap-no-op}
          pipeline)]
     ((apply comp new-pipeline) identity)))
 
