@@ -8,9 +8,14 @@
    [ring.adapter.jetty :refer [run-jetty]]
    [juxt.site.handler :as h]
    [juxt.site.installer :as installer]
-   [clojure.edn :as edn])
+   [clojure.edn :as edn]
+   [jsonista.core :as json]
+   [xtdb.api :as xt]
+   [ring.util.codec :refer [form-decode]])
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
+
+
 
 (defn locate-resource [{:juxt.site/keys [uri]
                         :ring.request/keys [path]
@@ -23,8 +28,45 @@
 
     "/resources"
     {:juxt.site/methods
-     {:post
-      {:juxt.site/acceptable {"accept" "application/edn"}
+     {:get
+      {::invoke
+       (fn [{:juxt.site/keys [db]
+             :ring.request/keys [query]
+             :as req}]
+         (let [results
+               (if query
+                 (if-let [pat (get (form-decode query) "pattern")]
+                   (->> (xt/q db '{:find [e]
+                                   :where [[e :xt/id]
+                                           [(str e) id]
+                                           [(re-seq pat id) match]
+                                           [(some? match)]]
+                                   :in [pat]}
+                              (re-pattern pat))
+                        (map first)
+                        (sort-by str))
+                   (throw (ex-info "No pattern in query parameters" {:ring.response/status 401})))
+
+                 (->> (xt/q db '{:find [(pull e [:xt/id :juxt.site/type])]
+                                 :where [[e :xt/id]]})
+                      (map first)
+                      (filter (fn [e]
+                                (not (#{"https://meta.juxt.site/types/event"
+                                        "https://meta.juxt.site/types/request"}
+                                      (:juxt.site/type e)))))
+                      (map :xt/id)
+                      (sort-by str)))
+               body (str
+                     (json/write-value-as-string results (json/object-mapper {:pretty true}))
+                     "\r\n")]
+           (-> req
+               (assoc-in [:ring.response/headers "content-length"] (str (count body)))
+               (assoc :ring.response/body body))))}
+      :post
+      {:juxt.site/acceptable
+       {"accept"
+        ;; TODO: Accept application/json instead
+        "application/edn"}
        ::invoke
        (fn [{:juxt.site/keys [xt-node] :as req}]
          (let [req (h/receive-representation req)
@@ -50,7 +92,9 @@
                    :count c
                    :results results}))]
 
-           (assoc req :ring.response/body response-body)))}}}
+           (assoc req :ring.response/body response-body)))}}
+
+     :juxt.http/content-type "application/json"}
 
     {:juxt.site/type "https://meta.juxt.site/types/not-found"
      :juxt.site/methods {}}))

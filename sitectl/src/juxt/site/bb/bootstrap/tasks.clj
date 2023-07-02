@@ -255,6 +255,10 @@
             :throw false})]
       (println (:status result) (:body result)))))
 
+(defn url-encode [s]
+  (when s
+    (java.net.URLEncoder/encode s)))
+
 ;; End of infrastructure
 
 (defn reset [opts]
@@ -265,11 +269,15 @@
 
 (defn ls
   ([]
-   (if-let [qualifier (first *command-line-args*)]
-     (ls `(~'ls ~qualifier))
-     (ls '(ls))))
-  ([cmd]
-   (let [resources (eval-and-read! (pr-str cmd))
+   (ls (first *command-line-args*)))
+  ([pattern]
+   (let [resources
+         (json/parse-string
+          (:body
+           (http/get
+            (cond-> "http://localhost:4911/resources"
+              pattern (str "?pattern=" (url-encode pattern)))
+            {"accept" "application/json"})))
          sw (java.io.StringWriter.)]
      (with-open [out (java.io.PrintWriter. sw)]
        (binding [*out* out]
@@ -310,10 +318,6 @@
 (defn input-data-base-uri []
   (input-uri {:prompt "Enter data base URI"
               :default "https://"}))
-
-(defn url-encode [s]
-  (when s
-    (java.net.URLEncoder/encode s)))
 
 (defn resolve-parameters [parameters args]
   (reduce
