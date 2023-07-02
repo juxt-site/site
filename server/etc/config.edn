@@ -41,6 +41,12 @@
    :juxt.site/port 4444
    :juxt.site/dynamic? #profile {:dev true :prod false}}
 
+  ;; Admin server is only locally bound
+  :juxt.site.admin-server/server
+  {:juxt.site/xt-node #ig/ref :juxt.site.db/xt-node
+   :juxt.site/port 4911
+   :juxt.site/dynamic? #profile {:dev true :prod false}}
+
   ;; Optional; nREPL server
   :juxt.site.nrepl/server
   {:juxt.site/port 7888}

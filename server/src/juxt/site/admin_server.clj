@@ -1,6 +1,6 @@
-;; Copyright © 2021, JUXT LTD.
+;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site.server
+(ns juxt.site.admin-server
   (:require
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
@@ -9,11 +9,8 @@
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
 
-(defmethod ig/init-key ::server [k {:juxt.site/keys [port dynamic?] :as opts}]
-  (if-let [nk (and (coll? k) (second k))]
-    (log/infof "Starting HTTP listener (%s) on port %d" (name nk) port)
-    (log/infof "Starting HTTP listener on port %d" port))
-
+(defmethod ig/init-key ::server [_ {:juxt.site/keys [port dynamic?] :as opts}]
+  (log/infof "Starting HTTP listenner (admin) on port %d" port)
   (let [mb-container (MBeanContainer. (ManagementFactory/getPlatformMBeanServer))]
     (doto
         (run-jetty
@@ -22,11 +19,16 @@
          (if dynamic?
            (fn [req] (let [h (#'make-handler opts)] (h req)))
            (make-handler opts))
-         {:port port :join? false})
-        (.addEventListener mb-container)
-        (.addBean mb-container))))
+         {:port port
+          :join? false
+          ;; For security, it is CRITICAL that this server is only
+          ;; bound to localhost so it is not available via the
+          ;; network.
+          :host "localhost"})
+      (.addEventListener mb-container)
+      (.addBean mb-container))))
 
-(defmethod ig/halt-key! ::server [k s]
+(defmethod ig/halt-key! ::server [_ s]
   (when s
-    (log/info "Stopping HTTP listener")
+    (log/info "Stopping Jetty server")
     (.stop s)))
