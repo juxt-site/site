@@ -5,12 +5,49 @@
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
    [ring.adapter.jetty :refer [run-jetty]]
-   [juxt.site.handler :refer [make-handler]])
+   [juxt.site.handler :as h])
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
 
+(defn locate-resource [{:juxt.site/keys [uri]
+                        :ring.request/keys [path]
+                        :as req}]
+  (case path
+    "/" {:juxt.site/methods {:get {}}
+         :juxt.http/content-type "text/plain"
+         :juxt.http/content "Admin server\r\n"
+         }
+    nil)
+  )
+
+(defn wrap-locate-resource [h]
+  (fn [req]
+    (let [res (locate-resource req)]
+      (log/debugf "Resource provider: %s" (:juxt.site/resource-provider res))
+      (h (assoc req :juxt.site/resource res)))))
+
+(defn wrap-invoke-method [h]
+  (fn [{:ring.request/keys [method] :as req}]
+
+    (h (case method
+         (:get :head) (h/GET req)
+         :post (h/POST req)
+         :put (h/PUT req)
+         :patch (h/PATCH req)
+         :delete (h/DELETE req)
+         :options (h/OPTIONS req)))))
+
+(defn make-handler [opts]
+  (let [pipeline (h/make-pipeline opts)
+        new-pipeline
+        (replace
+         {h/wrap-locate-resource wrap-locate-resource
+          h/wrap-invoke-method wrap-invoke-method}
+         pipeline)]
+    ((apply comp new-pipeline) identity)))
+
 (defmethod ig/init-key ::server [_ {:juxt.site/keys [port dynamic?] :as opts}]
-  (log/infof "Starting HTTP listenner (admin) on port %d" port)
+  (log/infof "Starting HTTP listener (admin) on port %d" port)
   (let [mb-container (MBeanContainer. (ManagementFactory/getPlatformMBeanServer))]
     (doto
         (run-jetty
@@ -24,9 +61,10 @@
           ;; For security, it is CRITICAL that this server is only
           ;; bound to localhost so it is not available via the
           ;; network.
-          :host "localhost"})
-      (.addEventListener mb-container)
-      (.addBean mb-container))))
+          :host "localhost"
+          :send-server-version? false})
+        (.addEventListener mb-container)
+        (.addBean mb-container))))
 
 (defmethod ig/halt-key! ::server [_ s]
   (when s

@@ -922,22 +922,9 @@
     (let [method (if (= method :head) :get method)
           operation-id (get-in resource [:juxt.site/methods method :juxt.site/operation])
 
-          _ (when-not operation-id
-              ;; Options doesn't cause this to fail, it will just
-              ;; result in no permissions. But if an operation is
-              ;; registered against an OPTIONS operation, we want to
-              ;; respect it.
-              (when (not= method :options)
-                (throw
-                 (ex-info
-                  (format "No :juxt.site/operation for method %s: %s" method (pr-str resource) #_(pr-str (get-in resource [:juxt.site/methods method])))
-                  {:juxt.site/request-context req
-                   :resource resource
-                   :method method}))))
-
           operation (when operation-id
                       (xt/entity db operation-id))
-          _ (when-not operation
+          _ (when (and operation-id (nil? operation))
               (when (not= method :options)
                 (throw
                  (ex-info
@@ -1013,7 +1000,8 @@
              :ring.response/headers {"location" redirect}
              :juxt.site/request-context req})))
 
-        :else
+        operation
+
         ;; We are outside a protection space, there is nothing we can do
         ;; except return a 403 status.
 
@@ -1028,7 +1016,11 @@
           (format "No anonymous permission for operation: %s" (pr-str operation))
           {:ring.response/status 403
            :ring.response/headers {"access-control-allow-origin" "*"}
-           :juxt.site/request-context req}))))))
+           :juxt.site/request-context req}))
+
+        :else
+        ;; There is no operation to protect
+        (h req)))))
 
 (comment
   (sci/eval-string
