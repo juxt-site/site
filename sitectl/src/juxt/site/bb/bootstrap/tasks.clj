@@ -179,65 +179,6 @@
          (ex-info "gum process exited with non-zero status" {:status status})))
       (first result))))
 
-;; Use site-push as a command in order to show a spinner
-(defn push! [expr opts]
-  (let [{:keys [status result]}
-        (b/gum {:cmd :spin
-                :args ["/bin/bash" (format "%s/server/bin/site-push" (System/getenv "SITE_HOME")) "-e" (pr-str expr)]
-                :opts (->
-                       (merge
-                        {:spinner "points"
-                         :spinner.foreground "#C72"
-                         :show-output true
-                         :title "Please wait"}
-                        (select-keys opts [:title]))
-                       (update :title str "..."))})]
-
-    (when (= status 130)
-      (System/exit 2))
-
-    (if (pos? status)
-      (throw (ex-info "gum non-zero exit" {:status status}))
-      (str/join " " result))))
-
-(defn
-  ^{:deprecated "Replaced with install-with-http!"}
-  install-with-push!
-  [installers uri-map parameter-map install-opts]
-
-  ;; Can we access juxt.site.test-helpers.local-files-util/install-resource-groups! from here?
-
-  ;; 1. Ask tree to return an installer-seq
-  (let [installers (apply-uri-map uri-map installers)
-        installer-map (ciu/unified-installer-map
-                       (io/file (System/getenv "SITE_HOME") "installers")
-                       uri-map)
-        installers-seq (ciu/installer-seq installer-map parameter-map installers)
-        existing (set (edn/read-string (push! `(~'find-resources ~(mapv :juxt.site/uri installers-seq)) {:title "Retrieving existing resources"})))
-        remaining-installers (remove (comp existing :juxt.site/uri) installers-seq)
-        heading (or (:title install-opts) *heading* "TITLE")]
-
-    (cond
-      (pos? (count existing))
-      (when (confirm (format "%s\n\nResources to overwrite\n\n%s\n\nResources to install\n\n%s\n\nGo ahead?\n"
-                             heading
-                             (str/join "\n" (sort existing))
-                             (str/join "\n" (sort (map :juxt.site/uri remaining-installers)))))
-        (push! `(~'call-installers! (quote ~installers-seq)) {}))
-
-      :else
-      (when (confirm (format "%s\n\n%s\n\nInstall these resources?\n"
-                             heading
-                             (str/join "\n" (sort (map :juxt.site/uri remaining-installers)))))
-        (push! `(~'call-installers! (quote ~remaining-installers)) {}))))
-
-  ;; TODO: 2. Exchange installer-seq with repl to enquire which resources have already installed.
-  ;; (Perhaps we use a -f to 'force' a re-install, otherwise resources aren't overwritten)
-
-  ;; TODO: 3. Amend the installer-seq accordingly
-
-  )
-
 (defn install-with-http! [installers uri-map parameter-map install-opts]
   (let [installers (apply-uri-map uri-map installers)
         installer-map (ciu/unified-installer-map
@@ -261,11 +202,13 @@
 
 ;; End of infrastructure
 
-(defn reset [opts]
+(defn reset [_]
   (when (confirm "Factory reset and delete ALL resources?")
-    (eval-and-read!
-     (pr-str
-      '(factory-reset!)))))
+    (let [{:keys [status body]}
+          (http/post
+           "http://localhost:4911/reset"
+           )]
+      (println status body))))
 
 (defn ls
   ([]
