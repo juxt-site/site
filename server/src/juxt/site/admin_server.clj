@@ -61,14 +61,17 @@
                (assoc :ring.response/body body))))}
       :post
       {:juxt.site/acceptable
-       {"accept"
-        ;; TODO: Accept application/json instead
-        "application/edn"}
+       {"accept" "application/edn,application/json"}
        ::invoke
        (fn [{:juxt.site/keys [xt-node] :as req}]
          (let [req (h/receive-representation req)
                rep (:juxt.site/received-representation req)
-               installer-seq (edn/read-string (slurp (:juxt.http/body rep)))
+               body (slurp (:juxt.http/body rep))
+
+               installer-seq (case (:juxt.http/content-type rep)
+                               "application/edn" (edn/read-string body)
+                               "application/json" (json/read-value body (json/object-mapper {:decode-key-fn true})))
+
                c (count installer-seq)
 
                results
@@ -87,9 +90,14 @@
                  (pprint
                   {:message "Installed"
                    :count c
-                   :results results}))]
+                   :results results
+                   }))]
 
-           (assoc req :ring.response/body response-body)))}}
+           (-> req
+               (update :ring.response/headers (fnil merge {})
+                       {"content-length" (str (count response-body))
+                        "content-type" "application/edn"})
+               (assoc :ring.response/body response-body))))}}
 
      :juxt.http/content-type "application/json"}
 
@@ -198,7 +206,7 @@
          pipeline)]
     ((apply comp new-pipeline) identity)))
 
-(defmethod ig/init-key ::server [_ {:juxt.site/keys [port dynamic?] :as opts}]
+(defmethod ig/init-key ::listener [_ {:juxt.site/keys [port dynamic?] :as opts}]
   (log/infof "Starting HTTP listener (admin) on port %d" port)
   (let [mb-container (MBeanContainer. (ManagementFactory/getPlatformMBeanServer))]
     (doto
@@ -210,7 +218,7 @@
            (make-handler opts))
          {:port port
           :join? false
-          ;; For security, it is CRITICAL that this server is only
+          ;; For security, it is CRITICAL that this listener is only
           ;; bound to localhost so it is not available via the
           ;; network.
           :host "localhost"
@@ -218,7 +226,7 @@
         (.addEventListener mb-container)
         (.addBean mb-container))))
 
-(defmethod ig/halt-key! ::server [_ s]
+(defmethod ig/halt-key! ::listener [_ s]
   (when s
-    (log/info "Stopping Jetty server")
+    (log/info "Stopping HTTP listener (admin)")
     (.stop s)))

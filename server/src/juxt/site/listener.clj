@@ -1,6 +1,6 @@
 ;; Copyright © 2021, JUXT LTD.
 
-(ns juxt.site.server
+(ns juxt.site.listener
   (:require
    [clojure.tools.logging :as log]
    [integrant.core :as ig]
@@ -9,7 +9,7 @@
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
 
-(defmethod ig/init-key ::server [k {:juxt.site/keys [port dynamic?] :as opts}]
+(defmethod ig/init-key ::listener [k {:juxt.site/keys [port dynamic?] :as opts}]
   (if-let [nk (and (coll? k) (second k))]
     (log/infof "Starting HTTP listener (%s) on port %d" (name nk) port)
     (log/infof "Starting HTTP listener on port %d" port))
@@ -26,7 +26,7 @@
         (.addEventListener mb-container)
         (.addBean mb-container))))
 
-(defmethod ig/halt-key! ::server [k s]
+(defmethod ig/halt-key! ::listener [k s]
   (when s
     (log/info "Stopping HTTP listener")
     (.stop s)))

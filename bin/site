@@ -9,7 +9,7 @@
   (println "SITE_HOME not set")
   (System/exit 1))
 
-(def CONFIG_FILE (str (System/getenv "SITE_HOME") "/client/site-cli/site-cli.edn"))
+(def CONFIG_FILE (str (System/getenv "SITE_HOME") "/site-cli.edn"))
 
 (if *command-line-args*
   (apply shell "bb" "--config" CONFIG_FILE *command-line-args*)

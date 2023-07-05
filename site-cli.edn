@@ -1,0 +1,88 @@
+;; See https://book.babashka.org/#tasks
+{:min-bb-version "0.6.2"
+ :paths ["src"]
+ :deps {io.github.lispyclouds/bblgum {:git/sha "7ebae0e2231899fe2a6ad44bc9ef5fca64099fcd"}
+        org.babashka/cli {:mvn/version "0.4.39"}
+        juxt.site/installer-graph {:local/root "installer-graph"}
+        aero/aero {:mvn/version "1.1.6"}}
+
+ :tasks
+ {:requires (juxt.site.bb.tasks
+             [clojure.core.async :as async]
+             [clojure.edn :as edn]
+             [clojure.java.io :as io]
+             [babashka.cli :as cli])
+
+  ping
+  {:doc "Check server health"
+   :task (juxt.site.bb.tasks/ping)}
+
+  request-token
+  {:doc "Acquire a token"
+   :opts {:args->opts [:client-id]
+          :require [:client-id]
+          :exec-args {:client-id "site-cli"}}
+   :task (juxt.site.bb.tasks/request-token-with-client-secret)}
+
+  forget-client-secret
+  {:doc "Forget the client_secret for site-cli"
+   :opts {:args->opts [:client-id]
+          :require [:client-id]
+          :exec-args {:client-id "site-cli"}}
+   :task (juxt.site.bb.tasks/forget-client-secret)}
+
+  config-file
+  {:doc "Show configuration-file"
+   :task (juxt.site.bb.tasks/config-file-task)}
+
+  config
+  {:doc "Show configuration"
+   :opts {:require [:format]
+          :exec-args {:format "edn"}
+          :alias {:f :format}}
+   :task (juxt.site.bb.tasks/config-task)}
+
+  ls {:doc "List resources"
+      :opts {:args->opts [:pattern]}
+      :task (juxt.site.bb.tasks/ls)}
+
+  ;;  ls-site-type {:task (juxt.site.bb.bootstrap.tasks/ls-site-type (first *command-line-args*))}
+
+  ;; This can be replaced by jo, curl and jq
+  #_#_add-user
+  {:doc "Add user"
+   :task (juxt.site.bb.tasks/add-user
+          (cli/parse-opts
+           *command-line-args*
+           {:require [:username]
+            :validate {:username {:pred string?}}
+            :coerce {:password :boolean}}))}
+
+  #_#_jwks
+  {:doc "Show JSON Web Key Set"
+   :task (juxt.site.bb.tasks/jwks)}
+
+  check-token
+  {:doc "Show current token"
+   :task (juxt.site.bb.tasks/check-token)}
+
+  bundle {:doc "From a directory of installer specifications, create a bundle for a given group and stream to stdout"
+          :opts {:args->opts [:group]
+                 :alias {:o :outfile}}
+
+          :task (juxt.site.bb.tasks/bundle)}
+
+  new-keypair {:doc "Create a new keypair"
+               :task (juxt.site.bb.tasks/new-keypair)}
+
+  client-secret
+  {:doc "Retrieve a client_secret"
+   :opts {:args->opts [:client-id]
+          :require [:client-id]
+          :coerce {:save :boolean}}
+   :task (juxt.site.bb.tasks/request-client-secret)}
+
+  reset {:doc "Admin only: Reset"
+         :task (juxt.site.bb.tasks/reset)}
+
+  }}

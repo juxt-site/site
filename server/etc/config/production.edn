@@ -1,0 +1,32 @@
+;; Copy this to $HOME/.config/site/config.edn
+
+{
+ :ig/system
+ {:juxt.site.db/xt-node
+  {:xtdb/tx-log
+   {:kv-store {:xtdb/module xtdb.rocksdb/->kv-store
+               :db-dir "/var/xtdb/txes"}}
+
+   :xtdb/document-store
+   {:kv-store {:xtdb/module xtdb.rocksdb/->kv-store
+               :db-dir "/var/xtdb/docs"}}
+
+   :xtdb/index-store
+   {:kv-store {:xtdb/module xtdb.rocksdb/->kv-store
+               :db-dir "/var/xtdb/idxs"}}}
+
+  ;; Primary listener
+  [:juxt.site.listener/listener :juxt.site.listener/primary-listener]
+  {:juxt.site/xt-node #ig/ref :juxt.site.db/xt-node
+   :juxt.site/port 4444
+   ;; If specified, inbound URLs will be uri-prefix + path. If not
+   ;; specified, will default to concatenating the request's proto (or
+   ;; X-Forwarded-Proto header) and Host (or X-Forwarded-Host) request header.
+   ;;:juxt.site/uri-prefix "https://my.juxt.site"
+   :juxt.site/dynamic? false}
+
+  ;; Admin server is only locally bound
+  :juxt.site.admin-server/listener
+  {:juxt.site/xt-node #ig/ref :juxt.site.db/xt-node
+   :juxt.site/port 4911
+   :juxt.site/dynamic? false}}}
