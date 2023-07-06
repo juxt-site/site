@@ -1,10 +1,10 @@
 {:deps
- ["https://auth.example.org/operations/put-openapi-path"]
+ ["https://auth.example.org/operations/put-api-endpoint"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/subject "https://auth.example.org/_site/subjects/system"
-   :juxt.site/operation "https://auth.example.org/operations/put-openapi-path"
+   :juxt.site/operation "https://auth.example.org/operations/put-api-endpoint"
    :juxt.site/purpose nil}}}

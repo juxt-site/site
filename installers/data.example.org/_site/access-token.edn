@@ -1,10 +1,10 @@
 {:deps
  ["https://auth.example.org/operations/get-access-token"
-  "https://auth.example.org/operations/put-openapi-path"
+  "https://auth.example.org/operations/put-api-endpoint"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-uri "https://auth.example.org/operations/put-openapi-path"
+  :juxt.site/operation-uri "https://auth.example.org/operations/put-api-endpoint"
   :juxt.site/input
   {:xt/id "{{$id}}"
 
