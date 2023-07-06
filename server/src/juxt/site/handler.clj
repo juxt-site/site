@@ -5,6 +5,7 @@
    [clojure.set :as set]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
+   [clojure.pprint :refer [pprint]]
    [jsonista.core :as json]
    [juxt.pick.core :refer [rate-representation]]
    [juxt.pick.ring :refer [decode-maybe]]
@@ -308,7 +309,10 @@
                  ;; entity*
                  'entity*
                  (fn [id] (xt/entity (:juxt.site/db req) id))
-                 'q (fn [& args] (apply xt/q (:juxt.site/db req) args))}})})
+                 'q (fn [& args] (apply xt/q (:juxt.site/db req) args))}
+
+                'clojure.pprint
+                {'pprint pprint}})})
 
             _ (assert
                (:juxt.site/start-date response)

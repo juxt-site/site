@@ -19,7 +19,7 @@
           ;; A Site instance may host multiple resource servers
           ;; Each resource server might host multiple OpenAPIs
           (xt/q '{:find [(pull path [* {(:juxt.site/_variant-of {:as :variants}) [*]}])]
-                  :where [[path :juxt.site/type "https://meta.juxt.site/types/openapi-path"]]})
+                  :where [[path :juxt.site/type "https://meta.juxt.site/types/api-endpoint"]]})
 
           allowed-operations (set (map :xt/id (juxt.site/allowed-operations {})))
 

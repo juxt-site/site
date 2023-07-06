@@ -1,5 +1,5 @@
 {:deps
- ["https://auth.example.org/operations/whoami"
+ ["https://auth.example.org/operations/get-api-endpoints"
   "https://auth.example.org/operations/put-resource"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
@@ -8,13 +8,20 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/operation "https://auth.example.org/operations/whoami"}}
-   :juxt.site/variant-of "https://data.example.org/_site/whoami"
-   :juxt.http/content-type "application/json"
+   {:get {:juxt.site/operation "https://auth.example.org/operations/get-api-endpoints"}}
+   :juxt.site/variant-of "https://data.example.org/_site/api-endpoints"
+   :juxt.http/content-type "text/csv"
+   :juxt.pick/quality-of-source 0.5
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [content (jsonista.core/write-value-as-string *state*)]
+    (let [content (str
+;;                   "uri,method,opeation-uri" "\r\n"
+                   (clojure.string/join
+                    "\r\n"
+                    (for [{:keys [uri method operation-uri]} *state*]
+                      (clojure.string/join "," [uri method operation-uri])))
+                   "\r\n")]
       (-> *ctx*
           (assoc :ring.response/body content)
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}

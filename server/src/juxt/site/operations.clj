@@ -5,6 +5,7 @@
    [juxt.grab.alpha.parser :as graphql.parser]
    [juxt.grab.alpha.schema :as graphql.schema]
    [clojure.tools.logging :as log]
+   [clojure.pprint :refer [pprint]]
    [clojure.string :as str]
    [crypto.password.bcrypt :as bcrypt]
    [java-http-clj.core :as hc]
@@ -426,7 +427,10 @@
 
    'ring.util.codec
    {'form-encode codec/form-encode
-    'form-decode codec/form-decode}})
+    'form-decode codec/form-decode}
+
+   'clojure.pprint
+   {'pprint pprint}})
 
 (defn do-operation-in-tx-fn
   "This function is applied within a transoperation function. It should be fast, but

@@ -32,7 +32,7 @@
                    juxt.site.malli/validate-input)
               id (:xt/id edn)]
           [[:xtdb.api/put
-            (assoc edn :juxt.site/type "https://meta.juxt.site/types/openapi-path")]])))}
+            (assoc edn :juxt.site/type "https://meta.juxt.site/types/api-endpoint")]])))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
