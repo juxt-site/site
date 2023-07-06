@@ -19,10 +19,9 @@
 
   request-token
   {:doc "Acquire a token"
-   :opts {:args->opts [:client-id]
-          :require [:client-id]
+   :opts {:require [:client-id :grant-type]
           :exec-args {:client-id "site-cli"}}
-   :task (juxt.site.bb.tasks/request-token-with-client-secret)}
+   :task (juxt.site.bb.tasks/request-token)}
 
   forget-client-secret
   {:doc "Forget the client_secret for site-cli"

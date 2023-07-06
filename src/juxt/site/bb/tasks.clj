@@ -183,7 +183,7 @@
                  (conj
                   "# This was added by site request-token"
                   (format "oauth2-bearer %s" access-token)))))
-        (println "Bearer token saved to"
+        (println "Access token saved to"
                  (str/replace
                   (.getAbsolutePath config-file)
                   (System/getenv "HOME") "$HOME")))
@@ -216,7 +216,7 @@
 
         ;;_ (println "client-secret-file" client-secret-file " exists?" (.exists client-secret-file))
         secret (when (.exists secret-file)
-                 (println "Reading client-secret from"
+                 (println "Reading client secret from"
                           (str/replace
                            (.getAbsolutePath secret-file)
                            (System/getenv "HOME") "$HOME"))
@@ -314,61 +314,55 @@
         (assoc "claims" claims))
       {:pretty true}))))
 
-(defn request-token-with-client-secret []
-  (let [{:keys [client-id] :as opts} (parse-opts)
+(defn request-token []
+  (let [{:keys [client-id grant-type] :as opts} (parse-opts)
         cfg (config opts)
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-        token-endpoint (str auth-base-uri "/oauth/token")
-        secret (client-secret opts client-id)
-        _ (when-not secret
-            (println "No client-secret found")
-            (System/exit 1))
-        {:keys [status body]}
-        (http/post
-         token-endpoint
-         {:basic-auth [client-id secret]
-          :form-params {"grant_type" "client_credentials"}
-          :throw false})]
-    (case status
-      200 (let [{access-token "access_token"
-                 ;; TODO: Can we use this expires-in to calculate when our token will expire?
-                 expires-in "expires_in"}
-                (json/parse-string body)]
-            (when access-token
-              (save-bearer-token access-token))
-            (println (format "Access token expires in %s seconds" expires-in)))
-      400 (let [{error "error"
-                 desc "error_description"} (json/parse-string body)]
-            (println error)
-            (println desc))
-      (println "ERROR, status" status ", body:" body))))
+        token-endpoint (str auth-base-uri "/oauth/token")]
+    (case grant-type
+      "password"
+      (let [{:keys [username password]} opts
+            {:keys [status body]}
+            (http/post
+             token-endpoint
+             {:headers {"content-type" "application/x-www-form-urlencoded"}
+              :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
+                            "password" username password client-id)
+              :throw false})
 
-(defn request-token-with-password []
-  (let [{:keys [client-id username] :as opts} (parse-opts)
-        cfg (config opts)
-        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+            ]
 
-        token-endpoint (str auth-base-uri "/oauth/token")
+        (case status
+          200 (let [{access-token "access_token"} (json/parse-string body)]
+                (when access-token
+                  (save-bearer-token access-token)))
 
-        ;; Should allow config to specify a default for username (but
-        ;; not password)
-        password "TODO: get from gum"
+          (println (format "Not OK, status was %d\nbody was %s" status body))))
 
-        {:keys [status body]}
-        (http/post
-         token-endpoint
-         {:headers {"content-type" "application/x-www-form-urlencoded"}
-          :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
-                        "password" username password client-id)})
-
-        _ (when-not (= status 200)
-            (println "Not OK, status was" status)
-            (System/exit 1))
-
-        {access-token "access_token"} (json/parse-string body)]
-
-    (when access-token
-      (save-bearer-token access-token))))
+      "client_credentials"
+      (let [secret (client-secret opts client-id)
+            _ (when-not secret
+                (println "No client-secret found")
+                (System/exit 1))
+            {:keys [status body]}
+            (http/post
+             token-endpoint
+             {:basic-auth [client-id secret]
+              :form-params {"grant_type" "client_credentials"}
+              :throw false})]
+        (case status
+          200 (let [{access-token "access_token"
+                     ;; TODO: Can we use this expires-in to calculate when our token will expire?
+                     expires-in "expires_in"}
+                    (json/parse-string body)]
+                (when access-token
+                  (save-bearer-token access-token))
+                (println (format "Access token expires in %s seconds" expires-in)))
+          400 (let [{error "error"
+                     desc "error_description"} (json/parse-string body)]
+                (println error)
+                (println desc))
+          (println "ERROR, status" status ", body:" body))))))
 
   ;; This can be replaced by jo, curl and jq
 #_(defn add-user [{:keys [username password] :as opts}]
