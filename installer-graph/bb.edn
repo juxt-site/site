@@ -1,2 +1,0 @@
-{:min-bb-version "0.6.2"
- :deps {io.github.lispyclouds/bblgum {:git/sha "7ebae0e2231899fe2a6ad44bc9ef5fca64099fcd"}}}
