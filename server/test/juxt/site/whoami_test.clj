@@ -6,14 +6,14 @@
    [jsonista.core :as json]
    [juxt.site.installer :refer [call-operation-with-init-data!]]
    [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
 
 (defn bootstrap []
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/bootstrap"]
    RESOURCE_SERVER
    {})
@@ -26,7 +26,7 @@
    RESOURCE_SERVER
    {})
 
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/sessions"
     "juxt/site/oauth-token-endpoint"
     "juxt/site/oauth-authorization-endpoint"]
@@ -47,13 +47,13 @@
 
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
     "juxt/site/example-users" "juxt/site/protection-spaces"]
    AUTH_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/api-operations"
     "juxt/site/system-api"
     "juxt/site/openapi"

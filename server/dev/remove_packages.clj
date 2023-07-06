@@ -73,7 +73,7 @@
     (.mkdirs (.getParentFile destfile))
     (spit destfile (rewrite-uris (slurp sourcefile) uri-map))))
 
-(defn generate-resource-groups []
+(defn generate-bundles []
   (for [dir (.listFiles (io/file "packages/juxt/site"))
         :when (.isDirectory dir)
         :let [index-file (io/file dir "index.edn")]
@@ -89,11 +89,9 @@
       (update :juxt.site/resources (fn [uris] (map-uris uris uri-map))))
      ]))
 
-(defn save-resource-groups []
+(defn save-bundles []
   (set! *print-namespace-maps* false)
   (spit
-   "resource-groups-openid.edn"
+   "bundles-openid.edn"
    (with-out-str
-     (pprint (into {} (generate-resource-groups))))))
-
-;;(save-resource-groups)
+     (pprint (into {} (generate-bundles`))))))

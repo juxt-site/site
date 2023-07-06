@@ -422,13 +422,13 @@
       (prn (json/generate-string "Not OK")))))
 
 (memoize
- (defn groups [cfg]
-   (let [groups-file (io/file (get cfg "installers-home") "groups.edn")]
-     (when-not (.exists groups-file)
-       (throw (ex-info "groups.edn does not exist" {:groups-file (.getAbsolutePath groups-file)}))
+ (defn bundles [cfg]
+   (let [bundles-file (io/file (get cfg "installers-home") "bundles.edn")]
+     (when-not (.exists bundles-file)
+       (throw (ex-info "bundles.edn does not exist" {:bundles-file (.getAbsolutePath bundles-file)}))
        )
      (edn/read-string
-      (slurp (io/file (System/getenv "SITE_HOME") "installers/groups.edn"))))))
+      (slurp (io/file (System/getenv "SITE_HOME") "installers/bundles.edn"))))))
 
 (defn uri-map-replace
   "Replace URIs in string, taking substitutions from the given uri-map."
@@ -446,7 +446,7 @@
        :else node))
    installers))
 
-(defn bundle-group [cfg {:juxt.site/keys [description parameters installers]} opts]
+(defn- bundle* [cfg {:juxt.site/keys [description parameters installers]} opts]
   (let [uri-map (get cfg "uri-map")
 
         parameters
@@ -462,11 +462,11 @@
     installers-seq))
 
 (defn bundle []
-  (let [{:keys [group] :as opts} (parse-opts)
+  (let [{:keys [bundle] :as opts} (parse-opts)
         cfg (config opts)
-        groups (groups cfg)
+        bundles (bundles cfg)
 
-        group-name (or group
+        bundle-name (or bundle
                        (let [{:keys [status result]}
                              (b/gum {:cmd :filter
                                      :opts {:placeholder "Select resource"
@@ -474,12 +474,12 @@
                                             :indicator "⮕"
                                             :indicator.foreground "#C72"
                                             :match.foreground "#C72"}
-                                     :in (io/input-stream (.getBytes (str/join "\n"(sort (keys groups)))))})]
+                                     :in (io/input-stream (.getBytes (str/join "\n"(sort (keys bundles)))))})]
                          (when-not (zero? status)
                            (throw (ex-info "Error, non-zero status" {})))
                          (first result)))
 
-        installers-seq (bundle-group cfg (get groups group-name) opts)]
+        installers-seq (bundle* cfg (get bundles bundle-name) opts)]
 
     ;; JSON - not yet installable
     #_(println (json/generate-string installers-seq {:pretty true}))
@@ -517,15 +517,15 @@
   (let [opts (parse-opts)
         cfg (config opts)
         kid (random-string 16)
-        groups (groups cfg)
-        installers-seq (bundle-group cfg (get groups "juxt/site/keypair") {:kid kid})]
+        bundles (bundles cfg)
+        installers-seq (bundle* cfg (get bundles "juxt/site/keypair") {:kid kid})]
     (pprint installers-seq)))
 
 (defn request-client-secret []
 
   ;; TODO: The repl (client-secret) must also have a where clause to
   ;; restrict us to the right auth-server! Otherwise we'll be
-  ;; potentially fishing out the first of a group of client-secrets!
+  ;; potentially fishing out the first of a bundle of client-secrets!
 
   (let [{:keys [client-id save] :as opts} (parse-opts)
         client-details

@@ -18,7 +18,7 @@
    [juxt.site.test-helpers.login :as login :refer [with-session-token]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.oauth :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [ring.util.codec :as codec]
@@ -55,7 +55,7 @@
     token))
 
 (defn install-hospital! []
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/bootstrap"]
    RESOURCE_SERVER {})
 
@@ -66,7 +66,7 @@
    RESOURCE_SERVER
    {})
 
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/user-model"
     "juxt/site/password-based-user-identity"
     "juxt/site/sessions"
@@ -86,14 +86,14 @@
                       :juxt.site/resource-server "https://hospital.com"
                       :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
 
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/example-users"
     "juxt/site/login-form"
     "juxt/site/protection-spaces"]
    RESOURCE_SERVER
    {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"})
 
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/hospital-demo"]
    RESOURCE_SERVER {}))
 

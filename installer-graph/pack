@@ -12,7 +12,7 @@
 (memoize
  (defn groups []
    (edn/read-string
-    (slurp (io/file (System/getenv "SITE_HOME") "installers/groups.edn")))))
+    (slurp (io/file (System/getenv "SITE_HOME") "installers/bundles.edn")))))
 
 (defn -main [& args]
 

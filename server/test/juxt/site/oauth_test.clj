@@ -7,7 +7,7 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.installer :refer [call-operation-with-init-data!]]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -16,7 +16,7 @@
    [juxt.site.util :as util]))
 
 (defn bootstrap []
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/bootstrap"]
    RESOURCE_SERVER
    {})
@@ -29,7 +29,7 @@
    RESOURCE_SERVER
    {})
 
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/sessions"
     "juxt/site/oauth-authorization-endpoint"
     "juxt/site/oauth-token-endpoint"
@@ -168,7 +168,7 @@
      :juxt.site/resource-server "https://data.example.test"
      :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
 
-  (install-resource-groups!
+  (install-bundles!
    ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
     "juxt/site/example-users" "juxt/site/protection-spaces"]
    AUTH_SERVER

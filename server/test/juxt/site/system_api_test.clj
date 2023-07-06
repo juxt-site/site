@@ -9,7 +9,7 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -25,7 +25,7 @@
 ;; 'authorization code'.
 
 (defn bootstrap []
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/bootstrap"
     "juxt/site/api-operations"
     "juxt/site/system-api"
@@ -34,7 +34,7 @@
    RESOURCE_SERVER {})
 
   ;; Need some test users and a way for them to authenticate
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/login-form"
     "juxt/site/example-users"]
    RESOURCE_SERVER
@@ -49,7 +49,7 @@
    {})
 
   ;; Install an authorization server
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/oauth-authorization-endpoint"
     "juxt/site/oauth-token-endpoint"]
    RESOURCE_SERVER
@@ -78,12 +78,12 @@
    RESOURCE_SERVER
    {})
 
-  ;; TODO: Analyse the performance cost of install-resource-groups!
+  ;; TODO: Analyse the performance cost of install-bundles!
   ;; Perhaps optimise by only creating the installer graph once and
   ;; passing it in as a parameter.
 
   (converge!
-   ;; TODO: Add these resources to a group
+   ;; TODO: Add these resources to a bundle
    [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/global-scope-app"}
     {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/read-only-app"}
     {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/read-write-app"}

@@ -4,7 +4,7 @@
   (:require
    [clojure.test :refer [deftest is are use-fixtures testing]]
    [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER]]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
@@ -15,7 +15,7 @@
    [clojure.test :as t]))
 
 (defn bootstrap []
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/bootstrap"
     "juxt/site/testing/basic-auth-protected-resource"
     "juxt/site/test-clients"

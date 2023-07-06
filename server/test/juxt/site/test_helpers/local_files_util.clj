@@ -14,15 +14,15 @@
   ;; an override in future.
   (io/file ".."))
 
-(defn install-installer-groups!
+(defn install-bundles!
   ([names uri-map parameter-map]
    (let [root-dir (get-root-dir)
          graph (ciu/unified-installer-map (io/file root-dir "installers") uri-map)
-         groups (edn/read-string (slurp (io/file root-dir "installers/groups.edn")))]
+         bundles (edn/read-string (slurp (io/file root-dir "installers/bundles.edn")))]
      (doseq [n names
-             :let [group (get groups n)
-                   _ (when-not group (throw (ex-info (format "Group not found: %s" n) {:group n})))
-                   resources (some-> groups (get n) :juxt.site/installers)]]
+             :let [bundle (get bundles n)
+                   _ (when-not bundle (throw (ex-info (format "Bundle not found: %s" n) {:bundle n})))
+                   resources (some-> bundles (get n) :juxt.site/installers)]]
        (install/converge!
         *xt-node*
         (install/map-uris resources uri-map)

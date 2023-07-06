@@ -18,7 +18,7 @@
 #_(with-fixtures
   (let [uri-map RESOURCE_SERVER
         graph (ciu/unified-installer-map (io/file "installers") uri-map)
-        groups (edn/read-string (slurp (io/file "installers/groups.edn")))
+        groups (edn/read-string (slurp (io/file "installers/bundles.edn")))
         parameter-map {}]
 
     (let [installer-specs
@@ -31,7 +31,7 @@
 #_(with-fixtures
     (let [uri-map AUTH_SERVER
           graph (unified-installer-map uri-map)
-          groups (edn/read-string (slurp (io/file "installers/groups.edn")))]
+          groups (edn/read-string (slurp (io/file "installers/bundles.edn")))]
 
       (install/map-uris
        (some-> groups (get "juxt/site/bootstrap") :juxt.site/resources)

@@ -3,7 +3,7 @@
 (ns juxt.site.operation-test
   (:require
    [clojure.test :refer [deftest is are use-fixtures testing]]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
@@ -16,7 +16,7 @@
 ;; Test a simple operation that will log something simple
 
 (defn bootstrap []
-  (install-installer-groups! ["juxt/site/bootstrap"] RESOURCE_SERVER {}))
+  (install-bundles! ["juxt/site/bootstrap"] RESOURCE_SERVER {}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)

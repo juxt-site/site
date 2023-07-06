@@ -8,14 +8,14 @@
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login :refer [with-session-token]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER]]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
    [juxt.site.test-helpers.handler :refer [handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [xtdb.api :as xt]))
 
 (defn bootstrap-fixture [f]
-  (install-installer-groups!
+  (install-bundles!
    ["juxt/site/bootstrap"
     "juxt/site/sessions"
     "juxt/site/login-form"

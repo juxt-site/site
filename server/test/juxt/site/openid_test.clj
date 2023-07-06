@@ -6,7 +6,7 @@
    [juxt.site.repl :as repl]
    [ring.util.codec :as codec]
    [juxt.site.test-helpers.login :refer [lookup-session-details]]
-   [juxt.site.test-helpers.local-files-util :refer [install-installer-groups!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
@@ -25,7 +25,7 @@
            "client-secret" "REDACTED"
            "redirect-uri" "https://example.org/openid/callback"}]
 
-      (install-installer-groups! ["juxt/site/bootstrap" "juxt/site/core" "juxt/site/openid"] {} {})
+      (install-bundles! ["juxt/site/bootstrap" "juxt/site/core" "juxt/site/openid"] {} {})
 
       (repl/ls)
       (repl/e "https://site.test/login")
