@@ -20,7 +20,7 @@
        group-by-reference
        (xt/pull
         ;; TODO: Add access tokens
-        '[:username
+        '[:juxt.site/username
           :fullname
           {(:juxt.site/_user {:as :referenced-by})
            [* {(:juxt.site/_user-identity {:as :referenced-by})

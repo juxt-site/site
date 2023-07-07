@@ -342,7 +342,7 @@
                        }
               response (*handler* request)]
           (is (= 200 (:ring.response/status response)))
-          (is (= {"username" "hannah", "fullname" "Hannah"} (json/read-value (:ring.response/body response)))))))))
+          (is (= {"juxt.site/username" "hannah", "fullname" "Hannah"} (json/read-value (:ring.response/body response)))))))))
 
 (deftest application-access-to-users
   (let [{access-token "access_token"}

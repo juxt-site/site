@@ -101,10 +101,10 @@
 
       (let [{:ring.response/keys [status headers]}
             (*handler*
-             {:juxt.site/uri "https://data.example.test/_site/whoami.html"
+             {:juxt.site/uri "https://data.example.test/_site/whoami.edn"
               :ring.request/method :get
               :ring.request/headers
               {"authorization" (format "Bearer %s" access-token)
                }})]
         (is (= 200 status))
-        (is (= "text/html;charset=utf-8" (get headers "content-type")))))))
+        (is (= "application/edn" (get headers "content-type")))))))

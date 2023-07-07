@@ -288,11 +288,13 @@
                            '*resource* (:juxt.site/resource req)
                            '*ctx* (dissoc req :juxt.site/xt-node)
                            'logf (fn [& args] (eval `(log/debugf ~@args)))
-                           'log (fn [& args] (eval `(log/debug ~@args)))}
+                           'log (fn [& args] (eval `(log/debug ~@args)))
+                           'pprint-str (fn [x] (with-out-str (pprint x)))}
                         state (assoc '*state* state))
 
                 'jsonista.core
-                {'write-value-as-string json/write-value-as-string
+                {'write-value-as-string
+                 (fn [x] (json/write-value-as-string x (json/object-mapper {:pretty true})))
                  'read-value json/read-value}
 
                 'ring.util.codec
@@ -311,8 +313,7 @@
                  (fn [id] (xt/entity (:juxt.site/db req) id))
                  'q (fn [& args] (apply xt/q (:juxt.site/db req) args))}
 
-                'clojure.pprint
-                {'pprint pprint}})})
+                })})
 
             _ (assert
                (:juxt.site/start-date response)

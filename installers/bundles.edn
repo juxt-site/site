@@ -47,9 +47,9 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/operations"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/operations.html"}
-   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/operations.json"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations.edn"}
 
    ;; Users
    {:juxt.site/base-uri "https://auth.example.org"
@@ -61,9 +61,9 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/users.html"}
-   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users.json"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/users.edn"}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users/{username}"}
 
@@ -81,7 +81,7 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/whoami.json"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/whoami.html"}
+    :juxt.site/installer-path "/_site/whoami.edn"}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/access-token"}
    {:juxt.site/base-uri "https://data.example.org"
