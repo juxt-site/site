@@ -9,7 +9,8 @@
 
    :juxt.site.malli/input-schema
    [:map
-    [:username :string #_[:re (re-pattern "[a-z]{3,}")]]]
+    [:username [:re "[A-Za-z0-9]{2,}"]]
+    [:password {:optional true} [:string {:min 6}]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
@@ -21,103 +22,95 @@
                    :juxt.site/received-representation
                    :juxt.http/body)
 
-          edn (case content-type
-                "application/edn"
-                (some->
-                 body
-                 (String.)
-                 clojure.edn/read-string)
+          input
+          (case content-type
+            "application/edn"
+            (some->
+             body
+             (String.)
+             clojure.edn/read-string)
 
-                "application/json"
-                (some->
-                 body
-                 (String.)
-                 jsonista.core/read-value-with-keywords))
+            "application/json"
+            (some->
+             body
+             (String.)
+             jsonista.core/read-value-with-keywords))
 
-          _ (assert edn)
+          _ (assert input)
 
-          _ (juxt.site.malli/validate-input edn)
+          _ (juxt.site.malli/validate-input input)
 
-          username (:username edn)
+          username (clojure.string/lower-case (:username input))
+          password-hash (when-let [password (:password input)]
+                          (crypto.password.bcrypt/encrypt password))
 
-          _ (log/info (str "username is " username))
+          user-uri (format "https://data.example.org/_site/users/%s" username)
+          user-id-uri (format "https://data.example.org/_site/user-identities/%s" username)
 
-          id (format "https://data.example.org/_site/users/%s" username)]
+          input (dissoc input :username :password)
 
-      (assoc edn :xt/id id))}
+          user
+          (-> input
+              (assoc :xt/id user-uri
+                     :juxt.site/username username
+                     :juxt.site/type "https://meta.juxt.site/types/user"
+                     :juxt.site/methods
+                     {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
+                     :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+
+                     :juxt.site/access-control-allow-origins
+                     [[".*" {:juxt.site/access-control-allow-origin "*"
+                             :juxt.site/access-control-allow-methods [:get]
+                             :juxt.site/access-control-allow-headers ["authorization"]}]]))
+
+          variant
+          {:juxt.site/variant-of user-uri
+           :juxt.site/methods
+           {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
+           :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+           :juxt.site/access-control-allow-origins
+           [[".*" {:juxt.site/access-control-allow-origin "*"
+                   :juxt.site/access-control-allow-methods [:get]
+                   :juxt.site/access-control-allow-headers ["authorization"]}]]
+
+           :juxt.site/respond
+           {:juxt.site.sci/program
+            #juxt.pprint
+            (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
+              (-> *ctx*
+                  (assoc :ring.response/body content)
+                  (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}
+
+          user-json
+          (assoc variant
+                 :xt/id (str user-uri ".json")
+                 :juxt.http/content-type "application/json")
+
+          user-edn
+          (assoc variant
+                 :xt/id (str user-uri ".edn")
+                 :juxt.http/content-type "application/edn")
+
+          user-identity
+          (when password-hash
+            {:xt/id user-id-uri
+             :juxt.site/user user-uri
+             :juxt.site/username username
+             :juxt.site/password-hash password-hash
+             :juxt.site/type #{"https://meta.juxt.site/types/user-identity"
+                               "https://meta.juxt.site/types/basic-user-identity"}})]
+
+      (filter some? [user user-json user-edn user-identity]))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [edn *prepare*
-          id (:xt/id edn)]
-
-      (log/info (str "edn is " edn))
-
-      ;; TODO: Ensure id doesn't already exist
-
-      [[:xtdb.api/put
-        (assoc
-         edn
-         :juxt.site/type "https://meta.juxt.site/types/user"
-         :juxt.site/methods
-         {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
-         :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
-
-         :juxt.site/access-control-allow-origins
-         [[".*" {:juxt.site/access-control-allow-origin "*"
-                 :juxt.site/access-control-allow-methods [:get]
-                 :juxt.site/access-control-allow-headers ["authorization"]}]]
-
-         ;; It's nice to be able to access this resource via a browser
-         ;;:juxt.site/session-scope "{{session-scope}}"
-         )]
-
-       ;; JSON version
-       [:xtdb.api/put
-        {:xt/id (str id ".json")
-         :juxt.site/variant-of id
-         :juxt.http/content-type "application/json"
-         :juxt.site/methods
-         {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
-         :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
-         :juxt.site/access-control-allow-origins
-         [[".*" {:juxt.site/access-control-allow-origin "*"
-                 :juxt.site/access-control-allow-methods [:get]
-                 :juxt.site/access-control-allow-headers ["authorization"]}]]
-
-         ;; It's nice to be able to access this resource via a browser
-         ;;:juxt.site/session-scope "{{session-scope}}"
-
-         :juxt.site/respond
-         {:juxt.site.sci/program
-          #juxt.pprint
-          (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
-            (-> *ctx*
-                (assoc :ring.response/body content)
-                (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}]
-
-       ;; EDN version
-       [:xtdb.api/put
-        {:xt/id (str id ".edn")
-         :juxt.site/variant-of id
-         :juxt.http/content-type "application/edn"
-         :juxt.site/methods
-         {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
-         :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
-         :juxt.site/access-control-allow-origins
-         [[".*" {:juxt.site/access-control-allow-origin "*"
-                 :juxt.site/access-control-allow-methods [:get]
-                 :juxt.site/access-control-allow-headers ["authorization"]}]]
-
-         :juxt.site/respond
-         {:juxt.site.sci/program
-          #juxt.pprint
-          (let [content (pr-str *state*)]
-            (-> *ctx*
-                (assoc :ring.response/body content)
-                (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}]
-       ])}
+    (mapv
+     (fn [doc]
+       ;; TODO: If xt/id already exists, then an if-matches header
+       ;; must be provided.
+       [:xtdb.api/put doc])
+     *prepare*)}
 
    :juxt.site/scope
    #{"https://auth.example.org/scopes/system/write"}

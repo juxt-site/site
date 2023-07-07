@@ -19,7 +19,8 @@ echo "Requesting token"
 site request-token --client-id site-cli --grant-type client_credentials
 
 echo "Creating user"
-jo username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
+jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
+jo -- -s username=bob fullname="Bob Stewart" password=foobar | curl --json @- http://localhost:4444/_site/users
 
 echo "Getting users"
 curl http://localhost:4444/_site/users

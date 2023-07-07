@@ -328,9 +328,13 @@
              {:headers {"content-type" "application/x-www-form-urlencoded"}
               :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
                             "password" username password client-id)
-              :throw false})
+              :throw false})]
 
-            ]
+        (when-not username
+          (throw (ex-info "username must be given" {})))
+
+        (when-not password
+          (throw (ex-info "password must be given" {})))
 
         (case status
           200 (let [{access-token "access_token"} (json/parse-string body)]
