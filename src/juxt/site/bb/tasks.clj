@@ -549,4 +549,5 @@
   (when (input/confirm "Factory reset and delete ALL resources?")
     (let [{:keys [status body]}
           (http/post "http://localhost:4911/reset")]
-      (println status body))))
+      ;; print not println, as the body should be terminated in a CRLF
+      (print status body))))

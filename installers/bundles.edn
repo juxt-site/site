@@ -26,20 +26,37 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-resource"}]}
 
- "juxt/site/resource-installer"
- {:juxt.site/description "Resource installer"
+ "juxt/site/resources-api"
+ {:juxt.site/description "Resources API"
   :juxt.site/installers
-  [{:juxt.site/base-uri "https://data.example.org"
+  [;; Resources
+   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/resources"}
+
+   ;; Permissions (mapping roles to operations)
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "System" "operation" "install-resources"}}]}
+    :juxt.site/parameters {"role" "Bootstrap" "operation" "install-resources"}}
+   ]
+  }
+
+ "juxt/site/endpoints-api"
+ {:juxt.site/description "API introspection"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/api-endpoints"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/api-endpoints.json"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/api-endpoints.edn"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/api-endpoints.csv"}]}
 
  ;; TODO: Shouldn't SystemAPI be broken up into individual endpoints?
  "juxt/site/system-api"
  {:juxt.site/description "Site System API"
   :juxt.site/installers
-  [;; Operations
+  [ ;; Operations
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/get-operations"}
    {:juxt.site/base-uri "https://auth.example.org"
@@ -90,16 +107,6 @@
     :juxt.site/installer-path "/permissions/whoami"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/get-access-token"}
-
-   ;; API introspection
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/api-endpoints"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/api-endpoints.json"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/api-endpoints.edn"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/api-endpoints.csv"}
 
    ;; Requests
    {:juxt.site/base-uri "https://auth.example.org"

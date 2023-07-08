@@ -6,7 +6,11 @@ curl -X POST http://localhost:4911/reset
 echo "Installing bundles"
 site bundle juxt/site/bootstrap | curl -K $SITE_HOME/install.curl
 site bundle juxt/site/api-operations | curl -K $SITE_HOME/install.curl
-site bundle juxt/site/system-api | curl -K $SITE_HOME/install.curl
+
+#site bundle juxt/site/system-api | curl -K $SITE_HOME/install.curl
+site bundle juxt/site/resources-api | curl -K $SITE_HOME/install.curl
+site bundle juxt/site/endpoints-api | curl -K $SITE_HOME/install.curl
+
 site bundle juxt/site/oauth-token-endpoint | curl -K $SITE_HOME/install.curl
 site new-keypair | curl -K $SITE_HOME/install.curl
 site bundle juxt/site/system-client --client-id site-cli | curl -K $SITE_HOME/install.curl

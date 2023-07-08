@@ -86,12 +86,12 @@
                        [] installer-seq)
 
                response-body
-               (with-out-str
-                 (pprint
-                  {:message "Installed"
-                   :count c
-                   :results results
-                   }))]
+               (-> {:message "Resources successfully installed"
+                    :count c
+                    ;;:uris (mapv :juxt.site/uri results)
+                    }
+                   (json/write-value-as-string (json/object-mapper {:pretty true}))
+                   (str "\r\n"))]
 
            (-> req
                (update :ring.response/headers (fnil merge {})
@@ -170,7 +170,11 @@
              [:xtdb.api/evict id]))
           (xt/await-tx xt-node))
 
-         (assoc req :ring.response/body "Reset"))}}}
+         (let [content "Reset\r\n"]
+           (-> req
+               (update :ring.response/headers assoc "content-type" "text/plain")
+               (update :ring.response/headers assoc "content-length" (str (count content)))
+               (assoc :ring.response/body content))))}}}
 
     {:juxt.site/type "https://meta.juxt.site/types/not-found"
      :juxt.site/methods {}}))
