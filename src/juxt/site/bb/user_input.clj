@@ -16,11 +16,7 @@
                    :as :bool
                    :args [prompt]
                    :opts (merge
-                          {:selected.background "#A51"
-                           ;; "affirmative" "Delete ALL"
-                           ;; "negative" "Cancel"
-                           }
-                          opts
+                          {:selected.background "#A51"}
                           )})]
        (when (= status 130)
          (System/exit 2))
