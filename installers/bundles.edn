@@ -16,6 +16,25 @@
    ;; Each base-uri has a configuration, allowing us to attach meta-data to it.
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/config"}
    {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/config"}
+
+   ;; A Bootstrap role for allowing site-cli and insite to add users
+   ;; and grant permissions.
+   ;;
+   ;; TODO: Could
+   ;; https://auth.example.org/_site/operations/create-operation and
+   ;; https://auth.example.org/_site/operations/grant-permission be
+   ;; assigned to this role (and their rules changed to consider roles
+   ;; as well as direct subject assignment?)
+   ;;
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/roles/{{role}}"
+    :juxt.site/parameters {"role" "Bootstrap"}
+    :juxt.site/description "This role grants access to operations that can add users and grant permissions."}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/roles/{{role}}"
+    :juxt.site/parameters {"role" "SystemQuery"}
+    :juxt.site/description "This role grants access to operations that query sensitive system information."}
    ]}
 
  "juxt/site/api-operations"
@@ -29,7 +48,7 @@
  "juxt/site/resources-api"
  {:juxt.site/description "Resources API"
   :juxt.site/installers
-  [;; Resources
+  [ ;; Resources
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/resources"}
 
@@ -50,7 +69,11 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/api-endpoints.edn"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/api-endpoints.csv"}]}
+    :juxt.site/installer-path "/_site/api-endpoints.csv"}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SystemQuery"
+                           "operation" "get-api-endpoints"}}]}
 
  ;; TODO: Shouldn't SystemAPI be broken up into individual endpoints?
  "juxt/site/system-api"
@@ -84,7 +107,7 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users/{username}"}
 
-   ;; Roles
+   ;; Roles (deprecated, replaced with Bootstrap and SystemQuery)
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/roles/{{role}}"
     :juxt.site/parameters {"role" "System"}}
@@ -302,7 +325,7 @@
    ]}
 
  "juxt/site/system-client"
- {:juxt.site/description "Register a client with the System role"
+ {:juxt.site/description "Register a client with the Bootstrap and SystemQuery roles"
   ;; We declare required parameters in an ordered map. This helps the
   ;; bb script introspect which parameters are required for each
   ;; bundle, saving us the trouble of having to custom code a bb task
@@ -318,7 +341,12 @@
     :juxt.site/installer-path "/_site/role-assignments/{{clientid}}-{{rolename}}"
     :juxt.site/parameters
     {"clientid" "{{client-id}}"
-     "rolename" "System"}}]}
+     "rolename" "Bootstrap"}}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/role-assignments/{{clientid}}-{{rolename}}"
+    :juxt.site/parameters
+    {"clientid" "{{client-id}}"
+     "rolename" "SystemQuery"}}]}
 
  "juxt/site/example-users"
  {:juxt.site/description "Example users"
