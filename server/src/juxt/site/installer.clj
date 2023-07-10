@@ -24,10 +24,9 @@
     (let [db (xt/db xt-node)
           _ (assert (:juxt.site/subject-uri init-data))
           _ (log/infof
-             "Calling operation %s by subject %s: input id %s"
-             (:juxt.site/operation-uri init-data)
+             "Subject %s calling operation %s"
              subject-id
-             (:xt/id init-data))
+             (:juxt.site/operation-uri init-data))
 
           subject (when (:juxt.site/subject-uri init-data)
                     (xt/entity db (:juxt.site/subject-uri init-data)))
@@ -61,12 +60,6 @@
           (throw (ex-info "Failed to perform operation" {:init-data init-data} cause)))))
 
     ;; Go direct! (but only on certain conditions)
-    #_(do
-      #_(println "init-data: %s" (pr-str init-data))
-      (throw
-       (ex-info
-        (format "Should not install this without a subject/operation: %s" (get-in init-data [:juxt.site/input :xt/id]))
-        {})))
     (do
         (assert (get-in init-data [:juxt.site/input :xt/id]))
         (log/infof
