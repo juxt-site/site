@@ -24,7 +24,7 @@
     (let [db (xt/db xt-node)
           _ (assert (:juxt.site/subject-uri init-data))
           _ (log/infof
-             "Subject %s calling operation %s"
+             "Subject %s performing operation %s"
              subject-id
              (:juxt.site/operation-uri init-data))
 
