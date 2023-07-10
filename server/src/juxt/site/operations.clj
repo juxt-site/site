@@ -827,7 +827,7 @@
           e))))))
 
 
-(defn do-operation!
+(defn perform-ops!
   [{:juxt.site/keys [xt-node db resource subject operation] :as ctx}]
   (assert operation)
 

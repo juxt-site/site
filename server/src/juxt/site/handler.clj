@@ -220,7 +220,7 @@
       ;; It's rare but sometimes a GET will involve a transaction. For example,
       ;; the Authorization Request (RFC 6749 Section 4.2.1).
       (and operation (:juxt.site/transact operation))
-      (operations/do-operation!
+      (operations/perform-ops!
        (cond-> req
          ;; A java.io.BufferedInputStream in the request can cause this error:
          ;; "invalid tx-op: Unfreezable type: class
@@ -341,7 +341,7 @@
         ;; Default response status
         req (assoc req :ring.response/status 200)]
 
-    (operations/do-operation!
+    (operations/perform-ops!
      (-> req
          ;; A java.io.BufferedInputStream in the request can provoke this
          ;; error: "invalid tx-op: Unfreezable type: class
