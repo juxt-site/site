@@ -4,7 +4,7 @@
   {:xt/id "{{$id}}"
    :juxt.site/type "https://meta.juxt.site/types/permission"
    :juxt.site/operation #{"https://auth.example.org/_site/operations/create-operation"
-                       "https://auth.example.org/_site/operations/grant-permission"}
+                          "https://auth.example.org/_site/operations/grant-permission"}
    :juxt.site/purpose nil
    :juxt.site/subject "https://auth.example.org/_site/subjects/system"
    }
