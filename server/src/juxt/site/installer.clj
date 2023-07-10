@@ -48,7 +48,6 @@
         (:juxt.site/operation-result
          (operations/perform-ops!
           (cond-> {:juxt.site/xt-node xt-node
-                   :juxt.site/db db
                    :juxt.site/subject subject
                    :juxt.site/operation operation}
 

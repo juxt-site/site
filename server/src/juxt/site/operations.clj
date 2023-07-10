@@ -826,13 +826,11 @@
           (merge (ex-data e) (ex-data (.getCause e)))
           e))))))
 
-
 (defn perform-ops!
-  [{:juxt.site/keys [xt-node db resource subject operation] :as ctx}]
+  [{:juxt.site/keys [xt-node resource subject operation] :as ctx}]
   (assert operation)
 
   (assert (:juxt.site/xt-node ctx) "xt-node must be present")
-  (assert (:juxt.site/db ctx) "db must be present")
 
   (when-not (map? operation)
     (throw
@@ -861,7 +859,7 @@
   ;; by an anonymous user.
   (let [prepare (do-prepare ctx operation)
         tx-fn (:juxt.site/do-operation-tx-fn operation)
-        _ (when-not (xt/entity db tx-fn)
+        _ (when-not (xt/entity (xt/db xt-node) tx-fn)
             (throw (ex-info (format "do-operation must exist in database: %s" tx-fn)
                             {:operation operation})))
         tx-ctx (cond-> (sanitize-ctx ctx)
