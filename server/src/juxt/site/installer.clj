@@ -16,33 +16,23 @@
         [:xtdb.api/put (dissoc m :xtdb.api/valid-time) vt])))
    (xt/await-tx xt-node)))
 
-(defn perform-operation! [xt-node init-data]
-  (when-not init-data (throw (ex-info "No init data" {})))
-
-  (if-let [subject-id (:juxt.site/subject-uri init-data)]
-
+(defn perform-operation! [xt-node {:juxt.site/keys [subject-uri operation-uri input] :as op-data}]
+  (if subject-uri
     (let [db (xt/db xt-node)
-          _ (assert (:juxt.site/subject-uri init-data))
-          _ (log/infof
-             "Subject %s performing operation %s"
-             subject-id
-             (:juxt.site/operation-uri init-data))
-
-          subject (when (:juxt.site/subject-uri init-data)
-                    (xt/entity db (:juxt.site/subject-uri init-data)))
-
+          _ (log/infof "Subject %s performing operation %s" subject-uri operation-uri)
+          subject (xt/entity db subject-uri)
           _ (when-not subject
               (throw
                (ex-info
-                (format "No such subject found in database for %s" subject-id)
-                {:subject-id subject-id})))
+                (format "No such subject found in database for %s" subject-uri)
+                {:subject-uri subject-uri})))
 
-          operation (xt/entity db (:juxt.site/operation-uri init-data))
+          operation (xt/entity db operation-uri)
           _ (when-not operation
               (throw
                (ex-info
-                (format "No such operation found in database for %s" (:juxt.site/operation-uri init-data))
-                {:operation-id (:juxt.site/operation-uri init-data)})))]
+                (format "No such operation found in database for %s" operation-uri)
+                {:operation-uri operation-uri})))]
 
       (try
         (:juxt.site/operation-result
@@ -51,20 +41,19 @@
                    :juxt.site/subject subject
                    :juxt.site/operation operation}
 
-            (:juxt.site/input init-data)
+            input
             (merge {:juxt.site/received-representation
                     {:juxt.http/content-type "application/edn"
-                     :juxt.http/body (.getBytes (pr-str (:juxt.site/input init-data)))}}))))
+                     :juxt.http/body (.getBytes (pr-str input))}}))))
         (catch Exception cause
-          (throw (ex-info "Failed to perform operation" {:init-data init-data} cause)))))
+          (throw (ex-info "Failed to perform operation" {:init-data op-data} cause)))))
 
     ;; Go direct! (but only on certain conditions)
-    (do
-        (assert (get-in init-data [:juxt.site/input :xt/id]))
-        (log/infof
-         "Installing id %s"
-         (get-in init-data [:juxt.site/input :xt/id]))
-        (put! xt-node (:juxt.site/input init-data)))))
+    (if-let [id (:xt/id input)]
+      (do
+        (log/infof "Installing id %s" id)
+        (put! xt-node input))
+      (throw (ex-info "xt/id required when no subject-uri" {})))))
 
 (defn call-installer
   [xt-node

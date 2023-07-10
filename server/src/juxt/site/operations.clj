@@ -830,19 +830,19 @@
   [{:juxt.site/keys [xt-node resource subject operation] :as ctx}]
   (assert operation)
 
-  (assert (:juxt.site/xt-node ctx) "xt-node must be present")
-
-  (when-not (map? operation)
-    (throw
-     (ex-info
-      "Operation must be a map"
-      {:juxt.site/request-context ctx :operation operation})))
+  (assert xt-node "xt-node must be present")
 
   (when-not (or (nil? subject) (map? subject))
     (throw
      (ex-info
       "Subject to do-operation expected to be a map, or null"
       {:juxt.site/request-context ctx :subject subject})))
+
+  (when-not (map? operation)
+    (throw
+     (ex-info
+      "Operation must be a map"
+      {:juxt.site/request-context ctx :operation operation})))
 
   (when-not (or (nil? resource) (map? resource))
     (throw
