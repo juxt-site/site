@@ -16,7 +16,7 @@
         [:xtdb.api/put (dissoc m :xtdb.api/valid-time) vt])))
    (xt/await-tx xt-node)))
 
-(defn call-operation-with-init-data! [xt-node init-data]
+(defn perform-operation! [xt-node init-data]
   (when-not init-data (throw (ex-info "No init data" {})))
 
   (if-let [subject-id (:juxt.site/subject-uri init-data)]
@@ -82,7 +82,7 @@
 
   (try
     (let [{:juxt.site/keys [puts] :as result}
-          (call-operation-with-init-data! xt-node init-data)]
+          (perform-operation! xt-node init-data)]
       (when (and puts (not (contains? (set puts) uri)))
         (throw (ex-info "Puts does not contain uri" {:juxt.site/uri uri :puts puts})))
       {:juxt.site/uri uri :status :installed :result result})

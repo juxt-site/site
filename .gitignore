@@ -16,3 +16,4 @@ opt/graphiql/target
 .clj-kondo/babashka
 **/generated/*
 /target/
+/server/.clj-kondo/

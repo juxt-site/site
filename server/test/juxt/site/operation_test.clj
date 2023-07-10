@@ -9,7 +9,7 @@
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.xt :refer [*xt-node*]]
-   [juxt.site.installer :refer [call-operation-with-init-data!]]
+   [juxt.site.installer :refer [perform-operation!]]
    ))
 
 ;; Bootstrap fixture
@@ -31,7 +31,7 @@
    AUTH_SERVER
    {})
 
-  (call-operation-with-init-data!
+  (perform-operation!
    *xt-node*
    {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
     :juxt.site/operation-uri "https://auth.example.test/operations/test-logging"

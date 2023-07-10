@@ -6,7 +6,7 @@
    [jsonista.core :as json]
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
-   [juxt.site.installer :refer [call-operation-with-init-data!]]
+   [juxt.site.installer :refer [perform-operation!]]
    [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
@@ -56,7 +56,7 @@
 (deftest register-application-test
   (testing "Register application with generated client-id"
     (let [result
-          (call-operation-with-init-data!
+          (perform-operation!
            *xt-node*
            {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
             :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
@@ -69,7 +69,7 @@
 
   (testing "Register client with generated client-id and client-secret"
     (let [result
-          (call-operation-with-init-data!
+          (perform-operation!
            *xt-node*
            {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
             :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
@@ -86,7 +86,7 @@
     (let [input {:juxt.site/client-id "test-app"
                  :juxt.site/client-type "public"
                  :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}]
-      (call-operation-with-init-data!
+      (perform-operation!
        *xt-node*
        {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
         :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
@@ -101,7 +101,7 @@
          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}
         (xt/entity (xt/db *xt-node*) "https://auth.example.test/applications/test-app")))
 
-      (call-operation-with-init-data!
+      (perform-operation!
        *xt-node*
        {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
         :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
@@ -113,7 +113,7 @@
     ;; force upon the user the task of sorting the insertion of
     ;; resources in topographical dependency order.
     (is
-     (call-operation-with-init-data!
+     (perform-operation!
       *xt-node*
       {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
        :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
@@ -123,7 +123,7 @@
 
 #_(deftest set-client-secret-test
   (let [old (repl/e "https://auth.example.test/applications/test/clientA")]
-    (call-operation-with-init-data!
+    (perform-operation!
      *xt-node*
      {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
       :juxt.site/operation-uri "https://auth.example.test/operations/oauth/set-client-secret"
@@ -158,7 +158,7 @@
              (json/read-value body))))))
 
 #_(with-fixtures
-  (call-operation-with-init-data!
+  (perform-operation!
    *xt-node*
    {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
     :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"

@@ -12,7 +12,7 @@
    [juxt.grab.alpha.schema :as grab.schema]
    [juxt.site.eql-datalog-compiler :as eqlc]
    [juxt.site.graphql-eql-compiler :refer [graphql->eql-ast]]
-   [juxt.site.installer :refer [call-operation-with-init-data!]]
+   [juxt.site.installer :refer [perform-operation!]]
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login :refer [with-session-token]]
@@ -77,7 +77,7 @@
     "authorization-code-length" 12
     "jti-length" 12})
 
-  (call-operation-with-init-data!
+  (perform-operation!
    *xt-node*
    {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/operation-uri "https://auth.hospital.com/operations/oauth/register-application"
@@ -105,7 +105,7 @@
 
 (deftest eql-with-acl-test
   ;; Create some measurements
-  (call-operation-with-init-data!
+  (perform-operation!
    *xt-node*
    {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
@@ -114,7 +114,7 @@
                       :reading {"heartRate" "120"
                                 "bloodPressure" "137/80"}}})
 
-  (call-operation-with-init-data!
+  (perform-operation!
    *xt-node*
    {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
@@ -123,7 +123,7 @@
                       :reading {"heartRate" "82"
                                 "bloodPressure" "198/160"}}})
 
-  (call-operation-with-init-data!
+  (perform-operation!
    *xt-node*
    {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"
@@ -132,7 +132,7 @@
                       :reading {"heartRate" "85"
                                 "bloodPressure" "120/80"}}})
 
-  (call-operation-with-init-data!
+  (perform-operation!
    *xt-node*
    {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
     :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/register-patient-measurement"

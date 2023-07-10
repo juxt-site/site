@@ -4,7 +4,7 @@
   (:require
    [clojure.test :refer [deftest is use-fixtures]]
    [jsonista.core :as json]
-   [juxt.site.installer :refer [call-operation-with-init-data!]]
+   [juxt.site.installer :refer [perform-operation!]]
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
@@ -35,7 +35,7 @@
     "authorization-code-length" 12
     "jti-length" 12})
 
-  (call-operation-with-init-data!
+  (perform-operation!
    *xt-node*
    {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
     :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
