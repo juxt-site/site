@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Reset
+# Local
+
+## Reset
 curl -X POST http://localhost:4911/reset
 
 echo "Installing bundles"
@@ -8,7 +10,6 @@ site bundle juxt/site/bootstrap | curl -K $SITE_HOME/install.curl
 site bundle juxt/site/api-operations | curl -K $SITE_HOME/install.curl
 
 #site bundle juxt/site/system-api | curl -K $SITE_HOME/install.curl
-site bundle juxt/site/resources-api | curl -K $SITE_HOME/install.curl
 site bundle juxt/site/endpoints-api | curl -K $SITE_HOME/install.curl
 
 site bundle juxt/site/oauth-token-endpoint | curl -K $SITE_HOME/install.curl
@@ -16,15 +17,22 @@ site new-keypair | curl -K $SITE_HOME/install.curl
 site bundle juxt/site/system-client --client-id site-cli | curl -K $SITE_HOME/install.curl
 site bundle juxt/site/system-client --client-id insite | curl -K $SITE_HOME/install.curl
 
+site bundle juxt/site/resources-api | curl -K $SITE_HOME/install.curl
+
 echo "Extracting client secret"
 site client-secret --save site-cli
+
+# Remote
 
 echo "Requesting token"
 site request-token --client-id site-cli --grant-type client_credentials
 
-echo "Creating user"
+echo "Creating users"
 jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
 jo -- -s username=bob fullname="Bob Stewart" password=foobar | curl --json @- http://localhost:4444/_site/users
 
 echo "Getting users"
 curl http://localhost:4444/_site/users
+
+echo "Getting API endpoints"
+curl http://localhost:4444/_site/api-endpoints
