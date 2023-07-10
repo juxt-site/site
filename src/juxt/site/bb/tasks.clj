@@ -216,10 +216,11 @@
 
         ;;_ (println "client-secret-file" client-secret-file " exists?" (.exists client-secret-file))
         secret (when (.exists secret-file)
-                 (println "Reading client secret from"
-                          (str/replace
-                           (.getAbsolutePath secret-file)
-                           (System/getenv "HOME") "$HOME"))
+                 (binding [*out* *err*]
+                   (println "Reading client secret from"
+                            (str/replace
+                             (.getAbsolutePath secret-file)
+                             (System/getenv "HOME") "$HOME")))
                  (str/trim (slurp secret-file)))
 
         secret
@@ -232,10 +233,11 @@
                                            :width 60
                                            :header (format "Input client secret for %s" client-id)})})]
                 (when cache-client-secret?
-                  (println "Writing client_secret to"
-                           (str/replace
-                            (.getAbsolutePath secret-file)
-                            (System/getenv "HOME") "$HOME"))
+                  (binding [*out* *err*]
+                    (println "Writing client_secret to"
+                             (str/replace
+                              (.getAbsolutePath secret-file)
+                              (System/getenv "HOME") "$HOME")))
                   (spit secret-file secret))
                 secret)))]
 
@@ -250,10 +252,8 @@
         (io/delete-file secret-file))
       (println "No such file:" (.getAbsolutePath secret-file)))))
 
-(defn- retrieve-bearer-token []
-  (let [opts (parse-opts)
-        cfg (config opts)
-        {curl "curl" bearer-token-file "bearer-token"} cfg
+(defn- retrieve-bearer-token [cfg]
+  (let [{curl "curl" bearer-token-file "bearer-token"} cfg
         {save-bearer-token-to-default-config-file "save-bearer-token-to-default-config-file"} curl
         token (cond
                 (and bearer-token-file save-bearer-token-to-default-config-file)
@@ -271,7 +271,8 @@
 
 (defn check-token []
   (let [opts (parse-opts)
-        token (retrieve-bearer-token)
+        cfg (config opts)
+        token (retrieve-bearer-token cfg)
         _ (when-not token (System/exit 1))
 
         secret (client-secret opts "site-cli")
@@ -368,45 +369,60 @@
                 (println desc))
           (println "ERROR, status" status ", body:" body))))))
 
-  ;; This can be replaced by jo, curl and jq
+(defn authorization [cfg]
+  (format "Bearer %s" (retrieve-bearer-token cfg)))
+
+(defn api-endpoints []
+  (let [opts (parse-opts)
+        cfg (config opts)
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        endpoint (str data-base-uri "/_site/api-endpoints")
+        {:keys [status body]} (http/get
+                               endpoint
+                               {:headers {"content-type" "application/json"
+                                          "authorization" (authorization cfg)}})]
+    (when (= status 200)
+      (print body))))
+
+;; This can be replaced by jo, curl and jq
 #_(defn add-user [{:keys [username password] :as opts}]
-  (let [{resource-server "resource_server"} (config)
-        api-endpoint (str (get resource-server "base_uri") "/_site/users")
+    (let [{resource-server "resource_server"} (config)
+          api-endpoint (str (get resource-server "base_uri") "/_site/users")
 
-        token (retrieve-bearer-token)
-        ;; Couldn't we just request the token?
-        _ (when-not token
-            (throw (ex-info "No bearer token" {})))
+          token (retrieve-bearer-token)
+          ;; Couldn't we just request the token?
+          _ (when-not token
+              (throw (ex-info "No bearer token" {})))
 
-        cleartext-password
-        (when password
-          (let [{input-status :status [cleartext-password] :result}
-                (b/gum {:cmd :input
-                        :opts (cond-> {:header.foreground "#C72"
-                                       :prompt.foreground "#444"
-                                       :password true
-                                       :width 60
-                                       :header (format "Input client secret for %s" username)})})]
-            (if-not (zero? input-status)
-              (throw (ex-info "Password input failed" {}))
-              cleartext-password)))
+          cleartext-password
+          (when password
+            (let [{input-status :status [cleartext-password] :result}
+                  (b/gum {:cmd :input
+                          :opts (cond-> {:header.foreground "#C72"
+                                         :prompt.foreground "#444"
+                                         :password true
+                                         :width 60
+                                         :header (format "Input client secret for %s" username)})})]
+              (if-not (zero? input-status)
+                (throw (ex-info "Password input failed" {}))
+                cleartext-password)))
 
-        request-body (->
-                      (cond-> opts
-                        (:password opts) (dissoc :password)
-                        cleartext-password (assoc :password cleartext-password))
-                      json/generate-string)
+          request-body (->
+                        (cond-> opts
+                          (:password opts) (dissoc :password)
+                          cleartext-password (assoc :password cleartext-password))
+                        json/generate-string)
 
-        {post-status :status response-body :body}
-        (http/post
-         api-endpoint
-         {:headers {"content-type" "application/json"
-                    "authorization" (format "Bearer %s" token)}
-          :body request-body})]
+          {post-status :status response-body :body}
+          (http/post
+           api-endpoint
+           {:headers {"content-type" "application/json"
+                      "authorization" (format "Bearer %s" token)}
+            :body request-body})]
 
 
-    (println "post-status:" post-status)
-    (println "request-body:" request-body)))
+      (println "post-status:" post-status)
+      (println "request-body:" request-body)))
 
 #_(defn jwks []
   (let [{authorization-server "authorization_server"} (config)

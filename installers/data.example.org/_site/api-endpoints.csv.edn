@@ -15,11 +15,14 @@
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [content (str
-;;                   "uri,method,opeation-uri" "\r\n"
+    (let [header (zipmap
+                  [:uri :method :operation-uri]
+                  ["uri" "method" "operation-uri"])
+          content (str
                    (clojure.string/join
                     "\r\n"
-                    (for [{:keys [uri method operation-uri]} *state*]
+                    (for [{:keys [uri method operation-uri]}
+                          (cons header *state*)]
                       (clojure.string/join "," [uri method operation-uri])))
                    "\r\n")]
       (-> *ctx*

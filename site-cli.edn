@@ -41,9 +41,16 @@
           :alias {:f :format}}
    :task (juxt.site.bb.tasks/config-task)}
 
-  ls {:doc "List resources"
-      :opts {:args->opts [:pattern]}
-      :task (juxt.site.bb.tasks/ls)}
+  ls
+  {:doc "List resources"
+   :opts {:args->opts [:pattern]}
+   :task (juxt.site.bb.tasks/ls)}
+
+  api-endpoints
+  {:doc "List available API endpoints"
+   :opts {:args->opts [:pattern]}
+   :task (juxt.site.bb.tasks/api-endpoints)}
+
 
   ;;  ls-site-type {:task (juxt.site.bb.bootstrap.tasks/ls-site-type (first *command-line-args*))}
 
