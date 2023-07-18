@@ -23,15 +23,19 @@ site client-secret --save site-cli
 # whoami would be useful for debugging at this point
 site bundle juxt/site/whoami-api | curl -K $SITE_HOME/install.curl
 
+# home client-secret is 24c93fc5eb965ad69221a0322c42079cea422404
+
 # Remote
 
 echo "Requesting token as application"
 site request-token --client-id site-cli --grant-type client_credentials
 
+echo "Install Users API"
 site bundle juxt/site/users-api | curl http://localhost:4444/_site/resources -X POST -H content-type:application/edn -d @-
 
 echo "Creating user"
 jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
+
 site users
 
 echo "Assigning Admin role to user"
@@ -41,8 +45,11 @@ echo "Requesting token as user"
 site request-token --username alice --password foobar --grant-type password
 
 echo "Getting API endpoints"
-site bundle juxt/site/endpoints-api | curl -K $SITE_HOME/install.curl
-curl http://localhost:4444/_site/api-endpoints
+# Can't use install.curl for this, have a rethink
+#site bundle juxt/site/endpoints-api | curl -K $SITE_HOME/install.curl
+#curl http://localhost:4444/_site/api-endpoints
+
+#site bundle juxt/site/endpoints-api | curl https://home.juxt.site/_site/resources -X POST -H content-type:application/edn -d @-
 
 echo "Creating new user"
 jo -- -s username=bob fullname="Bob Stewart" password=foobar | curl --json @- http://localhost:4444/_site/users
