@@ -1,5 +1,6 @@
 {"juxt/site/bootstrap"
- {:juxt.site/description "Bootstrap resources"
+ {:juxt.site/title "Bootstrap resources"
+  :juxt.site/description "Bootstrap resources"
   :juxt.site/installers
   [
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/do-operation"}
@@ -43,7 +44,8 @@
    ]}
 
  "juxt/site/api-operations"
- {:juxt.site/description "API endpoints"
+ {:juxt.site/title "API endpoints"
+  :juxt.site/description "API endpoints"
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-api-endpoint"}
@@ -51,7 +53,8 @@
     :juxt.site/installer-path "/permissions/system/put-resource"}]}
 
  "juxt/site/resources-api"
- {:juxt.site/description "Resources API"
+ {:juxt.site/title "Resources API"
+  :juxt.site/description "Resources API"
   :juxt.site/installers
   [ ;; Resources
    {:juxt.site/base-uri "https://data.example.org"
@@ -65,7 +68,8 @@
   }
 
  "juxt/site/endpoints-api"
- {:juxt.site/description "API introspection"
+ {:juxt.site/title "API introspection"
+  :juxt.site/description "API introspection"
   :juxt.site/installers
   [{:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/api-endpoints"}
@@ -85,7 +89,8 @@
                            "operation" "get-api-endpoints"}}]}
 
  "juxt/site/users-api"
- {:juxt.site/description "Users API"
+ {:juxt.site/title "Users API"
+  :juxt.site/description "Users API"
   :juxt.site/installers
   [
    ;; Operations
@@ -147,7 +152,8 @@
                            "operation" "get-user"}}]}
 
  "juxt/site/whoami-api"
- {:juxt.site/description "Whoami API"
+ {:juxt.site/title "Whoami API"
+  :juxt.site/description "Whoami API"
   :juxt.site/installers
   [
    {:juxt.site/base-uri "https://data.example.org"
@@ -234,7 +240,8 @@
      ]}
 
  "juxt/site/oauth-token-endpoint"
- {:juxt.site/description "OAuth2 token endpoint"
+ {:juxt.site/title "OAuth2 token endpoint"
+  :juxt.site/description "OAuth2 token endpoint"
   :juxt.site/installers
   [
    ;; System permissions required
@@ -252,7 +259,8 @@
    ]}
 
  "juxt/site/keypair"
- {:just.site/description "Keypair"
+ {:just.site/title "Keypair"
+  :just.site/description "Keypair"
   :juxt.site/parameters [["kid" {}]]
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
@@ -260,7 +268,8 @@
     :juxt.site/parameters {"kid" "{{kid}}"}}]}
 
  "juxt/site/oauth-authorization-endpoint"
- {:juxt.site/description "OAuth2 authorization endpoint"
+ {:juxt.site/title "OAuth2 authorization endpoint"
+  :juxt.site/description "OAuth2 authorization endpoint"
   :juxt.site/parameters [["session-scope"
                           {:choices
                            [{:label "Password-based form"
@@ -283,7 +292,8 @@
    ]}
 
  "juxt/site/oauth-introspection-endpoint"
- {:juxt.site/description "OAuth2 RFC 7662 introspection endpoint"
+ {:juxt.site/title "OAuth2 RFC 7662 introspection endpoint"
+  :juxt.site/description "OAuth2 RFC 7662 introspection endpoint"
   :juxt.site/installers
   [
    ;; Introspection endpoint -- see RFC 7662
@@ -303,13 +313,15 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/.well-known/jwks.json"}]}
 
  "juxt/site/protection-spaces"
- {:juxt.site/description "Protection spaces"
+ {:juxt.site/title "Protection spaces"
+  :juxt.site/description "Protection spaces"
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-protection-space"}]}
 
  "juxt/site/openapi"
- {:juxt.site/description "OpenAPI"
+ {:juxt.site/title "OpenAPI"
+  :juxt.site/description "OpenAPI"
   :juxt.site/installers
   [ ;; Required permissions (permissions are generally not specified as
    ;; dependencies but must be created out-of-band)
@@ -320,13 +332,15 @@
    ]}
 
  "juxt/site/system-api-openapi"
- {:juxt.site/description "System API OpenAPI docs"
+ {:juxt.site/title "System API OpenAPI docs"
+  :juxt.site/description "System API OpenAPI docs"
   :juxt.site/installers
   [{:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapi.json"}]}
 
  "juxt/site/sessions"
- {:juxt.site/description "Sessions"
+ {:juxt.site/title "Sessions"
+  :juxt.site/description "Sessions"
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-session-scope"}
@@ -381,7 +395,8 @@
    ]}
 
  "juxt/site/system-client"
- {:juxt.site/description "Register a client with the Bootstrap and SystemQuery roles"
+ {:juxt.site/title "System client"
+  :juxt.site/description "Register a client with the Bootstrap and SystemQuery roles"
   ;; We declare required parameters in an ordered map. This helps the
   ;; bb script introspect which parameters are required for each
   ;; bundle, saving us the trouble of having to custom code a bb task
