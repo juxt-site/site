@@ -35,7 +35,7 @@ jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @
 site users
 
 echo "Assigning Admin role to user"
-jo -- -s juxt.site/user=http://localhost:4444/_site/users/alice juxt.site/role=http://localhost:4444/_site/roles/Admin | curl --json @- http://localhost:4444/_site/operations/assign-role
+jo -- -s juxt.site/user=http://localhost:4444/_site/users/alice juxt.site/role=http://localhost:4444/_site/roles/Admin | curl --json @- http://localhost:4440/operations/assign-role
 
 echo "Requesting token as user"
 site request-token --username alice --password foobar --grant-type password
