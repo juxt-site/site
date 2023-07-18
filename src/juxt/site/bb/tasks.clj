@@ -132,6 +132,18 @@
           (http/get
            (cond-> "http://localhost:4911/resources"
              pattern (str "?pattern=" (url-encode pattern)))
+           {"accept" "application/json"})))]
+    (doseq [res resources]
+      (println res))))
+
+(defn find []
+  (let [{:keys [pattern] :as opts} (parse-opts)
+        resources
+        (json/parse-string
+         (:body
+          (http/get
+           (cond-> "http://localhost:4911/resources"
+             pattern (str "?pattern=" (url-encode pattern)))
            {"accept" "application/json"})))
         sw (java.io.StringWriter.)]
     (with-open [out (java.io.PrintWriter. sw)]
@@ -372,17 +384,26 @@
 (defn authorization [cfg]
   (format "Bearer %s" (retrieve-bearer-token cfg)))
 
-(defn api-endpoints []
+(defn api-request-json [path]
   (let [opts (parse-opts)
         cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-        endpoint (str data-base-uri "/_site/api-endpoints")
+        endpoint (str data-base-uri path)
         {:keys [status body]} (http/get
                                endpoint
                                {:headers {"content-type" "application/json"
                                           "authorization" (authorization cfg)}})]
     (when (= status 200)
       (print body))))
+
+(defn whoami []
+  (api-request-json "/_site/whoami"))
+
+(defn api-endpoints []
+  (api-request-json "/_site/api-endpoints"))
+
+(defn users []
+  (api-request-json "/_site/users"))
 
 ;; This can be replaced by jo, curl and jq
 #_(defn add-user [{:keys [username password] :as opts}]

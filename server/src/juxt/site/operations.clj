@@ -2,36 +2,37 @@
 
 (ns juxt.site.operations
   (:require
-   [juxt.grab.alpha.parser :as graphql.parser]
-   [juxt.grab.alpha.schema :as graphql.schema]
-   [clojure.tools.logging :as log]
    [clojure.pprint :refer [pprint]]
    [clojure.string :as str]
+   [clojure.tools.logging :as log]
    [crypto.password.bcrypt :as bcrypt]
    [java-http-clj.core :as hc]
    [jsonista.core :as json]
+   [juxt.grab.alpha.parser :as graphql.parser]
+   [juxt.grab.alpha.schema :as graphql.schema]
    [juxt.site.http-authentication :as http-authn]
+   [juxt.site.jwt :as jwt]
    [juxt.site.openid-connect :as openid-connect]
-   [juxt.site.util :refer [make-nonce as-b64-str sha] :as util]
+   [juxt.site.util :refer [make-nonce as-b64-str] :as util]
+   [juxt.site.xt-util :as xt-util]
    [malli.core :as malli]
    [malli.error :as malli.error]
    [ring.util.codec :as codec]
    [sci.core :as sci]
    [xtdb.api :as xt]
-   juxt.site.schema
-   [juxt.site.jwt :as jwt]))
+   juxt.site.schema))
 
 (defn operation->rules
   "Determine rules for the given operation id. A rule is bound to the
   given operation."
-  [db operation]
+  [db operation-uri]
   (mapv
    #(conj (second %) ['operation :xt/id (first %)])
    (xt/q db '{:find [e rules]
-              :where [[e :xt/id operation]
+              :where [[e :xt/id operation-uri]
                       [e :juxt.site/rules rules]]
-              :in [operation]}
-         operation)))
+              :in [operation-uri]}
+         operation-uri)))
 
 (defn operations->rules
   "Determine rules for the given operation ids. Each rule is bound to the given
@@ -47,97 +48,84 @@
 ;; authorization is denied and we don't know why. A better authorization
 ;; debugger is definitely required.
 
-(defn ^{:private true} query-permissions
-  [{:keys [db rules subject operation resource scope purpose]}]
-  (assert (or (nil? subject) (string? subject)))
-  (assert (or (nil? resource) (string? resource)))
+(defn- check-permissions
+  [{:juxt.site/keys [db subject-uri operation-uri resource-uri scope purpose]}]
+
+  (assert (or (nil? subject-uri) (string? subject-uri)))
+  (assert (or (nil? resource-uri) (string? resource-uri)))
   (assert (or (nil? scope) (set? scope)))
 
-  (if scope
-    (let [query {:find '[(pull permission [*]) ]
-                 :where
-                 '[
-                   [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
+  (let [rules (operation->rules db operation-uri)]
 
-                   ;; Only consider a permitted operation
-                   [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                   [permission :juxt.site/operation operation]
-                   (allowed? subject operation resource permission)
+    (when-not (seq rules)
+      ;; No rules
+      (throw
+       (ex-info
+        "Operation denied, no rules"
+        {:subject subject-uri
+         :operation operation-uri
+         :resource resource-uri
+         :scope scope
+         :purpose purpose})))
 
-                   ;; Only permissions that match our purpose
-                   [permission :juxt.site/purpose purpose]
+    (let [query (if scope
+                  {:find '[(pull permission [*]) ]
+                   :where
+                   '[
+                     [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
 
-                   ;; When scope limits operations, restrict operations that have the scope
-                   [operation :juxt.site/scope s]
-                   [(contains? scope s)]]
+                     ;; Only consider a permitted operation
+                     [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
+                     [permission :juxt.site/operation operation]
+                     (allowed? subject operation resource permission)
 
-                 :rules rules
+                     ;; Only permissions that match our purpose
+                     [permission :juxt.site/purpose purpose]
 
-                 :in '[subject operation resource scope purpose]}]
-      (try
-        (map first (xt/q db query subject operation resource scope purpose))
-        (catch Exception e
-          (throw (ex-info "Failed to query permissions" {:query query} e)))))
+                     ;; When scope limits operations, restrict operations that have the scope
+                     [operation :juxt.site/scope s]
+                     [(contains? scope s)]]
 
-    ;; No scope involved. Ignore it.
-    (let [query {:find '[(pull permission [*]) ]
-                 :where
-                 '[
-                   [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
+                   :rules rules
 
-                   ;; Only consider a permitted operation
-                   [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                   [permission :juxt.site/operation operation]
-                   (allowed? subject operation resource permission)
+                   :in '[subject operation resource scope purpose]}
 
-                   ;; Only permissions that match our purpose
-                   [permission :juxt.site/purpose purpose]]
+                  {:find '[(pull permission [*]) ]
+                   :where
+                   '[
+                     [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
 
-                 :rules rules
+                     ;; Only consider a permitted operation
+                     [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
+                     [permission :juxt.site/operation operation]
+                     (allowed? subject operation resource permission)
 
-                 :in '[subject operation resource purpose]}]
-      (try
-        (map first (xt/q db query subject operation resource purpose))
-        (catch Exception e
-          (throw (ex-info "Failed to query permissions" {:query query} e)))))))
+                     ;; Only permissions that match our purpose
+                     [permission :juxt.site/purpose purpose]]
 
-(defn check-permissions
-  "Given a subject, an operation and resource, return all permissions."
-  [db operation
-   {subject :juxt.site/subject
-    resource :juxt.site/resource
-    scope :juxt.site/scope
-    purpose :juxt.site/purpose
-    :as options}]
+                   :rules rules
 
-  (when (= (find options :juxt.site/subject) [:juxt.site/subject nil])
-    (throw (ex-info "Nil subject passed!" {})))
+                   :in '[subject operation resource purpose]})
 
-  ;; TODO: These asserts have been replaced by Malli schema instrumentation
-  (assert (or (nil? subject) (map? subject)) "Subject expected to be a map, or null")
-  (assert (or (nil? resource) (map? resource)) "Resource expected to be a map, or null")
+          permissions (try
+                        (map first
+                             (if scope
+                               (xt/q db query subject-uri operation-uri resource-uri scope purpose)
+                               (xt/q db query subject-uri operation-uri resource-uri purpose)))
+                        (catch Exception e
+                          (throw (ex-info "Failed to query permissions" {:query query} e))))]
 
-  (let [rules (operation->rules db operation)]
-    (when (seq rules)
-      (query-permissions
-       {:db db
-        :rules rules
-        :subject (:xt/id subject)
-        :operation operation
-        :resource (:xt/id resource)
-        :scope scope
-        :purpose purpose}))))
-
-(malli/=>
- check-permissions
- [:=> [:cat
-       :any
-       :string
-       [:map
-        [:juxt.site/subject {:optional true}]
-        [:juxt.site/resource {:optional true}]
-        [:juxt.site/purpose {:optional true}]]]
-  :any])
+      (if (seq permissions)
+        permissions
+        (throw
+         (ex-info
+          "Operation denied, no permission"
+          {::type :no-permission
+           :juxt.site/subject-uri subject-uri
+           :juxt.site/operation-uri operation-uri
+           :juxt.site/resource-uri resource-uri
+           :juxt.site/query query
+           :juxt.site/scope scope}))))))
 
 (defn allowed-resources
   "Given a set of possible operations, and possibly a subject and purpose, which
@@ -215,7 +203,7 @@
 
           resource operation purpose))))
 
-(defn pull-allowed-resource
+#_(defn pull-allowed-resource
   "Given a subject, an operation and a resource, pull the allowed
   attributes."
   [db operation resource ctx]
@@ -231,7 +219,7 @@
                         check-result))]
     (xt/pull db pull-expr (:xt/id resource))))
 
-(malli/=>
+#_(malli/=>
  pull-allowed-resource
  [:=> [:cat
        :any
@@ -362,7 +350,8 @@
      (group-by :juxt.site/operation)
      (reduce-kv
       (fn [acc operation permissions]
-        (conj acc (assoc operation :juxt.site/permitted-by (mapv :juxt.site/permission permissions))))
+        (conj acc {:juxt.site/operation operation
+                   :juxt.site/permitted-by (mapv :juxt.site/permission permissions)}))
       []))))
 
 (defn common-sci-namespaces [operation-doc]
@@ -432,348 +421,31 @@
    'clojure.pprint
    {'pprint pprint}})
 
-(defn do-operation-in-tx-fn
-  "This function is applied within a transoperation function. It should be fast, but
-  at least doesn't have to worry about the database being stale!"
-  [xt-ctx
-   {subject :juxt.site/subject
-    operation :juxt.site/operation
-    resource :juxt.site/resource
-    purpose :juxt.site/purpose
-    prepare :juxt.site/prepare
-    :as ctx}]
-  (let [db (xt/db xt-ctx)
-        tx (xt/indexing-tx xt-ctx)
-        operation-doc (xt/entity db operation)
-        _ (when-not operation-doc
-            (throw
-             (ex-info
-              (format "Operation '%s' not found in db" operation)
-              {:operation operation})))]
-    (try
-      (assert (or (nil? subject) (map? subject)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
-      (assert (or (nil? resource) (map? resource)) "Resource to do-operation-in-tx-fn expected to be a string, or null")
-
-      ;; Check that we /can/ call the operation
-      (let [check-permissions-result
-            (check-permissions db operation ctx)]
-
-        (when-not (seq check-permissions-result)
-          (throw (ex-info "Operation denied" ctx)))
-
-        (let [fx
-              (cond
-                ;; Official: sci
-                (-> operation-doc :juxt.site/transact :juxt.site.sci/program)
-                (try
-                  (sci/eval-string
-                   (-> operation-doc :juxt.site/transact :juxt.site.sci/program)
-                   {:namespaces
-                    (merge-with
-                     merge
-                     {'user
-                      {'*operation* operation-doc
-                       '*resource* resource
-                       '*prepare* prepare
-                       '*ctx* ctx}
-                      ;; Allowed to access the database
-                      'xt
-                      {'entity (fn [id] (xt/entity db id))
-                       'q (fn [& args] (apply xt/q db args))}
-
-                      'juxt.site
-                      {'match-identity
-                       (fn [m]
-                         (log/infof "Matching identity: %s" m)
-                         (let [q {:find ['id]
-                                  :where (into
-                                          [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]
-                                           `(~'or
-                                             [~'id :juxt.site.jwt.claims/sub ~(:juxt.site.jwt.claims/sub m)]
-                                             [~'id :juxt.site.jwt.claims/nickname ~(:juxt.site.jwt.claims/nickname m)])])}]
-                           (log/infof "Query used: %s" (pr-str q))
-                           (let [result (ffirst (xt/q db q))]
-                             (log/infof "Result: %s" result)
-                             result)))
-
-                       ;; TODO: Rather than password check in the
-                       ;; transaction function (requiring the password
-                       ;; to be stored in the transaction-log), this
-                       ;; should be moved to the prepare step.
-                       'match-identity-with-password
-                       (fn [m password password-hash-key]
-                         (ffirst
-                          (xt/q db {:find ['id]
-                                    :where (into
-                                            [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]
-                                             ['id password-hash-key 'password-hash]
-                                             ['(crypto.password.bcrypt/check password password-hash)]
-                                             ]
-                                            (for [[k v] m] ['id k v]))
-                                    :in ['password]} password)))
-
-                       'lookup-applications
-                       (fn [client-id]
-                         (seq
-                          (map first
-                               (try
-                                 (xt/q
-                                  db
-                                  '{:find [(pull e [*])]
-                                    :where [[e :juxt.site/type "https://meta.juxt.site/types/application"]
-                                            [e :juxt.site/client-id client-id]]
-                                    :in [client-id]} client-id)
-                                 (catch Exception cause
-                                   (throw
-                                    (ex-info
-                                     (format "Failed to lookup client: %s" client-id)
-                                     {:client-id client-id} cause)))))))
-
-                       'lookup-scope
-                       (fn [scope]
-                         (let [results (xt/q
-                                        db
-                                        '{:find [(pull e [*])]
-                                          :where [[e :juxt.site/type "https://meta.juxt.site/types/oauth-scope"]]})]
-
-                           (if (= 1 (count results))
-                             (ffirst results)
-                             (if (seq results)
-                               (throw
-                                (ex-info
-                                 (format "Multiple documents for scope: %s" scope)
-                                 {:scope scope
-                                  :documents (map :xt/id results)}))
-                               (throw
-                                (ex-info
-                                 (format "No such scope: %s" scope)
-                                 {:error "invalid_scope"}))))))
-
-                       'lookup-authorization-code
-                       (fn [code]
-                         (first
-                          (map first
-                               (xt/q db '{:find [(pull e [*])]
-                                          :where [[e :juxt.site/code code]
-                                                  [e :juxt.site/type "https://meta.juxt.site/types/authorization-code"]]
-                                          :in [code]}
-                                     code))))
-
-                       'lookup-access-token
-                       (fn [token]
-                         (first
-                          (map first
-                               (xt/q db '{:find [(pull e [*])]
-                                          :where [[e :juxt.site/token token]
-                                                  [e :juxt.site/type "https://meta.juxt.site/types/access-token"]]
-                                          :in [token]}
-                                     token))))
-
-                       'lookup-refresh-token
-                       (fn [token]
-                         (first
-                          (map first
-                               (xt/q db '{:find [(pull e [*])]
-                                          :where [[e :juxt.site/token token]
-                                                  [e :juxt.site/type "https://meta.juxt.site/types/refresh-token"]]
-                                          :in [token]}
-                                     token))))
-
-                       ;; TODO: Rename to make it clear this is a JWT
-                       ;; access token. Other access tokens might be
-                       ;; possible.
-                       'make-access-token
-                       (fn [claims keypair-id]
-                         (let [keypair (xt/entity db keypair-id)]
-                           (when-not keypair
-                             (throw (ex-info (format "Keypair not found: %s" keypair-id) {:keypair-id keypair-id})))
-                           (try
-                             (jwt/new-access-token claims keypair)
-                             (catch Exception cause
-                               (throw
-                                (ex-info
-                                 "Failed to make access token"
-                                 {:claims claims
-                                  :keypair-id keypair-id}
-                                 cause))))))
-
-                       'decode-access-token
-                       (fn [access-token]
-                         (let [kid (jwt/get-kid access-token)
-                               _ (when-not kid
-                                   (throw (ex-info "No key id in access-token, should try all possible keypairs" {})))
-                               keypair (jwt/lookup-keypair db kid)]
-                           (when-not keypair
-                             (throw (ex-info "Keypair not found" {:kid kid})))
-                           (jwt/verify-jwt access-token keypair)))}
-
-                      'grab
-                      {'parsed-types
-                       (fn parsed-types [schema-id]
-                         (map :juxt.grab/type-definition
-                              (map first
-                                   (xt/q db '{:find [(pull e [:juxt.grab/type-definition])]
-                                              :where [[e :juxt.site/type "https://meta.juxt.site/types/graphql-type"]
-                                                      [e :juxt.site/graphql-schema schema-id]]
-                                              :in [schema-id]}
-                                         schema-id))))}}
-
-                     (common-sci-namespaces operation-doc))
-
-                    :classes
-                    {'java.util.Date java.util.Date
-                     'java.time.Instant java.time.Instant
-                     'java.time.Duration java.time.Duration
-                     'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit}
-
-                    ;; We can't allow random numbers to be computed as they
-                    ;; won't be the same on each node. If this is a problem, we
-                    ;; can replace with a (non-secure) PRNG seeded from the
-                    ;; tx-instant of the tx. Note that secure random numbers
-                    ;; should not be generated this way anyway, since then it
-                    ;; would then be possible to mount an attack based on
-                    ;; knowledge of the current time. Instead, secure random
-                    ;; numbers should be generated in the operation's 'prepare'
-                    ;; step.
-                    :deny `[loop recur rand rand-int]})
-
-                  (catch clojure.lang.ExceptionInfo e
-                    ;; The sci.impl/callstack contains a volatile which isn't freezable.
-                    ;; Also, we want to unwrap the original cause exception.
-                    ;; Possibly, in future, we should get the callstack
-                    (throw (or (.getCause e) e))))
-
-                ;; There might be other strategies in the future (although the
-                ;; fewer the better really)
-                :else
-                (throw
-                 (ex-info
-                  "Submitted operations should have a valid juxt.site/transact entry"
-                  {:operation operation-doc})))
-
-              _ (log/debugf "FX are %s" (pr-str fx))
-
-              ;; Validate
-              _ (doseq [effect fx]
-                  (when-not (and (vector? effect)
-                                 (keyword? (first effect))
-                                 (if (= :xtdb.api/put (first effect))
-                                   (map? (second effect))
-                                   true))
-                    (throw (ex-info "Invalid effect" {:juxt.site/operation operation :effect effect}))))
-
-              xtdb-ops (filter (fn [[effect]] (= (namespace effect) "xtdb.api")) fx)
-
-              ;; Deprecated
-              apply-to-request-context-fx (filter (fn [[effect]] (= effect :juxt.site/apply-to-request-context)) fx)
-              ;; Decisions we've made which don't update the database but should
-              ;; be record and reflected in the response.
-              other-response-fx
-              (remove
-               (fn [[kw]]
-                 (or
-                  (= (namespace kw) "xtdb.api")
-                  (= kw :juxt.site/apply-to-request-context)))
-               fx)
-
-              result-fx
-              (conj
-               xtdb-ops
-               ;; Add an operation log entry for this transaction
-               [:xtdb.api/put
-                (into
-                 (cond->
-                     {:xt/id (str (:juxt.site/events-base-uri operation-doc) (::xt/tx-id tx))
-                      :juxt.site/type "https://meta.juxt.site/types/event"
-                      :juxt.site/subject-uri (:xt/id subject)
-                      :juxt.site/operation operation
-                      :juxt.site/purpose purpose
-                      :juxt.site/puts (vec
-                                       (keep
-                                        (fn [[tx-op {id :xt/id}]]
-                                          (when (= tx-op ::xt/put) id))
-                                        xtdb-ops))
-                      :juxt.site/deletes (vec
-                                          (keep
-                                           (fn [[tx-op {id :xt/id}]]
-                                             (when (= tx-op ::xt/delete) id))
-                                           xtdb-ops))}
-                     tx (into tx)
-
-                     ;; Any quotations that we want to apply to the request context?
-                     ;; (deprecated)
-                     (seq apply-to-request-context-fx)
-                     (assoc :juxt.site/apply-to-request-context-ops apply-to-request-context-fx)
-
-                     (seq other-response-fx)
-                     (assoc :juxt.site/response-fx other-response-fx)
-
-                     ))])]
-
-          ;; This isn't the best debugger :( - need a better one!
-          ;;(log/debugf "XXXX Result is: %s" result-ops)
-
-          result-fx))
-
-      (catch Throwable e
-        (let [event-id (str (:juxt.site/events-base-uri operation-doc) (::xt/tx-id tx))
-              create-error-structure
-              (fn create-error-structure [error]
-                (let [cause (.getCause error)]
-                  (cond-> {:juxt.site/message (.getMessage error)
-                           :juxt.site/ex-data (ex-data error)}
-                    cause (assoc :juxt.site/cause (create-error-structure cause)))))
-
-              error-record
-              {:xt/id event-id
-               :juxt.site/type "https://meta.juxt.site/types/event"
-               :juxt.site/subject subject
-               :juxt.site/operation operation
-               :juxt.site/resource resource
-               :juxt.site/purpose purpose
-               :juxt.site/error (create-error-structure e)}
-              ]
-
-          (log/errorf e "Error when performing operation: %s %s" operation event-id)
-
-          #_(log/errorf "Debugging error: %s" (pr-str error-record))
-
-          [[::xt/put error-record]])))))
-
-
 ;; Remove anything in the ctx that will upset nippy. However, in the future
 ;; we'll definitely want to record all inputs to operations, so this is an
 ;; opportunity to decide which entries form the input 'record' and which are
 ;; only transitory for the purposes of responnding to the request.
-
 (defn sanitize-ctx [ctx]
-  (-> ctx
-      (dissoc :juxt.site/xt-node :juxt.site/db)
-      (update :juxt.site/operation :xt/id)))
+  (dissoc ctx :juxt.site/xt-node :juxt.site/db))
 
-(defn apply-response-fx [ctx fx]
-  (reduce
-   (fn [ctx [op & args]]
-     (case op
-       :ring.response/status (assoc ctx :ring.response/status (first args))
-       :ring.response/headers (update ctx :ring.response/headers (fnil into {}) (first args))
-       :ring.response/body (assoc ctx :ring.response/body (first args))
-       (throw
-        (ex-info
-         (format "Op not recognized: %s" op)
-         {:op op :args args}))))
-   ctx fx))
+(defn do-prepare
+  "Return a map of the result of any juxt.site/prepare entry. The
+  prepare phase is used to validate input, create unique randomized
+  numbers. Anything that can be done in advance of a transaction, but
+  without accessing the database (which may not be the same database
+  as the one the transaction sees)."
+  [operation ctx]
 
-(defn do-prepare [{:juxt.site/keys [db resource] :as ctx} operation-doc]
-  (when-let [prepare-program (some-> operation-doc :juxt.site/prepare :juxt.site.sci/program)]
+  (when-let [prepare-program (some-> operation :juxt.site/prepare :juxt.site.sci/program)]
     (try
       (sci/eval-string
        prepare-program
        {:namespaces
         (merge-with
          merge
-         {'user {'*operation* operation-doc
-                 '*resource* resource
+         {'user { ;;'*subject* subject
+                 ;;'*operation* operation
+                 ;;'*resource* resource
                  '*ctx* (sanitize-ctx ctx)
                  'logf (fn [fmt & fmt-args]
                          (log/infof (apply format fmt fmt-args)))
@@ -781,10 +453,14 @@
                         (log/info message))}
 
           'xt
-          { ;; Unsafe due to violation of strict serializability, hence marked as
-           ;; entity*
+          {
+           ;; Unsafe due to violation of strict serializability, hence
+           ;; marked as entity*
            'entity*
-           (fn [id] (xt/entity db id))}
+           (fn [eid]
+             (if-let [db (:juxt.site/db ctx)]
+               (xt/entity db eid)
+               (throw (ex-info "Cannot call entity* as no database in context" {}))))}
 
           'juxt.site.util
           {'make-nonce make-nonce}
@@ -799,9 +475,9 @@
            'get-modulus (fn [k] (.getModulus k))
            'get-public-exponent (fn [k] (.getPublicExponent k))
            'get-key-format (fn [k] (.getFormat k))
-           'install-resources (fn [bytes] (throw (ex-info "TODO: install-resources from clj" {})))}}
+           'install-resources (fn [_] (throw (ex-info "TODO: install-resources from clj" {})))}}
 
-         (common-sci-namespaces operation-doc))
+         (common-sci-namespaces operation))
 
         :classes
         {'java.util.Date java.util.Date
@@ -813,7 +489,7 @@
       (catch clojure.lang.ExceptionInfo e
         (throw
          (ex-info
-          (format "Prepare failed for operation %s" (:xt/id operation-doc))
+          (format "Prepare failed for operation %s" (:xt/id operation))
           ;; The point of this is that we want to allow the
           ;; thrower to set status, headers.
           ;;
@@ -826,85 +502,438 @@
           (merge (ex-data e) (ex-data (.getCause e)))
           e))))))
 
-(defn perform-ops!
-  [{:juxt.site/keys [xt-node resource subject operation] :as ctx}]
-  (assert operation)
-
-  (assert xt-node "xt-node must be present")
-
-  (when-not (or (nil? subject) (map? subject))
-    (throw
-     (ex-info
-      "Subject to do-operation expected to be a map, or null"
-      {:juxt.site/request-context ctx :subject subject})))
-
-  (when-not (map? operation)
-    (throw
-     (ex-info
-      "Operation must be a map"
-      {:juxt.site/request-context ctx :operation operation})))
-
-  (when-not (or (nil? resource) (map? resource))
-    (throw
-     (ex-info
-      "Resource to do-operation expected to be a map, or null"
-      {:juxt.site/request-context ctx :resource resource})))
-
-  ;; Prepare the transaction - this work happens prior to the transaction, one a
-  ;; single node, and may be wasted work if the transaction ultimately
-  ;; fails. However, it is a good place to compute any secure random numbers
-  ;; which can't be done in the transaction.
-
-  ;; The :juxt.site/subject can be nil, if this operation is being performed
-  ;; by an anonymous user.
-  (let [prepare (do-prepare ctx operation)
-        tx-fn (:juxt.site/do-operation-tx-fn operation)
-        _ (when-not (xt/entity (xt/db xt-node) tx-fn)
-            (throw (ex-info (format "do-operation must exist in database: %s" tx-fn)
-                            {:operation operation})))
-        tx-ctx (cond-> (sanitize-ctx ctx)
-                 prepare (assoc :juxt.site/prepare prepare))
-        tx (xt/submit-tx xt-node [[::xt/fn tx-fn tx-ctx]])
-        {::xt/keys [tx-id] :as tx} (xt/await-tx xt-node tx)
-        ctx (assoc ctx :juxt.site/db (xt/db xt-node tx))
-        events-base-uri (:juxt.site/events-base-uri operation)]
-
-    (when-not (xt/tx-committed? xt-node tx)
+(defn prepare-tx-op [{:juxt.site/keys [operation] :as ctx}]
+  (when-not operation
+    (throw (ex-info "An operation is required in the prepare phase" {:operation-uri (:juxt.site/operation-uri ctx)})))
+  ;; Prepare the transaction - this work happens prior to the
+  ;; transaction, one a single node, and may be wasted work if
+  ;; the transaction ultimately fails. However, it is a good
+  ;; place to do anything that is non-deterministic which can't
+  ;; be done in the transaction, such as computing secure random
+  ;; numbers.
+  (let [prepare (do-prepare operation ctx)
+        do-operation-tx-fn (:juxt.site/do-operation-tx-fn operation)]
+    (when-not do-operation-tx-fn
       (throw
        (ex-info
-        (format "Transaction failed to be committed for operation %s" (:xt/id operation))
-        {::xt/tx-id tx-id
-         :juxt.site/operation (:xt/id operation)
-         :juxt.site/request-context ctx})))
+        "Failed to determine :juxt.site/do-operation-tx-fn"
+        {:operation-uri (:xt/id operation)})))
+    [:xtdb.api/fn do-operation-tx-fn
+     (cond-> (sanitize-ctx ctx)
+       prepare (assoc :juxt.site/prepare prepare))]))
 
-    (let [result
-          (xt/entity
-           (xt/db xt-node)
-           (str events-base-uri tx-id))]
+(defn apply-ops!
+  [xt-node tx-ops]
+  (let [tx (xt/submit-tx xt-node tx-ops)
+        {::xt/keys [tx-id] :as tx} (xt/await-tx xt-node tx)]
 
-      (log/debugf "Result from operation %s: %s" (:xt/id operation) result)
+    ;; If the transaction has failed to commit, we pull out the
+    ;; underlying exception document that XTDB has recorded in
+    ;; transaction log and document store. Operations are able to
+    ;; throw exceptions with ex-data containing response status,
+    ;; headers and body.
+    (when-not (xt/tx-committed? xt-node tx)
+      (let [exception-doc (xt-util/tx-exception-doc xt-node tx-id)
+            {:juxt.site/keys [message ex-data]} (get-in exception-doc [:juxt.site.xt/ex-data :juxt.site/error])]
+        (throw
+         (ex-info
+          (format "Transaction %d failed to be committed" tx-id)
+          (into {:xtdb.api/tx-id tx-id
+                 ;;:juxt.site/request-context ctx
+                 :juxt.site/exception-doc exception-doc
+                 :ring.response/status 500}
+                ;; Surface the transaction error's response suggestions
+                (select-keys
+                 ex-data
+                 [:ring.response/status
+                  :ring.response/headers
+                  :ring.response/body]))
+          (when message (ex-info message ex-data))))))
 
-      (if-let [{:juxt.site/keys [message ex-data]
-                :as error} (:juxt.site/error result)]
+    (xt/db xt-node tx)))
 
-        ;; This might just be an exit, which we can recover from.  The
-        ;; transact is allowed to influence ring.response/status,
-        ;; ring.response/headers and ring.response/body.
-        (do
-          (log/infof "Error during transaction: %s" (pr-str error))
+(defn installer-seq->tx-ops [db installers]
+  (->> installers
+       (map :juxt.site/init-data)
+       ;; If we create an operation and later perform that operation in the
+       ;; same bundle, then when we prepare to perform the operation, the
+       ;; operation won't exist in the database. (all the prepares have to be
+       ;; completed in batch, before any are transacted). Therefore we adopt
+       ;; a strategy of allowing the prepare step to 'see' operations that
+       ;; appear in the bundle, prior to locating them as usual in the
+       ;; database.
+       (reduce
+        (fn [{:keys [entities-by-id] :as acc}
+             {:juxt.site/keys [subject-uri operation-uri input] :as init-data}]
+          (cond-> acc
+            (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
+            (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
+            operation-uri
+            (update
+             :tx-ops conj
+             (prepare-tx-op
+              (cond-> {:juxt.site/subject-uri subject-uri
+                       :juxt.site/operation-uri operation-uri
+                       :juxt.site/operation
+                       (or (get entities-by-id operation-uri)
+                           (xt/entity db operation-uri)
+                           (throw (ex-info "Failed to find operation!" {:operation-uri operation-uri})))
 
-          (when-let [status (:ring.response/status ex-data)]
-            (when (>= status 500)
-              (log/errorf "Transaction error: %s" error)))
+                       :juxt.site/db db}
+                input
+                (merge {:juxt.site/received-representation
+                        {:juxt.http/content-type "application/edn"
+                         :juxt.http/body (.getBytes (pr-str input))}}))))))
+        {:entities-by-id {}
+         :tx-ops []})
+
+       :tx-ops))
+
+(defn do-operation-in-tx-fn
+  "This function is applied within a transaction function. It should be
+  fast, but at least doesn't have to worry about the database being
+  stale!"
+  [xt-ctx
+   {subject-uri :juxt.site/subject-uri
+    operation-index :juxt.site/operation-index
+    operation-uri :juxt.site/operation-uri
+    resource :juxt.site/resource
+    purpose :juxt.site/purpose
+    prepare :juxt.site/prepare
+    :as ctx}]
+  (let [db (xt/db xt-ctx)
+        tx (xt/indexing-tx xt-ctx)
+        _ (assert operation-uri)
+        operation (xt/entity db operation-uri)
+
+        _ (when-not operation
+            (throw
+             (ex-info
+              (format "Operation '%s' not found in db" operation-uri)
+              {:operation-uri operation-uri})))]
+    (try
+      (assert (or (nil? subject-uri) (string? subject-uri)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
+      (assert (or (nil? resource) (map? resource)) "Resource to do-operation-in-tx-fn expected to be a string, or null")
+
+      ;; Check that we /can/ call the operation
+      (let [permissions (check-permissions (assoc ctx :juxt.site/db db))
+            fx
+            (cond
+              ;; Official: sci
+              (-> operation :juxt.site/transact :juxt.site.sci/program)
+              (try
+                (sci/eval-string
+                 (-> operation :juxt.site/transact :juxt.site.sci/program)
+                 {:namespaces
+                  (merge-with
+                   merge
+                   {'user
+                    {'*operation* operation
+                     '*resource* resource
+                     '*permissions* permissions
+                     '*prepare* prepare
+                     '*ctx* ctx}
+                    ;; Allowed to access the database
+                    'xt
+                    {'entity (fn [id] (xt/entity db id))
+                     'q (fn [& args] (apply xt/q db args))}
+
+                    'juxt.site
+                    {'match-identity
+                     (fn [m]
+                       (log/infof "Matching identity: %s" m)
+                       (let [q {:find ['id]
+                                :where (into
+                                        [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]
+                                         `(~'or
+                                           [~'id :juxt.site.jwt.claims/sub ~(:juxt.site.jwt.claims/sub m)]
+                                           [~'id :juxt.site.jwt.claims/nickname ~(:juxt.site.jwt.claims/nickname m)])])}]
+                         (log/infof "Query used: %s" (pr-str q))
+                         (let [result (ffirst (xt/q db q))]
+                           (log/infof "Result: %s" result)
+                           result)))
+
+                     ;; TODO: Rather than password check in the
+                     ;; transaction function (requiring the password
+                     ;; to be stored in the transaction-log), this
+                     ;; should be moved to the prepare step.
+                     'match-identity-with-password
+                     (fn [m password password-hash-key]
+                       (ffirst
+                        (xt/q db {:find ['id]
+                                  :where (into
+                                          [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]
+                                           ['id password-hash-key 'password-hash]
+                                           ['(crypto.password.bcrypt/check password password-hash)]
+                                           ]
+                                          (for [[k v] m] ['id k v]))
+                                  :in ['password]} password)))
+
+                     'lookup-applications
+                     (fn [client-id]
+                       (seq
+                        (map first
+                             (try
+                               (xt/q
+                                db
+                                '{:find [(pull e [*])]
+                                  :where [[e :juxt.site/type "https://meta.juxt.site/types/application"]
+                                          [e :juxt.site/client-id client-id]]
+                                  :in [client-id]} client-id)
+                               (catch Exception cause
+                                 (throw
+                                  (ex-info
+                                   (format "Failed to lookup client: %s" client-id)
+                                   {:client-id client-id} cause)))))))
+
+                     'lookup-scope
+                     (fn [scope]
+                       (let [results (xt/q
+                                      db
+                                      '{:find [(pull e [*])]
+                                        :where [[e :juxt.site/type "https://meta.juxt.site/types/oauth-scope"]]})]
+
+                         (if (= 1 (count results))
+                           (ffirst results)
+                           (if (seq results)
+                             (throw
+                              (ex-info
+                               (format "Multiple documents for scope: %s" scope)
+                               {:scope scope
+                                :documents (map :xt/id results)}))
+                             (throw
+                              (ex-info
+                               (format "No such scope: %s" scope)
+                               {:error "invalid_scope"}))))))
+
+                     'lookup-authorization-code
+                     (fn [code]
+                       (first
+                        (map first
+                             (xt/q db '{:find [(pull e [*])]
+                                        :where [[e :juxt.site/code code]
+                                                [e :juxt.site/type "https://meta.juxt.site/types/authorization-code"]]
+                                        :in [code]}
+                                   code))))
+
+                     'lookup-access-token
+                     (fn [token]
+                       (first
+                        (map first
+                             (xt/q db '{:find [(pull e [*])]
+                                        :where [[e :juxt.site/token token]
+                                                [e :juxt.site/type "https://meta.juxt.site/types/access-token"]]
+                                        :in [token]}
+                                   token))))
+
+                     'lookup-refresh-token
+                     (fn [token]
+                       (first
+                        (map first
+                             (xt/q db '{:find [(pull e [*])]
+                                        :where [[e :juxt.site/token token]
+                                                [e :juxt.site/type "https://meta.juxt.site/types/refresh-token"]]
+                                        :in [token]}
+                                   token))))
+
+                     ;; TODO: Rename to make it clear this is a JWT
+                     ;; access token. Other access tokens might be
+                     ;; possible.
+                     'make-access-token
+                     (fn [claims keypair-id]
+                       (let [keypair (xt/entity db keypair-id)]
+                         (when-not keypair
+                           (throw (ex-info (format "Keypair not found: %s" keypair-id) {:keypair-id keypair-id})))
+                         (try
+                           (jwt/new-access-token claims keypair)
+                           (catch Exception cause
+                             (throw
+                              (ex-info
+                               "Failed to make access token"
+                               {:claims claims
+                                :keypair-id keypair-id}
+                               cause))))))
+
+                     'decode-access-token
+                     (fn [access-token]
+                       (let [kid (jwt/get-kid access-token)
+                             _ (when-not kid
+                                 (throw (ex-info "No key id in access-token, should try all possible keypairs" {})))
+                             keypair (jwt/lookup-keypair db kid)]
+                         (when-not keypair
+                           (throw (ex-info "Keypair not found" {:kid kid})))
+                         (jwt/verify-jwt access-token keypair)))
+
+                     'installer-seq->tx-ops
+                     (fn [installer-seq]
+                       (installer-seq->tx-ops db installer-seq))}
+
+                    'grab
+                    {'parsed-types
+                     (fn parsed-types [schema-id]
+                       (map :juxt.grab/type-definition
+                            (map first
+                                 (xt/q db '{:find [(pull e [:juxt.grab/type-definition])]
+                                            :where [[e :juxt.site/type "https://meta.juxt.site/types/graphql-type"]
+                                                    [e :juxt.site/graphql-schema schema-id]]
+                                            :in [schema-id]}
+                                       schema-id))))}}
+
+                   (common-sci-namespaces operation))
+
+                  :classes
+                  {'java.util.Date java.util.Date
+                   'java.time.Instant java.time.Instant
+                   'java.time.Duration java.time.Duration
+                   'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit}
+
+                  ;; We can't allow random numbers to be computed as they
+                  ;; won't be the same on each node. If this is a problem, we
+                  ;; can replace with a (non-secure) PRNG seeded from the
+                  ;; tx-instant of the tx. Note that secure random numbers
+                  ;; should not be generated this way anyway, since then it
+                  ;; would then be possible to mount an attack based on
+                  ;; knowledge of the current time. Instead, secure random
+                  ;; numbers should be generated in the operation's 'prepare'
+                  ;; step.
+                  :deny `[loop recur rand rand-int]})
+
+                (catch clojure.lang.ExceptionInfo e
+                  ;; The sci.impl/callstack contains a volatile which isn't freezable.
+                  ;; Also, we want to unwrap the original cause exception.
+                  ;; Possibly, in future, we should get the callstack
+                  (throw (or (.getCause e) e))))
+
+              ;; There might be other strategies in the future (although the
+              ;; fewer the better really)
+              :else
+              (throw
+               (ex-info
+                "Submitted operations should have a valid juxt.site/transact entry"
+                {:operation operation})))
+
+            _ (log/debugf "FX are %s" (pr-str fx))
+
+            ;; Validate
+            _ (doseq [effect fx]
+                (when-not (and (vector? effect)
+                               (keyword? (first effect))
+                               (if (= :xtdb.api/put (first effect))
+                                 (map? (second effect))
+                                 true))
+                  (throw (ex-info "Invalid effect" {:juxt.site/operation operation :effect effect}))))
+
+            xtdb-ops (filter (fn [[effect]] (= (namespace effect) "xtdb.api")) fx)
+
+            ;; Deprecated
+            #_#_apply-to-request-context-fx (filter (fn [[effect]] (= effect :juxt.site/apply-to-request-context)) fx)
+
+            ;; Decisions we've made which don't update the database but should
+            ;; be record and reflected in the response.
+            other-response-fx
+            (remove
+             (fn [[kw]]
+               (or
+                (= (namespace kw) "xtdb.api")
+                (= kw :juxt.site/apply-to-request-context)))
+             fx)
+
+            result-fx
+            (conj
+             xtdb-ops
+             ;; Add an operation log entry for this transaction
+             [:xtdb.api/put
+              (into
+               (cond->
+                   {:xt/id (str (:juxt.site/events-base-uri operation) (::xt/tx-id tx) "/" operation-index)
+                    :juxt.site/type "https://meta.juxt.site/types/event"
+                    :juxt.site/subject-uri subject-uri
+                    :juxt.site/operation operation
+                    :juxt.site/purpose purpose
+                    :juxt.site/puts (vec
+                                     (keep
+                                      (fn [[tx-op {id :xt/id}]]
+                                        (when (= tx-op ::xt/put) id))
+                                      xtdb-ops))
+                    :juxt.site/deletes (vec
+                                        (keep
+                                         (fn [[tx-op {id :xt/id}]]
+                                           (when (= tx-op ::xt/delete) id))
+                                         xtdb-ops))}
+                   tx (into tx)
+
+                   ;; Any quotations that we want to apply to the request context?
+                   ;; (deprecated)
+                   #_(seq apply-to-request-context-fx)
+                   #_(assoc :juxt.site/apply-to-request-context-ops apply-to-request-context-fx)
+
+                   (seq other-response-fx)
+                   (assoc :juxt.site/response-fx other-response-fx)
+
+                   ))])]
+
+        ;; This isn't the best debugger :( - need a better one!
+        ;;(log/debugf "XXXX Result is: %s" result-ops)
+
+        result-fx)
+
+      (catch Throwable e
+        (let [create-error-structure
+              (fn create-error-structure [error]
+                (let [cause (.getCause error)]
+                  (cond-> {:juxt.site/message (.getMessage error)
+                           :juxt.site/ex-data (ex-data error)}
+                    cause (assoc :juxt.site/cause (create-error-structure cause)))))]
+
+          (log/errorf e "Error when performing operation: %s" operation-uri)
 
           (throw
-           (ex-info message (into {:juxt.site/request-context ctx} ex-data))))
+           (ex-info
+            "Error during transaction"
+            {:juxt.site/subject-uri subject-uri
+             :juxt.site/operation-uri operation-uri
+             :juxt.site/error (create-error-structure e)}
+            e)))))))
 
-        (cond-> ctx
-          result (assoc :juxt.site/operation-result result)
+(defn apply-response-fx [ctx fx]
+  (reduce
+   (fn [ctx [op & args]]
+     (case op
+       :ring.response/status (assoc ctx :ring.response/status (first args))
+       :ring.response/headers (update ctx :ring.response/headers (fnil into {}) (first args))
+       :ring.response/body (assoc ctx :ring.response/body (first args))
+       (throw
+        (ex-info
+         (format "Op not recognized: %s" op)
+         {:op op :args args}))))
+   ctx fx))
 
-          (seq (:juxt.site/response-fx result))
-          (apply-response-fx (:juxt.site/response-fx result)))))))
+(defn perform-ops!
+  "With a context containing at least an xt-node, and a sequence of
+  successive operation contexts, perform the operations and return the
+  the context modified with any fx produced by the operations. The
+  context will also contain a modified database under :juxt.site/db."
+  [{:juxt.site/keys [xt-node] :as ctx} invocations]
+  (let [tx-ops (map prepare-tx-op invocations)
+        new-db (apply-ops! xt-node tx-ops)
+        ;; Modify context with new db
+        ctx (assoc ctx :juxt.site/db new-db)
+        ;; We pull out an event-doc for each performed operation
+        event-docs (xt-util/tx-event-docs
+                    xt-node
+                    (get-in (xt/db-basis new-db) [:xtdb.api/tx :xtdb.api/tx-id]))
+        ;; We take the last of these event docs, but should we check
+        ;; that any preceeding events do not contain any
+        ;; response-fx? (TODO)
+        result (last event-docs)]
+
+    (cond-> ctx
+      (seq (:juxt.site/response-fx result))
+      (apply-response-fx (:juxt.site/response-fx result))
+
+      ;; Just for info
+      result (assoc :juxt.site/operation-result result))))
+
 
 ;; TODO: Since it is possible that a permission is in the queue which might
 ;; grant or revoke an operation, it is necessary to run this check 'head-of-line'
@@ -922,36 +951,49 @@
     (assert (or (nil? resource) (map? resource)))
 
     (let [method (if (= method :head) :get method)
-          operation-id (get-in resource [:juxt.site/methods method :juxt.site/operation])
+          operation-uri (get-in resource [:juxt.site/methods method :juxt.site/operation])
 
-          operation (when operation-id
-                      (xt/entity db operation-id))
-          _ (when (and operation-id (nil? operation))
+          operation (when operation-uri
+                      (xt/entity db operation-uri))
+          _ (when (and operation-uri (nil? operation))
               (when (not= method :options)
                 (throw
                  (ex-info
-                  (format "No such operation: %s" operation-id)
+                  (format "No such operation: %s" operation-uri)
                   {:juxt.site/request-context req
-                   :missing-operation operation-id
+                   :missing-operation operation-uri
                    :resource resource
                    :method method}))))
 
           permissions
-          (when operation-id
-            (check-permissions
-             db
-             operation-id
-             (cond-> {}
-               ;; When the resource is in the database, we can add it to the
-               ;; permission checking in case there's a specific permission for
-               ;; this resource.
-               subject (assoc :juxt.site/subject subject)
-               resource (assoc :juxt.site/resource resource)
-               scope (assoc :juxt.site/scope scope))))]
+          (when operation-uri
+            (try
+              (check-permissions
+               (cond-> {:juxt.site/db db
+                        :juxt.site/operation-uri operation-uri}
+                 ;; When the resource is in the database, we can add it to the
+                 ;; permission checking in case there's a specific permission for
+                 ;; this resource.
+                 subject (assoc :juxt.site/subject-uri (:xt/id subject))
+                 resource (assoc :juxt.site/resource-uri (:xt/id resource))
+                 scope (assoc :juxt.site/scope scope)))
+              (catch clojure.lang.ExceptionInfo e
+                (if (= :no-permission (::type  (ex-data e)))
+                  ;; This isn't a great solution. We ideally want
+                  ;; to be able to call check-permissions without
+                  ;; it throwing an exception. But in many cases,
+                  ;; the caller wants the exception to log the
+                  ;; permissions query.
+                  []
+                  ;; Else rethrow
+                  (throw e)))))]
 
       (cond
         (seq permissions)
-        (h (assoc req :juxt.site/operation operation :juxt.site/permissions permissions))
+        (h (assoc req
+                  :juxt.site/operation-uri operation-uri
+                  :juxt.site/operation operation
+                  :juxt.site/permissions permissions))
 
         (= method :options) (h req)
 
@@ -959,10 +1001,10 @@
         (throw
          (ex-info
           (format "No permission for this operation (%s) with subject (%s) and scope (%s)"
-                  operation-id (:xt/id subject) scope)
+                  operation-uri (:xt/id subject) scope)
           {:ring.response/status 403
            :ring.response/headers {"access-control-allow-origin" "*"}
-           :operation operation-id
+           :operation-uri operation-uri
            :subject subject
            :scope scope
            :juxt.site/request-context req}))

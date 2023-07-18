@@ -8,6 +8,8 @@
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
   :juxt.site/input
   {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
+
    #_:juxt.site/transact
    #_{:juxt.site.sci/program
       (pr-str

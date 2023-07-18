@@ -4,6 +4,7 @@
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
   :juxt.site/input
   {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
 
    :juxt.site.malli/input-schema
    [:map
@@ -26,7 +27,7 @@
          clojure.edn/read-string
          juxt.site.malli/validate-input
          (assoc
-          :juxt.site/type "https://auth.example.org/_site/types/role"
+          :juxt.site/type "https://meta.juxt.site/types/role"
           :juxt.site/methods
           {:get {:juxt.site/operation "https://auth.example.org/operations/get-role"}}))))}
 

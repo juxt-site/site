@@ -8,6 +8,7 @@
           :ns-patterns
           ["juxt.site.cors-test"
            "juxt.site.return-test"
+           "juxt.site.tx-test"
            "juxt.site.graphql-compiler-test"
            "juxt.site.form-based-auth-test"
            "juxt.site.eql-datalog-compiler-test"

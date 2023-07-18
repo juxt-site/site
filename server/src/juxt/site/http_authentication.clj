@@ -28,7 +28,9 @@
            (lookup-access-token db token68)
            scope (:juxt.site/scope access-token)]
        (cond-> req
-         subject (assoc :juxt.site/subject subject :juxt.site/access-token access-token)
+         subject (assoc :juxt.site/subject-uri (:xt/id subject)
+                        :juxt.site/subject subject
+                        :juxt.site/access-token access-token)
          scope (assoc :juxt.site/scope scope))))
    req))
 
@@ -51,7 +53,8 @@
     ;; TODO: Find an existing subject we can re-use or we create a subject for
     ;; every basic auth request. All attributes must match the above.
     (cond-> req
-      subject (assoc :juxt.site/subject subject)
+      subject (assoc :juxt.site/subject subject
+                     :juxt.site/subject-uri (:xt/id subject))
       ;; We need to update the db because we have injected a subject and it will
       ;; need to be in the database for authorization rules to work.
       subject (assoc :juxt.site/db (xt/db xt-node)))))

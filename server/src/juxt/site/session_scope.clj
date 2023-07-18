@@ -27,7 +27,8 @@
       ;; Since subject is common and special, we promote it to the top-level
       ;; context. However, it is possible to have a session without having
       ;; established a subject (for example, while authenticating).
-      subject (assoc :juxt.site/subject subject))))
+      subject (assoc :juxt.site/subject-uri (:xt/id subject)
+                     :juxt.site/subject subject))))
 
 (defn wrap-session-scope [h]
   (fn [{:juxt.site/keys [db uri resource] :as req}]

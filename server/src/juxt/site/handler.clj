@@ -221,11 +221,12 @@
       ;; the Authorization Request (RFC 6749 Section 4.2.1).
       (and operation (:juxt.site/transact operation))
       (operations/perform-ops!
-       (cond-> req
-         ;; A java.io.BufferedInputStream in the request can cause this error:
-         ;; "invalid tx-op: Unfreezable type: class
-         ;; java.io.BufferedInputStream".
-         (:ring.request/body req) (dissoc :ring.request/body)))
+       req
+       [(cond-> req
+          ;; A java.io.BufferedInputStream in the request can cause this error:
+          ;; "invalid tx-op: Unfreezable type: class
+          ;; java.io.BufferedInputStream".
+          (:ring.request/body req) (dissoc :ring.request/body))])
 
       (-> resource :juxt.site/respond :juxt.site.sci/program)
       (let [state
@@ -306,13 +307,6 @@
                 'selmer
                 {'render (fn [s context-map] (selmer/render s context-map))}
 
-                'xt
-                { ;; Unsafe due to violation of strict serializability, hence marked as
-                 ;; entity*
-                 'entity*
-                 (fn [id] (xt/entity (:juxt.site/db req) id))
-                 'q (fn [& args] (apply xt/q (:juxt.site/db req) args))}
-
                 })})
 
             _ (assert
@@ -342,11 +336,12 @@
         req (assoc req :ring.response/status 200)]
 
     (operations/perform-ops!
-     (-> req
-         ;; A java.io.BufferedInputStream in the request can provoke this
-         ;; error: "invalid tx-op: Unfreezable type: class
-         ;; java.io.BufferedInputStream".
-         (dissoc :ring.request/body)))))
+     req
+     [(-> req
+          ;; A java.io.BufferedInputStream in the request can provoke this
+          ;; error: "invalid tx-op: Unfreezable type: class
+          ;; java.io.BufferedInputStream".
+          (dissoc :ring.request/body))])))
 
 (defn POST [req]
   (perform-unsafe-method req))
@@ -458,11 +453,6 @@
 
 (defn wrap-invoke-method [h]
   (fn [{:ring.request/keys [method] :as req}]
-
-    ;; Temporary assert while tracking down an issue
-    (assert (or (nil? (find req :juxt.site/subject)) (map? (:juxt.site/subject req)))
-            (format "Subject must be a map, or nil: %s" (pr-str (find req :juxt.site/subject))))
-
     (h (case method
          (:get :head) (GET req)
          :post (POST req)
@@ -979,7 +969,6 @@
 (defn new-request-id [vhost-config]
   (when-let [base-uri (:juxt.site/requests-base-uri vhost-config)]
     (str base-uri
-         "/_site/requests/"
          (subs (util/hexdigest
                 (.getBytes (str (java.util.UUID/randomUUID)) "us-ascii")) 0 24))))
 
@@ -1203,7 +1192,7 @@
    ;; 501
    wrap-method-not-implemented?
 
-   ;; Locate resources
+   ;; Locate resource
    wrap-locate-resource
 
    ;; Authenticate, some clues will be on the resource

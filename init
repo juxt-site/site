@@ -9,30 +9,43 @@ echo "Installing bundles"
 site bundle juxt/site/bootstrap | curl -K $SITE_HOME/install.curl
 site bundle juxt/site/api-operations | curl -K $SITE_HOME/install.curl
 
-#site bundle juxt/site/system-api | curl -K $SITE_HOME/install.curl
-site bundle juxt/site/endpoints-api | curl -K $SITE_HOME/install.curl
-
 site bundle juxt/site/oauth-token-endpoint | curl -K $SITE_HOME/install.curl
 site new-keypair | curl -K $SITE_HOME/install.curl
 site bundle juxt/site/system-client --client-id site-cli | curl -K $SITE_HOME/install.curl
 site bundle juxt/site/system-client --client-id insite | curl -K $SITE_HOME/install.curl
 
+# We need this to allow the site-cli app to create resources
 site bundle juxt/site/resources-api | curl -K $SITE_HOME/install.curl
 
 echo "Extracting client secret"
 site client-secret --save site-cli
 
+# whoami would be useful for debugging at this point
+site bundle juxt/site/whoami-api | curl -K $SITE_HOME/install.curl
+
 # Remote
 
-echo "Requesting token"
+echo "Requesting token as application"
 site request-token --client-id site-cli --grant-type client_credentials
 
-echo "Creating users"
-jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
-jo -- -s username=bob fullname="Bob Stewart" password=foobar | curl --json @- http://localhost:4444/_site/users
+site bundle juxt/site/users-api | curl http://localhost:4444/_site/resources -X POST -H content-type:application/edn -d @-
 
-echo "Getting users"
-curl http://localhost:4444/_site/users
+echo "Creating user"
+jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
+site users
+
+echo "Assigning Admin role to user"
+jo -- -s juxt.site/user=http://localhost:4444/_site/users/alice juxt.site/role=http://localhost:4444/_site/roles/Admin | curl --json @- http://localhost:4444/_site/operations/assign-role
+
+echo "Requesting token as user"
+site request-token --username alice --password foobar --grant-type password
 
 echo "Getting API endpoints"
+site bundle juxt/site/endpoints-api | curl -K $SITE_HOME/install.curl
 curl http://localhost:4444/_site/api-endpoints
+
+echo "Creating new user"
+jo -- -s username=bob fullname="Bob Stewart" password=foobar | curl --json @- http://localhost:4444/_site/users
+
+echo "Requesting token as new user"
+site request-token --username bob --password foobar --grant-type password

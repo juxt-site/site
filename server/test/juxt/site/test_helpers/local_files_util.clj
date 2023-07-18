@@ -16,6 +16,7 @@
 
 (defn install-bundles!
   ([names uri-map parameter-map]
+   (assert *xt-node*)
    (let [root-dir (get-root-dir)
          graph (ciu/unified-installer-map (io/file root-dir "installers") uri-map)
          bundles (edn/read-string (slurp (io/file root-dir "installers/bundles.edn")))]

@@ -35,6 +35,11 @@
     :juxt.site/installer-path "/_site/roles/{{role}}"
     :juxt.site/parameters {"role" "SystemQuery"}
     :juxt.site/description "This role grants access to operations that query sensitive system information."}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/roles/{{role}}"
+    :juxt.site/parameters {"role" "Admin"}
+    :juxt.site/description "This role grants access to most administrative operations"}
    ]}
 
  "juxt/site/api-operations"
@@ -72,32 +77,26 @@
     :juxt.site/installer-path "/_site/api-endpoints.csv"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin"
+                           "operation" "get-api-endpoints"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SystemQuery"
                            "operation" "get-api-endpoints"}}]}
 
- ;; TODO: Shouldn't SystemAPI be broken up into individual endpoints?
- "juxt/site/system-api"
- {:juxt.site/description "Site System API"
+ "juxt/site/users-api"
+ {:juxt.site/description "Users API"
   :juxt.site/installers
-  [ ;; Operations
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-operations"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/get-operations"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/operations"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/operations.json"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/operations.edn"}
-
-   ;; Users
+  [
+   ;; Operations
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/get-users"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/get-user"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-user"}
+
+   ;; Endpoints
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -107,15 +106,50 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users/{username}"}
 
-   ;; Roles (deprecated, replaced with Bootstrap and SystemQuery)
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/roles/{{role}}"
-    :juxt.site/parameters {"role" "System"}}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/roles/{{role}}"
-    :juxt.site/parameters {"role" "SystemReadonly"}}
+   ;; Role assignments
+   ;; Admin role
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin"
+                           "operation" "get-users"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin"
+                           "operation" "get-user"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin"
+                           "operation" "put-user"}}
 
-   ;; Whoami
+   ;; Bootstrap role
+   ;; It is necessary for bootstrapping to be able to create a user
+
+   ;; We could use our permission to install-resources but the user of
+   ;; the users API is more convenient for specifying ad-hoc
+   ;; parameters.
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Bootstrap"
+                           "operation" "put-user"}}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Bootstrap"
+                           "operation" "assign-role"}}
+
+   ;; SystemQuery
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SystemQuery"
+                           "operation" "get-users"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SystemQuery"
+                           "operation" "get-user"}}]}
+
+ "juxt/site/whoami-api"
+ {:juxt.site/description "Whoami API"
+  :juxt.site/installers
+  [
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/whoami"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -130,52 +164,74 @@
     :juxt.site/installer-path "/permissions/whoami"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/get-access-token"}
-
-   ;; Requests
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-requests"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/requests"}
-
-   ;; Permissions (mapping roles to operations)
-
-   ;; System role
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "System" "operation" "get-users"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "System" "operation" "get-user"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "System" "operation" "put-user"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "System" "operation" "get-requests"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "System" "operation" "get-api-endpoints"}}
-
-   ;; SystemReadonly role
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-users"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-user"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-requests"}}
-
-   ;; Scopes
-   ;; TODO: use these descriptions in the generation of openapi.json
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/scopes/system/read"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/scopes/system/write"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/scopes/system/self-identification"}
    ]}
+
+ ;; TODO: Shouldn't SystemAPI be broken up into individual endpoints?
+ #_"juxt/site/system-api"
+ #_{:juxt.site/description "Site System API"
+    :juxt.site/installers
+    [ ;; Operations
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/operations/get-operations"}
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/permissions/get-operations"}
+     {:juxt.site/base-uri "https://data.example.org"
+      :juxt.site/installer-path "/_site/operations"}
+     {:juxt.site/base-uri "https://data.example.org"
+      :juxt.site/installer-path "/_site/operations.json"}
+     {:juxt.site/base-uri "https://data.example.org"
+      :juxt.site/installer-path "/_site/operations.edn"}
+
+     ;; Roles (deprecated, replaced with Bootstrap and SystemQuery)
+     {:juxt.site/base-uri "https://data.example.org"
+      :juxt.site/installer-path "/_site/roles/{{role}}"
+      :juxt.site/parameters {"role" "System"}}
+     {:juxt.site/base-uri "https://data.example.org"
+      :juxt.site/installer-path "/_site/roles/{{role}}"
+      :juxt.site/parameters {"role" "SystemReadonly"}}
+
+     ;; Requests
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/operations/get-requests"}
+     {:juxt.site/base-uri "https://data.example.org"
+      :juxt.site/installer-path "/_site/requests"}
+
+     ;; Permissions (mapping roles to operations)
+
+     ;; System role
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+      :juxt.site/parameters {"role" "System" "operation" "get-users"}}
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+      :juxt.site/parameters {"role" "System" "operation" "get-user"}}
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+      :juxt.site/parameters {"role" "System" "operation" "put-user"}}
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+      :juxt.site/parameters {"role" "System" "operation" "get-requests"}}
+
+     ;; SystemReadonly role
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+      :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-users"}}
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+      :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-user"}}
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+      :juxt.site/parameters {"role" "SystemReadonly" "operation" "get-requests"}}
+
+     ;; Scopes
+     ;; TODO: use these descriptions in the generation of openapi.json
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/scopes/system/read"}
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/scopes/system/write"}
+     {:juxt.site/base-uri "https://auth.example.org"
+      :juxt.site/installer-path "/scopes/system/self-identification"}
+     ]}
 
  "juxt/site/oauth-token-endpoint"
  {:juxt.site/description "OAuth2 token endpoint"
@@ -492,8 +548,8 @@
   [
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/put-role"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/put-role"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/assign-role"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/assign-role"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/operations/assign-role"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/permissions/system/assign-role"}
    ]}
 
  "juxt/site/password-based-user-identity"

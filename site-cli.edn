@@ -1,4 +1,4 @@
-;; See https://book.babashka.org/#tasks
+; See https://book.babashka.org/#tasks
 {:min-bb-version "0.6.2"
  :paths ["src"]
  :deps {io.github.lispyclouds/bblgum {:git/sha "7ebae0e2231899fe2a6ad44bc9ef5fca64099fcd"}
@@ -46,10 +46,25 @@
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/ls)}
 
+  find
+  {:doc "Show resource"
+   :opts {:args->opts [:pattern]}
+   :task (juxt.site.bb.tasks/find)}
+
   api-endpoints
   {:doc "List available API endpoints"
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/api-endpoints)}
+
+  whoami
+  {:doc "Introspect current user/application"
+   :opts {:args->opts [:pattern]}
+   :task (juxt.site.bb.tasks/whoami)}
+
+  users
+  {:doc "Show current users"
+   :opts {:args->opts [:pattern]}
+   :task (juxt.site.bb.tasks/users)}
 
 
   ;;  ls-site-type {:task (juxt.site.bb.bootstrap.tasks/ls-site-type (first *command-line-args*))}

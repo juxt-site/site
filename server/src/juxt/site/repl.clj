@@ -311,7 +311,7 @@
 (defn requests-cache []
   cache/requests-cache)
 
-(defn check-permissions [operations options]
+#_(defn check-permissions [operations options]
   (operations/check-permissions (db) operations options))
 
 (defn factory-reset! []
@@ -345,18 +345,6 @@
 
 (defn find-resources [resources]
   (keep :xt/id (xt/pull-many (db) [:xt/id] resources)))
-
-(comment
-  (find-resources
-   ["https://auth.site.test/_site/do-operation" "https://auth.site.test/_site/subjects/system" "https://auth.site.test/_site/operations/create-operation" "https://auth.site.test/_site/permissions/system/bootstrap" "https://auth.site.test/_site/operations/grant-permission" "https://auth.site.test/_site/operations/install-not-found" "https://auth.site.test/_site/permissions/system/install-not-found" "https://auth.site.test/_site/not-found" "https://auth.site.test/_site/operations/get-not-found" "https://auth.site.test/_site/permissions/get-not-found"]))
-
-(defn call-installers! [installers]
-  (let [node (xt-node)]
-    (doseq [installer installers]
-      (try
-        (installer/call-installer node installer)
-        (catch Throwable e
-          (throw (ex-info (format "Failed to install %s" (:id installer)) {:installer (:id installer)} e)))))))
 
 (defn make-access-token!
   [m]

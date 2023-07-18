@@ -13,7 +13,8 @@
    [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
+   [clojure.edn :as edn]))
 
 ;; Welcome to the System API test suite
 
@@ -28,7 +29,7 @@
   (install-bundles!
    ["juxt/site/bootstrap"
     "juxt/site/api-operations"
-    "juxt/site/system-api"
+    "juxt/site/users-api"
     "juxt/site/openapi"
     "juxt/site/system-api-openapi"]
    RESOURCE_SERVER {})
@@ -58,17 +59,17 @@
     "authorization-code-length" 12
     "jti-length" 12})
 
-  ;; Alice has the System role which confers access to put-user
+  ;; Alice has the Admin role which confers access to put-user
   (converge!
    [{:juxt.site/base-uri "https://data.example.test"
      :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"
      :juxt.site/parameters
      {"username" "alice"
-      "rolename" "System"}}]
+      "rolename" "Admin"}}]
    RESOURCE_SERVER
    {})
 
-  ;; ... whereas Bob has the SystemReadonly role which doesn't
+  ;; ... whereas Bob has the SystemQuery role which doesn't
   (converge!
    [{:juxt.site/base-uri "https://data.example.test"
      :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"
@@ -96,42 +97,21 @@
      :juxt.site/installer-path "/_site/role-assignments/{{clientid}}-{{rolename}}"
      :juxt.site/parameters
      {"clientid" "site-cli"
-      "rolename" "System"}}]
+      "rolename" "SystemQuery"}}]
    RESOURCE_SERVER
-   {}))
+   {})
+
+  ;; Temporary for debugging
+  (install-bundles!
+   ["juxt/site/whoami-api"
+    ]
+   RESOURCE_SERVER {}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)
   (f))
 
 (use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
-
-(deftest system-api-test
-
-  (let [session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
-        (oauth/acquire-access-token!
-         {:grant-type "implicit"
-          :session-token session-token
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :client "https://auth.example.test/applications/global-scope-app"})]
-
-    (testing "Access achieved with correct permissions and role assignment"
-      (oauth/with-bearer-token access-token
-        (let [response
-              (*handler*
-               {:juxt.site/uri "https://data.example.test/_site/operations"
-                :ring.request/method :get
-                :ring.request/headers
-                {"accept" "application/json"}})]
-
-          (is (= "application/json" (get-in response [:ring.response/headers "content-type"])))
-          (is (= 200 (:ring.response/status response)))
-
-          (let [json (some-> response :ring.response/body json/read-value)]
-            (is json)
-            (is (<= 8 (count json)))
-            json))))))
 
 (deftest openapi-json-test
   (let [{:ring.response/keys [status headers body]}
@@ -366,3 +346,71 @@
             (is json)
             (is (<= 3 (count json)))
             json)))))
+
+
+#_(with-fixtures
+  (let [{access-token "access_token"}
+        (oauth/acquire-access-token!
+         {:grant-type "client_credentials"
+          :token-uri "https://auth.example.test/oauth/token"
+          :client "https://auth.example.test/applications/site-cli"})]
+
+
+    (oauth/with-bearer-token access-token
+      (let [response
+            (*handler*
+             {:juxt.site/uri "https://data.example.test/_site/whoami"
+              :ring.request/method :get
+              :ring.request/headers
+              {"accept" "application/edn"}})
+
+            body (edn/read-string (:ring.response/body response))
+
+            ]
+
+        body
+
+
+
+
+
+
+        ))
+
+    (oauth/with-bearer-token access-token
+      (let [response
+            (*handler*
+             {:juxt.site/uri "https://data.example.test/_site/users"
+              :ring.request/method :get
+              :ring.request/headers
+              {"accept" "application/edn"}})
+
+
+
+            ]
+
+        response
+
+
+        #_{:subject subject
+           :subject-in-db (repl/e (:xt/id subject))
+           :app (repl/e "https://auth.example.test/applications/site-cli")
+           :list (repl/ls)
+           }
+
+
+
+        ))
+
+    #_(repl/ls "role-assignments")
+
+    #_(oauth/with-bearer-token access-token
+        (let [response
+              (*handler*
+               {:juxt.site/uri "https://data.example.test/_site/users"
+                :ring.request/method :get
+                :ring.request/headers
+                {"accept" "application/json"}})]
+
+          response
+          ))))

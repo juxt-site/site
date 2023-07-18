@@ -2,6 +2,8 @@
 
 (ns juxt.site.whoami-test
   (:require
+   [ring.util.codec :as codec]
+   [clojure.java.io :as io]
    [clojure.test :refer [deftest is use-fixtures]]
    [jsonista.core :as json]
    [juxt.site.installer :refer [perform-operation!]]
@@ -10,7 +12,10 @@
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
-   [juxt.site.test-helpers.fixture :refer [with-fixtures]]))
+   [juxt.site.logging :refer [with-logging]]
+   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
+   [clojure.edn :as edn]
+   [juxt.site.repl :as repl]))
 
 (defn bootstrap []
   (install-bundles!
@@ -19,6 +24,7 @@
    {})
 
   ;; Install a private-key for signing
+  ;; TODO: There's a parameterized bundle for this now, use that!
   (converge!
    [{:juxt.site/base-uri "https://auth.example.test"
      :juxt.site/installer-path "/keypairs/{{kid}}"
@@ -50,15 +56,23 @@
   (install-bundles!
    ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
     "juxt/site/example-users" "juxt/site/protection-spaces"]
-   AUTH_SERVER
+   RESOURCE_SERVER
    {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
 
   (install-bundles!
    ["juxt/site/api-operations"
-    "juxt/site/system-api"
+    "juxt/site/whoami-api"
     "juxt/site/openapi"
     "juxt/site/system-api-openapi"]
-   RESOURCE_SERVER {}))
+   RESOURCE_SERVER {})
+
+  (converge!
+   [{:juxt.site/base-uri "https://data.example.test"
+     :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"
+     :juxt.site/parameters {"username" "alice"
+                            "rolename" "SystemQuery"}}]
+   RESOURCE_SERVER
+   {}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)
@@ -66,11 +80,22 @@
 
 (use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
 
+#_(time
+ (with-fixtures
+   (let [session-token (login/login-with-form! "alice" "garden")
+         {access-token "access_token"}
+         (with-logging
+           (oauth/acquire-access-token!
+            { ;;:grant-type "authorization_code"
+             :grant-type "implicit"
+             :authorization-uri "https://auth.example.test/oauth/authorize"
+             :session-token session-token
+             :client "https://auth.example.test/applications/test-app"}))]
+     access-token)))
+
 (deftest get-subject-test
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg
-
-
   (let [session-token (login/login-with-form! "alice" "garden")
         {access-token "access_token"}
         (oauth/acquire-access-token!
@@ -91,20 +116,18 @@
         (is (= "Alice"
                (-> body
                    json/read-value
-                   (get-in ["juxt.site/subject"
-                            "juxt.site/user-identity"
-                            "juxt.site/user"
-                            "fullname"
-                            ]))))
+                   (get-in ["juxt.site/user" "fullname"]))))
         (is (= "application/json" (get headers "content-type")))
         (is (= "https://data.example.test/_site/whoami.json" (get headers "content-location"))))
 
-      (let [{:ring.response/keys [status headers]}
+      (let [{:ring.response/keys [status headers body]}
             (*handler*
              {:juxt.site/uri "https://data.example.test/_site/whoami.edn"
               :ring.request/method :get
               :ring.request/headers
               {"authorization" (format "Bearer %s" access-token)
-               }})]
+               }})
+            edn (edn/read-string body)]
         (is (= 200 status))
-        (is (= "application/edn" (get headers "content-type")))))))
+        (is (= "application/edn" (get headers "content-type")))
+        (is (= ["https://data.example.test/_site/roles/SystemQuery"] (:juxt.site/roles edn)))))))

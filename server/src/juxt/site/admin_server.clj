@@ -8,7 +8,7 @@
    [integrant.core :as ig]
    [ring.adapter.jetty :refer [run-jetty]]
    [juxt.site.handler :as h]
-   [juxt.site.installer :as installer]
+   [juxt.site.operations :as operations]
    [clojure.edn :as edn]
    [jsonista.core :as json]
    [xtdb.api :as xt]
@@ -63,7 +63,7 @@
       {:juxt.site/acceptable
        {"accept" "application/edn,application/json"}
        ::invoke
-       (fn [{:juxt.site/keys [xt-node] :as req}]
+       (fn [{:juxt.site/keys [xt-node db] :as req}]
          (let [req (h/receive-representation req)
                rep (:juxt.site/received-representation req)
                body (slurp (:juxt.http/body rep))
@@ -71,23 +71,13 @@
                installer-seq (case (:juxt.http/content-type rep)
                                "application/edn" (edn/read-string body)
                                "application/json" (json/read-value body (json/object-mapper {:decode-key-fn true})))
+               tx-ops (operations/installer-seq->tx-ops db installer-seq)
 
-               c (count installer-seq)
-
-               results
-               (reduce (fn [results installer]
-                         (try
-                           (conj results (installer/call-installer xt-node installer))
-                           (catch Throwable e
-                             (throw
-                              (ex-info
-                               (format "Failed to install %s" (:id installer))
-                               {:installer (:id installer)} e)))))
-                       [] installer-seq)
+               _ (operations/apply-ops! xt-node tx-ops)
 
                response-body
                (-> {:message "Resources successfully installed"
-                    :count c
+                    :count (count installer-seq)
                     ;;:uris (mapv :juxt.site/uri results)
                     }
                    (json/write-value-as-string (json/object-mapper {:pretty true}))

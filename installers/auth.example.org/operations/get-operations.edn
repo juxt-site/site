@@ -5,6 +5,7 @@
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
   :juxt.site/input
   {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
 
    :juxt.site/description "Get the summary details of all permissible operations"
 

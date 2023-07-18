@@ -3,4 +3,5 @@
   {:xt/id "{{$id}}"
    :juxt.site/description "Virtual host configuration for https://data.example.org"
    :juxt.site/type "https://meta.juxt.site/types/vhost-configuration"
-   :juxt.site/requests-base-uri "https://data.example.org"}}}
+   :juxt.site/requests-base-uri "https://data.example.org/_site/requests/"
+   :juxt.site/events-base-uri "https://data.example.org/_site/events/"}}}
