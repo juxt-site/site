@@ -96,7 +96,8 @@
           :opts {:args->opts [:bundle]
                  :alias {:o :outfile}}
 
-          :task (juxt.site.bb.tasks/bundle)}
+          :task (juxt.site.bb.tasks/bundle
+                 (juxt.site.bb.tasks/parse-opts))}
 
   new-keypair {:doc "Create a new keypair"
                :task (juxt.site.bb.tasks/new-keypair)}
@@ -106,9 +107,14 @@
    :opts {:args->opts [:client-id]
           :require [:client-id]
           :coerce {:save :boolean}}
-   :task (juxt.site.bb.tasks/request-client-secret)}
+   :task (juxt.site.bb.tasks/print-or-save-client-secret
+          (juxt.site.bb.tasks/parse-opts))}
 
   reset {:doc "Admin only: Reset"
          :task (juxt.site.bb.tasks/reset)}
+
+  init {:doc "Initialise a server with a default configuration"
+        :task (juxt.site.bb.tasks/init
+               (juxt.site.bb.tasks/parse-opts))}
 
   }}

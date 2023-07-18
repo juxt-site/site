@@ -403,9 +403,13 @@
         {:keys [status body]} (http/get
                                endpoint
                                {:headers {"content-type" "application/json"
-                                          "authorization" (authorization cfg)}})]
-    (when (= status 200)
-      (print body))))
+                                          "authorization" (authorization cfg)}
+                                :throw false})]
+    (case status
+      200 (print body)
+      401 (do (print status body)
+              (println "Hint: Try requesting an access-token (site request-token)"))
+      (print status body))))
 
 (defn whoami []
   (api-request-json "/_site/whoami"))
@@ -507,9 +511,8 @@
         installers-seq (ciu/installer-seq installer-map parameters installers)]
     installers-seq))
 
-(defn bundle []
-  (let [{:keys [bundle] :as opts} (parse-opts)
-        cfg (config opts)
+(defn installers-seq [{:keys [bundle] :as opts}]
+  (let [cfg (config opts)
         bundles (bundles cfg)
 
         bundle-name (or bundle
@@ -531,7 +534,7 @@
     #_(println (json/generate-string installers-seq {:pretty true}))
 
     ;; EDN
-    (pprint installers-seq)
+    installers-seq
 
     ;; The reason to use a zip file is to allow future extensions
     ;; where the zip file can contain binary data, such as images used
@@ -547,6 +550,9 @@
                       bytes (.getBytes content "UTF-8")]]
           (.write out bytes 0 (count bytes)))
         (.closeEntry out))))
+
+(defn bundle [opts]
+  (pprint (installers-seq opts)))
 
 (defn random-string [size]
   (apply str
@@ -567,23 +573,23 @@
         installers-seq (bundle* cfg (get bundles "juxt/site/keypair") {:kid kid})]
     (pprint installers-seq)))
 
-(defn request-client-secret []
+(defn request-client-secret [client-id]
+  (let [client-details
+        (json/parse-string
+         (:body
+          (http/get
+           (str "http://localhost:4911/applications/" client-id)
+           {"accept" "application/json"})))]
+    (get client-details "juxt.site/client-secret")))
+
+(defn print-or-save-client-secret [{:keys [client-id save] :as opts}]
 
   ;; TODO: The repl (client-secret) must also have a where clause to
   ;; restrict us to the right auth-server! Otherwise we'll be
   ;; potentially fishing out the first of a bundle of client-secrets!
 
-  (let [{:keys [client-id save] :as opts} (parse-opts)
-        client-details
-        (json/parse-string
-         (:body
-          (http/get
-           (str "http://localhost:4911/applications/" client-id)
-           {"accept" "application/json"})))
-        client-secret (get client-details "juxt.site/client-secret")
-
-        secret-file (client-secret-file opts client-id)
-        ]
+  (let [client-secret (request-client-secret client-id)
+        secret-file (client-secret-file opts client-id)]
 
     ;;    (pprint (cache-dir opts))
 
@@ -599,3 +605,47 @@
           (http/post "http://localhost:4911/reset")]
       ;; print not println, as the body should be terminated in a CRLF
       (print status body))))
+
+(defn install [installers-seq]
+  (let [{:keys [status body]}
+        (http/post
+         "http://localhost:4911/resources"
+         {:headers {"content-type" "application/edn"}
+          :body (pr-str installers-seq)
+          :throw false})]
+    (case status
+      200 (print body)
+      (print status body))))
+
+(defn install-bundles [{named-bundles :bundles :as opts}]
+  (let [cfg (config opts)
+        bundles (bundles cfg)]
+
+    (doseq [[bundle-name params] named-bundles
+            :let [bundle (get bundles bundle-name)
+                  param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))
+                  title (get bundle :juxt.site/title bundle-name)]]
+      (println
+       (if (str/blank? param-str)
+         (format "Installing: %s" title)
+         (format "Installing: %s with %s" title param-str)))
+      (install (installers-seq (into opts (into params {:bundle bundle-name})))))))
+
+(defn init [opts]
+  (install-bundles
+   (assoc
+    opts
+    :bundles
+    [["juxt/site/bootstrap" {}]
+     ;; Allow token access
+     ["juxt/site/oauth-token-endpoint" {}]
+     ["juxt/site/keypair" {:kid (random-string 16)}]
+     ;; Register clients
+     ["juxt/site/system-client" {:client-id "site-cli"}]
+     ["juxt/site/system-client" {:client-id "insite"}]
+     ;;We need this to allow the site-cli app to create resources
+     ["juxt/site/api-operations" {}]
+     ["juxt/site/resources-api" {}]]))
+  (doseq [client-id ["site-cli" "insite"]
+          :let [client-secret (request-client-secret client-id)]]
+    (println (format "Client secret for %-10s %s" (str client-id ":") client-secret))))
