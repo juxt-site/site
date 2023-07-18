@@ -41,6 +41,11 @@
           :alias {:f :format}}
    :task (juxt.site.bb.tasks/config-task)}
 
+  profile
+  {:doc "Show profile"
+   :opts {}
+   :task (juxt.site.bb.tasks/profile-task)}
+
   ls
   {:doc "List resources"
    :opts {:args->opts [:pattern]}

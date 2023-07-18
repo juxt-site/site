@@ -81,10 +81,21 @@
    "curl"
    {"save-bearer-token-to-default-config-file" true}})
 
+(defn profile [opts]
+  (or
+   (get opts :profile)
+   (keyword (System/getenv "SITE_PROFILE"))
+   :default))
+
+(defn profile-task []
+  (println (name (profile (parse-opts)))))
+
 (defn config [opts]
   (if-let [config-file (config-file)]
     (condp re-matches config-file
-      #".*\.edn" (aero/read-config config-file {:profile (get opts :profile :default)})
+      #".*\.edn" (aero/read-config
+                  config-file
+                  {:profile (profile opts)})
       #".*\.json" (json/parse-string (slurp config-file))
       #".*\.yaml" (yaml/parse-string (slurp config-file) {:keywords false})
       (throw (ex-info "Unrecognized config file" {:config-file config-file})))
