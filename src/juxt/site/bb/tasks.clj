@@ -612,22 +612,22 @@
           ;; print not println, as the body should be terminated in a CRLF
           (print status body))))))
 
-(defn install [resources-uri installers-seq]
+(defn install [{:keys [resources-uri bearer-token]} installers-seq]
+  (assert resources-uri)
   (let [{:keys [status body]}
         (http/post
          resources-uri
-         {:headers {"content-type" "application/edn"}
+         {:headers (cond-> {"content-type" "application/edn"}
+                     bearer-token (assoc "authorization" (format "Bearer %s" bearer-token)))
           :body (pr-str installers-seq)
           :throw false})]
     (case status
       200 (print body)
       (print status body))))
 
-(defn install-bundles [{named-bundles :bundles
-                        resources-uri :resources-uri :as opts}]
+(defn install-bundles [{named-bundles :bundles :as opts}]
   (let [cfg (config opts)
         bundles (bundles cfg)]
-
     (doseq [[bundle-name params] named-bundles
             :let [bundle (get bundles bundle-name)
                   param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))
@@ -637,7 +637,7 @@
          (format "Installing: %s" title)
          (format "Installing: %s with %s" title param-str)))
       (install
-       resources-uri
+       opts
        (installers-seq (into opts (into params {:bundle bundle-name})))))))
 
 (defn init [opts]
@@ -664,11 +664,26 @@
            ["juxt/site/api-operations" {}]
            ["juxt/site/resources-api" {}]
            ["juxt/site/whoami-api" {}]]))
+
+        ;; Delete any stale client-secret files
+        (doseq [client-id ["site-cli" "insite"]
+                :let [secret-file (client-secret-file opts client-id)]]
+          ;; TODO: Replace with babashka.fs
+          (.delete secret-file))
+
         (doseq [client-id ["site-cli" "insite"]
                 :let [client-secret (request-client-secret admin-base-uri client-id)]]
           (println (format "Client secret for %-10s %s" (str client-id ":") client-secret)))))))
 
-(defn configure [opts]
+(defn setup [opts]
   (println "Acquiring request-token")
-  (let [access-token (request-token {:client-id "site-cli" :grant-type "client_credentials"})]
-    (println "TODO")))
+  (let [cfg (config opts)
+        access-token (request-token {:client-id "site-cli" :grant-type "client_credentials"})]
+    (install-bundles
+     (assoc
+      opts
+      :resources-uri
+      (str (get-in cfg ["uri-map" "https://data.example.org"]) "/_site/resources")
+      :bearer-token access-token
+      :bundles
+      [["juxt/site/users-api" {}]]))))

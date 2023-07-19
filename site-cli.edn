@@ -119,8 +119,8 @@
         :task (juxt.site.bb.tasks/init
                (juxt.site.bb.tasks/parse-opts))}
 
-  configure {:doc "Configure a remote site instance"
-             :task (juxt.site.bb.tasks/configure
-                    (juxt.site.bb.tasks/parse-opts))}
+  setup {:doc "Setup a remote site instance"
+         :task (juxt.site.bb.tasks/setup
+                (juxt.site.bb.tasks/parse-opts))}
 
   }}
