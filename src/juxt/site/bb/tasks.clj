@@ -282,7 +282,7 @@
         (io/delete-file secret-file))
       (println "No such file:" (.getAbsolutePath secret-file)))))
 
-(defn- retrieve-bearer-token [cfg]
+(defn- retrieve-access-token [cfg]
   (let [{curl "curl" bearer-token-file "bearer-token"} cfg
         {save-bearer-token-to-default-config-file "save-bearer-token-to-default-config-file"} curl
         token (cond
@@ -298,44 +298,6 @@
                 (when (and (.exists bearer-token-file) (.isFile bearer-token-file))
                   (slurp bearer-token-file)))]
     token))
-
-(defn check-token []
-  (let [opts (parse-opts)
-        cfg (config opts)
-        token (retrieve-bearer-token cfg)]
-    (if-not token
-      (binding [*out* *err*]
-        (println "Hint: Try requesting an access-token (site request-access-token)"))
-      (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-            {introspection-status :status introspection-body :body}
-            (http/post
-             (str auth-base-uri "/oauth/introspect")
-             {:headers {"authorization" (format "Bearer %s"token)}
-              :form-params {"token" token}
-              :throw false})
-
-            zone-id (java.time.ZoneId/systemDefault)
-
-            claim-time
-            (fn [seconds]
-              (.toString
-               (java.time.ZonedDateTime/ofInstant
-                (java.time.Instant/ofEpochSecond seconds)
-                zone-id)))
-
-            claims
-            (when (and (= introspection-status 200) introspection-body)
-              (let [claims (json/parse-string introspection-body)]
-                (-> claims
-                    (assoc "issued-at" (claim-time (get claims "iat")))
-                    (assoc "expires-at" (claim-time (get claims "exp"))))))]
-        (println
-         (json/generate-string
-          (cond-> {"bearer-token" token
-                   "introspection-status" introspection-status}
-            claims
-            (assoc "claims" claims))
-          {:pretty true}))))))
 
 (defn request-access-token
   "Acquire an access-token. Remote only."
@@ -383,6 +345,44 @@
   (let [token (request-access-token opts)]
     (save-bearer-token token)))
 
+(defn check-token []
+  (let [opts (parse-opts)
+        cfg (config opts)
+        token (retrieve-access-token cfg)]
+    (if-not token
+      (binding [*out* *err*]
+        (println "Hint: Try requesting an access-token (site request-access-token)"))
+      (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+            {introspection-status :status introspection-body :body}
+            (http/post
+             (str auth-base-uri "/oauth/introspect")
+             {:headers {"authorization" (format "Bearer %s"token)}
+              :form-params {"token" token}
+              :throw false})
+
+            zone-id (java.time.ZoneId/systemDefault)
+
+            claim-time
+            (fn [seconds]
+              (.toString
+               (java.time.ZonedDateTime/ofInstant
+                (java.time.Instant/ofEpochSecond seconds)
+                zone-id)))
+
+            claims
+            (when (and (= introspection-status 200) introspection-body)
+              (let [claims (json/parse-string introspection-body)]
+                (-> claims
+                    (assoc "issued-at" (claim-time (get claims "iat")))
+                    (assoc "expires-at" (claim-time (get claims "exp"))))))]
+        (println
+         (json/generate-string
+          (cond-> {"bearer-token" token
+                   "introspection-status" introspection-status}
+            claims
+            (assoc "claims" claims))
+          {:pretty true}))))))
+
 (defn authorization [cfg]
   (format "Bearer %s" (retrieve-bearer-token cfg)))
 
@@ -418,7 +418,7 @@
     (let [{resource-server "resource_server"} (config)
           api-endpoint (str (get resource-server "base_uri") "/_site/users")
 
-          token (retrieve-bearer-token)
+          token (retrieve-access-token)
           ;; Couldn't we just request the token?
           _ (when-not token
               (throw (ex-info "No bearer token" {})))

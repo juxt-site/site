@@ -92,7 +92,7 @@
 
   check-access-token
   {:doc "Show current token"
-   :task (juxt.site.bb.tasks/check-token)}
+   :task (juxt.site.bb.tasks/check-access-token)}
 
   bundle {:doc "From a directory of installer specifications, create a bundle for a given bundle and stream to stdout"
           :opts {:args->opts [:bundle]
