@@ -338,9 +338,8 @@
         (assoc "claims" claims))
       {:pretty true}))))
 
-(defn request-token []
-  (let [{:keys [client-id grant-type] :as opts} (parse-opts)
-        cfg (config opts)
+(defn request-token [{:keys [client-id grant-type] :as opts}]
+  (let [cfg (config opts)
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
         token-endpoint (str auth-base-uri "/oauth/token")]
     (case grant-type
@@ -361,11 +360,8 @@
           (throw (ex-info "password must be given" {})))
 
         (case status
-          200 (let [{access-token "access_token"} (json/parse-string body)]
-                (when access-token
-                  (save-bearer-token access-token)))
-
-          (println (format "Not OK, status was %d\nbody was %s" status body))))
+          200 (get (json/parse-string body) "access_token")
+          (print status body)))
 
       "client_credentials"
       (let [secret (client-secret opts client-id)
@@ -379,18 +375,12 @@
               :form-params {"grant_type" "client_credentials"}
               :throw false})]
         (case status
-          200 (let [{access-token "access_token"
-                     ;; TODO: Can we use this expires-in to calculate when our token will expire?
-                     expires-in "expires_in"}
-                    (json/parse-string body)]
-                (when access-token
-                  (save-bearer-token access-token))
-                (println (format "Access token expires in %s seconds" expires-in)))
-          400 (let [{error "error"
-                     desc "error_description"} (json/parse-string body)]
-                (println error)
-                (println desc))
-          (println "ERROR, status" status ", body:" body))))))
+          200 (get (json/parse-string body) "access_token")
+          (print status body))))))
+
+(defn request-token-task [opts]
+  (let [token (request-token opts)]
+    (save-bearer-token token)))
 
 (defn authorization [cfg]
   (format "Bearer %s" (retrieve-bearer-token cfg)))
@@ -606,10 +596,10 @@
       ;; print not println, as the body should be terminated in a CRLF
       (print status body))))
 
-(defn install [installers-seq]
+(defn install [resources-uri installers-seq]
   (let [{:keys [status body]}
         (http/post
-         "http://localhost:4911/resources"
+         resources-uri
          {:headers {"content-type" "application/edn"}
           :body (pr-str installers-seq)
           :throw false})]
@@ -617,7 +607,8 @@
       200 (print body)
       (print status body))))
 
-(defn install-bundles [{named-bundles :bundles :as opts}]
+(defn install-bundles [{named-bundles :bundles
+                        resources-uri :resources-uri :as opts}]
   (let [cfg (config opts)
         bundles (bundles cfg)]
 
@@ -629,12 +620,16 @@
        (if (str/blank? param-str)
          (format "Installing: %s" title)
          (format "Installing: %s with %s" title param-str)))
-      (install (installers-seq (into opts (into params {:bundle bundle-name})))))))
+      (install
+       resources-uri
+       (installers-seq (into opts (into params {:bundle bundle-name})))))))
 
 (defn init [opts]
   (install-bundles
    (assoc
     opts
+    :resources-uri
+    "http://localhost:4911/resources"
     :bundles
     [["juxt/site/bootstrap" {}]
      ;; Allow token access
@@ -645,7 +640,16 @@
      ["juxt/site/system-client" {:client-id "insite"}]
      ;;We need this to allow the site-cli app to create resources
      ["juxt/site/api-operations" {}]
-     ["juxt/site/resources-api" {}]]))
+     ["juxt/site/resources-api" {}]
+     ["juxt/site/whoami-api" {}]]))
   (doseq [client-id ["site-cli" "insite"]
           :let [client-secret (request-client-secret client-id)]]
     (println (format "Client secret for %-10s %s" (str client-id ":") client-secret))))
+
+(defn configure [opts]
+  (println "Acquiring request-token")
+  (let [access-token (request-token {:client-id "site-cli" :grant-type "client_credentials"})]
+    (println "TODO")
+
+    )
+  )
