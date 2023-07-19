@@ -211,7 +211,7 @@
                (cond-> new-lines
                  (= lines new-lines)
                  (conj
-                  "# This was added by site request-token"
+                  "# This was added by site request-access-token"
                   (format "oauth2-bearer %s" access-token)))))
         (println "Access token saved to"
                  (str/replace
@@ -302,50 +302,44 @@
 (defn check-token []
   (let [opts (parse-opts)
         cfg (config opts)
-        token (retrieve-bearer-token cfg)
-        _ (when-not token (System/exit 1))
+        token (retrieve-bearer-token cfg)]
+    (if-not token
+      (binding [*out* *err*]
+        (println "Hint: Try requesting an access-token (site request-access-token)"))
+      (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+            {introspection-status :status introspection-body :body}
+            (http/post
+             (str auth-base-uri "/oauth/introspect")
+             {:headers {"authorization" (format "Bearer %s"token)}
+              :form-params {"token" token}
+              :throw false})
 
-        secret (client-secret opts "site-cli")
-        _ (when-not secret
-            (println "No client-secret found")
-            (System/exit 1))
+            zone-id (java.time.ZoneId/systemDefault)
 
-        opts (parse-opts)
-        cfg (config opts)
-        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+            claim-time
+            (fn [seconds]
+              (.toString
+               (java.time.ZonedDateTime/ofInstant
+                (java.time.Instant/ofEpochSecond seconds)
+                zone-id)))
 
-        {introspection-status :status introspection-body :body}
-        (http/post
-         (str auth-base-uri "/oauth/introspect")
-         {:basic-auth ["site-cli" client-secret]
-          :form-params {"token" token}
-          :throw false})
+            claims
+            (when (and (= introspection-status 200) introspection-body)
+              (let [claims (json/parse-string introspection-body)]
+                (-> claims
+                    (assoc "issued-at" (claim-time (get claims "iat")))
+                    (assoc "expires-at" (claim-time (get claims "exp"))))))]
+        (println
+         (json/generate-string
+          (cond-> {"bearer-token" token
+                   "introspection-status" introspection-status}
+            claims
+            (assoc "claims" claims))
+          {:pretty true}))))))
 
-        zone-id (java.time.ZoneId/systemDefault)
-
-        claim-time
-        (fn [seconds]
-          (.toString
-           (java.time.ZonedDateTime/ofInstant
-            (java.time.Instant/ofEpochSecond seconds)
-            zone-id)))
-
-        claims
-        (when (and (= introspection-status 200) introspection-body)
-          (let [claims (json/parse-string introspection-body)]
-            (-> claims
-                (assoc "issued-at" (claim-time (get claims "iat")))
-                (assoc "expires-at" (claim-time (get claims "exp"))))))]
-
-    (println
-     (json/generate-string
-      (cond-> {"bearer-token" token
-               "introspection-status" introspection-status}
-        claims
-        (assoc "claims" claims))
-      {:pretty true}))))
-
-(defn request-token [{:keys [client-id grant-type] :as opts}]
+(defn request-access-token
+  "Acquire an access-token. Remote only."
+  [{:keys [client-id grant-type] :as opts}]
   (let [cfg (config opts)
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
         token-endpoint (str auth-base-uri "/oauth/token")]
@@ -385,8 +379,8 @@
           200 (get (json/parse-string body) "access_token")
           (print status body))))))
 
-(defn request-token-task [opts]
-  (let [token (request-token opts)]
+(defn request-access-token-task [opts]
+  (let [token (request-access-token opts)]
     (save-bearer-token token)))
 
 (defn authorization [cfg]
@@ -404,9 +398,11 @@
                                 :throw false})]
     (case status
       200 (print body)
-      401 (do (print status body)
-              (println "Hint: Try requesting an access-token (site request-token)"))
-      (print status body))))
+      401 (binding [*out* *err*]
+            (print status body)
+            (println "Hint: Try requesting an access-token (site request-token)"))
+      (binding [*out* *err*]
+        (print status body)))))
 
 (defn whoami []
   (api-request-json "/_site/whoami"))
@@ -663,7 +659,9 @@
            ;;We need this to allow the site-cli app to create resources
            ["juxt/site/api-operations" {}]
            ["juxt/site/resources-api" {}]
-           ["juxt/site/whoami-api" {}]]))
+           ["juxt/site/whoami-api" {}]
+           ["juxt/site/users-api" {}]
+           ["juxt/site/endpoints-api" {}]]))
 
         ;; Delete any stale client-secret files
         (doseq [client-id ["site-cli" "insite"]
@@ -675,7 +673,9 @@
                 :let [client-secret (request-client-secret admin-base-uri client-id)]]
           (println (format "Client secret for %-10s %s" (str client-id ":") client-secret)))))))
 
-(defn setup [opts]
+#_(defn setup
+  ""
+  [opts]
   (println "Acquiring request-token")
   (let [cfg (config opts)
         access-token (request-token {:client-id "site-cli" :grant-type "client_credentials"})]
@@ -686,4 +686,4 @@
       (str (get-in cfg ["uri-map" "https://data.example.org"]) "/_site/resources")
       :bearer-token access-token
       :bundles
-      [["juxt/site/users-api" {}]]))))
+      []))))

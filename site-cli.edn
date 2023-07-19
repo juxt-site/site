@@ -17,12 +17,12 @@
   {:doc "Check server health"
    :task (juxt.site.bb.tasks/ping)}
 
-  request-token
-  {:doc "Acquire a token"
+  request-access-token
+  {:doc "Acquire an access token"
    :opts {:require [:client-id :grant-type]
           :exec-args {:client-id "site-cli"
                       :grant-type "client_credentials"}}
-   :task (juxt.site.bb.tasks/request-token-task
+   :task (juxt.site.bb.tasks/request-access-token-task
           (juxt.site.bb.tasks/parse-opts))}
 
   forget-client-secret
@@ -90,7 +90,7 @@
   {:doc "Show JSON Web Key Set"
    :task (juxt.site.bb.tasks/jwks)}
 
-  check-token
+  check-access-token
   {:doc "Show current token"
    :task (juxt.site.bb.tasks/check-token)}
 
