@@ -420,7 +420,8 @@
             (print status body)
             (println "Hint: Try requesting an access-token (site request-token)"))
       (binding [*out* *err*]
-        (print status body)))))
+        (print status body)
+        (.flush *out*)))))
 
 (defn whoami []
   (api-request-json "/_site/whoami"))
