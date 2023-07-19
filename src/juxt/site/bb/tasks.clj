@@ -360,7 +360,7 @@
           (print status body))))))
 
 (defn request-access-token-task [opts]
-  (let [token (request-access-token opts)]
+  (when-let [token (request-access-token opts)]
     (save-bearer-token token)))
 
 (defn check-access-token []
