@@ -7,7 +7,7 @@ clojure \
   -J-Djava.awt.headless=true \
   -J-XX:-OmitStackTraceInFastThrow \
   -J-Dclojure.server.site="{:port,50505,:accept,juxt.site.repl-server/repl,:address,\"localhost\"}" \
-  -J-Dlogback.configurationFile=$HOME/.config/site/logback.xml \
+  -J-Dlogback.configurationFile=$SITE_HOME/site/server/src/logback.xml \
   -J-Xms256m \
   -J-Xmx2400m \
   -Mprod \
