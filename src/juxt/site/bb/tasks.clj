@@ -236,8 +236,25 @@
     (.mkdirs save-dir)
     (io/file save-dir client-id)))
 
-(defn- client-secret [opts client-id]
+(defn input-secret [client-id]
+  (input/input {:header (format "Input client secret for %s" client-id)})
+  #_(let [{status :status [secret] :result}
+        (b/gum {:cmd :input
+                :opts (cond-> {:header.foreground "#C72"
+                               :prompt.foreground "#444"
+                               :width 60
+                               :header (format "Input client secret for %s" client-id)})})]
+    ;; TODO: Check for status
+    (println status)
+    secret))
+
+;; Not used?
+(defn- client-secret
+  "Only use when there is an admin server. We don't want to store client secrets on remote machines."
+  [opts client-id]
+
   (let [cfg (config opts)
+        _ (assert (not (get cfg "admin-base-uri")))
 
         secret-file (client-secret-file opts client-id)
 
@@ -282,7 +299,8 @@
         (io/delete-file secret-file))
       (println "No such file:" (.getAbsolutePath secret-file)))))
 
-(defn- retrieve-access-token [cfg]
+(defn- retrieve-access-token
+  [cfg]
   (let [{curl "curl" bearer-token-file "bearer-token"} cfg
         {save-bearer-token-to-default-config-file "save-bearer-token-to-default-config-file"} curl
         token (cond
@@ -327,7 +345,7 @@
           (print status body)))
 
       "client_credentials"
-      (let [secret (client-secret opts client-id)
+      (let [secret (input-secret client-id)
             _ (when-not secret
                 (println "No client-secret found")
                 (System/exit 1))
@@ -345,7 +363,7 @@
   (let [token (request-access-token opts)]
     (save-bearer-token token)))
 
-(defn check-token []
+(defn check-access-token []
   (let [opts (parse-opts)
         cfg (config opts)
         token (retrieve-access-token cfg)]
@@ -384,7 +402,7 @@
           {:pretty true}))))))
 
 (defn authorization [cfg]
-  (format "Bearer %s" (retrieve-bearer-token cfg)))
+  (format "Bearer %s" (retrieve-access-token cfg)))
 
 (defn api-request-json [path]
   (let [opts (parse-opts)
