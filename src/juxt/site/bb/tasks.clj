@@ -71,15 +71,13 @@
 (defn default-config
   "Return a default config which is useful for getting started"
   []
-  {"uri-map"
-   {"https://auth.example.org" "http://localhost:4440"
-    "https://data.example.org" "http://localhost:4444"}
+  {"admin-base-uri" "http://localhost:4911"
+   "uri-map" {"https://auth.example.org" "http://localhost:4440"
+              "https://data.example.org" "http://localhost:4444"}
    "installers-home" (str (System/getenv "SITE_HOME") "/installers")
-   "client-credentials"
-   {"ask-for-client-secret" true
-    "cache-client-secret" true}
-   "curl"
-   {"save-bearer-token-to-default-config-file" true}})
+   "client-credentials" {"ask-for-client-secret" true
+                         "cache-client-secret" true}
+   "curl" {"save-bearer-token-to-default-config-file" true}})
 
 (defn profile [opts]
   (or
@@ -137,47 +135,56 @@
 
 (defn ls []
   (let [{:keys [pattern] :as opts} (parse-opts)
-        resources
-        (json/parse-string
-         (:body
-          (http/get
-           (cond-> "http://localhost:4911/resources"
-             pattern (str "?pattern=" (url-encode pattern)))
-           {"accept" "application/json"})))]
-    (doseq [res resources]
-      (println res))))
+        cfg (config opts)
+        admin-base-uri (get cfg "admin-base-uri")]
+    (if-not admin-base-uri
+      (binding [*out* *err*]
+        (println "The admin-server is not reachable."))
+      (doseq [res (json/parse-string
+                   (:body
+                    (http/get
+                     (cond-> (str admin-base-uri "/resources")
+                       pattern (str "?pattern=" (url-encode pattern)))
+                     {"accept" "application/json"})))]
+        (println res)))))
 
 (defn find []
   (let [{:keys [pattern] :as opts} (parse-opts)
-        resources
-        (json/parse-string
-         (:body
-          (http/get
-           (cond-> "http://localhost:4911/resources"
-             pattern (str "?pattern=" (url-encode pattern)))
-           {"accept" "application/json"})))
-        sw (java.io.StringWriter.)]
-    (with-open [out (java.io.PrintWriter. sw)]
-      (binding [*out* out]
-        (doseq [res resources]
-          (println res))))
-    (when-not (str/blank? (.toString sw))
-      (let [{:keys [status result]}
-            (b/gum {:cmd :filter
-                    :opts {:placeholder "Select resource"
-                           :fuzzy false
-                           :indicator "⮕"
-                           :indicator.foreground "#C72"
-                           :match.foreground "#C72"}
-                    :in (io/input-stream (.getBytes (.toString sw)))})]
+        cfg (config opts)
+        admin-base-uri (get cfg "admin-base-uri")]
+    (if-not admin-base-uri
+      (binding [*out* *err*]
+        (println "The admin-server is not reachable."))
+      (let [resources
+            (json/parse-string
+             (:body
+              (http/get
+               (cond-> (str admin-base-uri "/resources")
+                 pattern (str "?pattern=" (url-encode pattern)))
+               {"accept" "application/json"})))
+            sw (java.io.StringWriter.)]
 
-        (when (zero? status)
-          (let [resource (json/parse-string
-                          (:body
-                           (http/get
-                            (str "http://localhost:4911/resource?uri=" (url-encode (first result)))
-                            {"accept" "application/json"})))]
-            (pprint resource)))))))
+        (with-open [out (java.io.PrintWriter. sw)]
+          (binding [*out* out]
+            (doseq [res resources]
+              (println res))))
+        (when-not (str/blank? (.toString sw))
+          (let [{:keys [status result]}
+                (b/gum {:cmd :filter
+                        :opts {:placeholder "Select resource"
+                               :fuzzy false
+                               :indicator "⮕"
+                               :indicator.foreground "#C72"
+                               :match.foreground "#C72"}
+                        :in (io/input-stream (.getBytes (.toString sw)))})]
+
+            (when (zero? status)
+              (let [resource (json/parse-string
+                              (:body
+                               (http/get
+                                (str admin-base-uri "/resource?uri=" (url-encode (first result)))
+                                {"accept" "application/json"})))]
+                (pprint resource)))))))))
 
 (defn- save-bearer-token [access-token]
   (let [opts (parse-opts)
@@ -563,12 +570,13 @@
         installers-seq (bundle* cfg (get bundles "juxt/site/keypair") {:kid kid})]
     (pprint installers-seq)))
 
-(defn request-client-secret [client-id]
+(defn request-client-secret [admin-base-uri client-id]
+  (assert admin-base-uri)
   (let [client-details
         (json/parse-string
          (:body
           (http/get
-           (str "http://localhost:4911/applications/" client-id)
+           (str admin-base-uri "/applications/" client-id)
            {"accept" "application/json"})))]
     (get client-details "juxt.site/client-secret")))
 
@@ -578,23 +586,31 @@
   ;; restrict us to the right auth-server! Otherwise we'll be
   ;; potentially fishing out the first of a bundle of client-secrets!
 
-  (let [client-secret (request-client-secret client-id)
-        secret-file (client-secret-file opts client-id)]
-
-    ;;    (pprint (cache-dir opts))
-
-    (binding [*out* (if save (io/writer secret-file) *out*)]
-      (println client-secret))
-
-    (when save
-      (println "Written client secret to" (.getAbsolutePath secret-file)))))
+  (let [cfg (config opts)
+        admin-base-uri (get cfg "admin-base-uri")]
+    (if-not admin-base-uri
+      (binding [*out* *err*]
+        (println "The admin-server is not reachable."))
+      (let [client-secret (request-client-secret admin-base-uri client-id)
+            secret-file (client-secret-file opts client-id)]
+        (binding [*out* (if save (io/writer secret-file) *out*)]
+          (println client-secret))
+        (when save
+          (binding [*out* *err*]
+            (println "Written client secret to" (.getAbsolutePath secret-file))))))))
 
 (defn reset []
-  (when (input/confirm "Factory reset and delete ALL resources?")
-    (let [{:keys [status body]}
-          (http/post "http://localhost:4911/reset")]
-      ;; print not println, as the body should be terminated in a CRLF
-      (print status body))))
+  (let [opts (parse-opts)
+        cfg (config opts)
+        admin-base-uri (get cfg "admin-base-uri")]
+    (if-not admin-base-uri
+      (binding [*out* *err*]
+        (println "Cannot reset. The admin-server is not reachable."))
+      (when (input/confirm "Factory reset and delete ALL resources?")
+        (let [{:keys [status body]}
+              (http/post (str admin-base-uri "/reset"))]
+          ;; print not println, as the body should be terminated in a CRLF
+          (print status body))))))
 
 (defn install [resources-uri installers-seq]
   (let [{:keys [status body]}
@@ -625,31 +641,34 @@
        (installers-seq (into opts (into params {:bundle bundle-name})))))))
 
 (defn init [opts]
-  (install-bundles
-   (assoc
-    opts
-    :resources-uri
-    "http://localhost:4911/resources"
-    :bundles
-    [["juxt/site/bootstrap" {}]
-     ;; Allow token access
-     ["juxt/site/oauth-token-endpoint" {}]
-     ["juxt/site/keypair" {:kid (random-string 16)}]
-     ;; Register clients
-     ["juxt/site/system-client" {:client-id "site-cli"}]
-     ["juxt/site/system-client" {:client-id "insite"}]
-     ;;We need this to allow the site-cli app to create resources
-     ["juxt/site/api-operations" {}]
-     ["juxt/site/resources-api" {}]
-     ["juxt/site/whoami-api" {}]]))
-  (doseq [client-id ["site-cli" "insite"]
-          :let [client-secret (request-client-secret client-id)]]
-    (println (format "Client secret for %-10s %s" (str client-id ":") client-secret))))
+  (let [cfg (config opts)
+        admin-base-uri (get cfg "admin-base-uri")]
+    (if-not admin-base-uri
+      (binding [*out* *err*]
+        (println "Cannot init. The admin-server is not reachable."))
+      (do
+        (install-bundles
+         (assoc
+          opts
+          :resources-uri
+          (str admin-base-uri "/resources")
+          :bundles
+          [["juxt/site/bootstrap" {}]
+           ;; Allow token access
+           ["juxt/site/oauth-token-endpoint" {}]
+           ["juxt/site/keypair" {:kid (random-string 16)}]
+           ;; Register clients
+           ["juxt/site/system-client" {:client-id "site-cli"}]
+           ["juxt/site/system-client" {:client-id "insite"}]
+           ;;We need this to allow the site-cli app to create resources
+           ["juxt/site/api-operations" {}]
+           ["juxt/site/resources-api" {}]
+           ["juxt/site/whoami-api" {}]]))
+        (doseq [client-id ["site-cli" "insite"]
+                :let [client-secret (request-client-secret admin-base-uri client-id)]]
+          (println (format "Client secret for %-10s %s" (str client-id ":") client-secret)))))))
 
 (defn configure [opts]
   (println "Acquiring request-token")
   (let [access-token (request-token {:client-id "site-cli" :grant-type "client_credentials"})]
-    (println "TODO")
-
-    )
-  )
+    (println "TODO")))
