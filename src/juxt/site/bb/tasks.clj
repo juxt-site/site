@@ -418,7 +418,7 @@
       200 (print body)
       401 (binding [*out* *err*]
             (print status body)
-            (println "Hint: Try requesting an access-token (site request-token)"))
+            (println "Hint: Try requesting an access-token (site request-access-token)"))
       (binding [*out* *err*]
         (print status body)
         (.flush *out*)))))
@@ -614,7 +614,10 @@
           (binding [*out* *err*]
             (println "Written client secret to" (.getAbsolutePath secret-file))))))))
 
-(defn reset []
+;; Equivalent to: curl -X POST http://localhost:4911/reset
+(defn reset
+  "Delete ALL resources from a Site instance"
+  []
   (let [opts (parse-opts)
         cfg (config opts)
         admin-base-uri (get cfg "admin-base-uri")]
@@ -692,17 +695,51 @@
                 :let [client-secret (request-client-secret admin-base-uri client-id)]]
           (println (format "Client secret for %-10s %s" (str client-id ":") client-secret)))))))
 
-#_(defn setup
-  ""
-  [opts]
-  (println "Acquiring request-token")
+;; Create alice
+;; jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
+;; site register-user --username alice --fullname "Alice Carroll" --password $(gum input --password)
+(defn register-user [opts]
   (let [cfg (config opts)
-        access-token (request-token {:client-id "site-cli" :grant-type "client_credentials"})]
-    (install-bundles
-     (assoc
-      opts
-      :resources-uri
-      (str (get-in cfg ["uri-map" "https://data.example.org"]) "/_site/resources")
-      :bearer-token access-token
-      :bundles
-      []))))
+        base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        {:keys [status body]}
+        (http/post
+         (str base-uri "/_site/users")
+         {:headers {"content-type" "application/json"
+                    "accept" "application/json"
+                    "authorization" (authorization cfg)}
+          :body (json/generate-string opts {:pretty true})
+          :throw false})]
+    (case status
+      200 (print body)
+      (print status body))))
+
+;; Grant alice a role
+;; jo -- -s juxt.site/user=http://localhost:4444/_site/users/alice juxt.site/role=http://localhost:4444/_site/roles/Admin | curl --json @- http://localhost:4440/operations/assign-role
+;; site assign-user-role --username alice --role Admin
+(defn assign-user-role [opts]
+  (let [cfg (config opts)
+        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        {:keys [status body]}
+        (http/post
+         (str auth-base-uri "/operations/assign-role")
+         {:headers {"content-type" "application/edn"
+                    "authorization" (authorization cfg)}
+          :body (pr-str
+                 {:juxt.site/user (str data-base-uri "/_site/users/" (:username opts))
+                  :juxt.site/role (str data-base-uri "/_site/roles/" (:role opts))})
+          :throw false})]
+    (case status
+      200 (print body)
+      (print status body))))
+
+;; Login as alice
+;; site request-access-token --username alice --password $(gum input --password) --grant-type password
+
+;; Create bob
+;; site register-user --username bob --fullname "Bob Stewart" --password $(gum input --password)
+;; equivalent to:
+;; jo -- -s username=bob fullname="Bob Stewart" password=foobar | curl --json @- http://localhost:4444/_site/users
+
+;; Login as bob
+;; site request-access-token --username bob --password foobar --grant-type password

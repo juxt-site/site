@@ -73,19 +73,6 @@
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/users)}
 
-
-  ;;  ls-site-type {:task (juxt.site.bb.bootstrap.tasks/ls-site-type (first *command-line-args*))}
-
-  ;; This can be replaced by jo, curl and jq
-  #_#_add-user
-  {:doc "Add user"
-   :task (juxt.site.bb.tasks/add-user
-          (cli/parse-opts
-           *command-line-args*
-           {:require [:username]
-            :validate {:username {:pred string?}}
-            :coerce {:password :boolean}}))}
-
   #_#_jwks
   {:doc "Show JSON Web Key Set"
    :task (juxt.site.bb.tasks/jwks)}
@@ -119,8 +106,13 @@
         :task (juxt.site.bb.tasks/init
                (juxt.site.bb.tasks/parse-opts))}
 
-  setup {:doc "Setup a remote site instance"
-         :task (juxt.site.bb.tasks/setup
-                (juxt.site.bb.tasks/parse-opts))}
+  register-user {:doc "Register a user"
+                 :opts {:require [:username]}
+                 :task (juxt.site.bb.tasks/register-user
+                        (juxt.site.bb.tasks/parse-opts))}
 
+  assign-user-role {:doc "Assign a user a role"
+                    :opts {:require [:username :role]}
+                    :task (juxt.site.bb.tasks/assign-user-role
+                           (juxt.site.bb.tasks/parse-opts))}
   }}
