@@ -17,7 +17,7 @@
   {:doc "Check server health"
    :task (juxt.site.bb.tasks/ping)}
 
-  request-access-token
+  request-token
   {:doc "Acquire an access token"
    :opts {:require [:client-id :grant-type]
           :exec-args {:client-id "site-cli"
@@ -77,7 +77,7 @@
   {:doc "Show JSON Web Key Set"
    :task (juxt.site.bb.tasks/jwks)}
 
-  check-access-token
+  check-token
   {:doc "Show current token"
    :task (juxt.site.bb.tasks/check-access-token)}
 
