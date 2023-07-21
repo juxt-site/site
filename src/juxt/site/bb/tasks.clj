@@ -673,6 +673,7 @@
           (.flush *out*)
           (Thread/sleep 1000))
         (println)
+        (println "Requesting removal of all resources")
         (let [{:keys [status body]}
               (http/post (str admin-base-uri "/reset"))]
           ;; print not println, as the body should be terminated in a CRLF
