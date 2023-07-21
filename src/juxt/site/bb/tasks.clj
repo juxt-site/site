@@ -77,7 +77,7 @@
    "installers-home" (str (System/getenv "SITE_HOME") "/installers")
    "client-credentials" {"ask-for-client-secret" true
                          "cache-client-secret" true}
-   "curl" {"save-bearer-token-to-default-config-file" true}})
+   "curl" {"save-access-token-to-default-config-file" true}})
 
 (defn profile [opts]
   (or
@@ -186,14 +186,14 @@
                                 {"accept" "application/json"})))]
                 (pprint resource)))))))))
 
-(defn- save-bearer-token [access-token]
+(defn- save-access-token [access-token]
   (let [opts (parse-opts)
         cfg (config opts)
-        {bearer-token-file "bearer-token-file"
-         save-bearer-token-to-default-config-file "save-bearer-token-to-default-config-file"}
+        {access-token-file "access-token-file"
+         save-access-token-to-default-config-file "save-access-token-to-default-config-file"}
         (get cfg "curl")]
     (cond
-      save-bearer-token-to-default-config-file
+      save-access-token-to-default-config-file
       (let [config-file (curl-config-file)
             lines (if (.exists config-file)
                     (with-open [rdr (io/reader config-file)]
@@ -218,7 +218,7 @@
                   (.getAbsolutePath config-file)
                   (System/getenv "HOME") "$HOME")))
 
-      bearer-token-file (spit bearer-token-file access-token)
+      access-token-file (spit access-token-file access-token)
       :else (println access-token))))
 
 (defn cache-dir [opts]
@@ -301,20 +301,20 @@
 
 (defn- retrieve-access-token
   [cfg]
-  (let [{curl "curl" bearer-token-file "bearer-token"} cfg
-        {save-bearer-token-to-default-config-file "save-bearer-token-to-default-config-file"} curl
+  (let [{curl "curl" access-token-file "access-token"} cfg
+        {save-access-token-to-default-config-file "save-access-token-to-default-config-file"} curl
         token (cond
-                (and bearer-token-file save-bearer-token-to-default-config-file)
+                (and access-token-file save-access-token-to-default-config-file)
                 (throw (ex-info "Ambiguous configuration" {}))
 
-                save-bearer-token-to-default-config-file
+                save-access-token-to-default-config-file
                 (let [curl-config-file (curl-config-file)]
                   (when (and (.exists curl-config-file) (.isFile curl-config-file))
                     (last (keep (comp second #(re-matches #"oauth2-bearer\s+(.+)" %)) (line-seq (io/reader curl-config-file))))))
 
-                bearer-token-file
-                (when (and (.exists bearer-token-file) (.isFile bearer-token-file))
-                  (slurp bearer-token-file)))]
+                access-token-file
+                (when (and (.exists access-token-file) (.isFile access-token-file))
+                  (slurp access-token-file)))]
     token))
 
 (defn request-token
@@ -351,6 +351,7 @@
             _ (when-not secret
                 (println "No client-secret found")
                 (System/exit 1))
+            _ (println "secret is" secret)
             {:keys [status body]}
             (http/post
              token-endpoint
@@ -363,7 +364,7 @@
 
 (defn request-token-task [opts]
   (when-let [token (request-token opts)]
-    (save-bearer-token token)))
+    (save-access-token token)))
 
 (defn check-access-token []
   (let [opts (parse-opts)
@@ -397,7 +398,7 @@
                     (assoc "expires-at" (claim-time (get claims "exp"))))))]
         (println
          (json/generate-string
-          (cond-> {"bearer-token" token
+          (cond-> {"access-token" token
                    "introspection-status" introspection-status}
             claims
             (assoc "claims" claims))
@@ -650,13 +651,13 @@
           ;; print not println, as the body should be terminated in a CRLF
           (print status body))))))
 
-(defn install [{:keys [resources-uri bearer-token]} installers-seq]
+(defn install [{:keys [resources-uri access-token]} installers-seq]
   (assert resources-uri)
   (let [{:keys [status body]}
         (http/post
          resources-uri
          {:headers (cond-> {"content-type" "application/edn"}
-                     bearer-token (assoc "authorization" (format "Bearer %s" bearer-token)))
+                     access-token (assoc "authorization" (format "Bearer %s" access-token)))
           :body (pr-str installers-seq)
           :throw false})]
     (case status
