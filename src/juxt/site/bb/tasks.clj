@@ -743,8 +743,7 @@
         (println " or ")
         (println (format "B. Continue with this site tool, acquiring an access token with:" ))
         ;; TODO: We could pipe this to '| xclip -selection clipboard'
-        (println (format "site request-token --client-secret %s" (request-client-secret admin-base-uri "site-cli")))
-        ))))
+        (println (format "site request-token --client-secret %s" (request-client-secret admin-base-uri "site-cli")))))))
 
 (defn new-keypair []
   (let [opts (parse-opts)
