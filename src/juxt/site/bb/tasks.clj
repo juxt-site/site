@@ -730,6 +730,8 @@
            ["juxt/site/whoami-api" {}]
            ["juxt/site/users-api" {}]
            ["juxt/site/endpoints-api" {}]
+           ;; RFC 7662 token introspection
+           ["juxt/site/oauth-introspection-endpoint" {}]
            ;; Register the clients
            ["juxt/site/system-client" {:client-id "site-cli"}]
            ["juxt/site/system-client" {:client-id "insite"}]]))
