@@ -211,7 +211,7 @@
                (cond-> new-lines
                  (= lines new-lines)
                  (conj
-                  "# This was added by site request-access-token"
+                  "# This was added by site request-token"
                   (format "oauth2-bearer %s" access-token)))))
         (println "Access token saved to"
                  (str/replace
@@ -317,7 +317,7 @@
                   (slurp bearer-token-file)))]
     token))
 
-(defn request-access-token
+(defn request-token
   "Acquire an access-token. Remote only."
   [{:keys [client-id grant-type] :as opts}]
   (let [cfg (config opts)
@@ -361,8 +361,8 @@
           200 (get (json/parse-string body) "access_token")
           (print status body))))))
 
-(defn request-access-token-task [opts]
-  (when-let [token (request-access-token opts)]
+(defn request-token-task [opts]
+  (when-let [token (request-token opts)]
     (save-bearer-token token)))
 
 (defn check-access-token []
@@ -371,7 +371,7 @@
         token (retrieve-access-token cfg)]
     (if-not token
       (binding [*out* *err*]
-        (println "Hint: Try requesting an access-token (site request-access-token)"))
+        (println "Hint: Try requesting an access-token (site request-token)"))
       (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
             {introspection-status :status introspection-body :body}
             (http/post
@@ -420,7 +420,7 @@
       200 (print body)
       401 (binding [*out* *err*]
             (print status body)
-            (println "Hint: Try requesting an access-token (site request-access-token)"))
+            (println "Hint: Try requesting an access-token (site request-token)"))
       (binding [*out* *err*]
         (print status body)
         (.flush *out*)))))
@@ -754,7 +754,7 @@
       (print status body))))
 
 ;; Login as alice
-;; site request-access-token --username alice --password $(gum input --password) --grant-type password
+;; site request-token --username alice --password $(gum input --password) --grant-type password
 
 ;; Create bob
 ;; site register-user --username bob --fullname "Bob Stewart" --password $(gum input --password)
@@ -762,4 +762,4 @@
 ;; jo -- -s username=bob fullname="Bob Stewart" password=foobar | curl --json @- http://localhost:4444/_site/users
 
 ;; Login as bob
-;; site request-access-token --username bob --password foobar --grant-type password
+;; site request-token --username bob --password foobar --grant-type password
