@@ -417,9 +417,10 @@
         (println
          (json/generate-string
           (cond-> {"access-token" token
-                   "introspection-status" introspection-status}
-            claims (assoc "claims" claims)
-            metadata (assoc "metadata" metadata))
+                   "introspection"
+                   (cond-> {"status "introspection-status}
+                     claims (assoc "claims" claims)
+                     metadata (assoc "metadata" metadata))})
           {:pretty true}))))))
 
 (defn authorization [cfg]
