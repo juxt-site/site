@@ -351,7 +351,6 @@
             _ (when-not secret
                 (println "No client-secret found")
                 (System/exit 1))
-            _ (println "secret is" secret)
             {:keys [status body]}
             (http/post
              token-endpoint
