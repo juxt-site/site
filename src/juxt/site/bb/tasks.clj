@@ -329,6 +329,9 @@
                      grant-type grant-type
                      (or (:username opts) (:password opts)) "password"
                      :else "client_credentials")]
+    (stderr
+     (println
+      (format "Requesting access-token from %s\n with grant-type %s" token-endpoint grant-type)))
     (case grant-type
       "password"
       (let [{:keys [username password]} opts
