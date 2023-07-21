@@ -747,10 +747,12 @@
         (println "using one of the following methods:")
         (println)
 
-        (println (format "A. Proceed to https://insite.juxt.site using the client-secret of\n%s" (request-client-secret admin-base-uri "insite")))
+        (println (format "A. Proceed to https://insite.juxt.site?client-secret=%s" (request-client-secret admin-base-uri "insite")))
         (println " or ")
         (println (format "B. Continue with this site tool, acquiring an access token with:" ))
-        (println (format "site request-token --client-secret %s" (request-client-secret admin-base-uri "site-cli")))))))
+        ;; TODO: We could pipe this to '| xclip -selection clipboard'
+        (println (format "site request-token --client-secret %s" (request-client-secret admin-base-uri "site-cli")))
+        ))))
 
 ;; Create alice
 ;; jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
