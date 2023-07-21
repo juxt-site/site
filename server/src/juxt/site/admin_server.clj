@@ -160,7 +160,7 @@
              [:xtdb.api/evict id]))
           (xt/await-tx xt-node))
 
-         (let [content "Reset\r\n"]
+         (let [content "System Reset Complete\r\n"]
            (-> req
                (update :ring.response/headers assoc "content-type" "text/plain")
                (update :ring.response/headers assoc "content-length" (str (count content)))
