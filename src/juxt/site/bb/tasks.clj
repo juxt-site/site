@@ -166,27 +166,38 @@
                (cond-> (str admin-base-uri "/resources")
                  pattern (str "?pattern=" (url-encode pattern)))
                {"accept" "application/json"})))
-            sw (java.io.StringWriter.)]
 
-        (with-open [out (java.io.PrintWriter. sw)]
-          (stderr (doseq [res resources] (println res))))
-        (when-not (str/blank? (.toString sw))
-          (let [{:keys [status result]}
-                (b/gum {:cmd :filter
-                        :opts {:placeholder "Select resource"
-                               :fuzzy false
-                               :indicator "⮕"
-                               :indicator.foreground "#C72"
-                               :match.foreground "#C72"}
-                        :in (io/input-stream (.getBytes (.toString sw)))})]
 
-            (when (zero? status)
-              (let [resource (json/parse-string
-                              (:body
-                               (http/get
-                                (str admin-base-uri "/resource?uri=" (url-encode (first result)))
-                                {"accept" "application/json"})))]
-                (pprint resource)))))))))
+            resource (cond
+                       (= (count resources) 0)
+                       nil
+                       (= (count resources) 1)
+                       (first resources)
+                       :else
+                       (let [sw (java.io.StringWriter.)
+                             _ (with-open [out (java.io.PrintWriter. sw)]
+                                 (binding [*out* out]
+                                   (doseq [res resources] (println res))))
+                             {:keys [status result]}
+                             (b/gum {:cmd :filter
+                                     :opts {:placeholder "Select resource"
+                                            :fuzzy false
+                                            :indicator "⮕"
+                                            :indicator.foreground "#C72"
+                                            :match.foreground "#C72"}
+                                     :in (io/input-stream (.getBytes (.toString sw)))})]
+
+                         (when (zero? status)
+                           (first result)
+                           )))]
+
+        (when resource
+          (pprint
+           (json/parse-string
+            (:body
+             (http/get
+              (str admin-base-uri "/resource?uri=" (url-encode resource))
+              {"accept" "application/json"})))))))))
 
 (defn- save-access-token [access-token]
   (let [opts (parse-opts)
