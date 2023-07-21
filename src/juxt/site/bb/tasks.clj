@@ -322,10 +322,16 @@
   [{:keys [client-id grant-type] :as opts}]
   (let [cfg (config opts)
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-        token-endpoint (str auth-base-uri "/oauth/token")]
+        token-endpoint (str auth-base-uri "/oauth/token")
+        grant-type (cond
+                     grant-type grant-type
+                     (or (:username opts) (:password opts)) "password"
+                     :else "client_credentials")]
     (case grant-type
       "password"
       (let [{:keys [username password]} opts
+            password (or password (input/input {:header (format "Input password for %s" username)
+                                                :password true}))
             {:keys [status body]}
             (http/post
              token-endpoint

@@ -19,9 +19,8 @@
 
   request-token
   {:doc "Acquire an access token"
-   :opts {:require [:client-id :grant-type]
-          :exec-args {:client-id "site-cli"
-                      :grant-type "client_credentials"}}
+   :opts {:require [:client-id]
+          :exec-args {:client-id "site-cli"}}
    :task (juxt.site.bb.tasks/request-token-task
           (juxt.site.bb.tasks/parse-opts))}
 
