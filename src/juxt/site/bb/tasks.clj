@@ -719,18 +719,19 @@
           (str admin-base-uri "/resources")
           :bundles
           [["juxt/site/bootstrap" {}]
-           ;; Allow token access
+           ;; Support the creation of JWT bearer tokens
            ["juxt/site/oauth-token-endpoint" {}]
+           ;; Install a keypair to sign JWT bearer tokens
            ["juxt/site/keypair" {:kid (random-string 16)}]
-           ;; Register clients
-           ["juxt/site/system-client" {:client-id "site-cli"}]
-           ["juxt/site/system-client" {:client-id "insite"}]
-           ;;We need this to allow the site-cli app to create resources
+           ;; Install the required APIs
            ["juxt/site/api-operations" {}]
            ["juxt/site/resources-api" {}]
            ["juxt/site/whoami-api" {}]
            ["juxt/site/users-api" {}]
-           ["juxt/site/endpoints-api" {}]]))
+           ["juxt/site/endpoints-api" {}]
+           ;; Register the clients
+           ["juxt/site/system-client" {:client-id "site-cli"}]
+           ["juxt/site/system-client" {:client-id "insite"}]]))
 
         ;; Delete any stale client-secret files
         (doseq [client-id ["site-cli" "insite"]
@@ -738,9 +739,15 @@
           ;; TODO: Replace with babashka.fs
           (.delete secret-file))
 
-        (doseq [client-id ["site-cli" "insite"]
-                :let [client-secret (request-client-secret admin-base-uri client-id)]]
-          (println (format "Client secret for %-10s %s" (str client-id ":") client-secret)))))))
+        (println)
+        (println "You should now continue to configure your Site instance,")
+        (println "using one of the following methods:")
+        (println)
+
+        (println (format "A. Proceed to https://insite.juxt.site using the client-secret of\n%s" (request-client-secret admin-base-uri "insite")))
+        (println " or ")
+        (println (format "B. Continue with this site tool, acquiring an access token with:" ))
+        (println (format "site request-token --client-secret %s" (request-client-secret admin-base-uri "site-cli")))))))
 
 ;; Create alice
 ;; jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
