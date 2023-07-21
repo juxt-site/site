@@ -386,7 +386,7 @@
             {introspection-status :status introspection-body :body}
             (http/post
              (str auth-base-uri "/oauth/introspect")
-             {:headers {"authorization" (format "Bearer %s"token)}
+             {:headers {"authorization" (format "Bearer %s" token)}
               :form-params {"token" token}
               :throw false})
 
