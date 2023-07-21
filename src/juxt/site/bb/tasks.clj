@@ -618,14 +618,6 @@
                               (range (int \a) (inc (int \z)))
                               (range (int \0) (inc (int \9))))))))))
 
-(defn new-keypair []
-  (let [opts (parse-opts)
-        cfg (config opts)
-        kid (random-string 16)
-        bundles (bundles cfg)
-        installers-seq (bundle* cfg (get bundles "juxt/site/keypair") {:kid kid})]
-    (pprint installers-seq)))
-
 (defn request-client-secret [admin-base-uri client-id]
   (assert admin-base-uri)
   (let [client-details
@@ -753,6 +745,21 @@
         ;; TODO: We could pipe this to '| xclip -selection clipboard'
         (println (format "site request-token --client-secret %s" (request-client-secret admin-base-uri "site-cli")))
         ))))
+
+(defn new-keypair []
+  (let [opts (parse-opts)
+        cfg (config opts)
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
+    (install-bundles
+     (assoc
+      opts
+      :resources-uri
+      (str data-base-uri "/_site/resources")
+      :access-token
+      (retrieve-access-token cfg)
+      :bundles
+      [;; Install a new keypair to sign JWT bearer tokens
+       ["juxt/site/keypair" {:kid (random-string 16)}]]))))
 
 ;; Create alice
 ;; jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
