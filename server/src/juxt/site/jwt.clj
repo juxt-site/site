@@ -190,7 +190,8 @@
                      :juxt.site/type "https://meta.juxt.site/types/subject"
                      :juxt.site/issued-date iat
                      :juxt.site/expiry-date exp
-                     :juxt.site/user-identity user-identity}
+                     :juxt.site/user-identity user-identity
+                     :juxt.site/user user}
 
         claims {"iss" authorization-server
                 "jti" jti

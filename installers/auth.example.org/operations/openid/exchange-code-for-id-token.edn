@@ -207,6 +207,8 @@
             :juxt.site.jwt.claims/sub (get claims :juxt.site.jwt.claims/sub)
             :juxt.site.jwt.claims/nickname (get claims :juxt.site.jwt.claims/nickname)})
 
+          user-identity-doc (xt/entity user-identity)
+
           issued-date (get-in id-token [:claims "iat"])
           expiry-date (get-in id-token [:claims "exp"]) ;;(java.util.Date/from (.plusSeconds (java.time.Instant/now) 30)) ;;
 
@@ -217,7 +219,8 @@
                    :juxt.site/issued-date issued-date
                    :juxt.site/expiry-date expiry-date}
             claims (into claims)
-            user-identity (assoc :juxt.site/user-identity user-identity))
+            user-identity (assoc :juxt.site/user-identity user-identity
+                                 :juxt.site/user user-identity-doc))
 
           new-session-token-doc
           {:xt/id (str "https://auth.example.org/session-tokens/" new-session-token)

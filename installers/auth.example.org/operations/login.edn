@@ -30,16 +30,19 @@
    {
     :juxt.site.sci/program
     #juxt.pprint
-    (if-let [user-identity
+    (if-let [user-identity-ref
              (juxt.site/match-identity-with-password
               {:juxt.site/type "https://meta.juxt.site/types/basic-user-identity"
                :juxt.site/username (clojure.string/lower-case (get-in *prepare* [:form "username"]))}
               (get-in *prepare* [:form "password"])
               :juxt.site/password-hash)]
-      (let [subject
+      (let [user-identity (xt/entity user-identity-ref)
+            ;; TODO: What if user-identity-doc is nil?
+            subject
             {:xt/id (str "https://auth.example.org/subjects/" (get *prepare* :subject-id))
              :juxt.site/type "https://meta.juxt.site/types/subject"
-             :juxt.site/user-identity user-identity}
+             :juxt.site/user-identity user-identity-ref
+             :juxt.site/user (:juxt.site/user user-identity)}
 
             _ (assert subject)
 

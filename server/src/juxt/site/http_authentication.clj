@@ -111,7 +111,8 @@
            req
            (cond-> {}
              (contains? candidate-types "https://meta.juxt.site/types/user-identity")
-             (assoc :juxt.site/user-identity (:xt/id candidate))
+             (assoc :juxt.site/user-identity (:xt/id candidate)
+                    :juxt.site/user (:juxt.site/user candidate))
              (contains? candidate-types "https://meta.juxt.site/types/application")
              (assoc :juxt.site/application (:xt/id candidate)))
            protection-space))))))
