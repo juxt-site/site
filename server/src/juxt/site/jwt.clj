@@ -179,18 +179,18 @@
         _ (when-not (xt/entity db user)
             (throw (ex-info "User not found" {:user user})))
 
-        user-identity (juxt.site.util/make-nonce 10)
-        user-identity-doc {:xt/id (str "https://auth.example.org/_site/user-identities/%s" user-identity)
-                           :juxt.site/user user
-                           :juxt.site/issued-date iat
-                           :juxt.site/expiry-date exp}
+        user-identity-ref (str "https://auth.example.org/_site/user-identities/%s" (juxt.site.util/make-nonce 10))
+        user-identity {:xt/id user-identity-ref
+                       :juxt.site/user user
+                       :juxt.site/issued-date iat
+                       :juxt.site/expiry-date exp}
 
         subject (juxt.site.util/make-nonce 10)
         subject-doc {:xt/id (str "https://auth.example.org/subjects/" subject)
                      :juxt.site/type "https://meta.juxt.site/types/subject"
                      :juxt.site/issued-date iat
                      :juxt.site/expiry-date exp
-                     :juxt.site/user-identity user-identity
+                     :juxt.site/user-identity user-identity-ref
                      :juxt.site/user user}
 
         claims {"iss" authorization-server
@@ -222,6 +222,6 @@
      xt-node
      [[:xtdb.api/put access-token-doc iat exp]
       [:xtdb.api/put subject-doc iat exp]
-      [:xtdb.api/put user-identity-doc iat exp]])
+      [:xtdb.api/put user-identity iat exp]])
 
     {:access-token access-token}))
