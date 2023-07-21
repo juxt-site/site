@@ -168,7 +168,6 @@
                  pattern (str "?pattern=" (url-encode pattern)))
                {"accept" "application/json"})))
 
-
             resource (cond
                        (= (count resources) 0)
                        nil
