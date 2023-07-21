@@ -54,7 +54,8 @@
 
   find
   {:doc "Show resource"
-   :opts {:args->opts [:pattern]}
+   :opts {:args->opts [:pattern]
+          :coerce {:pattern :string}}
    :task (juxt.site.bb.tasks/find)}
 
   api-endpoints
