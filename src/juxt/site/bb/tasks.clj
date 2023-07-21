@@ -121,7 +121,9 @@
       (= status 0)
       (println "No response")
       (= status 200)
-      (println "Response:" body)
+      (do
+        (print "Response:" body)
+        (.flush *out*))
       :else
       (do
         (println "Not OK")
