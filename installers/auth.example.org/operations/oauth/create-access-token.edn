@@ -388,16 +388,21 @@
 
           "password"
           (let [username (get-in *prepare* [:form "username"])
-                user-identity
+                user-identity-ref
                 (juxt.site/match-identity-with-password
                  {:juxt.site/type "https://meta.juxt.site/types/basic-user-identity"
                   :juxt.site/username (clojure.string/lower-case username)}
                  (get-in *prepare* [:form "password"])
-                 :juxt.site/password-hash)]
+                 :juxt.site/password-hash)
+                user-identity (xt/entity user-identity-ref)]
+
+            (when-not user-identity-ref
+              (error {"error" "invalid_grant"
+                      "error_description" "No user identity matches those credentials"}))
 
             (when-not user-identity
               (error {"error" "invalid_grant"
-                      "error_description" "No user found with those credentials"}))
+                      "error_description" "No user identity found"}))
 
             (let [client-id (get-in *prepare* [:form "client_id"])
                   _ (assert client-id)
@@ -455,8 +460,9 @@
 
                   subject
                   {:xt/id (str "https://auth.example.org/subjects/" (get *prepare* :new-subject-id))
-                   :juxt.site/type "https://meta.juxt.site/types/subject"
-                   :juxt.site/user-identity user-identity}
+                   :juxt.site/user-identity user-identity-ref
+                   :juxt.site/user (:juxt.site/user user-identity)
+                   :juxt.site/type "https://meta.juxt.site/types/subject"}
 
                   access-token-doc
                   (cond-> {:xt/id (str "https://auth.example.org/access-tokens/" access-token)
@@ -644,25 +650,26 @@
               ;; which doesn't put anything in the database on error,
               ;; unlike this approach.
 
-              [[:ring.response/status 400]
-               [:ring.response/headers {"content-type" "application/json"
-                                        "cache-control" "no-store"
-                                        "pragma" "no-cache"}]
-               [:ring.response/body
-                ;; TODO: Add error_uri ? If so, ensure chars only in set
-                ;; '%x21 / %x23-5B / %x5D-7E' as per
-                ;; https://www.rfc-editor.org/rfc/rfc6749#section-5.2
+              ;; TODO: Add error_uri ? If so, ensure chars only in set
+              ;; '%x21 / %x23-5B / %x5D-7E' as per
+              ;; https://www.rfc-editor.org/rfc/rfc6749#section-5.2
+              (let [{error "error" error-description "error_description"} ex-data]
 
-                (let [{error "error" error-description "error_description"} ex-data]
+                (assert error)
 
-                  (assert error)
+                ;; %x20-21 / %x23-5B / %x5D-7E
+                (when error-description
+                  (assert (re-matches (re-pattern "[\\x20-\\x21\\x23-\\x5B\\x5D-\\x7E]+") error-description)))
 
-                  ;; %x20-21 / %x23-5B / %x5D-7E
-                  (when error-description
-                    (assert (re-matches (re-pattern "[\\x20-\\x21\\x23-\\x5B\\x5D-\\x7E]+") error-description)))
-
-                  (jsonista.core/write-value-as-string
-                   (select-keys ex-data ["error" "error_description"])))]]
+                (let [content (str (jsonista.core/write-value-as-string
+                                    (select-keys ex-data ["error" "error_description"])) "\r\n")]
+                  [[:ring.response/status 400]
+                   [:ring.response/headers
+                    {"content-type" "application/json"
+                     "content-length" (str (count content))
+                     "cache-control" "no-store"
+                     "pragma" "no-cache"}]
+                   [:ring.response/body content]]))
 
               ;; Pass through if not a recognized error
               (throw error))))))}
