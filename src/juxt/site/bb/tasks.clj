@@ -1,6 +1,7 @@
 ;; Copyright © 2023, JUXT LTD.
 
 (ns juxt.site.bb.tasks
+  (:refer-clojure :exclude [find])
   (:require
    [aero.core :as aero]
    [babashka.cli :as cli]
