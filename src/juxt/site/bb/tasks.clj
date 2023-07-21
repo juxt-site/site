@@ -437,12 +437,19 @@
             {:keys [status body]} (http/get
                                    endpoint
                                    {:headers {"authorization" (authorization cfg)}
-                                    :throw false})
-            edn (clojure.edn/read-string body)
-            whoami (or
-                    (get-in edn [:juxt.site/subject :juxt.site/username])
-                    (get-in edn [:juxt.site/subject :juxt.site/application]))]
-        (println whoami))
+                                    :throw false})]
+        (if-not (= status 200)
+          (do
+            (print status body)
+            (.flush *out*))
+          (let [edn (clojure.edn/read-string body)
+                whoami (or
+                        (get-in edn [:juxt.site/subject :juxt.site/username])
+                        (get-in edn [:juxt.site/subject :juxt.site/application]))]
+            (if whoami
+              (println whoami)
+              (binding [*out* *err*]
+                (println "No valid subject (hint: try requesting an access token with site request-token)"))))))
       ;; Verbose
       (api-request-json path))))
 
