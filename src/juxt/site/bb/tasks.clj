@@ -665,7 +665,7 @@
     (if-not admin-base-uri
       (stderr (println "Cannot reset. The admin-server is not reachable."))
       (when (input/confirm "Factory reset and delete ALL resources?")
-        (println "(To cancel, type Control-C)")
+        (println "(To cancel: Control-C)")
         (print "Deleting resources in ")
         (.flush *out*)
         (Thread/sleep 200)
