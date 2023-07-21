@@ -401,16 +401,17 @@
 
             claims
             (when (and (= introspection-status 200) introspection-body)
-              (let [claims (json/parse-string introspection-body)]
-                (-> claims
-                    (assoc "issued-at" (claim-time (get claims "iat")))
-                    (assoc "expires-at" (claim-time (get claims "exp"))))))]
+              (json/parse-string introspection-body))
+
+            metadata (when claims
+                       {"issued-at" (claim-time (get claims "iat"))
+                        "expires-at" (claim-time (get claims "exp"))})]
         (println
          (json/generate-string
           (cond-> {"access-token" token
                    "introspection-status" introspection-status}
-            claims
-            (assoc "claims" claims))
+            claims (assoc "claims" claims)
+            metadata (assoc "metadata" metadata))
           {:pretty true}))))))
 
 (defn authorization [cfg]
