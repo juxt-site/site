@@ -75,10 +75,6 @@
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/users)}
 
-  #_#_jwks
-  {:doc "Show JSON Web Key Set"
-   :task (juxt.site.bb.tasks/jwks)}
-
   check-token
   {:doc "Show current token"
    :task (juxt.site.bb.tasks/check-access-token)}
