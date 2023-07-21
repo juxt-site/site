@@ -663,6 +663,15 @@
       (binding [*out* *err*]
         (println "Cannot reset. The admin-server is not reachable."))
       (when (input/confirm "Factory reset and delete ALL resources?")
+        (println "(To cancel, type Control-C)")
+        (print "Deleting resources in ")
+        (.flush *out*)
+        (Thread/sleep 200)
+        (doseq [n (reverse (map inc (range 3)))]
+          (print (str n "... "))
+          (.flush *out*)
+          (Thread/sleep 1000))
+        (println)
         (let [{:keys [status body]}
               (http/post (str admin-base-uri "/reset"))]
           ;; print not println, as the body should be terminated in a CRLF
