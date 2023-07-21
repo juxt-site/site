@@ -189,16 +189,13 @@
                                      :in (io/input-stream (.getBytes (.toString sw)))})]
 
                          (when (zero? status)
-                           (first result)
-                           )))]
+                           (first result))))]
 
         (when resource
-          (pprint
-           (json/parse-string
-            (:body
-             (http/get
-              (str admin-base-uri "/resource?uri=" (url-encode resource))
-              {"accept" "application/json"})))))))))
+          (print
+           (:body
+            (http/get
+             (str admin-base-uri "/resource?uri=" (url-encode resource))))))))))
 
 (defn- save-access-token [access-token]
   (let [opts (parse-opts)
