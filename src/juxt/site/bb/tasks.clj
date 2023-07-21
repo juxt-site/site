@@ -411,9 +411,11 @@
             (when (and (= introspection-status 200) introspection-body)
               (json/parse-string introspection-body))
 
-            metadata (when claims
-                       {"issued-at" (claim-time (get claims "iat"))
-                        "expires-at" (claim-time (get claims "exp"))})]
+            metadata
+            (when claims
+              (cond-> {}
+                (get claims "iat") (assoc "issued-at" (claim-time (get claims "iat")))
+                (get claims "exp") (assoc "expires-at" (claim-time (get claims "exp")))))]
         (println
          (json/generate-string
           (cond-> {"access-token" token
