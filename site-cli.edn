@@ -65,8 +65,10 @@
 
   whoami
   {:doc "Introspect current user/application"
-   :opts {:args->opts [:pattern]}
-   :task (juxt.site.bb.tasks/whoami)}
+   :opts {:coerce {:verbose :boolean}
+          :alias {:v :verbose}}
+   :task (juxt.site.bb.tasks/whoami
+          (juxt.site.bb.tasks/parse-opts))}
 
   users
   {:doc "Show current users"
@@ -95,7 +97,8 @@
   {:doc "Retrieve a client_secret"
    :opts {:args->opts [:client-id]
           :require [:client-id]
-          :coerce {:save :boolean}}
+          :coerce {:save :boolean}
+          :exec-args {:client-id "site-cli"}}
    :task (juxt.site.bb.tasks/print-or-save-client-secret
           (juxt.site.bb.tasks/parse-opts))}
 

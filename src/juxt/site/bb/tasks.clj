@@ -345,7 +345,9 @@
           (print status body)))
 
       "client_credentials"
-      (let [secret (input-secret client-id)
+      (let [secret (or
+                    (:client-secret opts)
+                    (input-secret client-id))
             _ (when-not secret
                 (println "No client-secret found")
                 (System/exit 1))
@@ -423,8 +425,26 @@
         (print status body)
         (.flush *out*)))))
 
-(defn whoami []
-  (api-request-json "/_site/whoami"))
+(defn whoami [{:keys [verbose] :as opts}]
+  (let [path "/_site/whoami"]
+    (if-not verbose
+      (let [cfg (config opts)
+            data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+            ;; TODO: There is a problem with babashka.http-client's
+            ;; handling of the accept header :(
+            ;; As a workaround, we go direct to the EDN representation.
+            endpoint (str data-base-uri (str path ".edn"))
+            {:keys [status body]} (http/get
+                                   endpoint
+                                   {:headers {"authorization" (authorization cfg)}
+                                    :throw false})
+            edn (clojure.edn/read-string body)
+            whoami (or
+                    (get-in edn [:juxt.site/subject :juxt.site/username])
+                    (get-in edn [:juxt.site/subject :juxt.site/application]))]
+        (println whoami))
+      ;; Verbose
+      (api-request-json path))))
 
 (defn api-endpoints []
   (api-request-json "/_site/api-endpoints"))
