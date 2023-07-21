@@ -301,7 +301,7 @@
         (io/delete-file secret-file))
       (println "No such file:" (.getAbsolutePath secret-file)))))
 
-(defn- retrieve-access-token
+(defn- retrieve-token
   [cfg]
   (let [{curl "curl" access-token-file "access-token"} cfg
         {save-access-token-to-default-config-file "save-access-token-to-default-config-file"} curl
@@ -379,7 +379,7 @@
 (defn check-token []
   (let [opts (parse-opts)
         cfg (config opts)
-        token (retrieve-access-token cfg)]
+        token (retrieve-token cfg)]
     (if-not token
       (stderr (println "Hint: Try requesting an access-token (site request-token)"))
       (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
@@ -414,7 +414,7 @@
           {:pretty true}))))))
 
 (defn authorization [cfg]
-  (format "Bearer %s" (retrieve-access-token cfg)))
+  (format "Bearer %s" (retrieve-token cfg)))
 
 (defn api-request-json [path]
   (let [opts (parse-opts)
@@ -478,7 +478,7 @@
     (let [{resource-server "resource_server"} (config)
           api-endpoint (str (get resource-server "base_uri") "/_site/users")
 
-          token (retrieve-access-token)
+          token (retrieve-token)
           ;; Couldn't we just request the token?
           _ (when-not token
               (throw (ex-info "No bearer token" {})))
@@ -755,7 +755,7 @@
       :resources-uri
       (str data-base-uri "/_site/resources")
       :access-token
-      (retrieve-access-token cfg)
+      (retrieve-token cfg)
       :bundles
       [;; Install a new keypair to sign JWT bearer tokens
        ["juxt/site/keypair" {:kid (random-string 16)}]]))))
