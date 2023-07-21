@@ -376,7 +376,7 @@
   (when-let [token (request-token opts)]
     (save-access-token token)))
 
-(defn check-access-token []
+(defn check-token []
   (let [opts (parse-opts)
         cfg (config opts)
         token (retrieve-access-token cfg)]
