@@ -18,6 +18,10 @@
    [juxt.site.bb.user-input :as input]
    [juxt.site.install.common-install-util :as ciu]))
 
+(defmacro stderr [& body]
+  `(binding [*out* *err*]
+     ~@body))
+
 (defn merge-global-opts [opts]
   (-> opts
       (update :alias assoc :p :profile)
@@ -140,8 +144,7 @@
         cfg (config opts)
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
-      (binding [*out* *err*]
-        (println "The admin-server is not reachable."))
+      (stderr (println "The admin-server is not reachable."))
       (doseq [res (json/parse-string
                    (:body
                     (http/get
@@ -155,8 +158,7 @@
         cfg (config opts)
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
-      (binding [*out* *err*]
-        (println "The admin-server is not reachable."))
+      (stderr (println "The admin-server is not reachable."))
       (let [resources
             (json/parse-string
              (:body
@@ -167,9 +169,7 @@
             sw (java.io.StringWriter.)]
 
         (with-open [out (java.io.PrintWriter. sw)]
-          (binding [*out* out]
-            (doseq [res resources]
-              (println res))))
+          (stderr (doseq [res resources] (println res))))
         (when-not (str/blank? (.toString sw))
           (let [{:keys [status result]}
                 (b/gum {:cmd :filter
@@ -265,7 +265,7 @@
 
         ;;_ (println "client-secret-file" client-secret-file " exists?" (.exists client-secret-file))
         secret (when (.exists secret-file)
-                 (binding [*out* *err*]
+                 (stderr
                    (println "Reading client secret from"
                             (str/replace
                              (.getAbsolutePath secret-file)
@@ -282,7 +282,7 @@
                                            :width 60
                                            :header (format "Input client secret for %s" client-id)})})]
                 (when cache-client-secret?
-                  (binding [*out* *err*]
+                  (stderr
                     (println "Writing client_secret to"
                              (str/replace
                               (.getAbsolutePath secret-file)
@@ -378,8 +378,7 @@
         cfg (config opts)
         token (retrieve-access-token cfg)]
     (if-not token
-      (binding [*out* *err*]
-        (println "Hint: Try requesting an access-token (site request-token)"))
+      (stderr (println "Hint: Try requesting an access-token (site request-token)"))
       (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
             {introspection-status :status introspection-body :body}
             (http/post
@@ -426,10 +425,10 @@
                                 :throw false})]
     (case status
       200 (print body)
-      401 (binding [*out* *err*]
+      401 (stderr
             (print status body)
             (println "Hint: Try requesting an access-token (site request-token)"))
-      (binding [*out* *err*]
+      (stderr
         (print status body)
         (.flush *out*)))))
 
@@ -453,8 +452,9 @@
                             (get-in edn [:juxt.site/subject :juxt.site/application]))]
                 (if whoami
                   (println whoami)
-                  (binding [*out* *err*]
-                    (println "No valid subject (hint: try requesting an access token with site request-token)"))))
+                  (stderr
+                    (println
+                     "No valid subject (hint: try requesting an access token with site request-token)"))))
           401 (do
                 (print status body)
                 (println "Hint: Try requesting an access-token (site request-token)"))
@@ -642,14 +642,13 @@
   (let [cfg (config opts)
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
-      (binding [*out* *err*]
-        (println "The admin-server is not reachable."))
+      (stderr (println "The admin-server is not reachable."))
       (let [client-secret (request-client-secret admin-base-uri client-id)
             secret-file (client-secret-file opts client-id)]
         (binding [*out* (if save (io/writer secret-file) *out*)]
           (println client-secret))
         (when save
-          (binding [*out* *err*]
+          (stderr
             (println "Written client secret to" (.getAbsolutePath secret-file))))))))
 
 ;; Equivalent to: curl -X POST http://localhost:4911/reset
@@ -660,8 +659,7 @@
         cfg (config opts)
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
-      (binding [*out* *err*]
-        (println "Cannot reset. The admin-server is not reachable."))
+      (stderr (println "Cannot reset. The admin-server is not reachable."))
       (when (input/confirm "Factory reset and delete ALL resources?")
         (println "(To cancel, type Control-C)")
         (print "Deleting resources in ")
@@ -709,8 +707,7 @@
   (let [cfg (config opts)
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
-      (binding [*out* *err*]
-        (println "Cannot init. The admin-server is not reachable."))
+      (stderr (println "Cannot init. The admin-server is not reachable."))
       (do
         (install-bundles
          (assoc
