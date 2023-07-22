@@ -327,6 +327,7 @@
                   (slurp access-token-file)))]
     token))
 
+;; site request-token --username alice --password $(gum input --password)
 (defn request-token
   "Acquire an access-token. Remote only."
   [{:keys [client-id grant-type] :as opts}]
@@ -686,7 +687,7 @@
           ;; print not println, as the body should be terminated in a CRLF
           (print status body))))))
 
-(defn install [{:keys [resources-uri access-token]} installers-seq]
+(defn- install [{:keys [resources-uri access-token]} installers-seq]
   (assert resources-uri)
   (let [{:keys [status body]}
         (http/post
@@ -699,7 +700,7 @@
       200 (print body)
       (print status body))))
 
-(defn install-bundle [cfg bundle params opts]
+(defn- install-bundle [cfg bundle params opts]
   (let [title (get bundle :juxt.site/title)
         param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))]
     (println
@@ -715,12 +716,15 @@
         bundles (bundles cfg)
         bundle (get bundles bundle-name)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-        resources-uri (str data-base-uri "/_site/resources")]
-    (install-bundle cfg bundle opts (assoc opts
-                                           :resources-uri resources-uri
-                                           :access-token (retrieve-token cfg)))))
+        resources-uri (str data-base-uri "/_site/resources")
+        params (dissoc opts :bundle)]
+    (install-bundle
+     cfg bundle params
+     (assoc opts
+            :resources-uri resources-uri
+            :access-token (retrieve-token cfg)))))
 
-(defn install-bundles [{bundle-names :bundles :as opts}]
+(defn- install-bundles [{bundle-names :bundles :as opts}]
   (let [cfg (config opts)
         bundles (bundles cfg)]
     (doseq [[bundle-name params] bundle-names
@@ -789,8 +793,9 @@
        ["juxt/site/keypair" {:kid (random-string 16)}]]))))
 
 ;; Create alice
-;; jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
 ;; site register-user --username alice --fullname "Alice Carroll" --password $(gum input --password)
+;; equivalent to
+;; jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
 (defn register-user [opts]
   (let [cfg (config opts)
         base-uri (get-in cfg ["uri-map" "https://data.example.org"])
@@ -825,14 +830,3 @@
     (case status
       200 (print body)
       (print status body))))
-
-;; Login as alice
-;; site request-token --username alice --password $(gum input --password) --grant-type password
-
-;; Create bob
-;; site register-user --username bob --fullname "Bob Stewart" --password $(gum input --password)
-;; equivalent to:
-;; jo -- -s username=bob fullname="Bob Stewart" password=foobar | curl --json @- http://localhost:4444/_site/users
-
-;; Login as bob
-;; site request-token --username bob --password foobar --grant-type password
