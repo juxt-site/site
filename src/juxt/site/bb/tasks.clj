@@ -561,7 +561,7 @@
        :else node))
    installers))
 
-(defn- bundle* [cfg {:juxt.site/keys [description parameters installers]} opts]
+(defn- bundle* [cfg {:juxt.site/keys [parameters installers]} opts]
   (let [uri-map (get cfg "uri-map")
 
         parameters
@@ -571,12 +571,11 @@
 
         installer-map (ciu/unified-installer-map
                        (io/file (get cfg "installers-home"))
-                       uri-map)
+                       uri-map)]
 
-        installers-seq (ciu/installer-seq installer-map parameters installers)]
-    installers-seq))
+    (ciu/installer-seq installer-map parameters installers)))
 
-(defn installers-seq [{:keys [bundle] :as opts}]
+#_(defn old-installers-seq [{:keys [bundle] :as opts}]
   (let [cfg (config opts)
         bundles (bundles cfg)
 
@@ -616,8 +615,12 @@
           (.write out bytes 0 (count bytes)))
         (.closeEntry out))))
 
-(defn bundle [opts]
-  (pprint (installers-seq opts)))
+(defn bundle [{bundle-name :bundle :as opts}]
+  (let [cfg (config opts)
+        bundle (get (bundles cfg) bundle-name)]
+    (if bundle
+      (pprint (bundle* cfg bundle opts))
+      (stderr (println (format "Bundle not found: %s" bundle-name))))))
 
 (defn random-string [size]
   (apply str
@@ -696,20 +699,23 @@
       200 (print body)
       (print status body))))
 
+(defn install-bundle [cfg bundle params opts]
+  (let [title (get bundle :juxt.site/title)
+        param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))]
+    (println
+     (if (str/blank? param-str)
+       (format "Installing: %s" title)
+       (format "Installing: %s with %s" title param-str)))
+    (install
+     opts
+     (bundle* cfg bundle (into opts params)))))
+
 (defn install-bundles [{named-bundles :bundles :as opts}]
   (let [cfg (config opts)
         bundles (bundles cfg)]
     (doseq [[bundle-name params] named-bundles
-            :let [bundle (get bundles bundle-name)
-                  param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))
-                  title (get bundle :juxt.site/title bundle-name)]]
-      (println
-       (if (str/blank? param-str)
-         (format "Installing: %s" title)
-         (format "Installing: %s with %s" title param-str)))
-      (install
-       opts
-       (installers-seq (into opts (into params {:bundle bundle-name})))))))
+            :let [bundle (get bundles bundle-name)]]
+      (install-bundle cfg bundle params opts))))
 
 (defn init [opts]
   (let [cfg (config opts)
