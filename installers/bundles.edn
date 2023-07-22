@@ -50,7 +50,9 @@
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-api-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/system/put-resource"}]}
+    :juxt.site/installer-path "/permissions/system/put-resource"}
+   #_{:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/system/register-api-root"}]}
 
  "juxt/site/resources-api"
  {:juxt.site/title "Resources API"
@@ -259,8 +261,8 @@
    ]}
 
  "juxt/site/keypair"
- {:just.site/title "Keypair"
-  :just.site/description "Keypair"
+ {:juxt.site/title "Keypair"
+  :juxt.site/description "Keypair"
   :juxt.site/parameters [["kid" {}]]
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"

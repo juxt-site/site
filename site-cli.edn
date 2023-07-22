@@ -17,11 +17,31 @@
   {:doc "Check server health"
    :task (juxt.site.bb.tasks/ping)}
 
-  request-token
-  {:doc "Acquire an access token"
-   :opts {:require [:client-id]
+  reset {:doc "Admin only: Reset"
+         :task (juxt.site.bb.tasks/reset)}
+
+  init {:doc "Initialise a server with a minimal working set of resources"
+        :task (juxt.site.bb.tasks/init
+               (juxt.site.bb.tasks/parse-opts))}
+
+  ls
+  {:doc "List resources"
+   :opts {:args->opts [:pattern]}
+   :task (juxt.site.bb.tasks/ls)}
+
+  find
+  {:doc "Show resource"
+   :opts {:args->opts [:pattern]
+          :coerce {:pattern :string}}
+   :task (juxt.site.bb.tasks/find)}
+
+  client-secret
+  {:doc "Retrieve a client_secret"
+   :opts {:args->opts [:client-id]
+          :require [:client-id]
+          :coerce {:save :boolean}
           :exec-args {:client-id "site-cli"}}
-   :task (juxt.site.bb.tasks/request-token-task
+   :task (juxt.site.bb.tasks/print-or-save-client-secret
           (juxt.site.bb.tasks/parse-opts))}
 
   forget-client-secret
@@ -30,6 +50,8 @@
           :require [:client-id]
           :exec-args {:client-id "site-cli"}}
    :task (juxt.site.bb.tasks/forget-client-secret)}
+
+  ;; Client
 
   config-file
   {:doc "Show configuration-file"
@@ -47,21 +69,16 @@
    :opts {}
    :task (juxt.site.bb.tasks/profile-task)}
 
-  ls
-  {:doc "List resources"
-   :opts {:args->opts [:pattern]}
-   :task (juxt.site.bb.tasks/ls)}
+  request-token
+  {:doc "Acquire an access token"
+   :opts {:require [:client-id]
+          :exec-args {:client-id "site-cli"}}
+   :task (juxt.site.bb.tasks/request-token-task
+          (juxt.site.bb.tasks/parse-opts))}
 
-  find
-  {:doc "Show resource"
-   :opts {:args->opts [:pattern]
-          :coerce {:pattern :string}}
-   :task (juxt.site.bb.tasks/find)}
-
-  api-endpoints
-  {:doc "List available API endpoints"
-   :opts {:args->opts [:pattern]}
-   :task (juxt.site.bb.tasks/api-endpoints)}
+  check-token
+  {:doc "Show current token"
+   :task (juxt.site.bb.tasks/check-token)}
 
   whoami
   {:doc "Introspect current user/application"
@@ -70,48 +87,42 @@
    :task (juxt.site.bb.tasks/whoami
           (juxt.site.bb.tasks/parse-opts))}
 
+  register-user
+  {:doc "Register a user"
+   :opts {:require [:username]}
+   :task (juxt.site.bb.tasks/register-user
+          (juxt.site.bb.tasks/parse-opts))}
+
+  assign-user-role
+  {:doc "Assign a user a role"
+   :opts {:require [:username :role]}
+   :task (juxt.site.bb.tasks/assign-user-role
+          (juxt.site.bb.tasks/parse-opts))}
+
   users
   {:doc "Show current users"
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/users)}
 
-  check-token
-  {:doc "Show current token"
-   :task (juxt.site.bb.tasks/check-token)}
+  new-keypair
+  {:doc "Create a new keypair"
+   :task (juxt.site.bb.tasks/new-keypair)}
 
-  bundle {:doc "From a directory of installer specifications, create a bundle for a given bundle and stream to stdout"
-          :opts {:args->opts [:bundle]
-                 :alias {:o :outfile}}
+  bundle
+  {:doc "Stream a bundle to stdout"
+   :opts {:args->opts [:bundle]
+          :alias {:o :outfile}}
 
-          :task (juxt.site.bb.tasks/bundle
-                 (juxt.site.bb.tasks/parse-opts))}
-
-  new-keypair {:doc "Create a new keypair"
-               :task (juxt.site.bb.tasks/new-keypair)}
-
-  client-secret
-  {:doc "Retrieve a client_secret"
-   :opts {:args->opts [:client-id]
-          :require [:client-id]
-          :coerce {:save :boolean}
-          :exec-args {:client-id "site-cli"}}
-   :task (juxt.site.bb.tasks/print-or-save-client-secret
+   :task (juxt.site.bb.tasks/bundle
           (juxt.site.bb.tasks/parse-opts))}
 
-  reset {:doc "Admin only: Reset"
-         :task (juxt.site.bb.tasks/reset)}
+  install
+  {:doc "Install bundle"
+   :opts {:args->opts [:bundle]}
+   :task (juxt.site.bb.tasks/install-bundle-task
+          (juxt.site.bb.tasks/parse-opts))}
 
-  init {:doc "Initialise a server with a default configuration"
-        :task (juxt.site.bb.tasks/init
-               (juxt.site.bb.tasks/parse-opts))}
-
-  register-user {:doc "Register a user"
-                 :opts {:require [:username]}
-                 :task (juxt.site.bb.tasks/register-user
-                        (juxt.site.bb.tasks/parse-opts))}
-
-  assign-user-role {:doc "Assign a user a role"
-                    :opts {:require [:username :role]}
-                    :task (juxt.site.bb.tasks/assign-user-role
-                           (juxt.site.bb.tasks/parse-opts))}
-  }}
+  api-endpoints
+  {:doc "List available API endpoints"
+   :opts {:args->opts [:pattern]}
+   :task (juxt.site.bb.tasks/api-endpoints)}}}
