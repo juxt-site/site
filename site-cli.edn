@@ -120,6 +120,10 @@
    :task (juxt.site.bb.tasks/bundle
           (juxt.site.bb.tasks/parse-opts))}
 
+  bundles
+  {:doc "List bundles"
+   :task (juxt.site.bb.tasks/bundles-task)}
+
   install
   {:doc "Install bundle"
    :opts {:args->opts [:bundle]}

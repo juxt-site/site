@@ -140,7 +140,7 @@
   (when s
     (java.net.URLEncoder/encode s)))
 
-(defn ls []
+(defn list-task []
   (let [{:keys [pattern] :as opts} (parse-opts)
         cfg (config opts)
         admin-base-uri (get cfg "admin-base-uri")]
@@ -486,63 +486,11 @@
 (defn users []
   (api-request-json "/_site/users"))
 
-;; This can be replaced by jo, curl and jq
-#_(defn add-user [{:keys [username password] :as opts}]
-    (let [{resource-server "resource_server"} (config)
-          api-endpoint (str (get resource-server "base_uri") "/_site/users")
-
-          token (retrieve-token)
-          ;; Couldn't we just request the token?
-          _ (when-not token
-              (throw (ex-info "No bearer token" {})))
-
-          cleartext-password
-          (when password
-            (let [{input-status :status [cleartext-password] :result}
-                  (b/gum {:cmd :input
-                          :opts (cond-> {:header.foreground "#C72"
-                                         :prompt.foreground "#444"
-                                         :password true
-                                         :width 60
-                                         :header (format "Input client secret for %s" username)})})]
-              (if-not (zero? input-status)
-                (throw (ex-info "Password input failed" {}))
-                cleartext-password)))
-
-          request-body (->
-                        (cond-> opts
-                          (:password opts) (dissoc :password)
-                          cleartext-password (assoc :password cleartext-password))
-                        json/generate-string)
-
-          {post-status :status response-body :body}
-          (http/post
-           api-endpoint
-           {:headers {"content-type" "application/json"
-                      "authorization" (format "Bearer %s" token)}
-            :body request-body})]
-
-
-      (println "post-status:" post-status)
-      (println "request-body:" request-body)))
-
-#_(defn jwks []
-  (let [{authorization-server "authorization_server"} (config)
-        {data-base-uri "base_uri"} authorization-server
-        url (str data-base-uri "/.well-known/jwks.json")
-        {:keys [status body]} (http/get url)]
-    (cond
-      (= status 200)
-      (println body)
-      :else
-      (prn (json/generate-string "Not OK")))))
-
 (memoize
  (defn bundles [cfg]
    (let [bundles-file (io/file (get cfg "installers-home") "bundles.edn")]
      (when-not (.exists bundles-file)
-       (throw (ex-info "bundles.edn does not exist" {:bundles-file (.getAbsolutePath bundles-file)}))
-       )
+       (throw (ex-info "bundles.edn does not exist" {:bundles-file (.getAbsolutePath bundles-file)})))
      (edn/read-string
       (slurp (io/file (System/getenv "SITE_HOME") "installers/bundles.edn"))))))
 
@@ -575,46 +523,6 @@
                        uri-map)]
 
     (ciu/installer-seq installer-map parameters installers)))
-
-#_(defn old-installers-seq [{:keys [bundle] :as opts}]
-  (let [cfg (config opts)
-        bundles (bundles cfg)
-
-        bundle-name (or bundle
-                       (let [{:keys [status result]}
-                             (b/gum {:cmd :filter
-                                     :opts {:placeholder "Select resource"
-                                            :fuzzy false
-                                            :indicator "⮕"
-                                            :indicator.foreground "#C72"
-                                            :match.foreground "#C72"}
-                                     :in (io/input-stream (.getBytes (str/join "\n"(sort (keys bundles)))))})]
-                         (when-not (zero? status)
-                           (throw (ex-info "Error, non-zero status" {})))
-                         (first result)))
-
-        installers-seq (bundle* cfg (get bundles bundle-name) opts)]
-
-    ;; JSON - not yet installable
-    #_(println (json/generate-string installers-seq {:pretty true}))
-
-    ;; EDN
-    installers-seq
-
-    ;; The reason to use a zip file is to allow future extensions
-    ;; where the zip file can contain binary data, such as images used
-    ;; in login screens. Site is very capable at storing and serving
-    ;; binary assets. It can also contain signatures, such as
-    ;; install.edn.sig.
-    #_(with-open [out (new java.util.zip.ZipOutputStream (new java.io.FileOutputStream outfile))]
-        (.putNextEntry out (new java.util.zip.ZipEntry "install.edn"))
-        (doseq [op installers-seq
-                :let [edn {:juxt.site/operation-uri (get-in op [:juxt.site/init-data :juxt.site/operation-uri])
-                           :juxt.site/operation-arg (get-in op [:juxt.site/init-data :juxt.site/input])}
-                      content (str (with-out-str (pprint edn)) "\r\n")
-                      bytes (.getBytes content "UTF-8")]]
-          (.write out bytes 0 (count bytes)))
-        (.closeEntry out))))
 
 (defn bundle [{bundle-name :bundle :as opts}]
   (let [cfg (config opts)
@@ -783,15 +691,8 @@
           (.delete secret-file))
 
         (println)
-        (println "You should now continue to configure your Site instance,")
-        (println "using one of the following methods:")
-        (println)
-
-        (println (format "A. Proceed to https://insite.juxt.site?client-secret=%s" (request-client-secret admin-base-uri "insite")))
-        (println " or ")
-        (println (format "B. Continue with this site tool, acquiring an access token with:" ))
-        ;; TODO: We could pipe this to '| xclip -selection clipboard'
-        (println (format "site request-token --client-secret %s" (request-client-secret admin-base-uri "site-cli")))))))
+        (help)
+        ))))
 
 (defn new-keypair []
   (let [opts (parse-opts)
@@ -846,3 +747,7 @@
     (case status
       200 (print body)
       (print status body))))
+
+(defn bundles-task []
+  (doseq [[k _] (bundles (config (parse-opts)))]
+    (println k)))
