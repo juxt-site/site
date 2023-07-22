@@ -12,6 +12,11 @@
              [clojure.edn :as edn]
              [clojure.java.io :as io])
 
+  ;; Override bb's help
+  help
+  {:doc "Show help"
+   :task (juxt.site.bb.tasks/help)}
+
   ping
   {:doc "Check server health"
    :task (juxt.site.bb.tasks/ping)}

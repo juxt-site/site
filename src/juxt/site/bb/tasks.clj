@@ -731,6 +731,22 @@
             :let [bundle (get bundles bundle-name)]]
       (install-bundle cfg bundle params opts))))
 
+(defn help []
+  ;; TODO: Only show if client secrets are available
+  (let [opts (parse-opts)
+        cfg (config opts)
+        admin-base-uri (get cfg "admin-base-uri")]
+
+    (println "You should now continue to configure your Site instance,")
+    (println "using one of the following methods:")
+    (println)
+
+    (println (format "A. Proceed to https://insite.juxt.site?client-secret=%s" (request-client-secret admin-base-uri "insite")))
+    (println " or ")
+    (println (format "B. Continue with this site tool, acquiring an access token with:" ))
+    ;; TODO: We could pipe this to '| xclip -selection clipboard'
+    (println (format "site request-token --client-secret %s" (request-client-secret admin-base-uri "site-cli")))))
+
 (defn init [opts]
   (let [cfg (config opts)
         admin-base-uri (get cfg "admin-base-uri")]
