@@ -10,8 +10,7 @@
  {:requires (juxt.site.bb.tasks
              [clojure.core.async :as async]
              [clojure.edn :as edn]
-             [clojure.java.io :as io]
-             [babashka.cli :as cli])
+             [clojure.java.io :as io])
 
   ping
   {:doc "Check server health"
