@@ -1,0 +1,5 @@
+_site_tasks() {
+    local matches=(`site tasks |tail -n +3 |cut -f1 -d ' '`)
+    compadd -a matches
+}
+compdef _site_tasks site
