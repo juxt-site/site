@@ -15,7 +15,11 @@
   ;; Override bb's help
   help
   {:doc "Show help"
-   :task (juxt.site.bb.tasks/help)}
+   :task (juxt.site.bb.tasks/help-task)}
+
+  status
+  {:doc "Show status"
+   :task (juxt.site.bb.tasks/status-task)}
 
   ping
   {:doc "Check server health"
