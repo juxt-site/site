@@ -1,4 +1,4 @@
-;; Copyright © 2022, JUXT LTD.
+;; Copyright © 2023, JUXT LTD.
 
 (ns juxt.site.events-test
   (:require
