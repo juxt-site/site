@@ -552,7 +552,11 @@
 
     (xt/db xt-node tx)))
 
-(defn installer-seq->tx-ops [db installers]
+(defn installer-seq->tx-ops
+  "Given a sequence of installers, return a collection of XTDB
+  transaction operations. The db argument is used to lookup the
+  operation which is required when preparing the transaction."
+  [db installers]
   (->> installers
        (map :juxt.site/init-data)
        ;; If we create an operation and later perform that operation in the
