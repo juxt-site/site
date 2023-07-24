@@ -19,8 +19,7 @@
 (use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest events-test
-  (let [db (xt/db *xt-node*)
-        bundle-name "juxt/site/bootstrap"
+  (let [bundle-name "juxt/site/bootstrap"
         root-dir (io/file "..")
         uri-map RESOURCE_SERVER
         graph (ciu/unified-installer-map (io/file root-dir "installers") uri-map)
@@ -31,6 +30,7 @@
         resources (install/map-uris resources uri-map)
         parameter-map {}
         installer-seq (ciu/installer-seq graph parameter-map resources)
+        db (xt/db *xt-node*)
         tx-ops (operations/installer-seq->tx-ops db installer-seq)
         new-db (operations/apply-ops! *xt-node* tx-ops)
         events (->> (xt/q
