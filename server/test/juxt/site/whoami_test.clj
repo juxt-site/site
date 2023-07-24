@@ -6,7 +6,7 @@
    [clojure.java.io :as io]
    [clojure.test :refer [deftest is use-fixtures]]
    [jsonista.core :as json]
-   [juxt.site.installer :refer [perform-operation!]]
+   [juxt.site.test-helpers.install :refer [perform-operation!]]
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]

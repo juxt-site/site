@@ -5,7 +5,7 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [deftest is are use-fixtures testing]]
-   [juxt.site.installer :refer [perform-operation!]]
+   [juxt.site.test-helpers.install :refer [perform-operation!]]
    [jsonista.core :as json]
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]

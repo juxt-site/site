@@ -9,8 +9,7 @@
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.xt :refer [*xt-node*]]
-   [juxt.site.installer :refer [perform-operation!]]
-   ))
+   [juxt.site.test-helpers.install :refer [perform-operation!]]))
 
 ;; Bootstrap fixture
 ;; Test a simple operation that will log something simple

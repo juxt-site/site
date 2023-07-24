@@ -6,7 +6,7 @@
    [jsonista.core :as json]
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
-   [juxt.site.installer :refer [perform-operation!]]
+   [juxt.site.test-helpers.install :refer [perform-operation!]]
    [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]

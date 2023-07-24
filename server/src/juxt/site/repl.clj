@@ -8,9 +8,7 @@
    [clojure.string :as str]
    [clojure.walk :refer [postwalk]]
    [juxt.site.main :as main]
-   [juxt.site.operations :as operations]
    [juxt.site.cache :as cache]
-   [juxt.site.installer :as installer]
    [juxt.site.jwt :as jwt]
    [xtdb.api :as xt]))
 
