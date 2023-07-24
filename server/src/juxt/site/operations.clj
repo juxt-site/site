@@ -563,28 +563,32 @@
        ;; appear in the bundle, prior to locating them as usual in the
        ;; database.
        (reduce
-        (fn [{:keys [entities-by-id] :as acc}
+        (fn [{:keys [entities-by-id operation-index] :as acc}
              {:juxt.site/keys [subject-uri operation-uri input]}]
           (cond-> acc
             (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
             (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
             operation-uri
-            (update
-             :tx-ops conj
-             (prepare-tx-op
-              (cond-> {:juxt.site/subject-uri subject-uri
-                       :juxt.site/operation-uri operation-uri
-                       :juxt.site/operation
-                       (or (get entities-by-id operation-uri)
-                           (xt/entity db operation-uri)
-                           (throw (ex-info "Failed to find operation!" {:operation-uri operation-uri})))
+            (->
+             (update :tx-ops conj
+                     (prepare-tx-op
+                      (cond-> {:juxt.site/subject-uri subject-uri
+                               :juxt.site/operation-uri operation-uri
+                               :juxt.site/operation-index operation-index
+                               :juxt.site/operation
+                               (or (get entities-by-id operation-uri)
+                                   (xt/entity db operation-uri)
+                                   (throw (ex-info "Failed to find operation!" {:operation-uri operation-uri})))
 
-                       :juxt.site/db db}
-                input
-                (merge {:juxt.site/received-representation
-                        {:juxt.http/content-type "application/edn"
-                         :juxt.http/body (.getBytes (pr-str input))}}))))))
+                               :juxt.site/db db}
+                        input
+                        (merge {:juxt.site/received-representation
+                                {:juxt.http/content-type "application/edn"
+                                 :juxt.http/body (.getBytes (pr-str input))}}))))
+             ;; Increment operation-index
+             (update :operation-index inc))))
         {:entities-by-id {}
+         :operation-index 0
          :tx-ops []})
 
        :tx-ops))
