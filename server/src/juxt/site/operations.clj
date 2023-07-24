@@ -847,8 +847,10 @@
                (cond->
                    {:xt/id (str (:juxt.site/events-base-uri operation) (::xt/tx-id tx) "/" operation-index)
                     :juxt.site/type "https://meta.juxt.site/types/event"
+                    ::xt/tx-id (::xt/tx-id tx)
                     :juxt.site/subject-uri subject-uri
                     :juxt.site/operation operation
+                    :juxt.site/tx-event-index operation-index
                     :juxt.site/purpose purpose
                     :juxt.site/puts (vec
                                      (keep
