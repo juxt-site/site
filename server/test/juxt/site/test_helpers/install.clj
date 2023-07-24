@@ -5,11 +5,10 @@
    [clojure.pprint :refer [pprint]]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
-   [clojure.walk :refer [prewalk postwalk]]
-   [selmer.parser :as selmer]
-   [clojure.set :as set]
-   [juxt.site.installer :as installer] ; ok to 'go direct'
-   [juxt.site.install.common-install-util :as ciu]))
+   [clojure.walk :refer [postwalk]]
+   [juxt.site.install.common-install-util :as ciu]
+   [juxt.site.operations :as operations]
+   [xtdb.api :as xt]))
 
 (defn index-by-id [installer-graph]
   (into {} (map (juxt :id identity) installer-graph)))
@@ -26,10 +25,12 @@
   [xt-node resources graph parameter-map]
 
   (assert (map? parameter-map) "Parameter map arg must be a map")
-  ;;(assert (every? map? resources) "Resources must be maps")
 
-  (->> (ciu/installer-seq graph parameter-map resources)
-       (mapv #(installer/call-installer xt-node %))))
+  (let [db (xt/db xt-node)
+        installer-seq (ciu/installer-seq graph parameter-map resources)
+        tx-ops (operations/installer-seq->tx-ops db installer-seq)]
+
+    (operations/apply-ops! xt-node tx-ops)))
 
 (defn normalize-uri-map [uri-map]
   (->> uri-map

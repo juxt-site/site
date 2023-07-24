@@ -3,6 +3,7 @@
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
   :juxt.site/input
   {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.hospital.com/_site/do-operation"
 
    :juxt.site/params
    {:search
