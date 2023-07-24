@@ -257,10 +257,6 @@
 
    ;; Necessary to allow bootstrap registration of clients
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/register-application"}
-   ;; Necessary to allow rotation of client-secrets and external setting initial client-secret for a given app.
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/system/oauth/set-client-secret"
-    :juxt.site/parameters {"client-id" "insite"}}
    ]}
 
  "juxt/site/keypair"

@@ -4,15 +4,13 @@
   (:require
    [clojure.test :refer [deftest is are use-fixtures testing]]
    [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER]]
-   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
-   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.repl :as repl]
    [juxt.site.util :as util]
-   [xtdb.api :as xt]
-   [clojure.test :as t]))
+   [xtdb.api :as xt]))
 
 (defn bootstrap []
   (install-bundles!
@@ -81,8 +79,7 @@
       (is (= "Hello World!" (String. (:ring.response/body response))))))
 
   (testing "bad credentials"
-    (let [db (xt/db *xt-node*)
-          response
+    (let [response
           (*handler*
            {:ring.request/method :get
             :ring.request/headers

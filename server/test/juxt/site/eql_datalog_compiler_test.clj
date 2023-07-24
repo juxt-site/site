@@ -14,7 +14,6 @@
    [juxt.site.graphql-eql-compiler :refer [graphql->eql-ast]]
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
-   [juxt.site.test-helpers.login :as login :refer [with-session-token]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.install :refer [perform-operation!]]
@@ -22,8 +21,7 @@
    [juxt.site.test-helpers.oauth :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [ring.util.codec :as codec]
-   [xtdb.api :as xt]
-   [juxt.site.util :as util]))
+   [xtdb.api :as xt]))
 
 (def AUTH_SERVER
   {"https://auth.example.org" "https://auth.hospital.com"})

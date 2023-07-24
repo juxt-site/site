@@ -2,14 +2,12 @@
 
 (ns juxt.site.whoami-test
   (:require
-   [ring.util.codec :as codec]
-   [clojure.java.io :as io]
    [clojure.test :refer [deftest is use-fixtures]]
    [jsonista.core :as json]
    [juxt.site.test-helpers.install :refer [perform-operation!]]
    [juxt.site.test-helpers.login :as login]
    [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
-   [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
+   [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.logging :refer [with-logging]]

@@ -7,7 +7,7 @@
    [juxt.site.session-scope :refer [lookup-session-details]]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login :refer [with-session-token]]
-   [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER]]
+   [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER]]
    [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
    [juxt.site.test-helpers.handler :refer [handler-fixture]]

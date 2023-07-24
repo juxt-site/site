@@ -564,7 +564,7 @@
        ;; database.
        (reduce
         (fn [{:keys [entities-by-id] :as acc}
-             {:juxt.site/keys [subject-uri operation-uri input] :as init-data}]
+             {:juxt.site/keys [subject-uri operation-uri input]}]
           (cond-> acc
             (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
             (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])

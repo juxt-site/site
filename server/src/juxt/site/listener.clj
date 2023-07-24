@@ -26,7 +26,7 @@
         (.addEventListener mb-container)
         (.addBean mb-container))))
 
-(defmethod ig/halt-key! ::listener [k s]
+(defmethod ig/halt-key! ::listener [_ s]
   (when s
     (log/info "Stopping HTTP listener")
     (.stop s)))

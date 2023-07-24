@@ -12,8 +12,7 @@
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
-   [xtdb.api :as xt]
-   [juxt.site.util :as util]))
+   [xtdb.api :as xt]))
 
 (defn bootstrap []
   (install-bundles!
@@ -120,19 +119,6 @@
        :juxt.site/input {:juxt.site/client-type "public"
                          :juxt.site/redirect-uris ["https://test-app.example.test/callback"]
                          :juxt.site/scope #{"https://auth.example.test/scopes/dummy"}}}))))
-
-#_(deftest set-client-secret-test
-  (let [old (repl/e "https://auth.example.test/applications/test/clientA")]
-    (perform-operation!
-     *xt-node*
-     {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
-      :juxt.site/operation-uri "https://auth.example.test/operations/oauth/set-client-secret"
-      :juxt.site/input
-      {:juxt.site/client-id "test/clientA"
-       :juxt.site/client-secret "fcc5814ed1218ee5a4bb86864cb9666c792822a8"
-       }})
-    (is (= "fcc5814ed1218ee5a4bb86864cb9666c792822a8"
-           (:juxt.site/client-secret (repl/e "https://auth.example.test/applications/test/clientA"))))))
 
 (deftest authorization-server-metadata
   ;; oauth-authorization-server is public
