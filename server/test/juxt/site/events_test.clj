@@ -7,7 +7,6 @@
    [juxt.site.repl :as repl]
    [juxt.site.operations :as operations]
    [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER]]
-   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
    [juxt.site.test-helpers.handler :refer [handler-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
@@ -17,13 +16,7 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]))
 
-(defn bootstrap-fixture [f]
-  (install-bundles!
-   ["juxt/site/bootstrap"]
-   RESOURCE_SERVER)
-  (f))
-
-(use-fixtures :each system-xt-fixture handler-fixture #_bootstrap-fixture)
+(use-fixtures :each system-xt-fixture handler-fixture)
 
 (deftest events-test
   (let [db (xt/db *xt-node*)
