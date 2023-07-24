@@ -589,6 +589,186 @@
 
        :tx-ops))
 
+(defn transact-sci-opts
+  [db
+   {resource :juxt.site/resource
+    prepare :juxt.site/prepare
+    :as ctx}
+   operation permissions]
+  {:namespaces
+   (merge-with
+    merge
+    {'user
+     {'*operation* operation
+      '*resource* resource
+      '*permissions* permissions
+      '*prepare* prepare
+      '*ctx* ctx}
+     ;; Allowed to access the database
+     'xt
+     {'entity (fn [id] (xt/entity db id))
+      'q (fn [& args] (apply xt/q db args))}
+
+     'juxt.site
+     {'match-identity
+      (fn [m]
+        (log/infof "Matching identity: %s" m)
+        (let [q {:find ['id]
+                 :where (into
+                         [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]
+                          `(~'or
+                            [~'id :juxt.site.jwt.claims/sub ~(:juxt.site.jwt.claims/sub m)]
+                            [~'id :juxt.site.jwt.claims/nickname ~(:juxt.site.jwt.claims/nickname m)])])}]
+          (log/infof "Query used: %s" (pr-str q))
+          (let [result (ffirst (xt/q db q))]
+            (log/infof "Result: %s" result)
+            result)))
+
+      ;; TODO: Rather than password check in the
+      ;; transaction function (requiring the password
+      ;; to be stored in the transaction-log), this
+      ;; should be moved to the prepare step.
+      'match-identity-with-password
+      (fn [m password password-hash-key]
+        (ffirst
+         (xt/q db {:find ['id]
+                   :where (into
+                           [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]
+                            ['id password-hash-key 'password-hash]
+                            ['(crypto.password.bcrypt/check password password-hash)]
+                            ]
+                           (for [[k v] m] ['id k v]))
+                   :in ['password]} password)))
+
+      'lookup-applications
+      (fn [client-id]
+        (seq
+         (map first
+              (try
+                (xt/q
+                 db
+                 '{:find [(pull e [*])]
+                   :where [[e :juxt.site/type "https://meta.juxt.site/types/application"]
+                           [e :juxt.site/client-id client-id]]
+                   :in [client-id]} client-id)
+                (catch Exception cause
+                  (throw
+                   (ex-info
+                    (format "Failed to lookup client: %s" client-id)
+                    {:client-id client-id} cause)))))))
+
+      'lookup-scope
+      (fn [scope]
+        (let [results (xt/q
+                       db
+                       '{:find [(pull e [*])]
+                         :where [[e :juxt.site/type "https://meta.juxt.site/types/oauth-scope"]]})]
+
+          (if (= 1 (count results))
+            (ffirst results)
+            (if (seq results)
+              (throw
+               (ex-info
+                (format "Multiple documents for scope: %s" scope)
+                {:scope scope
+                 :documents (map :xt/id results)}))
+              (throw
+               (ex-info
+                (format "No such scope: %s" scope)
+                {:error "invalid_scope"}))))))
+
+      'lookup-authorization-code
+      (fn [code]
+        (first
+         (map first
+              (xt/q db '{:find [(pull e [*])]
+                         :where [[e :juxt.site/code code]
+                                 [e :juxt.site/type "https://meta.juxt.site/types/authorization-code"]]
+                         :in [code]}
+                    code))))
+
+      'lookup-access-token
+      (fn [token]
+        (first
+         (map first
+              (xt/q db '{:find [(pull e [*])]
+                         :where [[e :juxt.site/token token]
+                                 [e :juxt.site/type "https://meta.juxt.site/types/access-token"]]
+                         :in [token]}
+                    token))))
+
+      'lookup-refresh-token
+      (fn [token]
+        (first
+         (map first
+              (xt/q db '{:find [(pull e [*])]
+                         :where [[e :juxt.site/token token]
+                                 [e :juxt.site/type "https://meta.juxt.site/types/refresh-token"]]
+                         :in [token]}
+                    token))))
+
+      ;; TODO: Rename to make it clear this is a JWT
+      ;; access token. Other access tokens might be
+      ;; possible.
+      'make-access-token
+      (fn [claims keypair-id]
+        (let [keypair (xt/entity db keypair-id)]
+          (when-not keypair
+            (throw (ex-info (format "Keypair not found: %s" keypair-id) {:keypair-id keypair-id})))
+          (try
+            (jwt/new-access-token claims keypair)
+            (catch Exception cause
+              (throw
+               (ex-info
+                "Failed to make access token"
+                {:claims claims
+                 :keypair-id keypair-id}
+                cause))))))
+
+      'decode-access-token
+      (fn [access-token]
+        (let [kid (jwt/get-kid access-token)
+              _ (when-not kid
+                  (throw (ex-info "No key id in access-token, should try all possible keypairs" {})))
+              keypair (jwt/lookup-keypair db kid)]
+          (when-not keypair
+            (throw (ex-info "Keypair not found" {:kid kid})))
+          (jwt/verify-jwt access-token keypair)))
+
+      'installer-seq->tx-ops
+      (fn [installer-seq]
+        (installer-seq->tx-ops db installer-seq))}
+
+     'grab
+     {'parsed-types
+      (fn parsed-types [schema-id]
+        (map :juxt.grab/type-definition
+             (map first
+                  (xt/q db '{:find [(pull e [:juxt.grab/type-definition])]
+                             :where [[e :juxt.site/type "https://meta.juxt.site/types/graphql-type"]
+                                     [e :juxt.site/graphql-schema schema-id]]
+                             :in [schema-id]}
+                        schema-id))))}}
+
+    (common-sci-namespaces operation))
+
+   :classes
+   {'java.util.Date java.util.Date
+    'java.time.Instant java.time.Instant
+    'java.time.Duration java.time.Duration
+    'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit}
+
+   ;; We can't allow random numbers to be computed as they
+   ;; won't be the same on each node. If this is a problem, we
+   ;; can replace with a (non-secure) PRNG seeded from the
+   ;; tx-instant of the tx. Note that secure random numbers
+   ;; should not be generated this way anyway, since then it
+   ;; would then be possible to mount an attack based on
+   ;; knowledge of the current time. Instead, secure random
+   ;; numbers should be generated in the operation's 'prepare'
+   ;; step.
+   :deny `[loop recur rand rand-int]})
+
 (defn do-operation-in-tx-fn
   "This function is applied within a transaction function. It should be
   fast, but at least doesn't have to worry about the database being
@@ -599,7 +779,6 @@
     operation-uri :juxt.site/operation-uri
     resource :juxt.site/resource
     purpose :juxt.site/purpose
-    prepare :juxt.site/prepare
     :as ctx}]
   (let [db (xt/db xt-ctx)
         tx (xt/indexing-tx xt-ctx)
@@ -624,179 +803,7 @@
               (try
                 (sci/eval-string
                  (-> operation :juxt.site/transact :juxt.site.sci/program)
-                 {:namespaces
-                  (merge-with
-                   merge
-                   {'user
-                    {'*operation* operation
-                     '*resource* resource
-                     '*permissions* permissions
-                     '*prepare* prepare
-                     '*ctx* ctx}
-                    ;; Allowed to access the database
-                    'xt
-                    {'entity (fn [id] (xt/entity db id))
-                     'q (fn [& args] (apply xt/q db args))}
-
-                    'juxt.site
-                    {'match-identity
-                     (fn [m]
-                       (log/infof "Matching identity: %s" m)
-                       (let [q {:find ['id]
-                                :where (into
-                                        [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]
-                                         `(~'or
-                                           [~'id :juxt.site.jwt.claims/sub ~(:juxt.site.jwt.claims/sub m)]
-                                           [~'id :juxt.site.jwt.claims/nickname ~(:juxt.site.jwt.claims/nickname m)])])}]
-                         (log/infof "Query used: %s" (pr-str q))
-                         (let [result (ffirst (xt/q db q))]
-                           (log/infof "Result: %s" result)
-                           result)))
-
-                     ;; TODO: Rather than password check in the
-                     ;; transaction function (requiring the password
-                     ;; to be stored in the transaction-log), this
-                     ;; should be moved to the prepare step.
-                     'match-identity-with-password
-                     (fn [m password password-hash-key]
-                       (ffirst
-                        (xt/q db {:find ['id]
-                                  :where (into
-                                          [['id :juxt.site/type "https://meta.juxt.site/types/user-identity"]
-                                           ['id password-hash-key 'password-hash]
-                                           ['(crypto.password.bcrypt/check password password-hash)]
-                                           ]
-                                          (for [[k v] m] ['id k v]))
-                                  :in ['password]} password)))
-
-                     'lookup-applications
-                     (fn [client-id]
-                       (seq
-                        (map first
-                             (try
-                               (xt/q
-                                db
-                                '{:find [(pull e [*])]
-                                  :where [[e :juxt.site/type "https://meta.juxt.site/types/application"]
-                                          [e :juxt.site/client-id client-id]]
-                                  :in [client-id]} client-id)
-                               (catch Exception cause
-                                 (throw
-                                  (ex-info
-                                   (format "Failed to lookup client: %s" client-id)
-                                   {:client-id client-id} cause)))))))
-
-                     'lookup-scope
-                     (fn [scope]
-                       (let [results (xt/q
-                                      db
-                                      '{:find [(pull e [*])]
-                                        :where [[e :juxt.site/type "https://meta.juxt.site/types/oauth-scope"]]})]
-
-                         (if (= 1 (count results))
-                           (ffirst results)
-                           (if (seq results)
-                             (throw
-                              (ex-info
-                               (format "Multiple documents for scope: %s" scope)
-                               {:scope scope
-                                :documents (map :xt/id results)}))
-                             (throw
-                              (ex-info
-                               (format "No such scope: %s" scope)
-                               {:error "invalid_scope"}))))))
-
-                     'lookup-authorization-code
-                     (fn [code]
-                       (first
-                        (map first
-                             (xt/q db '{:find [(pull e [*])]
-                                        :where [[e :juxt.site/code code]
-                                                [e :juxt.site/type "https://meta.juxt.site/types/authorization-code"]]
-                                        :in [code]}
-                                   code))))
-
-                     'lookup-access-token
-                     (fn [token]
-                       (first
-                        (map first
-                             (xt/q db '{:find [(pull e [*])]
-                                        :where [[e :juxt.site/token token]
-                                                [e :juxt.site/type "https://meta.juxt.site/types/access-token"]]
-                                        :in [token]}
-                                   token))))
-
-                     'lookup-refresh-token
-                     (fn [token]
-                       (first
-                        (map first
-                             (xt/q db '{:find [(pull e [*])]
-                                        :where [[e :juxt.site/token token]
-                                                [e :juxt.site/type "https://meta.juxt.site/types/refresh-token"]]
-                                        :in [token]}
-                                   token))))
-
-                     ;; TODO: Rename to make it clear this is a JWT
-                     ;; access token. Other access tokens might be
-                     ;; possible.
-                     'make-access-token
-                     (fn [claims keypair-id]
-                       (let [keypair (xt/entity db keypair-id)]
-                         (when-not keypair
-                           (throw (ex-info (format "Keypair not found: %s" keypair-id) {:keypair-id keypair-id})))
-                         (try
-                           (jwt/new-access-token claims keypair)
-                           (catch Exception cause
-                             (throw
-                              (ex-info
-                               "Failed to make access token"
-                               {:claims claims
-                                :keypair-id keypair-id}
-                               cause))))))
-
-                     'decode-access-token
-                     (fn [access-token]
-                       (let [kid (jwt/get-kid access-token)
-                             _ (when-not kid
-                                 (throw (ex-info "No key id in access-token, should try all possible keypairs" {})))
-                             keypair (jwt/lookup-keypair db kid)]
-                         (when-not keypair
-                           (throw (ex-info "Keypair not found" {:kid kid})))
-                         (jwt/verify-jwt access-token keypair)))
-
-                     'installer-seq->tx-ops
-                     (fn [installer-seq]
-                       (installer-seq->tx-ops db installer-seq))}
-
-                    'grab
-                    {'parsed-types
-                     (fn parsed-types [schema-id]
-                       (map :juxt.grab/type-definition
-                            (map first
-                                 (xt/q db '{:find [(pull e [:juxt.grab/type-definition])]
-                                            :where [[e :juxt.site/type "https://meta.juxt.site/types/graphql-type"]
-                                                    [e :juxt.site/graphql-schema schema-id]]
-                                            :in [schema-id]}
-                                       schema-id))))}}
-
-                   (common-sci-namespaces operation))
-
-                  :classes
-                  {'java.util.Date java.util.Date
-                   'java.time.Instant java.time.Instant
-                   'java.time.Duration java.time.Duration
-                   'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit}
-
-                  ;; We can't allow random numbers to be computed as they
-                  ;; won't be the same on each node. If this is a problem, we
-                  ;; can replace with a (non-secure) PRNG seeded from the
-                  ;; tx-instant of the tx. Note that secure random numbers
-                  ;; should not be generated this way anyway, since then it
-                  ;; would then be possible to mount an attack based on
-                  ;; knowledge of the current time. Instead, secure random
-                  ;; numbers should be generated in the operation's 'prepare'
-                  ;; step.
-                  :deny `[loop recur rand rand-int]})
+                 (transact-sci-opts db ctx operation permissions))
 
                 (catch clojure.lang.ExceptionInfo e
                   ;; The sci.impl/callstack contains a volatile which isn't freezable.
