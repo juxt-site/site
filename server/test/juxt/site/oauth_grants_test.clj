@@ -21,18 +21,13 @@
 
 (defn bootstrap-fixture [f]
   (install-bundles!
-   ["juxt/site/system-client"]
-   RESOURCE_SERVER
-   {"client-id" "site-cli"})
-
-  (install-bundles!
-   ["juxt/site/login-form"
+   [["juxt/site/system-client" {"client-id" "site-cli"}]
+    "juxt/site/login-form"
     "juxt/site/example-users"
     "juxt/site/test-scopes"
     "juxt/site/test-clients"
     "juxt/site/oauth-introspection-endpoint"]
-   RESOURCE_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
+   RESOURCE_SERVER)
   (f))
 
 (use-fixtures

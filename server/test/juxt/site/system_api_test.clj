@@ -30,33 +30,17 @@
     "juxt/site/api-operations"
     "juxt/site/users-api"
     "juxt/site/openapi"
-    "juxt/site/system-api-openapi"]
-   RESOURCE_SERVER {})
-
-  ;; Need some test users and a way for them to authenticate
-  (install-bundles!
-   ["juxt/site/login-form"
-    "juxt/site/example-users"]
-   RESOURCE_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
-
-  ;; Install a private-key for signing
-  (converge!
-   [{:juxt.site/base-uri "https://auth.example.test"
-     :juxt.site/installer-path "/keypairs/{{kid}}"
-     :juxt.site/parameters {"kid" "test-kid"}}]
-   RESOURCE_SERVER
-   {})
-
-  ;; Install an authorization server
-  (install-bundles!
-   ["juxt/site/oauth-authorization-endpoint"
-    "juxt/site/oauth-token-endpoint"]
-   RESOURCE_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "kid" "test-kid"
-    "authorization-code-length" 12
-    "jti-length" 12})
+    "juxt/site/system-api-openapi"
+    "juxt/site/login-form"
+    "juxt/site/example-users"
+    ["juxt/site/keypair" {"kid" "test-kid"}]
+    ["juxt/site/oauth-authorization-endpoint"
+     {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+      "authorization-code-length" 12
+      "jti-length" 12}]
+    "juxt/site/oauth-token-endpoint"
+    ]
+   RESOURCE_SERVER)
 
   ;; Alice has the Admin role which confers access to put-user
   (converge!
@@ -98,13 +82,7 @@
      {"clientid" "site-cli"
       "rolename" "SystemQuery"}}]
    RESOURCE_SERVER
-   {})
-
-  ;; Temporary for debugging
-  (install-bundles!
-   ["juxt/site/whoami-api"
-    ]
-   RESOURCE_SERVER {}))
+   {}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)

@@ -22,14 +22,13 @@
     "juxt/site/logout"
     "juxt/site/user-model"
     "juxt/site/password-based-user-identity"
-    "juxt/site/oauth-authorization-endpoint"
+    ["juxt/site/oauth-authorization-endpoint"
+     {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+      "authorization-code-length" 12
+      "jti-length" 12}]
     "juxt/site/oauth-token-endpoint"
     "juxt/site/example-users"]
-   RESOURCE_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "kid" "test-kid"
-    "authorization-code-length" 12
-    "jti-length" 12})
+   RESOURCE_SERVER)
   (f))
 
 (use-fixtures :each system-xt-fixture handler-fixture bootstrap-fixture)

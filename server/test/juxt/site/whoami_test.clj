@@ -17,27 +17,15 @@
 
 (defn bootstrap []
   (install-bundles!
-   ["juxt/site/bootstrap"]
-   RESOURCE_SERVER
-   {})
-
-  ;; Install a private-key for signing
-  ;; TODO: There's a parameterized bundle for this now, use that!
-  (converge!
-   [{:juxt.site/base-uri "https://auth.example.test"
-     :juxt.site/installer-path "/keypairs/{{kid}}"
-     :juxt.site/parameters {"kid" "test-kid"}}]
-   RESOURCE_SERVER
-   {})
-
-  (install-bundles!
-   ["juxt/site/sessions"
+   ["juxt/site/bootstrap"
+    ["juxt/site/keypair" {"kid" "test-kid"}]
+    "juxt/site/sessions"
     "juxt/site/oauth-token-endpoint"
-    "juxt/site/oauth-authorization-endpoint"]
-   RESOURCE_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "authorization-code-length" 12
-    "jti-length" 12})
+    ["juxt/site/oauth-authorization-endpoint"
+     {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+      "authorization-code-length" 12
+      "jti-length" 12}]]
+   RESOURCE_SERVER)
 
   (perform-operation!
    *xt-node*
@@ -52,17 +40,16 @@
   ;; Now we need some mechanism to authenticate with the authorization server in
   ;; order to authorize applications and acquire tokens.
   (install-bundles!
-   ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
-    "juxt/site/example-users" "juxt/site/protection-spaces"]
-   RESOURCE_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
-
-  (install-bundles!
-   ["juxt/site/api-operations"
+   ["juxt/site/login-form"
+    "juxt/site/user-model"
+    "juxt/site/password-based-user-identity"
+    "juxt/site/example-users"
+    "juxt/site/protection-spaces"
+    "juxt/site/api-operations"
     "juxt/site/whoami-api"
     "juxt/site/openapi"
     "juxt/site/system-api-openapi"]
-   RESOURCE_SERVER {})
+   RESOURCE_SERVER)
 
   (converge!
    [{:juxt.site/base-uri "https://data.example.test"

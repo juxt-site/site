@@ -55,8 +55,9 @@
 (defn install-hospital! []
   (install-bundles!
    ["juxt/site/bootstrap"]
-   RESOURCE_SERVER {})
+   RESOURCE_SERVER)
 
+  ;; TODO: Create a bundle for this
   (converge!
    [{:juxt.site/base-uri "https://auth.hospital.com"
      :juxt.site/installer-path "/keypairs/{{kid}}"
@@ -68,13 +69,14 @@
    ["juxt/site/user-model"
     "juxt/site/password-based-user-identity"
     "juxt/site/sessions"
-    "juxt/site/oauth-authorization-endpoint"
+    ["juxt/site/oauth-authorization-endpoint"
+     {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"
+      "authorization-code-length" 12
+      "jti-length" 12}]
     "juxt/site/oauth-token-endpoint"]
-   RESOURCE_SERVER
-   {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"
-    "authorization-code-length" 12
-    "jti-length" 12})
+   RESOURCE_SERVER)
 
+  ;; TODO: Create a bundle for this
   (perform-operation!
    *xt-node*
    {:juxt.site/subject-uri "https://auth.hospital.com/_site/subjects/system"
@@ -87,13 +89,9 @@
   (install-bundles!
    ["juxt/site/example-users"
     "juxt/site/login-form"
-    "juxt/site/protection-spaces"]
-   RESOURCE_SERVER
-   {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"})
-
-  (install-bundles!
-   ["juxt/site/hospital-demo"]
-   RESOURCE_SERVER {}))
+    "juxt/site/protection-spaces"
+    "juxt/site/hospital-demo"]
+   RESOURCE_SERVER))
 
 (defn with-hospital [f]
   (install-hospital!)

@@ -15,19 +15,20 @@
   (io/file ".."))
 
 (defn install-bundles!
-  ([names uri-map parameter-map]
+  ([specs uri-map]
    (assert *xt-node*)
    (let [root-dir (get-root-dir)
          graph (ciu/unified-installer-map (io/file root-dir "installers") uri-map)
          bundles (edn/read-string (slurp (io/file root-dir "installers/bundles.edn")))]
-     (doseq [n names
-             :let [bundle (get bundles n)
-                   _ (when-not bundle (throw (ex-info (format "Bundle not found: %s" n) {:bundle n})))
-                   resources (some-> bundles (get n) :juxt.site/installers)]]
+     (doseq [spec specs
+             :let [[bundle-name params] (if (vector? spec) spec [spec {}])
+                   bundle (get bundles bundle-name)
+                   _ (when-not bundle (throw (ex-info (format "Bundle not found: %s" bundle-name) {:bundle bundle-name})))
+                   resources (some-> bundles (get bundle-name) :juxt.site/installers)]]
        (install/converge!
         *xt-node*
         (install/map-uris resources uri-map)
-        graph parameter-map)))))
+        graph params)))))
 
 (defn converge! [resources uri-map parameter-map]
   (let [graph (ciu/unified-installer-map (io/file (get-root-dir) "installers") uri-map)]

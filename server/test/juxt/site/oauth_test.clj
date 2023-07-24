@@ -16,29 +16,17 @@
 
 (defn bootstrap []
   (install-bundles!
-   ["juxt/site/bootstrap"]
-   RESOURCE_SERVER
-   {})
-
-  ;; Install a private-key for signing
-  (converge!
-   [{:juxt.site/base-uri "https://auth.example.test"
-     :juxt.site/installer-path "/keypairs/{{kid}}"
-     :juxt.site/parameters {"kid" "test-kid"}}]
-   RESOURCE_SERVER
-   {})
-
-  (install-bundles!
-   ["juxt/site/sessions"
-    "juxt/site/oauth-authorization-endpoint"
+   ["juxt/site/bootstrap"
+    ["juxt/site/keypair" {"kid" "test-kid"}]
+    "juxt/site/sessions"
+    ["juxt/site/oauth-authorization-endpoint"
+     {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+      "authorization-code-length" 12
+      "jti-length" 12}]
     "juxt/site/oauth-token-endpoint"
     "juxt/site/test-clients"
     "juxt/site/oauth-metadata-endpoints"]
-   RESOURCE_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-    "kid" "test-kid"
-    "authorization-code-length" 12
-    "jti-length" 12})
+   RESOURCE_SERVER)
 
   (converge!
    [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/scopes/test/read"}]
@@ -142,30 +130,3 @@
 	      "token_endpoint_auth_methods_supported" ["none" "client_secret_post"]
               "code_challenge_methods_supported" ["S256"]}
              (json/read-value body))))))
-
-#_(with-fixtures
-  (perform-operation!
-   *xt-node*
-   {:juxt.site/subject-uri "https://auth.example.test/_site/subjects/system"
-    :juxt.site/operation-uri "https://auth.example.test/operations/oauth/register-application"
-    :juxt.site/input
-    {:juxt.site/client-id "test-app"
-     :juxt.site/client-type "confidential"
-     :juxt.site/resource-server "https://data.example.test"
-     :juxt.site/redirect-uris ["https://test-app.example.test/callback"]}})
-
-  (install-bundles!
-   ["juxt/site/login-form" "juxt/site/user-model" "juxt/site/password-based-user-identity"
-    "juxt/site/example-users" "juxt/site/protection-spaces"]
-   AUTH_SERVER
-   {"session-scope" "https://auth.example.test/session-scopes/form-login-session"})
-
-  (let [session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
-        (oauth/acquire-access-token!
-             { ;;:grant-type "authorization_code"
-              :grant-type "implicit"
-              :authorize-uri "https://auth.example.test/oauth/authorize"
-              :session-token session-token
-              :client "https://auth.example.test/applications/test-app"})]
-    (jwt/decode-jwt access-token)))

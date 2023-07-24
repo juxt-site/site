@@ -18,7 +18,7 @@
     "juxt/site/testing/basic-auth-protected-resource"
     "juxt/site/test-clients"
     "juxt/site/example-users"]
-   RESOURCE_SERVER {}))
+   RESOURCE_SERVER))
 
 (defn bootstrap-fixture [f]
   (bootstrap)
