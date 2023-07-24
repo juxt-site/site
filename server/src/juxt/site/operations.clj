@@ -832,9 +832,6 @@
 
             xtdb-ops (filter (fn [[effect]] (= (namespace effect) "xtdb.api")) fx)
 
-            ;; Deprecated
-            #_#_apply-to-request-context-fx (filter (fn [[effect]] (= effect :juxt.site/apply-to-request-context)) fx)
-
             ;; Decisions we've made which don't update the database but should
             ;; be record and reflected in the response.
             other-response-fx
@@ -875,18 +872,8 @@
 
                  tx (into tx)
 
-                 ;; Any quotations that we want to apply to the request context?
-                 ;; (deprecated)
-                 #_(seq apply-to-request-context-fx)
-                 #_(assoc :juxt.site/apply-to-request-context-ops apply-to-request-context-fx)
-
                  (seq other-response-fx)
-                 (assoc :juxt.site/response-fx other-response-fx)
-
-                 ))])]
-
-        ;; This isn't the best debugger :( - need a better one!
-        ;;(log/debugf "XXXX Result is: %s" result-ops)
+                 (assoc :juxt.site/response-fx other-response-fx)))])]
 
         result-fx)
 
