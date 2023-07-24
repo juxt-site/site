@@ -844,35 +844,39 @@
              ;; Add an operation log entry for this transaction
              [:xtdb.api/put
               (into
-               (cond->
-                   {:xt/id (str (:juxt.site/events-base-uri operation) (::xt/tx-id tx) "/" operation-index)
-                    :juxt.site/type "https://meta.juxt.site/types/event"
-                    ::xt/tx-id (::xt/tx-id tx)
-                    :juxt.site/subject-uri subject-uri
-                    :juxt.site/operation operation
-                    :juxt.site/tx-event-index operation-index
-                    :juxt.site/purpose purpose
-                    :juxt.site/puts (vec
-                                     (keep
-                                      (fn [[tx-op {id :xt/id}]]
-                                        (when (= tx-op ::xt/put) id))
-                                      xtdb-ops))
-                    :juxt.site/deletes (vec
-                                        (keep
-                                         (fn [[tx-op {id :xt/id}]]
-                                           (when (= tx-op ::xt/delete) id))
-                                         xtdb-ops))}
-                   tx (into tx)
+               (cond-> {:xt/id (cond-> (str (:juxt.site/events-base-uri operation) (::xt/tx-id tx))
+                                 operation-index (str "/" operation-index))
+                        :juxt.site/type "https://meta.juxt.site/types/event"
+                        ::xt/tx-id (::xt/tx-id tx)
+                        :juxt.site/subject-uri subject-uri
+                        :juxt.site/operation-uri operation-uri
+                        :juxt.site/purpose purpose
+                        :juxt.site/puts
+                        (vec
+                         (keep
+                          (fn [[tx-op {id :xt/id}]]
+                            (when (= tx-op ::xt/put) id))
+                          xtdb-ops))
+                        :juxt.site/deletes
+                        (vec
+                         (keep
+                          (fn [[tx-op {id :xt/id}]]
+                            (when (= tx-op ::xt/delete) id))
+                          xtdb-ops))}
 
-                   ;; Any quotations that we want to apply to the request context?
-                   ;; (deprecated)
-                   #_(seq apply-to-request-context-fx)
-                   #_(assoc :juxt.site/apply-to-request-context-ops apply-to-request-context-fx)
+                 operation-index (assoc :juxt.site/tx-event-index operation-index)
 
-                   (seq other-response-fx)
-                   (assoc :juxt.site/response-fx other-response-fx)
+                 tx (into tx)
 
-                   ))])]
+                 ;; Any quotations that we want to apply to the request context?
+                 ;; (deprecated)
+                 #_(seq apply-to-request-context-fx)
+                 #_(assoc :juxt.site/apply-to-request-context-ops apply-to-request-context-fx)
+
+                 (seq other-response-fx)
+                 (assoc :juxt.site/response-fx other-response-fx)
+
+                 ))])]
 
         ;; This isn't the best debugger :( - need a better one!
         ;;(log/debugf "XXXX Result is: %s" result-ops)
