@@ -327,6 +327,7 @@
                   (slurp access-token-file)))]
     token))
 
+;; site request-token --client-secret $(site client-secret)
 ;; site request-token --username alice --password $(gum input --password)
 (defn request-token
   "Acquire an access-token. Remote only."

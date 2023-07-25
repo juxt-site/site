@@ -299,8 +299,7 @@
          (throw
           (ex-info
            "To avoid confusion when debugging, assoc-bearer-token will not override an already set authorization header"
-           {:new-value {"authorization" new-value}
-            :existing-value {"authorization" existing-value}})))
+           {})))
        new-value))))
 
 (defmacro with-bearer-token [token & body]
@@ -311,4 +310,30 @@
      (binding [*handler*
                (fn [req#]
                  (dlg# (assoc-bearer-token req# token#)))]
+       ~@body)))
+
+(defn assoc-basic-authorization [req username password]
+  (update-in
+   req
+   [:ring.request/headers "authorization"]
+   (fn [existing-value]
+     (let [new-value (format "Basic %s" (codec/base64-encode (.getBytes (format "%s:%s" username password))))]
+       (when (and existing-value (not= existing-value new-value))
+         (throw
+          (ex-info
+           "To avoid confusion when debugging, assoc-basic-authorization will not override an already set authorization header"
+           {})))
+       new-value))))
+
+(defmacro with-basic-authorization [username password & body]
+  `(let [dlg# *handler*
+         username# ~username
+         password# ~password]
+     (when-not username#
+       (throw (ex-info "with-basic-authorization called without a username" {})))
+     (when-not password#
+       (throw (ex-info "with-basic-authorization called without a password" {})))
+     (binding [*handler*
+               (fn [req#]
+                 (dlg# (assoc-basic-authorization req# username# password#)))]
        ~@body)))
