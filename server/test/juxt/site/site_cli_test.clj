@@ -129,47 +129,50 @@
     {:ring.request/headers {"accept" "application/edn"}})))
 
 (deftest create-users-test
- (let [db (xt/db *xt-node*)
-       client-secret (client-secret db)
-       cc-token (request-token
-                 {"client-secret" client-secret})
+  (let [db (xt/db *xt-node*)
+        client-secret (client-secret db)
+        cc-token (request-token
+                  {"client-secret" client-secret})
 
-       _ (with-bearer-token cc-token
-           (register-user
-            {"username" "mal"
-             "password" "foobar"
-             "fullname" "Malcolm Sparks"})
-           (assign-user-role
-            {"username" "mal"
-             "role" "Admin"}))
+        _ (with-bearer-token cc-token
+            (register-user
+             {"username" "alice"
+              "password" "foobar"
+              "fullname" "Alice"})
+            (assign-user-role
+             {"username" "alice"
+              "role" "Admin"}))
 
-       mal-token (request-token
-                  {"username" "mal"
-                   "password" "foobar"})
+        alice-token (request-token
+                     {"username" "alice"
+                      "password" "foobar"})
 
-       _ (with-bearer-token mal-token
-           (register-user
-            {"username" "alx"
-             "password" "foobar"
-             "fullname" "Alex Davis"}))
+        _ (with-bearer-token alice-token
+            (register-user
+             {"username" "bob"
+              "password" "foobar"
+              "fullname" "Bob"}))
 
-       users (with-bearer-token mal-token
-               (users))
+        users (with-bearer-token alice-token (users))
 
-       events (with-bearer-token mal-token
-                (->> (events)
-                     (sort-by
-                      (juxt :xtdb.api/tx-id :juxt.site/tx-event-index))))
+        _ (is (= [{"juxt.site/username" "alice"
+                   "fullname" "Alice"
+                   "xt/id" "https://data.example.test/_site/users/alice"}
+                  {"juxt.site/username" "bob"
+                   "fullname" "Bob"
+                   "xt/id" "https://data.example.test/_site/users/bob"}]
+                 users))
 
-       db (xt/db *xt-node*)
+        last-event (with-bearer-token alice-token
+                     (->> (events)
+                          (sort-by
+                           (juxt :xtdb.api/tx-id :juxt.site/tx-event-index))
+                          last))
 
-       subject (xt/entity db (:juxt.site/subject-uri (last events)))]
+        db (xt/db *xt-node*)
 
-   (is (= [{"juxt.site/username" "alx"
-            "fullname" "Alex Davis"
-            "xt/id" "https://data.example.test/_site/users/alx"}
-           {"juxt.site/username" "mal"
-            "fullname" "Malcolm Sparks"
-            "xt/id" "https://data.example.test/_site/users/mal"}] users))
+        _ (is (= "https://data.example.test/_site/users/alice"
+                 (:juxt.site/user (xt/entity db (:juxt.site/subject-uri last-event)))))]
 
-   (is (= "https://data.example.test/_site/users/mal" (:juxt.site/user subject)))))
+
+    ))
