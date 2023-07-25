@@ -343,8 +343,8 @@
     :juxt.site/installer-path "/operations/put-protection-space"}]}
 
  "juxt/site/openapi"
- {:juxt.site/title "OpenAPI"
-  :juxt.site/description "OpenAPI"
+ {:juxt.site/title "OpenAPI Operations"
+  :juxt.site/description "Support for OpenAPI"
   :juxt.site/installers
   [ ;; Required permissions (permissions are generally not specified as
    ;; dependencies but must be created out-of-band)
@@ -380,7 +380,8 @@
    ]}
 
  "juxt/site/login-form"
- {:juxt.site/description "Login form"
+ {:juxt.site/title "Login form"
+  :juxt.site/description "Login form"
   :juxt.site/installers
   [
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/login"}
