@@ -20,8 +20,6 @@
    [clojure.java.io :as io]
    [jsonista.core :as json]))
 
-(use-fixtures :each system-xt-fixture handler-fixture)
-
 (def CONFIG {"uri-map"
              {"https://auth.example.org" "https://auth.example.test"
               "https://data.example.org" "https://data.example.test"}})
@@ -36,6 +34,7 @@
     ;; Install the required APIs
     ["juxt/site/api-operations" {}]
     ["juxt/site/resources-api" {}]
+    ["juxt/site/events-api" {}]
     ["juxt/site/whoami-api" {}]
     ["juxt/site/users-api" {}]
     ["juxt/site/endpoints-api" {}]
@@ -45,8 +44,14 @@
     ["juxt/site/system-client" {"client-id" "site-cli"}]]
    (get CONFIG "uri-map")))
 
-(defn client-secret [db client-id]
-  (let [site-cli-client (xt/entity db (format "https://auth.example.test/applications/%s" client-id))]
+(defn init-fixture [f]
+  (init)
+  (f))
+
+(use-fixtures :each system-xt-fixture handler-fixture init-fixture)
+
+(defn client-secret [db]
+  (let [site-cli-client (xt/entity db (format "https://auth.example.test/applications/site-cli"))]
     (:juxt.site/client-secret site-cli-client)))
 
 (defn http-request [uri m]
@@ -71,7 +76,7 @@
       (200 201) body
       (throw (ex-info "Unexpected status" response)))))
 
-(defn request-token [{:strs [client-id grant-type] :as opts}]
+(defn request-token [{:strs [grant-type] :as opts}]
   (let [grant-type (cond
                      grant-type grant-type
                      (or (get opts "username") (get opts "password")) "password"
@@ -84,15 +89,15 @@
             body (http-post
                   token-endpoint
                   {:ring.request/headers {"content-type" "application/x-www-form-urlencoded"}
-                   :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
-                                 "password" username password client-id)})]
+                   :body (format "grant_type=%s&username=%s&password=%s&client_id=site-cli"
+                                 "password" username password)})]
         (some-> body json/read-value (get "access_token")))
 
       "client_credentials"
       (let [client-secret (get opts "client-secret")
             form (codec/form-encode {"grant_type" grant-type})
             body (with-basic-authorization
-                   client-id client-secret
+                   "site-cli" client-secret
                    (http-post
                     token-endpoint
                     {:ring.request/headers
@@ -126,17 +131,17 @@
   (json/read-value
    (http-get (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/users") {})))
 
+(defn events []
+  (json/read-value
+   (http-get (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/events") {})))
+
 ;; TODO: Create events endpoin
 
 (deftest create-users-test
-  (init)
-
   (let [db (xt/db *xt-node*)
-        client-id "site-cli"
-        client-secret (client-secret db client-id)
+        client-secret (client-secret db)
         cc-token (request-token
-                  {"client-id" client-id
-                   "client-secret" client-secret})
+                  {"client-secret" client-secret})
 
         _ (with-bearer-token cc-token
             (register-user
@@ -148,8 +153,7 @@
               "role" "Admin"}))
 
         mal-token (request-token
-                   {"client-id" client-id
-                    "username" "mal"
+                   {"username" "mal"
                     "password" "foobar"})
 
         _ (with-bearer-token mal-token
@@ -167,3 +171,33 @@
             {"juxt.site/username" "mal",
              "fullname" "Malcolm Sparks",
              "xt/id" "https://data.example.test/_site/users/mal"}] users))))
+
+(deftest events-test
+  (let [db (xt/db *xt-node*)
+        client-secret (client-secret db)
+        cc-token (request-token
+                  {"client-secret" client-secret})
+
+        _ (with-bearer-token cc-token
+            (register-user
+             {"username" "mal"
+              "password" "foobar"
+              "fullname" "Malcolm Sparks"})
+            (assign-user-role
+             {"username" "mal"
+              "role" "Admin"}))
+
+        mal-token (request-token
+                   {"username" "mal"
+                    "password" "foobar"})
+
+        _ (with-bearer-token mal-token
+            (register-user
+             {"username" "alx"
+              "password" "foobar"
+              "fullname" "Alex Davis"}))
+
+        events (with-bearer-token mal-token
+                (events))]
+
+    (is (= 125 (count events)))))
