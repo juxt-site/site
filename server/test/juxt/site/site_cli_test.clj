@@ -165,11 +165,11 @@
 
        subject (xt/entity db (:juxt.site/subject-uri (last events)))]
 
-   (is (= [{"juxt.site/username" "alx",
-            "fullname" "Alex Davis",
+   (is (= [{"juxt.site/username" "alx"
+            "fullname" "Alex Davis"
             "xt/id" "https://data.example.test/_site/users/alx"}
-           {"juxt.site/username" "mal",
-            "fullname" "Malcolm Sparks",
+           {"juxt.site/username" "mal"
+            "fullname" "Malcolm Sparks"
             "xt/id" "https://data.example.test/_site/users/mal"}] users))
 
    (is (= "https://data.example.test/_site/users/mal" (:juxt.site/user subject)))))
