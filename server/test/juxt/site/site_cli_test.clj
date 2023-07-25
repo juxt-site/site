@@ -128,7 +128,7 @@
 
 ;; TODO: Create events endpoin
 
-(with-fixtures
+(deftest create-users-test
   (init)
 
   (let [db (xt/db *xt-node*)
@@ -152,12 +152,18 @@
                     "username" "mal"
                     "password" "foobar"})
 
-        _ (with-bearer-token cc-token
+        _ (with-bearer-token mal-token
             (register-user
              {"username" "alx"
               "password" "foobar"
-              "fullname" "Alex Davis"})
-            )]
+              "fullname" "Alex Davis"}))
 
-    #_(with-bearer-token mal-token
-      (users))))
+        users (with-bearer-token mal-token
+                (users))]
+
+    (is (= [{"juxt.site/username" "alx",
+             "fullname" "Alex Davis",
+             "xt/id" "https://data.example.test/_site/users/alx"}
+            {"juxt.site/username" "mal",
+             "fullname" "Malcolm Sparks",
+             "xt/id" "https://data.example.test/_site/users/mal"}] users))))
