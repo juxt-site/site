@@ -163,41 +163,22 @@
               "fullname" "Alex Davis"}))
 
         users (with-bearer-token mal-token
-                (users))]
+                (users))
+
+        events (with-bearer-token mal-token
+                 (->> (events)
+                      (sort-by
+                       (juxt #(get % "xtdb.api/tx-id") #(get % "juxt.site/tx-event-index")))))
+
+        db (xt/db *xt-node*)
+
+        subject (xt/entity db (get (last events) "juxt.site/subject-uri"))]
 
     (is (= [{"juxt.site/username" "alx",
              "fullname" "Alex Davis",
              "xt/id" "https://data.example.test/_site/users/alx"}
             {"juxt.site/username" "mal",
              "fullname" "Malcolm Sparks",
-             "xt/id" "https://data.example.test/_site/users/mal"}] users))))
+             "xt/id" "https://data.example.test/_site/users/mal"}] users))
 
-(deftest events-test
-  (let [db (xt/db *xt-node*)
-        client-secret (client-secret db)
-        cc-token (request-token
-                  {"client-secret" client-secret})
-
-        _ (with-bearer-token cc-token
-            (register-user
-             {"username" "mal"
-              "password" "foobar"
-              "fullname" "Malcolm Sparks"})
-            (assign-user-role
-             {"username" "mal"
-              "role" "Admin"}))
-
-        mal-token (request-token
-                   {"username" "mal"
-                    "password" "foobar"})
-
-        _ (with-bearer-token mal-token
-            (register-user
-             {"username" "alx"
-              "password" "foobar"
-              "fullname" "Alex Davis"}))
-
-        events (with-bearer-token mal-token
-                (events))]
-
-    (is (= 125 (count events)))))
+    (is (= "https://data.example.test/_site/users/mal" (:juxt.site/user subject)))))
