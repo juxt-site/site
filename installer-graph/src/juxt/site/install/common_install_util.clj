@@ -101,6 +101,7 @@
        (ex-info
         (format "Unsatisfied dependency between '%s' and '%s'" (:juxt.site/uri parent) dependency)
         {:parameters parameters
+         :concrete-id concrete-id
          :dependency dependency
          :graph (keys graph)})))))
 
