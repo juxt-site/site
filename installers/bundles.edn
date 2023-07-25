@@ -361,6 +361,13 @@
   [{:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapi.json"}]}
 
+ "petstore"
+ {:juxt.site/title "Petstore Demo"
+  :juxt.site/dependencies ["juxt/site/openapi"]
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/openapi.json"}]}
+
  "juxt/site/sessions"
  {:juxt.site/title "Sessions"
   :juxt.site/description "Sessions"
