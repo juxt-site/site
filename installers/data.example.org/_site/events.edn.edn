@@ -16,7 +16,7 @@
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [content (pprint-str *state*)]
+    (let [content (str (pr-str *state*) "\r\n")]
       (-> *ctx*
           (assoc :ring.response/body content)
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}

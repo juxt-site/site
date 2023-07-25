@@ -26,7 +26,8 @@
 (defn merge-global-opts [opts]
   (-> opts
       (update :alias assoc :p :profile)
-      (update :coerce assoc :profile :keyword)))
+      (update :coerce assoc :profile :keyword)
+      (update :coerce assoc :edn :boolean)))
 
 (defn parse-opts
   "Take the :opts of the current task and add in globals"
@@ -434,20 +435,22 @@
   (let [opts (parse-opts)
         cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-        endpoint (str data-base-uri path)
-        {:keys [status body]} (http/get
-                               endpoint
-                               {:headers {"content-type" "application/json"
-                                          "authorization" (authorization cfg)}
-                                :throw false})]
+        endpoint (cond-> (str data-base-uri path)
+                   (get opts :edn) (str ".edn"))
+        {:keys [status body]}
+        (http/get
+         endpoint
+         {:headers {"content-type" "application/json"
+                    "authorization" (authorization cfg)}
+          :throw false})]
     (case status
       200 (print body)
       401 (stderr
-            (print status body)
-            (println "Hint: Try requesting an access-token (site request-token)"))
+           (print status body)
+           (println "Hint: Try requesting an access-token (site request-token)"))
       (stderr
-        (print status body)
-        (.flush *out*)))))
+       (print status body)
+       (.flush *out*)))))
 
 (defn whoami [{:keys [verbose] :as opts}]
   (let [path "/_site/whoami"]
