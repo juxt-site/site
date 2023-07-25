@@ -487,6 +487,9 @@
 (defn users []
   (api-request-json "/_site/users"))
 
+(defn events []
+  (api-request-json "/_site/events"))
+
 (memoize
  (defn bundles [cfg]
    (let [bundles-file (io/file (get cfg "installers-home") "bundles.edn")]
@@ -695,6 +698,7 @@
            ;; Install the required APIs
            ["juxt/site/api-operations" {}]
            ["juxt/site/resources-api" {}]
+           ["juxt/site/events-api" {}]
            ["juxt/site/whoami-api" {}]
            ["juxt/site/users-api" {}]
            ["juxt/site/endpoints-api" {}]

@@ -112,6 +112,10 @@
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/users)}
 
+  events
+  {:doc "Introspect events"
+   :task (juxt.site.bb.tasks/events)}
+
   new-keypair
   {:doc "Create a new keypair"
    :task (juxt.site.bb.tasks/new-keypair)}
