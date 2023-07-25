@@ -64,7 +64,7 @@
                              :juxt.site/access-control-allow-methods [:get]
                              :juxt.site/access-control-allow-headers ["authorization"]}]]))
 
-          variant
+          base
           {:juxt.site/variant-of user-uri
            :juxt.site/methods
            {:get {:juxt.site/operation "https://auth.example.org/operations/get-user"}}
@@ -72,25 +72,32 @@
            :juxt.site/access-control-allow-origins
            [[".*" {:juxt.site/access-control-allow-origin "*"
                    :juxt.site/access-control-allow-methods [:get]
-                   :juxt.site/access-control-allow-headers ["authorization"]}]]
-
-           :juxt.site/respond
-           {:juxt.site.sci/program
-            #juxt.pprint
-            (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
-              (-> *ctx*
-                  (assoc :ring.response/body content)
-                  (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}
+                   :juxt.site/access-control-allow-headers ["authorization"]}]]}
 
           user-json
-          (assoc variant
+          (assoc base
                  :xt/id (str user-uri ".json")
-                 :juxt.http/content-type "application/json")
+                 :juxt.http/content-type "application/json"
+                 :juxt.site/respond
+                 {:juxt.site.sci/program
+                  #juxt.pprint
+                  (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
+                    (-> *ctx*
+                        (assoc :ring.response/body content)
+                        (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))})
 
           user-edn
-          (assoc variant
+          (assoc base
                  :xt/id (str user-uri ".edn")
-                 :juxt.http/content-type "application/edn")
+                 :juxt.http/content-type "application/edn"
+                 :juxt.pick/quality-of-source 0.5
+                 :juxt.site/respond
+                 {:juxt.site.sci/program
+                  #juxt.pprint
+                  (let [content (str (pr-str *state*) "\r\n")]
+                    (-> *ctx*
+                        (assoc :ring.response/body content)
+                        (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))})
 
           user-identity
           (when password-hash
