@@ -521,13 +521,15 @@
   (let [uri-map (get cfg "uri-map")
 
         parameters
-        (resolve-parameters (apply-uri-map uri-map parameters) opts)
+        (resolve-parameters (apply-uri-map uri-map parameters) (apply-uri-map uri-map opts))
 
-        installers (apply-uri-map uri-map installers)
+        installers
+        (apply-uri-map uri-map installers)
 
-        installer-map (ciu/unified-installer-map
-                       (io/file (get cfg "installers-home"))
-                       uri-map)]
+        installer-map
+        (ciu/unified-installer-map
+         (io/file (get cfg "installers-home"))
+         uri-map)]
 
     (ciu/installer-seq installer-map parameters installers)))
 
@@ -616,6 +618,8 @@
       (print status body))))
 
 (defn- install-bundle [cfg bundle params opts]
+  (when-not (every? string? (keys params))
+    (throw (ex-info "Bad parameters" {:params params})))
   (let [title (get bundle :juxt.site/title)
         param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))]
     (println
@@ -697,7 +701,7 @@
            ;; Support the creation of JWT bearer tokens
            ["juxt/site/oauth-token-endpoint" {}]
            ;; Install a keypair to sign JWT bearer tokens
-           ["juxt/site/keypair" {:kid (random-string 16)}]
+           ["juxt/site/keypair" {"kid" (random-string 16)}]
            ;; Install the required APIs
            ["juxt/site/api-operations" {}]
            ["juxt/site/resources-api" {}]
@@ -708,8 +712,8 @@
            ;; RFC 7662 token introspection
            ["juxt/site/oauth-introspection-endpoint" {}]
            ;; Register the clients
-           ["juxt/site/system-client" {:client-id "site-cli"}]
-           ["juxt/site/system-client" {:client-id "insite"}]]))
+           ["juxt/site/system-client" {"client-id" "site-cli"}]
+           ["juxt/site/system-client" {"client-id" "insite"}]]))
 
         ;; Delete any stale client-secret files
         (doseq [client-id ["site-cli" "insite"]

@@ -7,7 +7,7 @@
   (reduce
    (fn [acc [parameter {:keys [default choices]}]]
      (assoc acc parameter
-            (or (get args (keyword parameter))
+            (or (get args parameter)
                 default
                 (cond
                   choices (let [choice-v (map (juxt #(format "%s (%s)" (:label %) (:value %)) identity) choices)
