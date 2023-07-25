@@ -780,3 +780,34 @@
 (defn bundles-task []
   (doseq [[k _] (bundles (config (parse-opts)))]
     (println k)))
+
+;; Temporary convenience for ongoing development
+
+(defn auto-configure []
+  (let [opts (parse-opts)
+        cfg (config opts)
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
+    (install-bundles
+     (assoc
+      opts
+      :resources-uri
+      (str data-base-uri "/_site/resources")
+      :access-token
+      (retrieve-token cfg)
+      :bundles
+      [["juxt/site/openapi" {}]
+       ["juxt/site/system-api-openapi" {}]
+       ["juxt/site/oauth-authorization-endpoint"
+        { ;;"session-scope" "https://auth.example.org/session-scopes/form-login-session"
+         }]
+       ;; Assuming https://auth.example.org/session-scopes/form-login-session...
+       ["juxt/site/login-form" {}]
+
+       ;; Register swagger-ui
+       ["juxt/site/system-client" {"client-id" "swagger-ui"}]
+       ;; TODO: Try not registering this one and see the awful Jetty
+       ;; error that results!
+       ["juxt/site/system-client" {"client-id" "remote-swagger-ui"}]
+       ]))
+    ;; Now browse to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
+    ))

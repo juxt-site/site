@@ -141,4 +141,8 @@
   api-endpoints
   {:doc "List available API endpoints"
    :opts {:args->opts [:pattern]}
-   :task (juxt.site.bb.tasks/api-endpoints)}}}
+   :task (juxt.site.bb.tasks/api-endpoints)}
+
+  auto-configure
+  {:doc "Auto configure"
+   :task (juxt.site.bb.tasks/auto-configure)}}}
