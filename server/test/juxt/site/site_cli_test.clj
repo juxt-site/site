@@ -4,25 +4,18 @@
   (:require
    [ring.util.codec :as codec]
    [clojure.test :refer [deftest is use-fixtures]]
-   [juxt.site.logging :refer [with-logging]]
-   [juxt.site.repl :as repl]
-   [juxt.site.operations :as operations]
-   [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER]]
    [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
-   [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER with-bearer-token with-basic-authorization] :as oauth]
+   [juxt.site.test-helpers.oauth :refer [with-bearer-token with-basic-authorization] :as oauth]
    [juxt.site.test-helpers.handler :refer [handler-fixture *handler*]]
-   [juxt.site.test-helpers.fixture :refer [with-fixtures]]
-   [juxt.site.install.common-install-util :as ciu]
-   [juxt.site.test-helpers.install :as install]
    [xtdb.api :as xt]
    [clojure.edn :as edn]
-   [clojure.java.io :as io]
    [jsonista.core :as json]))
 
-(def CONFIG {"uri-map"
-             {"https://auth.example.org" "https://auth.example.test"
-              "https://data.example.org" "https://data.example.test"}})
+(def CONFIG
+  {"uri-map"
+   {"https://auth.example.org" "https://auth.example.test"
+    "https://data.example.org" "https://data.example.test"}})
 
 (defn init []
   (install-bundles!
@@ -44,9 +37,7 @@
     ["juxt/site/system-client" {"client-id" "site-cli"}]]
    (get CONFIG "uri-map")))
 
-(defn init-fixture [f]
-  (init)
-  (f))
+(defn init-fixture [f] (init) (f))
 
 (use-fixtures :each system-xt-fixture handler-fixture init-fixture)
 
@@ -132,53 +123,53 @@
    (http-get (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/users") {})))
 
 (defn events []
-  (json/read-value
-   (http-get (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/events") {})))
-
-;; TODO: Create events endpoin
+  (edn/read-string
+   (http-get
+    (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/events")
+    {:ring.request/headers {"accept" "application/edn"}})))
 
 (deftest create-users-test
-  (let [db (xt/db *xt-node*)
-        client-secret (client-secret db)
-        cc-token (request-token
-                  {"client-secret" client-secret})
+ (let [db (xt/db *xt-node*)
+       client-secret (client-secret db)
+       cc-token (request-token
+                 {"client-secret" client-secret})
 
-        _ (with-bearer-token cc-token
-            (register-user
-             {"username" "mal"
-              "password" "foobar"
-              "fullname" "Malcolm Sparks"})
-            (assign-user-role
-             {"username" "mal"
-              "role" "Admin"}))
+       _ (with-bearer-token cc-token
+           (register-user
+            {"username" "mal"
+             "password" "foobar"
+             "fullname" "Malcolm Sparks"})
+           (assign-user-role
+            {"username" "mal"
+             "role" "Admin"}))
 
-        mal-token (request-token
-                   {"username" "mal"
-                    "password" "foobar"})
+       mal-token (request-token
+                  {"username" "mal"
+                   "password" "foobar"})
 
-        _ (with-bearer-token mal-token
-            (register-user
-             {"username" "alx"
-              "password" "foobar"
-              "fullname" "Alex Davis"}))
+       _ (with-bearer-token mal-token
+           (register-user
+            {"username" "alx"
+             "password" "foobar"
+             "fullname" "Alex Davis"}))
 
-        users (with-bearer-token mal-token
-                (users))
+       users (with-bearer-token mal-token
+               (users))
 
-        events (with-bearer-token mal-token
-                 (->> (events)
-                      (sort-by
-                       (juxt #(get % "xtdb.api/tx-id") #(get % "juxt.site/tx-event-index")))))
+       events (with-bearer-token mal-token
+                (->> (events)
+                     (sort-by
+                      (juxt :xtdb.api/tx-id :juxt.site/tx-event-index))))
 
-        db (xt/db *xt-node*)
+       db (xt/db *xt-node*)
 
-        subject (xt/entity db (get (last events) "juxt.site/subject-uri"))]
+       subject (xt/entity db (:juxt.site/subject-uri (last events)))]
 
-    (is (= [{"juxt.site/username" "alx",
-             "fullname" "Alex Davis",
-             "xt/id" "https://data.example.test/_site/users/alx"}
-            {"juxt.site/username" "mal",
-             "fullname" "Malcolm Sparks",
-             "xt/id" "https://data.example.test/_site/users/mal"}] users))
+   (is (= [{"juxt.site/username" "alx",
+            "fullname" "Alex Davis",
+            "xt/id" "https://data.example.test/_site/users/alx"}
+           {"juxt.site/username" "mal",
+            "fullname" "Malcolm Sparks",
+            "xt/id" "https://data.example.test/_site/users/mal"}] users))
 
-    (is (= "https://data.example.test/_site/users/mal" (:juxt.site/user subject)))))
+   (is (= "https://data.example.test/_site/users/mal" (:juxt.site/user subject)))))
