@@ -428,6 +428,55 @@
 (defn sanitize-ctx [ctx]
   (dissoc ctx :juxt.site/xt-node :juxt.site/db))
 
+(defn prepare-sci-opts [operation ctx]
+  {:namespaces
+   (merge-with
+    merge
+    {'user { ;;'*subject* subject
+            ;;'*operation* operation
+            ;;'*resource* resource
+            '*ctx* (sanitize-ctx ctx)
+            'logf (fn [fmt & fmt-args]
+                    (log/infof (apply format fmt fmt-args)))
+            'log (fn [message]
+                   (log/info message))}
+
+     'xt
+     {
+      ;; Unsafe due to violation of strict serializability, hence
+      ;; marked as entity*
+      'entity*
+      (fn [eid]
+        (if-let [db (:juxt.site/db ctx)]
+          (xt/entity db eid)
+          (throw (ex-info "Cannot call entity* as no database in context" {}))))}
+
+     'juxt.site.util
+     {'make-nonce make-nonce}
+
+     'juxt.site
+     {'generate-key-pair
+      (fn [algo]
+        (.generateKeyPair (java.security.KeyPairGenerator/getInstance algo)))
+      'get-public-key (fn [kp] (.getPublic kp))
+      'get-private-key (fn [kp] (.getPrivate kp))
+      'get-encoded (fn [k] (as-b64-str (.getEncoded k)))
+      'get-modulus (fn [k] (.getModulus k))
+      'get-public-exponent (fn [k] (.getPublicExponent k))
+      'get-key-format (fn [k] (.getFormat k))
+      'install-resources (fn [_] (throw (ex-info "TODO: install-resources from clj" {})))}}
+
+    (common-sci-namespaces operation))
+
+   :classes
+   {'java.util.Date java.util.Date
+    'java.time.Instant java.time.Instant
+    'java.time.Duration java.time.Duration
+    'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit
+    'java.security.KeyPairGenerator java.security.KeyPairGenerator
+    }}
+  )
+
 (defn do-prepare
   "Return a map of the result of any juxt.site/prepare entry. The
   prepare phase is used to validate input, create unique randomized
@@ -435,57 +484,11 @@
   without accessing the database (which may not be the same database
   as the one the transaction sees)."
   [operation ctx]
-
   (when-let [prepare-program (some-> operation :juxt.site/prepare :juxt.site.sci/program)]
     (try
       (sci/eval-string
        prepare-program
-       {:namespaces
-        (merge-with
-         merge
-         {'user { ;;'*subject* subject
-                 ;;'*operation* operation
-                 ;;'*resource* resource
-                 '*ctx* (sanitize-ctx ctx)
-                 'logf (fn [fmt & fmt-args]
-                         (log/infof (apply format fmt fmt-args)))
-                 'log (fn [message]
-                        (log/info message))}
-
-          'xt
-          {
-           ;; Unsafe due to violation of strict serializability, hence
-           ;; marked as entity*
-           'entity*
-           (fn [eid]
-             (if-let [db (:juxt.site/db ctx)]
-               (xt/entity db eid)
-               (throw (ex-info "Cannot call entity* as no database in context" {}))))}
-
-          'juxt.site.util
-          {'make-nonce make-nonce}
-
-          'juxt.site
-          {'generate-key-pair
-           (fn [algo]
-             (.generateKeyPair (java.security.KeyPairGenerator/getInstance algo)))
-           'get-public-key (fn [kp] (.getPublic kp))
-           'get-private-key (fn [kp] (.getPrivate kp))
-           'get-encoded (fn [k] (as-b64-str (.getEncoded k)))
-           'get-modulus (fn [k] (.getModulus k))
-           'get-public-exponent (fn [k] (.getPublicExponent k))
-           'get-key-format (fn [k] (.getFormat k))
-           'install-resources (fn [_] (throw (ex-info "TODO: install-resources from clj" {})))}}
-
-         (common-sci-namespaces operation))
-
-        :classes
-        {'java.util.Date java.util.Date
-         'java.time.Instant java.time.Instant
-         'java.time.Duration java.time.Duration
-         'java.time.temporal.ChronoUnit java.time.temporal.ChronoUnit
-         'java.security.KeyPairGenerator java.security.KeyPairGenerator
-         }})
+       (prepare-sci-opts operation ctx))
       (catch clojure.lang.ExceptionInfo e
         (throw
          (ex-info
