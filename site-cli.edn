@@ -17,34 +17,34 @@
   {:doc "Show help"
    :task (juxt.site.bb.tasks/help-task)}
 
-  status
-  {:doc "Show status"
-   :task (juxt.site.bb.tasks/status-task)}
+  post-init
+  {:doc "Show post-init options. Requires the server."
+   :task (juxt.site.bb.tasks/post-init-task)}
 
   ping
   {:doc "Check server health"
    :task (juxt.site.bb.tasks/ping)}
 
-  reset {:doc "Admin only: Reset"
+  reset {:doc "Delete all resources. Only available via localhost."
          :task (juxt.site.bb.tasks/reset)}
 
-  init {:doc "Initialise a server with a minimal working set of resources"
+  init {:doc "Initialise a server with minimal resources. Only available via localhost."
         :task (juxt.site.bb.tasks/init
                (juxt.site.bb.tasks/parse-opts))}
 
   list
-  {:doc "List resources"
+  {:doc "List resources. Only available via localhost."
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/list-task)}
 
   find
-  {:doc "Show resource"
+  {:doc "Find resources by pattern. Only available via localhost."
    :opts {:args->opts [:pattern]
           :coerce {:pattern :string}}
    :task (juxt.site.bb.tasks/find)}
 
   client-secret
-  {:doc "Retrieve a client_secret"
+  {:doc "Retrieve a client_secret. Only available via localhost."
    :opts {:args->opts [:client-id]
           :require [:client-id]
           :coerce {:save :boolean}

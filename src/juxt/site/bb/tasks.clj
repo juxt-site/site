@@ -650,7 +650,7 @@
             :let [bundle (get bundles bundle-name)]]
       (install-bundle cfg bundle params opts))))
 
-(defn status [cfg]
+(defn post-init [cfg]
   (let [admin-base-uri (get cfg "admin-base-uri")
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
@@ -678,18 +678,16 @@
         ;; TODO: We could pipe this to '| xclip -selection clipboard'
         (println (format "site request-token --client-secret %s" site-cli-secret))))))
 
-(defn status-task []
+(defn post-init-task []
   (let [opts (parse-opts)
         cfg (config opts)]
-    (status cfg)))
+    (post-init cfg)))
 
 (defn help [cfg]
   (println "Site Help")
-  (println)
-  (status cfg))
+  (println))
 
 (defn help-task []
-  ;; TODO: Only show if client secrets are available
   (let [opts (parse-opts)
         cfg (config opts)]
     (help cfg)))
@@ -730,7 +728,7 @@
           ;; TODO: Replace with babashka.fs
           (.delete secret-file))
 
-        (status cfg)))))
+        (post-init cfg)))))
 
 (defn new-keypair []
   (let [opts (parse-opts)
