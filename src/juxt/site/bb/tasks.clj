@@ -651,32 +651,34 @@
       (install-bundle cfg bundle params opts))))
 
 (defn post-init [cfg]
-  (let [admin-base-uri (get cfg "admin-base-uri")
-        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-        insite-secret (request-client-secret admin-base-uri "insite")
-        site-cli-secret (request-client-secret admin-base-uri "site-cli")
-        token-endpoint (str auth-base-uri "/oauth/token")
-        site-api-root (str data-base-uri "/_site")]
-    (if-not (and insite-secret site-cli-secret)
-      (do
-        (println "Register the site-cli app to proceed")
-        (println "One way to do this is to run 'site init'"))
-      (do
-        (println "Next steps: you should continue to configure your Site instance,")
-        (println "using one of the following methods:")
-        (println)
+  (let [admin-base-uri (get cfg "admin-base-uri")]
+    (if-not admin-base-uri
+      (stderr (println "Cannot init. The admin-server is not reachable."))
+      (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+            data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+            insite-secret (request-client-secret admin-base-uri "insite")
+            site-cli-secret (request-client-secret admin-base-uri "site-cli")
+            token-endpoint (str auth-base-uri "/oauth/token")
+            site-api-root (str data-base-uri "/_site")]
+        (if-not (and insite-secret site-cli-secret)
+          (do
+            (println "Register the site-cli app to proceed")
+            (println "One way to do this is to run 'site init'"))
+          (do
+            (println "Next steps: you should continue to configure your Site instance,")
+            (println "using one of the following methods:")
+            (println)
 
-        (println (format
-                  "A. Proceed to https://insite.juxt.site?token_endpoint=%s&client_secret=%s&site_api_root=%s"
-                  token-endpoint
-                  insite-secret
-                  site-api-root))
+            (println (format
+                      "A. Proceed to https://insite.juxt.site?token_endpoint=%s&client_secret=%s&site_api_root=%s"
+                      token-endpoint
+                      insite-secret
+                      site-api-root))
 
-        (println " or ")
-        (println (format "B. Continue with this site tool, acquiring an access token with:" ))
-        ;; TODO: We could pipe this to '| xclip -selection clipboard'
-        (println (format "site request-token --client-secret %s" site-cli-secret))))))
+            (println " or ")
+            (println (format "B. Continue with this site tool, acquiring an access token with:" ))
+            ;; TODO: We could pipe this to '| xclip -selection clipboard'
+            (println (format "site request-token --client-secret %s" site-cli-secret))))))))
 
 (defn post-init-task []
   (let [opts (parse-opts)
