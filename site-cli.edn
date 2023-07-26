@@ -85,8 +85,9 @@
           (juxt.site.bb.tasks/parse-opts))}
 
   check-token
-  {:doc "Show current token"
-   :task (juxt.site.bb.tasks/check-token)}
+  {:doc "Show current token. Use with --token or defaults to currently saved token."
+   :task (juxt.site.bb.tasks/check-token-task
+          (juxt.site.bb.tasks/parse-opts))}
 
   whoami
   {:doc "Introspect current user/application"

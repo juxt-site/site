@@ -387,46 +387,50 @@
   (when-let [token (request-token opts)]
     (save-access-token token)))
 
-(defn check-token []
-  (let [opts (parse-opts)
-        cfg (config opts)
-        token (retrieve-token cfg)]
-    (if-not token
-      (stderr (println "Hint: Try requesting an access-token (site request-token)"))
-      (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-            {introspection-status :status introspection-body :body}
-            (http/post
-             (str auth-base-uri "/oauth/introspect")
-             {:headers {"authorization" (format "Bearer %s" token)}
-              :form-params {"token" token}
-              :throw false})
+(defn check-token [cfg token]
+  (if-not token
+    (stderr (println "Hint: Try requesting an access-token (site request-token)"))
+    (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+          introspection-uri (str auth-base-uri "/oauth/introspect")
+          {introspection-status :status introspection-body :body}
+          (http/post
+           introspection-uri
+           {:headers {"authorization" (format "Bearer %s" token)}
+            :form-params {"token" token}
+            :throw false})
 
-            zone-id (java.time.ZoneId/systemDefault)
+          zone-id (java.time.ZoneId/systemDefault)
 
-            claim-time
-            (fn [seconds]
-              (.toString
-               (java.time.ZonedDateTime/ofInstant
-                (java.time.Instant/ofEpochSecond seconds)
-                zone-id)))
+          claim-time
+          (fn [seconds]
+            (.toString
+             (java.time.ZonedDateTime/ofInstant
+              (java.time.Instant/ofEpochSecond seconds)
+              zone-id)))
 
-            claims
-            (when (and (= introspection-status 200) introspection-body)
-              (json/parse-string introspection-body))
+          claims
+          (when (and (= introspection-status 200) introspection-body)
+            (json/parse-string introspection-body))
 
-            metadata
-            (when claims
-              (cond-> {}
-                (get claims "iat") (assoc "issued-at" (claim-time (get claims "iat")))
-                (get claims "exp") (assoc "expires-at" (claim-time (get claims "exp")))))]
-        (println
-         (json/generate-string
-          (cond-> {"access-token" token
-                   "introspection"
-                   (cond-> {"status "introspection-status}
-                     claims (assoc "claims" claims)
-                     metadata (assoc "metadata" metadata))})
-          {:pretty true}))))))
+          metadata
+          (when claims
+            (cond-> {}
+              (get claims "iat") (assoc "issued-at" (claim-time (get claims "iat")))
+              (get claims "exp") (assoc "expires-at" (claim-time (get claims "exp")))))]
+      (println
+       (json/generate-string
+        (cond-> {"access-token" token
+                 "introspection"
+                 (cond-> {"endpoint" introspection-uri
+                          "status "introspection-status}
+                   claims (assoc "claims" claims)
+                   metadata (assoc "metadata" metadata))})
+        {:pretty true})))))
+
+(defn check-token-task [opts]
+  (let [cfg (config opts)
+        token (or (:token opts) (retrieve-token cfg))]
+    (check-token cfg token)))
 
 (defn authorization [cfg]
   (format "Bearer %s" (retrieve-token cfg)))
