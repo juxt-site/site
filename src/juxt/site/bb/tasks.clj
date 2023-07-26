@@ -652,8 +652,12 @@
 
 (defn status [cfg]
   (let [admin-base-uri (get cfg "admin-base-uri")
+        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         insite-secret (request-client-secret admin-base-uri "insite")
-        site-cli-secret (request-client-secret admin-base-uri "site-cli")]
+        site-cli-secret (request-client-secret admin-base-uri "site-cli")
+        token-endpoint (str auth-base-uri "/oauth/token")
+        site-api-root (str data-base-uri "/_site")]
     (if-not (and insite-secret site-cli-secret)
       (do
         (println "Register the site-cli app to proceed")
@@ -663,7 +667,12 @@
         (println "using one of the following methods:")
         (println)
 
-        (println (format "A. Proceed to https://insite.juxt.site?client-secret=%s" insite-secret))
+        (println (format
+                  "A. Proceed to https://insite.juxt.site?token_endpoint=%s&client_secret=%s&site_api_root=%s"
+                  token-endpoint
+                  insite-secret
+                  site-api-root))
+
         (println " or ")
         (println (format "B. Continue with this site tool, acquiring an access token with:" ))
         ;; TODO: We could pipe this to '| xclip -selection clipboard'
