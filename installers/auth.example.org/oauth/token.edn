@@ -27,4 +27,11 @@
         :juxt.site/access-control-allow-methods [:post]
         :juxt.site/access-control-allow-headers ["authorization"
                                                  ;; Swagger requires this
+                                                 "x-requested-with"]}]
+
+    ["https://localhost:5173"
+       {:juxt.site/access-control-allow-origin "https://localhost:5173"
+        :juxt.site/access-control-allow-methods [:post]
+        :juxt.site/access-control-allow-headers ["authorization"
+                                                 ;; Swagger requires this
                                                  "x-requested-with"]}]]}}}
