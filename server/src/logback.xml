@@ -38,8 +38,8 @@
       <!-- And start a new file every 64 MB -->
       <maxFileSize>64 MB</maxFileSize>
 
-      <!-- Keep at most 15 days of history -->
-      <maxHistory>15</maxHistory>
+      <!-- Keep at most 2 days of history -->
+      <maxHistory>2</maxHistory>
 
       <!-- Up to a maximum of 512 MB -->
       <totalSizeCap>512MB</totalSizeCap>
