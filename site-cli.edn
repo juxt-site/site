@@ -113,6 +113,10 @@
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/users)}
 
+  logs
+  {:doc "Get logs"
+   :task (juxt.site.bb.tasks/logs)}
+
   events
   {:doc "Introspect events"
    :task (juxt.site.bb.tasks/events)}

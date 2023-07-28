@@ -497,6 +497,9 @@
 (defn events []
   (api-request-json "/_site/events"))
 
+(defn logs []
+  (api-request-json "/_site/logs"))
+
 (memoize
  (defn bundles [cfg]
    (let [bundles-file (io/file (get cfg "installers-home") "bundles.edn")]
@@ -719,6 +722,7 @@
            ["juxt/site/api-operations" {}]
            ["juxt/site/resources-api" {}]
            ["juxt/site/events-api" {}]
+           ["juxt/site/logs-api" {}]
            ["juxt/site/whoami-api" {}]
            ["juxt/site/users-api" {}]
            ["juxt/site/endpoints-api" {}]

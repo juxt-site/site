@@ -1,0 +1,24 @@
+{:deps
+ ["https://auth.example.org/operations/get-logs"
+  "https://auth.example.org/protection-spaces/bearer"]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/put-api-endpoint"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :openapi.v3/path "/logs"
+
+   :juxt.site/methods
+   {:get
+    {:juxt.site/operation "https://auth.example.org/operations/get-logs"
+     :openapi.v3/metadata
+     {"tags" ["Logs"]
+      "summary" "Get logs"}}}
+
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+
+   :juxt.site/access-control-allow-origins
+   [[".*" {:juxt.site/access-control-allow-origin "*"
+           :juxt.site/access-control-allow-methods [:get]
+           :juxt.site/access-control-allow-headers ["authorization"]}]]}}}

@@ -84,7 +84,7 @@
         {:installer-spec installer-spec
          :template-uri template-uri
          :uri uri
-         :graph graph
+         ;;:graph graph
          :parameters parameters})))))
 
 ;; TODO: Rewrite, and replace dependency-spec with string

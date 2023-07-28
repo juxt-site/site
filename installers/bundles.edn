@@ -68,15 +68,30 @@
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "Admin" "operation" "install-resources"}}]}
 
- "juxt/site/events-api"
+ "juxt/site/logs-api"
+ {:juxt.site/title "Logs API"
+  :juxt.site/description "Logs API"
+  :juxt.site/installers
+  [
+   ;; Endpoints
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/logs"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/logs.json"}
+
+   ;; Permissions (mapping roles to operations)
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Bootstrap" "operation" "get-logs"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin" "operation" "get-logs"}}]}
+
+  "juxt/site/events-api"
  {:juxt.site/title "Events API"
   :juxt.site/description "Events API"
   :juxt.site/installers
-  [ ;; Operations
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-users"}
-
-   ;; Endpoints
+  [;; Endpoints
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/events"}
    {:juxt.site/base-uri "https://data.example.org"

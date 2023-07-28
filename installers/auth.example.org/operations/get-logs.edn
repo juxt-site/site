@@ -1,0 +1,38 @@
+{:deps
+ ["https://auth.example.org/scopes/system/read"]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
+
+   :juxt.site/state
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (map jsonista.core/write-value-as-string
+         [{:message "Hello"}
+          {:message "Hello again"}
+          {:message "Hello again"}])}
+
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/system/read"}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/user-identity id]
+     [id :juxt.site/user user]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/user user]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/application app]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/application app]]]}}}

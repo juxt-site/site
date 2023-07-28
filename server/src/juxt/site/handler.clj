@@ -256,6 +256,12 @@
                     'juxt.site.util
                     {'base64-urlencode util/base64-urlencode}
 
+                    'jsonista.core
+                    {'write-value-as-string (fn [x] (json/write-value-as-string x (json/object-mapper {:pretty true})))
+                     'write-value-as-bytes (fn [x] (json/write-value-as-bytes x (json/object-mapper {:pretty true})))
+                     'read-value json/read-value
+                     'read-value-with-keywords (fn [x] (json/read-value x (json/object-mapper {:decode-key-fn true})))}
+
                     'juxt.site
                     {'pull-allowed-resources
                      (fn [m]
@@ -291,7 +297,7 @@
                            'logf (fn [& args] (eval `(log/debugf ~@args)))
                            'log (fn [& args] (eval `(log/debug ~@args)))
                            'pprint-str (fn [x] (with-out-str (pprint x)))}
-                        state (assoc '*state* state))
+                          state (assoc '*state* state))
 
                 'jsonista.core
                 {'write-value-as-string
