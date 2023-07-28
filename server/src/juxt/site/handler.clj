@@ -20,6 +20,7 @@
    [juxt.site.content-negotiation :as conneg]
    [juxt.site.http-authentication :as http-authn]
    [juxt.site.locator :as locator]
+   [juxt.site.logging :as logging]
    [juxt.site.response :as response]
    [juxt.site.session-scope :as session-scope]
    [juxt.site.util :as util]
@@ -275,7 +276,10 @@
                      (fn [m]
                        (operations/allowed-operations
                         (:juxt.site/db req)
-                        (merge {:juxt.site/subject subject} m)))}})
+                        (merge {:juxt.site/subject subject} m)))}
+
+                    'juxt.site.logging
+                    {'log-events (fn [] (logging/log-events))}})
 
                   :classes
                   {'java.util.Date java.util.Date

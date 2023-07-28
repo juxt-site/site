@@ -10,10 +10,8 @@
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.pprint
-    (map jsonista.core/write-value-as-string
-         [{:message "Hello"}
-          {:message "Hello again"}
-          {:message "Hello again"}])}
+    ;; Apply server-side filters
+    (juxt.site.logging/log-events)}
 
    :juxt.site/scope
    #{"https://auth.example.org/scopes/system/read"}
