@@ -3,7 +3,7 @@
 <!-- <configuration scan="true" scanPeriod="1 seconds"> -->
 <configuration scan="true" scanPeriod="1 seconds">
 
-   <!-- Console (STDOUT) output. -->
+  <!-- Console (STDOUT) output. -->
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
 
     <!-- Only print log messages at level WARN or higher. -->
@@ -59,7 +59,7 @@
     <OnMatch>ACCEPT</OnMatch>
   </turboFilter>
 
-    <!-- The output file configuration for log/app.log -->
+  <!-- The output file configuration for log/app.log -->
   <appender name="APP_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 
     <!-- Default encoder is ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
@@ -88,6 +88,54 @@
     </rollingPolicy>
   </appender>
 
+  <appender name="JSON_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+    <!-- Default encoder is ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+	<timestamp>%d{ISO8601}</timestamp>
+	<message/>
+	<loggerName/>
+	<context/>
+	<mdc/>
+	<layout>
+          <pattern>
+            {
+            "appVersion": "${build.version}",
+            "appName": "${build.artifact}",
+            "resourceType": "${logback.application.resource.type}",
+            "resourceID": "${logback.application.resource.id}",
+            "level": "%level",
+            "hostname": "${logback.server.host}",
+            "indexType": "${logback.logstash.index.type}"
+            }
+          </pattern>
+	</layout>
+	<stackTrace/>
+      </providers>
+    </encoder>
+
+    <!-- Default location of log file is log/app.log -->
+    <file>log/app.log.jsonl</file>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <!-- Roll over log files daily -->
+      <fileNamePattern>log/app.%d{yyyy-MM-dd}.%i.log.jsonl</fileNamePattern>
+
+      <!-- And start a new file every 64 MB -->
+      <maxFileSize>64 MB</maxFileSize>
+
+      <!-- Keep at most 15 days of history -->
+      <maxHistory>15</maxHistory>
+
+      <!-- Up to a maximum of 512 MB -->
+      <totalSizeCap>512MB</totalSizeCap>
+
+      <!-- Ensure short-lived processes still clean up old logs -->
+      <cleanHistoryOnStart>true</cleanHistoryOnStart>
+    </rollingPolicy>
+  </appender>
+
   <!-- Root log level is "ALL", meaning all log levels are emitted. -->
   <root level="INFO">
 
@@ -96,16 +144,20 @@
 
     <!-- Send all log messages to log/all.log -->
     <appender-ref ref="ALL_LOG_FILE" />
+
   </root>
 
   <logger name="juxt" level="INFO">
     <appender-ref ref="APP_LOG_FILE" />
+    <appender-ref ref="JSON_LOG_FILE" />
   </logger>
   <logger name="xt" level="INFO">
     <appender-ref ref="APP_LOG_FILE" />
+    <appender-ref ref="JSON_LOG_FILE" />
   </logger>
   <logger name="xt.query" level="INFO">
     <appender-ref ref="APP_LOG_FILE" />
+    <appender-ref ref="JSON_LOG_FILE" />
   </logger>
 
   <!-- If you have a REPL or interactive shell with a logger named

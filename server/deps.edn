@@ -20,11 +20,12 @@
 
   ;; Logging
   org.clojure/tools.logging {:mvn/version "1.2.4"}
-  org.slf4j/jcl-over-slf4j {:mvn/version "2.0.1"}
-  org.slf4j/jul-to-slf4j {:mvn/version "2.0.1"}
-  org.slf4j/log4j-over-slf4j {:mvn/version "2.0.1"}
-  ch.qos.logback/logback-classic {:mvn/version "1.3.0"
+  org.slf4j/jcl-over-slf4j {:mvn/version "2.0.7"}
+  org.slf4j/jul-to-slf4j {:mvn/version "2.0.7"}
+  org.slf4j/log4j-over-slf4j {:mvn/version "2.0.7"}
+  ch.qos.logback/logback-classic {:mvn/version "1.4.8"
                                   :exclusions [org.slf4j/slf4j-api]}
+  net.logstash.logback/logstash-logback-encoder {:mvn/version "7.4"}
 
   ;; Content negotiation
   juxt/pick
