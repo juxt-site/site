@@ -1,0 +1,31 @@
+{:deps
+ ["https://data.example.org/_site/logs"
+  "https://auth.example.org/operations/get-logs"
+  "https://auth.example.org/operations/put-resource"]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/put-resource"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/methods
+   {:get {:juxt.site/operation "https://auth.example.org/operations/get-logs"}}
+   :juxt.site/variant-of "https://data.example.org/_site/logs"
+   ;; See RFC 7464: https://datatracker.ietf.org/doc/html/rfc7464
+   :juxt.http/content-type "application/jsonline-seq"
+   :juxt.pick/quality-of-source 0.8 ; downgrade in content-negotiation
+
+   :juxt.site/respond
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content (apply str
+                   (for [rec *state*]
+                     (str \u001E (jsonista.core/write-value-as-string rec) \u000a)))]
+      (-> *ctx*
+          (assoc :ring.response/body content)
+          (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
+
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+   :juxt.site/access-control-allow-origins
+   [[".*" {:juxt.site/access-control-allow-origin "*"
+           :juxt.site/access-control-allow-methods [:get]
+           :juxt.site/access-control-allow-headers ["authorization"]}]]}}}

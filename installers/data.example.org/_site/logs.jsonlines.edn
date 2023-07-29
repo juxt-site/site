@@ -1,3 +1,4 @@
+;; See https://jsonlines.org/
 {:deps
  ["https://data.example.org/_site/logs"
   "https://auth.example.org/operations/get-logs"
@@ -10,12 +11,15 @@
    :juxt.site/methods
    {:get {:juxt.site/operation "https://auth.example.org/operations/get-logs"}}
    :juxt.site/variant-of "https://data.example.org/_site/logs"
-   :juxt.http/content-type "application/json"
+   ;; See https://docs.aws.amazon.com/sagemaker/latest/dg/cdf-inference.html#cm-batch
+   :juxt.http/content-type "application/jsonlines"
 
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [content (str (apply str (map jsonista.core/write-value-as-string *state*)) "\r\n")]
+    (let [content (apply str
+                         (for [rec *state*]
+                           (str (jsonista.core/write-value-as-string rec) \u000a)))]
       (-> *ctx*
           (assoc :ring.response/body content)
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
