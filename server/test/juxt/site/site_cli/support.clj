@@ -1,14 +1,13 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site.site-cli-test
+(ns juxt.site.site-cli.support
   (:require
    [ring.util.codec :as codec]
-   [clojure.test :refer [deftest is use-fixtures]]
-   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
-   [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
    [juxt.site.test-helpers.oauth :refer [with-bearer-token with-basic-authorization] :as oauth]
-   [juxt.site.test-helpers.handler :refer [handler-fixture *handler*]]
+   [juxt.site.test-helpers.handler :refer [*handler*]]
+   [juxt.site.test-helpers.xt :refer [*xt-node*]]
    [xtdb.api :as xt]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [clojure.edn :as edn]
    [jsonista.core :as json]))
 
@@ -38,8 +37,6 @@
    (get CONFIG "uri-map")))
 
 (defn init-fixture [f] (init) (f))
-
-(use-fixtures :each system-xt-fixture handler-fixture init-fixture)
 
 (defn client-secret [db]
   (let [site-cli-client (xt/entity db (format "https://auth.example.test/applications/site-cli"))]
@@ -128,12 +125,16 @@
     (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/events")
     {:ring.request/headers {"accept" "application/edn"}})))
 
-(deftest create-users-test
+;; Admin user fixture
+
+;; TODO: Create a user
+#_(def ^:dynamic *access-token*)
+
+#_(defn admin-token []
   (let [db (xt/db *xt-node*)
         client-secret (client-secret db)
         cc-token (request-token
                   {"client-secret" client-secret})
-
         _ (with-bearer-token cc-token
             (register-user
              {"username" "alice"
@@ -143,36 +144,9 @@
              {"username" "alice"
               "role" "Admin"}))
 
-        alice-token (request-token
-                     {"username" "alice"
-                      "password" "foobar"})
+        alice-token
+        (request-token
+         {"username" "alice"
+          "password" "foobar"})])
 
-        _ (with-bearer-token alice-token
-            (register-user
-             {"username" "bob"
-              "password" "foobar"
-              "fullname" "Bob"}))
-
-        users (with-bearer-token alice-token (users))
-
-        _ (is (= [{"juxt.site/username" "alice"
-                   "fullname" "Alice"
-                   "xt/id" "https://data.example.test/_site/users/alice"}
-                  {"juxt.site/username" "bob"
-                   "fullname" "Bob"
-                   "xt/id" "https://data.example.test/_site/users/bob"}]
-                 users))
-
-        last-event (with-bearer-token alice-token
-                     (->> (events)
-                          (sort-by
-                           (juxt :xtdb.api/tx-id :juxt.site/tx-event-index))
-                          last))
-
-        db (xt/db *xt-node*)
-
-        _ (is (= "https://data.example.test/_site/users/alice"
-                 (:juxt.site/user (xt/entity db (:juxt.site/subject-uri last-event)))))]
-
-
-    ))
+  )
