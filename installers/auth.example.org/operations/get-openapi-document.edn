@@ -8,7 +8,10 @@
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [openapi-paths
+    (let [
+          [_ base-uri _] (re-matches (re-pattern "(.*/)openapi\\.(.+)") (:xt/id *resource*))
+
+          openapi-paths
           ;; This is over-reaching. There should be an explicit
           ;; mapping between an OpenAPI and its collection of
           ;; endpoints.
@@ -20,7 +23,10 @@
           ;; A Site instance may host multiple resource servers
           ;; Each resource server might host multiple OpenAPIs
           (xt/q '{:find [(pull path [* {(:juxt.site/_variant-of {:as :variants}) [*]}])]
-                  :where [[path :juxt.site/type "https://meta.juxt.site/types/api-endpoint"]]})
+                  :where [[path :juxt.site/type "https://meta.juxt.site/types/api-endpoint"]
+                          [(clojure.string/starts-with? path base)]
+                          ]
+                  :in [base]} base-uri)
 
           allowed-operations (set (map :xt/id (juxt.site/allowed-operations {})))
 
