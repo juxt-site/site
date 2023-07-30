@@ -551,7 +551,8 @@
                  [:ring.response/status
                   :ring.response/headers
                   :ring.response/body]))
-          (when message (ex-info message ex-data))))))
+          (when message
+            (ex-info message (or ex-data {})))))))
 
     (xt/db xt-node tx)))
 
