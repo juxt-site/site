@@ -21,61 +21,7 @@
 (def RESOURCE_SERVER {"https://auth.example.org" "https://auth.example.test"
                       "https://data.example.org" "https://data.example.test"})
 
-#_(defn implicit-authorization-request
-  "Create a request that can be sent to the authorization_endpoint of an
-  authorization server"
-  [uri {client-id "client_id"
-        scope "scope"
-        state :state}]
-  {:ring.request/method :get
-   :juxt.site/uri uri
-   :ring.request/query
-   (codec/form-encode
-    (cond->
-        {"response_type" "token"
-         "client_id" client-id
-         "state" state}
-        scope (assoc "scope" (codec/url-encode (str/join " " scope)))))})
-
-#_(defn implicit-authorization-response!
-  "Authorize response"
-  [uri args]
-  (let [request (implicit-authorization-request uri (assoc args :state (make-nonce 10)))]
-    (*handler* request)))
-
-#_(malli/=>
- implicit-authorization-response!
- [:=> [:cat
-       [:string]
-       [:map
-        ["client_id" :string]
-        ["scope" {:optional true} [:sequential :string]]]]
-  [:map
-   ["access_token" {:optional true} :string]
-   ["error" {:optional true} :string]]])
-
-#_(defn implicit-authorize!
-  "Authorize a client, and return decoded fragment parameters as a string->string map"
-  [uri args]
-  (let [response (implicit-authorization-response! uri args)
-        _ (case (:ring.response/status response)
-            (302 303) :ok
-            400 (throw (ex-info "Client error" (assoc args :response response)))
-            403 (throw (ex-info "Forbidden to authorize" (assoc args :response response)))
-            (throw (ex-info "Unexpected error" (assoc args :response response))))
-
-        location-header (-> response :ring.response/headers (get "location"))
-
-        [_ _ encoded-access-token]
-        (re-matches #"https://(.*?)/.*?#(.*)" location-header)]
-
-    (when-not encoded-access-token
-      (throw (ex-info "No access-token fragment" {:response response})))
-
-    (codec/form-decode encoded-access-token)))
-
 ;; TODO: Not sure I like the make- prefix any more
-
 (defn make-authorization-request [uri m]
   {:ring.request/method :get
    :juxt.site/uri uri
