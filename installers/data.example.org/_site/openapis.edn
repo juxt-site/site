@@ -1,0 +1,40 @@
+{:deps
+ [#_"https://auth.example.org/operations/get-openapis"
+  "https://auth.example.org/operations/post-openapi"
+  "https://auth.example.org/protection-spaces/bearer"]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/put-api-endpoint"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :openapi.v3/path "/openapis"
+
+   :juxt.site/methods
+   {:get
+    {:juxt.site/operation "https://auth.example.org/operations/get-openapis"
+     :openapi.v3/metadata {"tags" ["OpenAPIs"]
+                           "summary" "Get OpenAPIs"}}
+
+    :post
+    {:juxt.site/operation
+     ;; TODO: Rename to register-users
+     "https://auth.example.org/operations/post-openapi"
+     :openapi.v3/metadata
+     {"tags" ["OpenAPIs"]
+      "summary" "Install an OpenAPI"
+      "requestBody"
+      {"description" "OpenAPI document"
+       "content"
+       {"application/json"
+        {"schema"
+         {"type" "object"
+          "properties" {"id" {"type" "string"}}}}}}}
+     :juxt.site/acceptable {"accept" "application/edn,application/json"}}}
+
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+
+   :juxt.site/access-control-allow-origins
+   [[".*" {:juxt.site/access-control-allow-origin "*"
+           :juxt.site/access-control-allow-methods [:get]
+           :juxt.site/access-control-allow-headers ["authorization"]}]]}}}

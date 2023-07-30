@@ -132,6 +132,18 @@
     :juxt.site/parameters {"role" "SystemQuery"
                            "operation" "get-api-endpoints"}}]}
 
+ "juxt/site/openapis-api"
+ {:juxt.site/title "OpenAPIs API"
+  :juxt.site/description "An API to discover and install OpenAPIs"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/openapis"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin"
+                           "operation" "post-openapi"}}]}
+
  "juxt/site/users-api"
  {:juxt.site/title "Users API"
   :juxt.site/description "Users API"
@@ -378,12 +390,11 @@
   [{:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapi.json"}]}
 
- "petstore"
+ "demo/petstore/operations"
  {:juxt.site/title "Petstore Demo"
   :juxt.site/dependencies ["juxt/site/openapi"]
   :juxt.site/installers
-  [{:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/petstore/openapi.json"}]}
+  []}
 
  "juxt/site/sessions"
  {:juxt.site/title "Sessions"

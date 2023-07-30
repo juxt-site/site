@@ -25,6 +25,9 @@
   {:doc "Check server health"
    :task (juxt.site.bb.tasks/ping)}
 
+  ;; TODO: In the config, there must be a value that allows a
+  ;; reset. By default, don't allow a reset on remote hosts, it's too
+  ;; easy to mistakenly delete all the resources.
   reset {:doc "Delete all resources. Only available via localhost."
          :task (juxt.site.bb.tasks/reset)}
 
@@ -148,6 +151,16 @@
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/api-endpoints)}
 
+  ;; This is temporary, and just a convenience for now.
   auto-configure
   {:doc "Auto configure"
-   :task (juxt.site.bb.tasks/auto-configure)}}}
+   :task (juxt.site.bb.tasks/auto-configure)}
+
+  install-openapi
+  {:doc "Install an API by uploading an OpenAPI document"
+   :opts {:require [:openapi]
+          :args->opts [:openapi]}
+   :task (juxt.site.bb.tasks/install-openapi-task
+          (juxt.site.bb.tasks/parse-opts))}
+
+  }}

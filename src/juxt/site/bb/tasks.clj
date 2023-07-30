@@ -800,6 +800,59 @@
   (doseq [[k _] (bundles (config (parse-opts)))]
     (println k)))
 
+(defn install-openapi [opts]
+  (let [cfg (config opts)
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        access-token (retrieve-token cfg)
+        openapi-file (io/file (:openapi opts))]
+
+    (when-not (.exists openapi-file)
+      (throw
+       (ex-info
+        (format "No such file: %s" (.getAbsolutePath openapi-file))
+        {:openapi-file openapi-file})))
+
+    (let [[_ suffix] (re-matches #".*\.([^\.]+)" (.getName openapi-file))
+          content-type (get {"json" "application/json"
+                             ;; Check this is the right mime-type
+                             "yaml" "application/yaml"} suffix)]
+
+      (when-not content-type
+        (throw (ex-info (format "Unrecognised format: %s" suffix) {:suffix suffix})))
+
+      (let [openapi (json/parse-string (slurp openapi-file))
+
+            _ (when-not (= (get openapi "openapi") "3.0.2")
+                (throw (ex-info "Must be 3.0.2" {}))
+                )
+
+            mapped-openapi
+            (-> openapi
+                (update-in ["servers" 0 "url"] (fn [url] (str data-base-uri url))))
+
+            json-body (json/generate-string mapped-openapi)
+
+            {:keys [status body]}
+            (http/post
+             (str data-base-uri "/_site/openapis")
+             {:headers (cond-> {"content-type" "application/json"}
+                         access-token (assoc "authorization" (format "Bearer %s" access-token)))
+              :body json-body
+              :throw false})]
+
+        (print status body)
+        (.flush *out*)))))
+
+;; site install-openapi demo/openapi.json
+(defn install-openapi-task [opts]
+  (try
+    (install-openapi opts)
+    (catch Exception e
+      (if (:debug opts)
+        (throw e)
+        (binding [*err* *out*]
+          (println (.getMessage e)))))))
+
 ;; Temporary convenience for ongoing development
 
 (defn auto-configure []
@@ -827,6 +880,8 @@
        ;; TODO: Try not registering this one and see the awful Jetty
        ;; error that results!
        ["juxt/site/system-client" {"client-id" "remote-swagger-ui"}]
+
+       ["juxt/site/openapis-api"]
        ]))
     ;; Now browse to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
     ))
