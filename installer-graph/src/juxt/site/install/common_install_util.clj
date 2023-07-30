@@ -103,7 +103,8 @@
         {:parameters parameters
          :concrete-id concrete-id
          :dependency dependency
-         :graph (keys graph)})))))
+         ;;:graph (keys graph)
+         })))))
 
 ;; installer-seq
 
