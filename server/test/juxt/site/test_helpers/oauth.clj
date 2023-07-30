@@ -14,7 +14,7 @@
    [ring.util.codec :as codec]
    [xtdb.api :as xt]))
 
-;; This are the uri-maps used by the tests
+;; These are the uri-maps used by the tests
 
 (def AUTH_SERVER {"https://auth.example.org" "https://auth.example.test"})
 
