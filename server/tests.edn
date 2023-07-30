@@ -20,6 +20,6 @@
            "juxt.site.whoami-test"
            "juxt.site.schema-test"
            "juxt.site.basic-auth-test"
-           "juxt.site.site-cli-test"]}]
+           "juxt.site.create-users-test"]}]
 
  :reporter kaocha.report/documentation}

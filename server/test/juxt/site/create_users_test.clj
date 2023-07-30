@@ -4,7 +4,8 @@
   (:require
    [clojure.test :refer [deftest is use-fixtures]]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture *xt-node*]]
-   [juxt.site.site-cli.support :refer [init-fixture client-secret register-user assign-user-role users events request-token]]
+   [juxt.site.test-helpers.support :refer [client-secret register-user assign-user-role users events request-token]]
+   [juxt.site.test-helpers.init :refer [init-fixture]]
    [juxt.site.test-helpers.oauth :refer [with-bearer-token] :as oauth]
    [juxt.site.test-helpers.handler :refer [handler-fixture]]
    [xtdb.api :as xt]))
