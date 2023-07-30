@@ -639,18 +639,19 @@
      opts
      (bundle* cfg bundle (into opts params)))))
 
-(defn install-bundle-task [{bundle-name :bundle :as opts}]
+(defn install-bundle-task [{bundle-names :bundle :as opts}]
   (let [cfg (config opts)
-        bundles (bundles cfg)
-        bundle (get bundles bundle-name)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         resources-uri (str data-base-uri "/_site/resources")
-        params (dissoc opts :bundle)]
-    (install-bundle
-     cfg bundle params
-     (assoc opts
-            :resources-uri resources-uri
-            :access-token (retrieve-token cfg)))))
+        bundles (bundles cfg)]
+    (doseq [bundle-name bundle-names
+            :let [bundle (get bundles bundle-name)
+                  params (dissoc opts :bundle)]]
+      (install-bundle
+       cfg bundle params
+       (assoc opts
+              :resources-uri resources-uri
+              :access-token (retrieve-token cfg))))))
 
 (defn- install-bundles [{bundle-names :bundles :as opts}]
   (let [cfg (config opts)
