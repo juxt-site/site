@@ -839,7 +839,7 @@
                                (if (= :xtdb.api/put (first effect))
                                  (map? (second effect))
                                  true))
-                  (throw (ex-info "Invalid effect" {:juxt.site/operation operation :effect effect}))))
+                  (throw (ex-info (format "Invalid effect: %s" effect) {:juxt.site/operation operation :effect effect}))))
 
             xtdb-ops (filter (fn [[effect]] (= (namespace effect) "xtdb.api")) fx)
 
