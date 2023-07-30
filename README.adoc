@@ -1,8 +1,12 @@
 = Site (2.0)
 
-Site is an open-source runtime platform offering:
+Site is an *Application Data Platform*, allowing the deployment of Application Programming Interfaces to serve state to applications.
 
-* Data storage
+== Description
+
+Site offers the following:
+
+* Bitemporal data storage (via https://xtdb.com[XTDB])
 * User authentication (including https://openid.net/[OpenID])
 * Flexible access-control (https://en.wikipedia.org/wiki/Role-based_access_control[RBAC], https://en.wikipedia.org/wiki/Attribute-based_access_control[ABAC] and policy-based)
 * Support for https://www.openapis.org/[OpenAPI] and https://graphql.org/[GraphQL] programmable APIs, with an https://github.com/babashka/SCI[embedded powerful language].
@@ -13,11 +17,14 @@ On top of these features, Site has strong support for data governance.
 Every state of the database is accessible at any point in time.
 Every change to the database is auditable, so you can find out who made which change to the data, and when.
 
-Similar
-https://blog.boot.dev/backend/backend-as-a-service/[Backend-as-a-Service]
-products are great for simple CRUD applications but don't work well
-for more sophisticated use-cases.  Site is intended to handle the more
-complex projects which many BaaS products can't.
+=== OAuth2
+
+Site fully implements the https://www.rfc-editor.org/rfc/rfc6749[OAuth2 Authorization Framework].
+Site assumes the roles of a Resource Server and Authorization Server.
+
+=== Internal Developer Platforms
+
+Site can be adopted as part of an https://internaldeveloperplatform.org/[Internal Developer Platform (IDP)].
 
 == Status
 
