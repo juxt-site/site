@@ -27,8 +27,7 @@
   (-> opts
       (update :alias assoc :p :profile)
       (update :coerce assoc :profile :keyword)
-      (update :coerce assoc :edn :boolean)
-      (update :coerce assoc :txt :boolean)))
+      (update :coerce assoc :edn :boolean :txt :boolean :txt :boolean)))
 
 (defn parse-opts
   "Take the :opts of the current task and add in globals"
@@ -442,7 +441,8 @@
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         endpoint (cond-> (str data-base-uri path)
                    (get opts :edn) (str ".edn")
-                   (get opts :txt) (str ".txt"))
+                   (get opts :txt) (str ".txt")
+                   (get opts :csv) (str ".csv"))
         {:keys [status body]}
         (http/get
          endpoint
