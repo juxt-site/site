@@ -22,22 +22,62 @@
                          (String.)
                          jsonista.core/read-value))]
 
-      {:openapi openapi-doc}
-
-      )}
+      {:openapi openapi-doc})}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
     (let [openapi (:openapi *prepare*)
-          body (str (count openapi) "\r\n")
+          base-uri (get-in openapi ["servers" 0 "url"])
+          body (format "Successfully installed API: %s (version %s)\r\n"
+                       (get-in openapi ["info" "title"])
+                       (get-in openapi ["info" "version"])
+                       ) ;;(pprint-str {:keys (keys openapi)})
           content-length (count body)]
-      [#_[:xtdb.api/put *prepare*]
-       [:ring.response/headers
-        {"content-type" "application/edn"
-         "content-length" (str content-length)}]
-       [:ring.response/body body]
-       ])}
+
+      (concat
+       [
+        ;; openapi.json
+        [:xtdb.api/put
+         {:xt/id (str base-uri "/openapi.json")
+          :juxt.site/type "https://meta.juxt.site/types/openapi-document"
+          :juxt.http/content-type "application/json"
+          :juxt.site/methods {:get {:juxt.site/operation "https://auth.example.org/operations/get-openapi-document"}}
+
+          :openapi.v3/info (get openapi "info")
+
+          :juxt.site/access-control-allow-origins
+          [[".*" {:juxt.site/access-control-allow-origin "*"
+                  :juxt.site/access-control-allow-methods [:get]}]]
+
+          :juxt.site/respond
+          {:juxt.site.sci/program
+           #juxt.pprint
+           (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
+             (-> *ctx*
+                 (assoc :ring.response/body content)
+                 (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}}]]
+
+       (for [[path path-obj] (get openapi "paths")]
+         [:xtdb.api/put
+          {:xt/id (str base-uri path)
+           :openapi.v3/path path
+           :juxt.site/type "https://meta.juxt.site/types/api-endpoint"
+           :juxt.site/methods
+           (into {}
+                 (for [[method operation] path-obj
+                       :let [request-body (get operation "requestBody")]]
+                   [(keyword method)
+                    (cond-> {:juxt.site/operation (get operation "operationId")
+                             :openapi.v3/metadata operation}
+                      request-body
+                      (assoc :juxt.site/acceptable
+                             (clojure.string/join "," (keys (get request-body "content")))))]))}])
+
+       [[:ring.response/headers
+         {"content-type" "text/plain"
+          "content-length" (str content-length)}]
+        [:ring.response/body body]]))}
 
    :juxt.site/rules
    [
