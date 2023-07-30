@@ -37,7 +37,11 @@ The previous 1.0 generation of Site is maintained at https://github.com/juxt/sit
 == Which types of projects might I use Site for?
 
 * You want to get started on a project quickly, and there are
-  requirements for the project to serve data over an API.
+  requirements for the project to serve data securely over an API.
+
+* You are building an Internal Developer Platform (IDP) and want to
+  provide a solution to your developers to help them speed their
+  development of APIs.
 
 * You have a dataset that you want to make available to
   consumers/customers via a secure OAuth2-compliant API, but don't
@@ -47,19 +51,9 @@ In these cases, https://juxt.pro[JUXT] can provide expert guidance, consulting a
 development resources, if required. Contact info@juxt.pro to schedule
 an appointment.
 
-== Getting Started
+== Documentation
 
-See link:doc/next/GettingStarted.adoc[]
-
-== When would you use Site?
-
-Site might be a good choice if one or more of the following apply:
-
-* you are developing a browser-based web application but don't have time to develop the backend.
-* you are developing an application and want to centralise common data such that it can be shared securely with other applications.
-* you have strong requirements for security and access-control over your data.
-* you want to access your data over web APIs, such as OpenAPI and/or GraphQL.
-* you want to interatively prototype a web API.
+See https://github.com/juxt-site/book
 
 == Testing
 
@@ -122,11 +116,13 @@ Contact info@juxt.pro if you would like help, we can provide professional consul
 == References
 
 - https://juxt.slides.com/malcolmsparks/atomic-architecture
-- https://www.juxt.pro/blog/atomic-architecture/
-- https://www.juxt.pro/blog/site-safari/
+- https://juxt.pro/blog/atomic-architecture/
+- https://juxt.pro/blog/site-safari/
 - https://podcasts.apple.com/us/podcast/clojurestream-podcast/id1461500416
 - https://www.oauth.com/
-- https://acropolium.com/blog/first-look-at-backend-as-a-service/
+- https://softwarestackinvesting.com/examining-application-data-platforms-part-1/
+- https://softwarestackinvesting.com/evolving-architectures-for-transactional-data-storage/
+
 
 == License
 
