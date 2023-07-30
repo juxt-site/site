@@ -356,6 +356,9 @@
 
 (defn common-sci-namespaces [operation-doc]
   {
+   'user
+   {'pprint-str (fn [x] (with-out-str (pprint x)))}
+
    'com.auth0.jwt.JWT
    {'decode (fn decode [x] (com.auth0.jwt.JWT/decode x))}
 
