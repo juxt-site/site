@@ -9,7 +9,8 @@
    [juxt.site.test-helpers.init :refer [CONFIG]]
    [xtdb.api :as xt]
    [clojure.edn :as edn]
-   [jsonista.core :as json]))
+   [jsonista.core :as json]
+   [clojure.java.io :as io]))
 
 (defn client-secret [db]
   (let [site-cli-client (xt/entity db (format "https://auth.example.test/applications/site-cli"))]
@@ -98,12 +99,7 @@
     (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/events")
     {:ring.request/headers {"accept" "application/edn"}})))
 
-;; Admin user fixture
-
-;; TODO: Create a user
-#_(def ^:dynamic *access-token*)
-
-#_(defn admin-token []
+(defn create-admin-user []
   (let [db (xt/db *xt-node*)
         client-secret (client-secret db)
         cc-token (request-token
@@ -115,11 +111,25 @@
               "fullname" "Alice"})
             (assign-user-role
              {"username" "alice"
-              "role" "Admin"}))
+              "role" "Admin"}))]))
 
-        alice-token
-        (request-token
-         {"username" "alice"
-          "password" "foobar"})])
+(defn admin-user-fixture [f] (create-admin-user) (f))
 
-  )
+(def ^:dynamic *admin-token* nil)
+
+(defn admin-token-fixture [f]
+  (create-admin-user)
+  (binding [*admin-token*
+            (request-token
+             {"username" "alice"
+              "password" "foobar"})]
+    (f)))
+
+(defn install-openapi! [openapi]
+  (let [body (.getBytes (json/write-value-as-string openapi))]
+    (http-post
+     (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/openapis")
+     {:ring.request/headers
+      {"content-length" (str (count body))
+       "content-type" "application/json"}
+      :ring.request/body (io/input-stream body)})))

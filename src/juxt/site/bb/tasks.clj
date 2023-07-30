@@ -881,7 +881,7 @@
        ;; error that results!
        ["juxt/site/system-client" {"client-id" "remote-swagger-ui"}]
 
-       ["juxt/site/openapis-api"]
+       ["juxt/site/openapis-api" {}]
        ]))
     ;; Now browse to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
     ))
