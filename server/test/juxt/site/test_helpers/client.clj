@@ -1,6 +1,6 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site.test-helpers.support
+(ns juxt.site.test-helpers.client
   (:require
    [ring.util.codec :as codec]
    [juxt.site.test-helpers.oauth :refer [with-bearer-token with-basic-authorization] :as oauth]
