@@ -883,5 +883,7 @@
 
        ["juxt/site/openapis-api" {}]
        ]))
-    ;; Now browse to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json
+
+    (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/openapi.json")))
+    ;; Now browse to https://petstore.swagger.io/?url=http://localhost:4444/petstore/openapi.json
     ))
