@@ -50,8 +50,7 @@
               :juxt.site/respond
               {:juxt.site.sci/program
                #juxt.pprint
-               (let [content (str (jsonista.core/write-value-as-string *state*) "
-")]
+               (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
                  (-> *ctx*
                      (assoc :ring.response/body content)
                      (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}})]])))}
