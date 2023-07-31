@@ -91,11 +91,11 @@
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "Admin" "operation" "get-logs"}}]}
 
-  "juxt/site/events-api"
+ "juxt/site/events-api"
  {:juxt.site/title "Events API"
   :juxt.site/description "Events API"
   :juxt.site/installers
-  [;; Endpoints
+  [ ;; Endpoints
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/events"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -139,6 +139,14 @@
   [{:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapis"}
 
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/get-openapi-document"}
+
+   ;; Used by System API
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/system/put-openapi-document"}
+
+   ;; Used by Petstore demo
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "Admin"
@@ -370,18 +378,6 @@
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-protection-space"}]}
-
- "juxt/site/openapi"
- {:juxt.site/title "OpenAPI Operations"
-  :juxt.site/description "Support for OpenAPI"
-  :juxt.site/installers
-  [ ;; Required permissions (permissions are generally not specified as
-   ;; dependencies but must be created out-of-band)
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/get-openapi-document"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/system/put-openapi-document"}
-   ]}
 
  "juxt/site/system-api-openapi"
  {:juxt.site/title "System API OpenAPI"

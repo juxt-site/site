@@ -729,6 +729,7 @@
            ["juxt/site/whoami-api" {}]
            ["juxt/site/users-api" {}]
            ["juxt/site/endpoints-api" {}]
+           ["juxt/site/openapis-api" {}]
            ;; RFC 7662 token introspection
            ["juxt/site/oauth-introspection-endpoint" {}]
            ;; Register the clients
@@ -856,9 +857,25 @@
 
 ;; Temporary convenience for ongoing development
 
-(defn auto-configure []
-  (let [opts (parse-opts)
-        cfg (config opts)
+(defn auto-register-admin-user [opts]
+  (let [password "foobar"]
+    (register-user
+     (merge {:fullname "Malcolm Sparks"
+             :username "mal"
+             :password password} opts))
+    (assign-user-role
+     (merge {:username "mal"
+             :role "Admin"} opts))
+    (if-let [token (request-token
+                    (merge {:username "mal"
+                            :password password
+                            :client-id "site-cli"} opts))]
+      (save-access-token token)
+      (throw (ex-info "Failed to get token" {})))))
+
+;; Call this with a user in the Admin role
+(defn auto-configure [opts]
+  (let [cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
     (install-bundles
      (assoc
@@ -868,7 +885,8 @@
       :access-token
       (retrieve-token cfg)
       :bundles
-      [["juxt/site/openapi" {}]
+      [
+       ;; This is public and you may not want to expose this
        ["juxt/site/system-api-openapi" {}]
        ["juxt/site/oauth-authorization-endpoint"
         { ;;"session-scope" "https://auth.example.org/session-scopes/form-login-session"
@@ -882,7 +900,7 @@
        ;; error that results!
        ["juxt/site/system-client" {"client-id" "remote-swagger-ui"}]
 
-       ["juxt/site/openapis-api" {}]
+
        ]))
 
     (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/openapi.json")))

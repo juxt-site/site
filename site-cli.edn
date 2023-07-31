@@ -153,9 +153,15 @@
    :task (juxt.site.bb.tasks/api-endpoints)}
 
   ;; This is temporary, and just a convenience for now.
+  auto-register-admin-user
+  {:doc "Auto register admin user"
+   :task (juxt.site.bb.tasks/auto-register-admin-user
+          (juxt.site.bb.tasks/parse-opts))}
+
   auto-configure
   {:doc "Auto configure"
-   :task (juxt.site.bb.tasks/auto-configure)}
+   :task (juxt.site.bb.tasks/auto-configure
+          (juxt.site.bb.tasks/parse-opts))}
 
   install-openapi
   {:doc "Install an API by uploading an OpenAPI document"
