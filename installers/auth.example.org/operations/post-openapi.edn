@@ -45,6 +45,10 @@
           :juxt.site/methods {:get {:juxt.site/operation "https://auth.example.org/operations/get-openapi-document"}}
 
           :openapi.v3/info (get openapi "info")
+          :openapi.v3/external-docs (get openapi "externalDocs")
+          :openapi.v3/servers (get openapi "servers")
+          :openapi.v3/tags (get openapi "tags")
+          :openapi.v3/components (get openapi "components")
 
           :juxt.site/access-control-allow-origins
           [[".*" {:juxt.site/access-control-allow-origin "*"

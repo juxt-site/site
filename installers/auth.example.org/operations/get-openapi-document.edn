@@ -87,7 +87,8 @@
 
       {"openapi" "3.0.2"
        "info" (:openapi.v3/info *resource*)
-       "servers" (:openapi.v3/servers *resource*)
+       "externalDocs" (:openapi.v3/external-docs *resource*)
+       "servers" (or (:openapi.v3/servers *resource*) [])
        "paths" paths
        "components"
        (let [{:openapi.v3/keys [oauth-flows
