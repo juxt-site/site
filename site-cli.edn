@@ -152,7 +152,15 @@
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/api-endpoints)}
 
-  ;; This is temporary, and just a convenience for now.
+  install-openapi
+  {:doc "Install an API by uploading an OpenAPI document"
+   :opts {:require [:openapi]
+          :args->opts [:openapi]}
+   :task (juxt.site.bb.tasks/install-openapi-task
+          (juxt.site.bb.tasks/parse-opts))}
+
+  ;; These functions are temporary, and just a convenience for now.
+
   auto-register-admin-user
   {:doc "Auto register admin user"
    :task (juxt.site.bb.tasks/auto-register-admin-user
@@ -163,11 +171,11 @@
    :task (juxt.site.bb.tasks/auto-configure
           (juxt.site.bb.tasks/parse-opts))}
 
-  install-openapi
-  {:doc "Install an API by uploading an OpenAPI document"
-   :opts {:require [:openapi]
-          :args->opts [:openapi]}
-   :task (juxt.site.bb.tasks/install-openapi-task
+  reload-petstore
+  {:doc "Reload petstore"
+   :task (juxt.site.bb.tasks/reload-petstore
           (juxt.site.bb.tasks/parse-opts))}
+
+
 
   }}

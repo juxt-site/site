@@ -627,6 +627,7 @@
       (print status body))))
 
 (defn- install-bundle [cfg bundle params opts]
+  (assert bundle)
   (when-not (every? string? (keys params))
     (throw (ex-info "Bad parameters" {:params params})))
   (let [title (get bundle :juxt.site/title)
@@ -898,11 +899,22 @@
        ["juxt/site/system-client" {"client-id" "swagger-ui"}]
        ;; TODO: Try not registering this one and see the awful Jetty
        ;; error that results!
-       ["juxt/site/system-client" {"client-id" "remote-swagger-ui"}]
-
-
-       ]))
+       ["juxt/site/system-client" {"client-id" "remote-swagger-ui"}]]))
 
     (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/openapi.json")))
-    ;; Now browse to https://petstore.swagger.io/?url=http://localhost:4444/petstore/openapi.json
+    (println "Now browse to https://petstore.swagger.io/?url=http://localhost:4444/petstore/openapi.json")
     ))
+
+(defn reload-petstore [opts]
+  (let [cfg (config opts)
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
+
+    (install-bundles
+     (assoc opts
+            :resources-uri (str data-base-uri "/_site/resources")
+            :access-token (retrieve-token cfg)
+            :bundles
+            [["juxt/site/openapis-api" {}]]))
+
+    (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/openapi.json")))
+    (println "Now browse to https://petstore.swagger.io/?url=http://localhost:4444/petstore/openapi.json#/pet/addPet")))
