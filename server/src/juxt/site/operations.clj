@@ -957,15 +957,24 @@
 ;;
 ;; For a fuller discussion on determinism and its benefits, see
 ;; https://www.cs.umd.edu/~abadi/papers/abadi-cacm2018.pdf
+;;
+;; Update (2023-08-01): We don't yet know whether we're updating the
+;; database, or just reporting on the current (possibly stale) db of
+;; the request. Therefore we can do this check now, to let the request
+;; through, in case we won't be transacting.
 (defn wrap-authorize-with-operation [h]
-  (fn [{:juxt.site/keys [db resource uri subject scope]
+  (fn [{:juxt.site/keys [db resource uri subject scope subject-is-ephemeral?]
         :ring.request/keys [method]
         :as req}]
 
     (assert (or (nil? subject) (map? subject)))
     (assert (or (nil? resource) (map? resource)))
 
-    (let [method (if (= method :head) :get method)
+    (let [db (cond-> db
+               subject-is-ephemeral?
+               (xt/with-tx [[:xtdb.api/put subject]]))
+
+          method (if (= method :head) :get method)
           operation-uri (get-in resource [:juxt.site/methods method :juxt.site/operation])
 
           operation (when operation-uri

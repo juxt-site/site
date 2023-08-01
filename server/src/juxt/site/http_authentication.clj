@@ -42,22 +42,14 @@
 ;; One downside of Basic Authentication is the lack of a 'session'
 
 (defn assoc-basic-auth-subject [req seed protection-space]
-  (let [xt-node (:juxt.site/xt-node req)
-        subject (into seed
+  (let [subject (into seed
                       {:xt/id (format "https://example.org/_site/subjects/%s" (random-uuid))
                        :juxt.site/type "https://meta.juxt.site/types/subject"
-                       :juxt.site/protection-space (:xt/id protection-space)})
-        ;; TODO: Replace this with a Flip tx-fn to ensure database consistency
-        tx (xt/submit-tx xt-node [[:xtdb.api/put subject]])]
-    (xt/await-tx xt-node tx)
-    ;; TODO: Find an existing subject we can re-use or we create a subject for
-    ;; every basic auth request. All attributes must match the above.
-    (cond-> req
-      subject (assoc :juxt.site/subject subject
-                     :juxt.site/subject-uri (:xt/id subject))
-      ;; We need to update the db because we have injected a subject and it will
-      ;; need to be in the database for authorization rules to work.
-      subject (assoc :juxt.site/db (xt/db xt-node)))))
+                       :juxt.site/protection-space (:xt/id protection-space)})]
+    (assoc req
+           :juxt.site/subject subject
+           ;; This means that the subject's life-cycle is that of the request
+           :juxt.site/subject-is-ephemeral? true)))
 
 (defn authenticate-with-basic-auth [req db token68 protection-spaces]
   (when-let [{:juxt.site/keys [canonical-root-uri authorization-server]
