@@ -64,22 +64,30 @@
                         (when (seq scope)
                           {"security" [{"oauth" (vec (seq scope))}]})
                         {"responses"
-                         (case method
-                           :get
-                           {"200"
-                            {"content"
-                             (reduce
-                              (fn [acc variant]
-                                (assoc acc (:juxt.http/content-type variant) {}))
-                              {}
-                              (or
-                               (:juxt.site/variants method-details) ; explicit
-                               (sort-by :juxt.http/content-type (:variants path)) ; implicit
-                               ))
-                             "description" "Successful operation"}
-                            "401"
-                            {"description" "Unauthorized"}}
-                           {})}
+                         (let [variants
+                               (or
+                                ;; explicit
+                                (:juxt.site/variants method-details)
+                                ;; implicit
+                                (sort-by
+                                 ;; Privilege application/json in sort
+                                 (juxt (fn [variant]
+                                         (not= "application/json" (:juxt.http/content-type variant)))
+                                       :juxt.http/content-type)
+                                 (:variants path)))]
+                           (case method
+                             :get
+                             {"200"
+                              {"content"
+                               (reduce
+                                (fn [acc variant]
+                                  (assoc acc (:juxt.http/content-type variant) {}))
+                                {}
+                                variants)
+                               "description" "Successful operation"}
+                              "401"
+                              {"description" "Unauthorized"}}
+                             {}))}
                         (:openapi.v3/metadata method-details))))))
                 {} (:juxt.site/methods path)))))
            {}
