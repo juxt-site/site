@@ -474,8 +474,8 @@
         (case status
           200 (let [edn (clojure.edn/read-string body)
                     whoami (or
-                            (get-in edn [:juxt.site/subject :juxt.site/user])
-                            (get-in edn [:juxt.site/subject :juxt.site/application]))]
+                            (get-in edn [:juxt.site/user :juxt.site/username])
+                            (get-in edn [:juxt.site/application :juxt.site/client-id]))]
                 (if whoami
                   (println whoami)
                   (stderr
