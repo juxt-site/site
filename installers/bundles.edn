@@ -136,11 +136,16 @@
  {:juxt.site/title "OpenAPIs API"
   :juxt.site/description "An API to discover and install OpenAPIs"
   :juxt.site/installers
-  [{:juxt.site/base-uri "https://data.example.org"
+  [
+   ;; Endpoints
+   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapis"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/openapis.json"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/openapis.edn"}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/get-openapi-document"}
+   ;; Permissions
 
    ;; Used by System API
    {:juxt.site/base-uri "https://auth.example.org"
@@ -148,9 +153,17 @@
 
    ;; Used by Petstore demo
    {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/get-openapi-document"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "Admin"
-                           "operation" "post-openapi"}}]}
+                           "operation" "post-openapi"}}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin"
+                           "operation" "get-openapis"}}]}
 
  "juxt/site/users-api"
  {:juxt.site/title "Users API"

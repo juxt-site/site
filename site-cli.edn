@@ -116,6 +116,11 @@
    :opts {:args->opts [:pattern]}
    :task (juxt.site.bb.tasks/users)}
 
+  openapis
+  {:doc "Show OpenAPI APIs"
+   :opts {:args->opts [:pattern]}
+   :task (juxt.site.bb.tasks/openapis)}
+
   logs
   {:doc "Get logs"
    :task (juxt.site.bb.tasks/logs)}

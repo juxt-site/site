@@ -1,5 +1,5 @@
 {:deps
- [#_"https://auth.example.org/operations/get-openapis"
+ ["https://auth.example.org/operations/get-openapis"
   "https://auth.example.org/operations/post-openapi"
   "https://auth.example.org/protection-spaces/bearer"]
  :install

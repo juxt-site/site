@@ -496,6 +496,9 @@
 (defn users []
   (api-request-json "/_site/users"))
 
+(defn openapis []
+  (api-request-json "/_site/openapis"))
+
 (defn events []
   (api-request-json "/_site/events"))
 
