@@ -220,7 +220,7 @@
                    :juxt.site/expiry-date expiry-date}
             claims (into claims)
             user-identity (assoc :juxt.site/user-identity user-identity
-                                 :juxt.site/user user-identity-doc))
+                                 :juxt.site/user (:juxt.site/user user-identity-doc)))
 
           new-session-token-doc
           {:xt/id (str "https://auth.example.org/session-tokens/" new-session-token)
