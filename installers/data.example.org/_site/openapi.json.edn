@@ -5,38 +5,63 @@
   :juxt.site/operation-uri "https://auth.example.org/operations/put-openapi-document"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/description ""
 
-   :openapi.v3/info
-   {"title" "Site System API"
-    "description" "This is the OpenAPI 3.0 description of the Site System API.
+   :openapi.v3/definition
+   {"openapi" "3.0.2"
+    "info"
+    {"title" "Site System API"
+     "description" "This is the OpenAPI 3.0 description of the Site System API.
 
 Some useful links:
 - [Site at Github](https://github.com/juxt/site)"
-    "termsOfService" "http://swagger.io/terms/"
+     "termsOfService" "http://swagger.io/terms/"
 
-    "contact" {"email" "info@juxt.pro"}
+     "contact" {"email" "info@juxt.pro"}
 
-    "license"
-    {"url" "http://www.apache.org/licenses/LICENSE-2.0.html"
-     "name" "Apache 2.0"}
+     "license"
+     {"url" "http://www.apache.org/licenses/LICENSE-2.0.html"
+      "name" "Apache 2.0"}
 
-    "version" "1.0.0"}
+     "version" "1.0.0"}
 
-   :openapi.v3/servers [{"url" "https://data.example.org/_site"}]
+    "servers"
+    [{"url" "https://data.example.org/_site"}]
 
-   :openapi.v3/oauth-flows #{"authorizationCode" "implicit" "password" "clientCredentials"}
-   :openapi.v3/oauth-authorization-url "https://auth.example.org/oauth/authorize"
-   :openapi.v3/oauth-token-url "https://auth.example.org/oauth/token"
-   :openapi.v3/oauth-scopes {"https://auth.example.org/scopes/system/read" "Read system info"
-                             "https://auth.example.org/scopes/system/write" "Administer system"
-                             "https://auth.example.org/scopes/system/self-identification" "Self identification"}
+    "tags"
+    ["Users" "Operations"]
 
-   :openapi.v3/components
-   {"schemas" {}
-    "requestBodies" {}}
+    "components"
+    {"schemas" {}
+     "requestBodies" {}
+     "securitySchemes"
+     {"oauth"
+      {"type" "oauth2"
+       "flows"
+       {"authorizationCode"
+        {"authorizationUrl" "https://auth.example.org/oauth/authorize"
+         "scopes"
+         {"https://auth.example.org/scopes/system/read" "Read system info"
+          "https://auth.example.org/scopes/system/self-identification" "Self identification"
+          "https://auth.example.org/scopes/system/write" "Administer system"}
+         "tokenUrl" "https://auth.example.org/oauth/token"}
 
-   :openapi.v3/tags
-   ["Users" "Operations"]
+        "clientCredentials"
+        {"scopes"
+         {"https://auth.example.org/scopes/system/read" "Read system info"
+          "https://auth.example.org/scopes/system/self-identification" "Self identification"
+          "https://auth.example.org/scopes/system/write" "Administer system"}
+         "tokenUrl" "https://auth.example.org/oauth/token"}
 
-   }}}
+        "implicit"
+        {"authorizationUrl" "https://auth.example.org/oauth/authorize"
+         "scopes"
+         {"https://auth.example.org/scopes/system/read" "Read system info"
+          "https://auth.example.org/scopes/system/self-identification" "Self identification"
+          "https://auth.example.org/scopes/system/write" "Administer system"}}
+
+        "password"
+        {"scopes"
+         {"https://auth.example.org/scopes/system/read" "Read system info"
+          "https://auth.example.org/scopes/system/self-identification" "Self identification"
+          "https://auth.example.org/scopes/system/write" "Administer system"}
+         "tokenUrl" "https://auth.example.org/oauth/token"}}}}}}}}}

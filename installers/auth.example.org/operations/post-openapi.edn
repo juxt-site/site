@@ -43,12 +43,7 @@
           :juxt.site/type "https://meta.juxt.site/types/openapi-document"
           :juxt.http/content-type "application/json"
           :juxt.site/methods {:get {:juxt.site/operation "https://auth.example.org/operations/get-openapi-document"}}
-
-          :openapi.v3/info (get openapi "info")
-          :openapi.v3/external-docs (get openapi "externalDocs")
-          :openapi.v3/servers (get openapi "servers")
-          :openapi.v3/tags (get openapi "tags")
-          :openapi.v3/components (get openapi "components")
+          :openapi.v3/definition openapi
 
           :juxt.site/access-control-allow-origins
           [[".*" {:juxt.site/access-control-allow-origin "*"
@@ -76,7 +71,12 @@
                              :openapi.v3/metadata operation}
                       request-body
                       (assoc :juxt.site/acceptable
-                             (clojure.string/join "," (keys (get request-body "content")))))]))}])
+                             (clojure.string/join "," (keys (get request-body "content")))))]))
+           :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+           :juxt.site/access-control-allow-origins
+           [[".*" {:juxt.site/access-control-allow-origin "*"
+                   :juxt.site/access-control-allow-methods [:get]
+                   :juxt.site/access-control-allow-headers ["content-type" "authorization"]}]]}])
 
        [[:ring.response/headers
          {"content-type" "text/plain"
@@ -86,11 +86,7 @@
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)
-     [permission :juxt.site/subject subject]]
-
-    [(allowed? subject operation resource permission)
-     [subject :juxt.site/user-identity id]
-     [id :juxt.site/user user]
+     [subject :juxt.site/user user]
      [permission :juxt.site/role role]
      [role :juxt.site/type "https://meta.juxt.site/types/role"]
      [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
