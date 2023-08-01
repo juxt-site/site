@@ -6,7 +6,7 @@
    [clojure.tools.logging :as log]
    crypto.password.bcrypt
    [juxt.reap.alpha.decoders :as reap]
-   [juxt.reap.alpha.rfc7235 :as rfc7235]
+   juxt.reap.alpha.rfc7235
    [xtdb.api :as xt]
    [clojure.string :as str]))
 
@@ -134,7 +134,9 @@
 (defn authenticate-with-authorization-header
   [{:juxt.site/keys [db] :as req}
    authorization-header protection-spaces]
-  (let [{::rfc7235/keys [auth-scheme token68]} (reap/authorization authorization-header)]
+  (let [{:keys [juxt.reap.alpha.rfc7235/auth-scheme
+                juxt.reap.alpha.rfc7235/token68]}
+        (reap/authorization authorization-header)]
     (case (.toLowerCase auth-scheme)
       "basic"
       (or
