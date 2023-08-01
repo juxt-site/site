@@ -758,7 +758,7 @@
       (retrieve-token cfg)
       :bundles
       [;; Install a new keypair to sign JWT bearer tokens
-       ["juxt/site/keypair" {:kid (random-string 16)}]]))))
+       ["juxt/site/keypair" {"kid" (random-string 16)}]]))))
 
 ;; Create alice
 ;; site register-user --username alice --fullname "Alice Carroll" --password $(gum input --password)
