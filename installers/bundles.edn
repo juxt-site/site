@@ -390,7 +390,8 @@
  {:juxt.site/title "Petstore Demo"
   :juxt.site/dependencies ["juxt/site/openapi"]
   :juxt.site/installers
-  []}
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/add-pet"}]}
 
  "juxt/site/sessions"
  {:juxt.site/title "Sessions"

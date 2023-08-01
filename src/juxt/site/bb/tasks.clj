@@ -833,6 +833,12 @@
             (-> openapi
                 (update-in ["servers" 0 "url"] (fn [url] (str data-base-uri url))))
 
+            ;; Update with mapped urls
+            mapped-openapi
+            (postwalk (ciu/make-uri-map-replace-walk-fn
+                       (get cfg "uri-map"))
+                      mapped-openapi)
+
             json-body (json/generate-string mapped-openapi)
 
             {:keys [status body]}
@@ -846,7 +852,7 @@
         (print status body)
         (.flush *out*)))))
 
-;; site install-openapi demo/openapi.json
+;; site install-openapi demo/petstore/openapi.json
 (defn install-openapi-task [opts]
   (try
     (install-openapi opts)
@@ -914,7 +920,15 @@
             :resources-uri (str data-base-uri "/_site/resources")
             :access-token (retrieve-token cfg)
             :bundles
-            [["juxt/site/openapis-api" {}]]))
+            [["juxt/site/openapis-api" {}]
+             ["demo/petstore/operations" {}]]))
 
-    (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/openapi.json")))
+    (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/petstore/openapi.json")))
+
+    (let [password "foobar"]
+      (register-user
+       (merge {:fullname "Alice Carroll"
+               :username "alice"
+               :password password} opts)))
+
     (println "Now browse to https://petstore.swagger.io/?url=http://localhost:4444/petstore/openapi.json#/pet/addPet")))
