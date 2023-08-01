@@ -59,8 +59,6 @@
       ;; need to be in the database for authorization rules to work.
       subject (assoc :juxt.site/db (xt/db xt-node)))))
 
-;; TODO: This needs to work with OAuth2 clients too!
-;; TODO: See client_credentials grant
 (defn authenticate-with-basic-auth [req db token68 protection-spaces]
   (when-let [{:juxt.site/keys [canonical-root-uri authorization-server]
               :as protection-space} (first protection-spaces)]
