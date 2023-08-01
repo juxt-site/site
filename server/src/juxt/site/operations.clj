@@ -20,6 +20,7 @@
    [ring.util.codec :as codec]
    [sci.core :as sci]
    [xtdb.api :as xt]
+   [juxt.site.xt-util :as xtu]
    juxt.site.schema))
 
 (defn operation->rules
@@ -136,7 +137,7 @@
               {:ring.response/status 403
                :ring.response/body "<!DOCTYPE html><h1>Forbidden</h1>"})}}))))))
 
-(defn allowed-resources
+#_(defn allowed-resources
   "Given a set of possible operations, and possibly a subject and purpose, which
   resources are allowed?"
   [db operation {subject :juxt.site/subject, purpose :juxt.site/purpose}]
@@ -168,11 +169,11 @@
            :rules rules
            :subject subject
            :operation operation
-           :operation-entity (xt/entity db operation)
+           ;;:operation-entity (xt/entity db operation)
            :purpose purpose}
           cause))))))
 
-(malli/=>
+#_(malli/=>
  allowed-resources
  [:=> [:cat
        :any
@@ -212,21 +213,23 @@
 
           resource operation purpose))))
 
-#_(defn pull-allowed-resource
-  "Given a subject, an operation and a resource, pull the allowed
+(comment
+  ;; Not used enough to warrant upgrading to XTv2
+  (defn pull-allowed-resource
+    "Given a subject, an operation and a resource, pull the allowed
   attributes."
-  [db operation resource ctx]
-  (let [check-result
-        (check-permissions
-         db
-         operation
-         (assoc ctx :juxt.site/resource resource))
+    [db operation resource ctx]
+    (let [check-result
+          (check-permissions
+           db
+           operation
+           (assoc ctx :juxt.site/resource resource))
 
         pull-expr (vec (mapcat
                         (fn [{operation :juxt.site/operation}]
                           (:juxt.site/pull operation))
                         check-result))]
-    (xt/pull db pull-expr (:xt/id resource))))
+    (xt/pull db pull-expr (:xt/id resource)))))
 
 #_(malli/=>
  pull-allowed-resource
@@ -239,61 +242,63 @@
         [:juxt.site/purpose {:optional true}]]]
   :any])
 
-(defn pull-allowed-resources
-  "Given a subject and an operation, which resources are allowed, and
+(comment
+  ;; Not used enough to warrant upgrading to XTv2
+  (defn pull-allowed-resources
+           "Given a subject and an operation, which resources are allowed, and
   get me the documents. If resources-in-scope is given, only consider
   resources in that set."
-  [db operation {subject :juxt.site/subject,
-                 purpose :juxt.site/purpose,
-                 include-rules :juxt.site/include-rules,
-                 resources-in-scope :juxt.site/resources-in-scope}]
-  (assert (string? operation))
-  (let [rules (operation->rules db operation)
-        _ (when-not (seq rules)
-            (throw (ex-info "No rules found for operation" {:operation operation})))
-        results
-        (xt/q
-         db
-         {:find '[resource (pull operation [:xt/id :juxt.site/pull]) purpose permission]
-          :keys '[resource operation purpose permission]
-          :where
-          (cond-> '[
-                    ;; Only consider given operations
-                    [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
+           [db operation {subject :juxt.site/subject,
+                          purpose :juxt.site/purpose,
+                          include-rules :juxt.site/include-rules,
+                          resources-in-scope :juxt.site/resources-in-scope}]
+           (assert (string? operation))
+           (let [rules (operation->rules db operation)
+                 _ (when-not (seq rules)
+                     (throw (ex-info "No rules found for operation" {:operation operation})))
+                 results
+                 (xt/q
+                  db
+                  {:find '[resource (pull operation [:xt/id :juxt.site/pull]) purpose permission]
+                   :keys '[resource operation purpose permission]
+                   :where
+                   (cond-> '[
+                             ;; Only consider given operations
+                             [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
 
-                    ;; Only consider allowed permssions
-                    [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                    [permission :juxt.site/operation operation]
-                    (allowed? subject operation resource permission)
+                             ;; Only consider allowed permssions
+                             [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
+                             [permission :juxt.site/operation operation]
+                             (allowed? subject operation resource permission)
 
-                    ;; Only permissions that match our purpose
-                    [permission :juxt.site/purpose purpose]]
+                             ;; Only permissions that match our purpose
+                             [permission :juxt.site/purpose purpose]]
 
-            include-rules
-            (conj '(include? subject operation resource))
+                     include-rules
+                     (conj '(include? subject operation resource))
 
-            resources-in-scope
-            (conj '[(contains? resources-in-scope resource)]))
+                     resources-in-scope
+                     (conj '[(contains? resources-in-scope resource)]))
 
-          :rules (vec (concat rules include-rules))
+                   :rules (vec (concat rules include-rules))
 
-          :in '[subject operation purpose resources-in-scope]}
+                   :in '[subject operation purpose resources-in-scope]}
 
-         (:xt/id subject) operation purpose (or resources-in-scope #{}))]
+                  (:xt/id subject) operation purpose (or resources-in-scope #{}))]
 
-    ;; TODO: Too complex, extract this and unit test. The purpose here it to
-    ;; apply the pull of each relevant operation to each result, and merge the
-    ;; results into a single map.
-    (doall
-     (for [[resource resource-group] (group-by :resource results)]
-       (apply merge
-              (for [{:keys [operation]}
-                    ;; TODO: Purpose and permission are useful metadata, how do
-                    ;; we retain in the result? with-meta?
-                    resource-group]
-                (xt/pull db (:juxt.site/pull operation '[*]) resource)))))))
+             ;; TODO: Too complex, extract this and unit test. The purpose here it to
+             ;; apply the pull of each relevant operation to each result, and merge the
+             ;; results into a single map.
+             (doall
+              (for [[resource resource-group] (group-by :resource results)]
+                (apply merge
+                       (for [{:keys [operation]}
+                             ;; TODO: Purpose and permission are useful metadata, how do
+                             ;; we retain in the result? with-meta?
+                             resource-group]
+                         (xtu/pull db (:juxt.site/pull operation '[*]) resource))))))))
 
-(malli/=>
+#_(malli/=>
  pull-allowed-resources
  [:=> [:cat
         :any
@@ -303,15 +308,16 @@
          [:juxt.site/purpose {:optional true}]]]
    :any])
 
-(defn join-with-pull-allowed-resources
-  "Join collection on given join-key with another pull of allowed-resources with
+(comment
+  (defn join-with-pull-allowed-resources
+    "Join collection on given join-key with another pull of allowed-resources with
   given operations and options."
-  [db coll join-key operations options]
-  (let [idx (->>
-             (assoc options :juxt.site/resources-in-scope (set (map join-key coll)))
-             (pull-allowed-resources db operations)
-             (group-by :xt/id))]
-    (map #(update % join-key (comp first idx)) coll)))
+    [db coll join-key operations options]
+    (let [idx (->>
+               (assoc options :juxt.site/resources-in-scope (set (map join-key coll)))
+               (pull-allowed-resources db operations)
+               (group-by :xt/id))]
+      (map #(update % join-key (comp first idx)) coll))))
 
 (defn allowed-operations
   "Return all the operations that a subject is allowed to perform, along
@@ -465,7 +471,7 @@
       'entity*
       (fn [eid]
         (if-let [db (:juxt.site/db ctx)]
-          (xt/entity db eid)
+          (xtu/entity db eid)
           (throw (ex-info "Cannot call entity* as no database in context" {}))))}
 
      'juxt.site.util
@@ -571,34 +577,40 @@
 
 (defn apply-ops!
   [xt-node tx-ops]
-  (let [tx (xt/submit-tx xt-node tx-ops)
-        {:xtdb.api/keys [tx-id] :as tx} (xt/await-tx xt-node tx)]
+  (let [{::xt/keys [tx-id] :as tx} (xt/submit-tx xt-node tx-ops)]
+    ;; XTv2: how do we await for this. We need to know whether our
+    ;; operations have succeeded, and if not, communicate back to the
+    ;; client. Alternatively, we could return a 202...
 
     ;; If the transaction has failed to commit, we pull out the
     ;; underlying exception document that XTDB has recorded in
     ;; transaction log and document store. Operations are able to
     ;; throw exceptions with ex-data containing response status,
     ;; headers and body.
-    (when-not (xt/tx-committed? xt-node tx)
-      (let [exception-doc (xt-util/tx-exception-doc xt-node tx-id)
-            {message :juxt.site/message, ex-data :juxt.site/ex-data} (get-in exception-doc [:juxt.site.xt/ex-data :juxt.site/error])]
-        (throw
-         (ex-info
-          (format "Transaction failed to be committed (tx-id=%d)" tx-id)
-          (into {:xtdb.api/tx-id tx-id
-                 ;;:juxt.site/request-context ctx
-                 :juxt.site/exception-doc exception-doc
-                 :ring.response/status 500}
-                ;; Surface the transaction error's response suggestions
-                (select-keys
-                 ex-data
-                 [:ring.response/status
-                  :ring.response/headers
-                  :ring.response/body]))
-          (when message
-            (ex-info message (or ex-data {})))))))
+    (comment
+      ;; XTv2: Would we want to wait for this? No! Detecting failure
+      ;; is the same as 'reading your writes'.
+      (when-not (xt/tx-committed? xt-node tx)
+        (let [exception-doc (xt-util/tx-exception-doc xt-node tx-id)
+              {:juxt.site/keys [message ex-data]} (get-in exception-doc [:juxt.site.xt/ex-data :juxt.site/error])]
+          (throw
+           (ex-info
+            (format "Transaction %d failed to be committed" tx-id)
+            (into {:xtdb.api/tx-id tx-id
+                   ;;:juxt.site/request-context ctx
+                   :juxt.site/exception-doc exception-doc
+                   :ring.response/status 500}
+                  ;; Surface the transaction error's response suggestions
+                  (select-keys
+                   ex-data
+                   [:ring.response/status
+                    :ring.response/headers
+                    :ring.response/body]))
+            (when message
+              (ex-info message (or ex-data {}))))))))
 
-    (xt/db xt-node tx)))
+    ;;
+    (xtu/db xt-node tx)))
 
 (defn- prepare-operation
   [{:keys [entities-by-id current-operation-index] :as acc}
@@ -640,7 +652,6 @@
   transaction operations. The db argument is used to lookup the
   operation which is required when preparing the transaction."
   [subject-uri db installers]
-
   (let [{:keys [tx-ops errors]}
         (->> installers
 
@@ -705,7 +716,7 @@
 
      ;; Allowed to access the database
      'xt
-     {'entity (fn [id] (xt/entity db id))
+     {'entity (fn [id] (xtu/entity db id))
       'q (fn [& args] (apply xt/q db args))}
 
      'juxt.site
@@ -811,7 +822,7 @@
       ;; possible.
       'make-access-token
       (fn [claims keypair-id]
-        (let [keypair (xt/entity db keypair-id)]
+        (let [keypair (xtu/entity db keypair-id)]
           (when-not keypair
             (throw (ex-info (format "Keypair not found: %s" keypair-id) {:keypair-id keypair-id})))
           (try
@@ -924,31 +935,29 @@
               :else
               (throw
                (ex-info
-                "Submitted operations should have a valid juxt.site/transact entry"
-                {:operation operation})))
+                (format "Operation '%s' not found in db" operation-uri)
+                {:operation-uri operation-uri})))]
+      (try
+        (assert (or (nil? subject-uri) (string? subject-uri)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
+        (assert (or (nil? resource) (map? resource)) "Resource to do-operation-in-tx-fn expected to be a string, or null")
 
-            _ (log/debugf "FX are %s" (with-out-str (pprint fx)))
+        _ (log/debugf "FX are %s" (with-out-str (pprint fx)))
 
-            ;; Validate
-            _ (doseq [effect fx]
-                (when-not (and (vector? effect)
-                               (keyword? (first effect))
-                               (if (= :xtdb.api/put (first effect))
-                                 (map? (second effect))
-                                 true))
-                  (throw (ex-info (format "Invalid effect: %s" effect) {:juxt.site/operation operation :effect effect}))))
+        (catch clojure.lang.ExceptionInfo e
+                    ;; The sci.impl/callstack contains a volatile which isn't freezable.
+                    ;; Also, we want to unwrap the original cause exception.
+                    ;; Possibly, in future, we should get the callstack
+                    (throw (or (.getCause e) e))))
 
-            xtdb-ops (filter (fn [[effect]] (= (namespace effect) "xtdb.api")) fx)
+                ;; There might be other strategies in the future (although the
+                ;; fewer the better really)
+                :else
+                (throw
+                 (ex-info
+                  "Submitted operations should have a valid juxt.site/transact entry"
+                  {:operation operation})))
 
-            ;; Decisions we've made which don't update the database but should
-            ;; be record and reflected in the response.
-            other-response-fx
-            (remove
-             (fn [[kw]]
-               (or
-                (= (namespace kw) "xtdb.api")
-                (= kw :juxt.site/apply-to-request-context)))
-             fx)
+              _ (log/debugf "FX are %s" (pr-str fx))
 
             result-fx
             (conj
@@ -976,9 +985,17 @@
                             (when (= tx-op :xtdb.api/delete) id))
                           xtdb-ops))}
 
-                 operation-index (assoc :juxt.site/tx-event-index operation-index)
+              xtdb-ops (filter (fn [[effect]] (= (namespace effect) "xtdb.api")) fx)
 
-                 tx (into tx)
+              ;; Decisions we've made which don't update the database but should
+              ;; be record and reflected in the response.
+              other-response-fx
+              (remove
+               (fn [[kw]]
+                 (or
+                  (= (namespace kw) "xtdb.api")
+                  (= kw :juxt.site/apply-to-request-context)))
+               fx)
 
                  ;; It is useful to denormalise and see the explicit
                  ;; user or application in the event.
@@ -987,7 +1004,7 @@
                  (seq other-response-fx)
                  (assoc :juxt.site/response-fx other-response-fx)))])]
 
-        result-fx)
+                   operation-index (assoc :juxt.site/tx-event-index operation-index)
 
       (catch Exception e
         (let [create-error-structure
@@ -997,7 +1014,8 @@
                            :juxt.site/ex-data (ex-data error)}
                     cause (assoc :juxt.site/cause (create-error-structure cause)))))]
 
-          (log/errorf e "Error when performing operation: %s" operation-uri)
+                   (seq other-response-fx)
+                   (assoc :juxt.site/response-fx other-response-fx)))])]
 
           (throw
            (ex-info
@@ -1032,9 +1050,10 @@
         ;; Modify context with new db
         ctx (assoc ctx :juxt.site/db new-db)
         ;; We pull out an event-doc for each performed operation
-        event-docs (xt-util/tx-event-docs
-                    xt-node
-                    (get-in (xt/db-basis new-db) [:xtdb.api/tx :xtdb.api/tx-id]))
+        event-docs
+        (xt-util/tx-event-docs
+         xt-node
+         (get-in (xtu/db-basis new-db) [:xtdb.api/tx :xtdb.api/tx-id]))
         ;; We take the last of these event docs, but should we check
         ;; that any preceeding events do not contain any
         ;; response-fx? (TODO)
@@ -1081,7 +1100,7 @@
           operation-uri (get-in resource [:juxt.site/methods method :juxt.site/operation])
 
           operation (when operation-uri
-                      (xt/entity db operation-uri))
+                      (xtu/entity db operation-uri))
           _ (when (and operation-uri (nil? operation))
               (when (not= method :options)
                 (throw

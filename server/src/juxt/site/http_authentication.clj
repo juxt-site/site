@@ -8,6 +8,7 @@
    [juxt.reap.alpha.decoders :as reap]
    juxt.reap.alpha.rfc7235
    [xtdb.api :as xt]
+   [juxt.site.xt-util :as xtu]
    [clojure.string :as str]))
 
 (defn lookup-access-token [db token]
@@ -115,7 +116,7 @@
   (str/trim
    (www-authenticate
     (for [ps-id protection-spaces
-          :let [ps (xt/entity db ps-id)
+          :let [ps (xtu/entity db ps-id)
                 realm (:juxt.site/realm ps)]]
       {:juxt.reap.alpha.rfc7235/auth-scheme (:juxt.site/auth-scheme ps)
        :juxt.reap.alpha.rfc7235/auth-params
@@ -161,7 +162,10 @@
 
   ;; TODO: This might be where we also add the 'on-behalf-of' info
 
-  (let [protection-spaces (keep #(xt/entity db %) (:juxt.site/protection-spaces resource []))
+  (let [protection-spaces
+        ;; TODO: Materialize aot such that we don't have to go back to database
+        ;; XT2(link-traversal)
+        (keep #(xtu/entity db %) (:juxt.site/protection-spaces resource []))
         ;;req (cond-> req protection-spaces (assoc :juxt.site/protection-spaces protection-spaces))
         authorization-header (get-in req [:ring.request/headers "authorization"])]
 

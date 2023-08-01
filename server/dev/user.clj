@@ -6,7 +6,7 @@
    [integrant.core :as ig]
    [io.aviso.ansi :as ansi]
    [juxt.site.main :as main]
-   [juxt.site.repl :as repl]
+   ;;[juxt.site.repl :as repl]
    ;; Push this into repl!
    [malli.dev :as md]
    clojure.main

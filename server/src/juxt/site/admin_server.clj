@@ -12,6 +12,7 @@
    [clojure.edn :as edn]
    [jsonista.core :as json]
    [xtdb.api :as xt]
+   [juxt.site.xt-util :as xtu]
    [ring.util.codec :refer [form-decode]])
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
@@ -111,7 +112,7 @@
                                (= :juxt.http/content (first x)) (str (subs (second x) 0 80) "…")
                                :else (format "(%d bytes)" (count (second x))))]
                             x))
-                  (xt/entity db uri))
+                  (xtu/entity db uri))
                  (throw (ex-info "No pattern in query parameters" {:ring.response/status 400})))
                body (str
                      (json/write-value-as-string result (json/object-mapper {:pretty true}))
@@ -156,8 +157,7 @@
           (xt/submit-tx
            xt-node
            (for [id (map first (xt/q db '{:find [e] :where [[e :xt/id]]}))]
-             [:xtdb.api/evict id]))
-          (xt/await-tx xt-node))
+             [:xtdb.api/evict id])))
 
          (let [content "System Reset Complete\r\n"]
            (-> req

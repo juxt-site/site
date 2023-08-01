@@ -30,6 +30,7 @@
    [sci.core :as sci]
    [hiccup2.core :as hiccup]
    hiccup.util
+   [juxt.site.xt-util :as xtu]
    [xtdb.api :as xt])
   (:import (java.net URI)))
 
@@ -259,10 +260,10 @@
 
                     'xt
                     {'entity
-                     (fn [id] (xt/entity (:juxt.site/db req) id))
+                     (fn [id] (xtu/entity (:juxt.site/db req) id))
                      'pull
                      (fn [query eid]
-                       (xt/pull (:juxt.site/db req) query eid))
+                       (xtu/pull (:juxt.site/db req) query eid))
                      'q
                      (fn [query & args]
                        (apply xt/q (:juxt.site/db req) query args))}
@@ -277,8 +278,8 @@
                      'read-value-with-keywords (fn [x] (json/read-value x (json/object-mapper {:decode-key-fn true})))}
 
                     'juxt.site
-                    {'pull-allowed-resources
-                     (fn [m]
+                    {#_'pull-allowed-resources
+                     #_(fn [m]
                        (operations/pull-allowed-resources
                         (:juxt.site/db req)
                         m
@@ -1027,7 +1028,7 @@
 
     (assert (not (and uri path)))
 
-    (let [db (xt/db xt-node)
+    (let [db (xtu/db xt-node)
 
           {:keys [uri base-uri]}
           (cond
@@ -1059,7 +1060,7 @@
 
           ;; Virtual host config lets us know where to put requests
           ;; and events.
-          vhost-config (xt/entity db (str base-uri "/_site/config"))
+          vhost-config (xtu/entity db (str base-uri "/_site/config"))
 
           req-id (new-request-id vhost-config)
 

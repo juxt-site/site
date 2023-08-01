@@ -4,7 +4,8 @@
   (:require
    [clojure.tools.logging :as log]
    [clojure.string :as str]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [juxt.site.xt-util :as xtu]))
 
 ;; TODO: Definitely a candidate for clojure.core.cache (or memoize). Always be
 ;; careful using memoize, but in case performance is scarcer than memory.
@@ -60,7 +61,7 @@
   (assert db)
   (or
    ;; Is it in XTDB?
-   (when-let [e (xt/entity db uri)]
+   (when-let [e (xtu/entity db uri)]
      (when-not (:juxt.site/uri-template e)
        (assoc e :juxt.site/resource-provider ::db)))
 
@@ -71,7 +72,7 @@
 
    ;; This is put into each host at bootstrap but can be overridden if
    ;; a custom 404 page is required.
-   (xt/entity db (str (.resolve (java.net.URI. uri) "/_site/not-found")))
+   (xtu/entity db (str (.resolve (java.net.URI. uri) "/_site/not-found")))
 
    (throw
     (let [uri (str (.resolve (java.net.URI. uri) "/_site/not-found"))]

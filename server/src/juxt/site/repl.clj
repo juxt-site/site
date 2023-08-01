@@ -10,7 +10,8 @@
    [juxt.site.main :as main]
    [juxt.site.cache :as cache]
    [juxt.site.jwt :as jwt]
-   [xtdb.api :as xt]))
+   [xtdb.api :as xt]
+   [juxt.site.xt-util :as xtu]))
 
 (defn system [] main/*system*)
 
@@ -31,7 +32,7 @@
 (defn ^::public db
   "Return the current XTDB database as a value"
   []
-  (xt/db (xt-node)))
+  (xtu/db (xt-node)))
 
 (defn e [id]
   (postwalk
@@ -44,12 +45,12 @@
                 (= :juxt.http/content (first x)) (str (subs (second x) 0 80) "…")
                 :else (format "(%d bytes)" (count (second x))))]
              x))
-   (xt/entity (db) id)))
+   (xtu/entity (db) id)))
 
-(defn hist [id]
-  (xt/entity-history (db) id :asc {:with-docs? true}))
+#_(defn hist [id]
+  (xtu/entity-history (db) id :asc {:with-docs? true}))
 
-(defn valid-time [id] (:xtdb.api/valid-time (xt/entity-tx (db) id)))
+#_(defn valid-time [id] (:xtdb.api/valid-time (xt/entity-tx (db) id)))
 
 (defn grep [re coll]
   (filter #(re-matches (re-pattern re) %) coll))
@@ -61,16 +62,14 @@
    (xt/submit-tx
     (xt-node)
     (for [id ids]
-      [:xtdb.api/delete id]))
-   (xt/await-tx (xt-node))))
+      [:xtdb.api/delete id]))))
 
 (defn evict! [& ids]
   (->>
    (xt/submit-tx
     (xt-node)
     (for [id ids]
-      [:xtdb.api/evict id]))
-   (xt/await-tx (xt-node))))
+      [:xtdb.api/evict id]))))
 
 (defn q [query & args]
   (apply xt/q (db) query args))
@@ -222,7 +221,6 @@
        (println "Importing record" (:xt/id rec))
        (when (:xt/id rec)
          (xt/submit-tx node [[:xtdb.api/put rec]])))
-     (xt/sync node)
      (println "Import finished."))))
 
 (defn validate-resource-line [s]
@@ -336,15 +334,15 @@
                          :in [t]} t)
                     (map first)
                     )
-           :let [session-id (:juxt.site/session (xt/entity db tok))
-                 session (xt/entity db session-id)
+           :let [session-id (:juxt.site/session (xtu/entity db tok))
+                 session (xtu/entity db session-id)
                  subject (:juxt.site/subject session)]]
        (remove nil? [tok session-id subject]))
      (mapcat seq)
      (apply evict!))))
 
 (defn find-resources [resources]
-  (keep :xt/id (xt/pull-many (db) [:xt/id] resources)))
+  (keep :xt/id (xtu/pull-many (db) [:xt/id] resources)))
 
 (defn make-access-token!
   [m]

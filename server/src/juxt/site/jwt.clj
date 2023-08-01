@@ -3,7 +3,8 @@
 (ns juxt.site.jwt
   (:require
    [xtdb.api :as xt]
-   [juxt.site.util :as util])
+   [juxt.site.util :as util]
+   [juxt.site.xt-util :as xtu])
   (:import
    (com.auth0.jwt JWT)
    (com.auth0.jwt.algorithms Algorithm)
@@ -122,21 +123,20 @@
 (defn get-kid [jwt]
   (.asString (.getHeaderClaim (JWT/decode jwt) "kid")))
 
-(defn lookup-keypair [db kid]
+(defn lookup-keypair [xt-node kid]
   (assert kid)
   (first
    (map first
-        (xt/q db '{:find [(pull e [*])]
-                   :where [[e :juxt.site/type "https://meta.juxt.site/types/keypair"]
-                           [e :juxt.site/kid kid]]
-                   :in [kid]}
+        (xt/q xt-node '{:find [(pull e [*])]
+                        :where [[e :juxt.site/type "https://meta.juxt.site/types/keypair"]
+                                [e :juxt.site/kid kid]]
+                        :in [kid]}
               kid))))
 
 (defn make-access-token! [xt-node {:keys [authorization-server user client-id duration]}]
-  (let [db (xt/db xt-node)
-        client (ffirst
+  (let [client (ffirst
                 (xt/q
-                 db
+                 xt-node
                  '{:find [(pull e [*])]
                    :where [[e :juxt.site/type "https://meta.juxt.site/types/application"]
                            [e :juxt.site/authorization-server issuer]
@@ -150,7 +150,7 @@
         kps
         (map first
              (xt/q
-              db
+              xt-node
               '{:find [(pull kp [*])]
                 :where [[kp :juxt.site/type "https://meta.juxt.site/types/keypair"]
                         [kp :juxt.site/issuer issuer]]
@@ -176,7 +176,7 @@
         iat (Date/from iat)
         exp (Date/from exp)
 
-        _ (when-not (xt/entity db user)
+        _ (when-not (xtu/entity xt-node user)
             (throw (ex-info "User not found" {:user user})))
 
         user-identity-ref (str "https://auth.example.org/_site/user-identities/%s" (juxt.site.util/make-nonce 10))

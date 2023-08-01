@@ -5,10 +5,11 @@
    [ring.middleware.cookies :refer [cookies-request]]
    [xtdb.api :as xt]
    [juxt.site.repl :as repl]
+   [juxt.site.xt-util :as xtu]
    [clojure.tools.logging :as log]))
 
 (defn lookup-session-details [db session-token-id!]
-  (let [lookup #(xt/entity db %)
+  (let [lookup #(xtu/entity db %)
         session-details
         (first
          (xt/q db '{:find [(pull session-token [*])
@@ -38,7 +39,7 @@
 
     (let [scope-id (:juxt.site/session-scope resource)
 
-          scope (when scope-id (xt/entity db scope-id))
+          scope (when scope-id (xtu/entity db scope-id))
 
           cookie-name (when scope (:juxt.site/cookie-name scope))
 
@@ -55,8 +56,7 @@
             (lookup-session-details db session-token-id!))
 
           _ (when session-details
-              (log/debugf "Session details for %s is %s" uri (pr-str session-details)))
-          ]
+              (log/debugf "Session details for %s is %s" uri (pr-str session-details)))]
 
       (h (cond-> req
            scope (assoc :juxt.site/session-scope scope)

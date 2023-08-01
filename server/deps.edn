@@ -12,7 +12,6 @@
   ;; XTDB v2
   com.xtdb.labs/xtdb-api {:mvn/version "2.0.0-SNAPSHOT"}
   com.xtdb.labs/xtdb-core {:mvn/version "2.0.0-SNAPSHOT"}
-  com.xtdb.labs/xtdb-http-server {:mvn/version "2.0.0-SNAPSHOT"}
   com.xtdb.labs/xtdb-pgwire-server {:mvn/version "2.0.0-SNAPSHOT"}
 
   ;; Jetty
