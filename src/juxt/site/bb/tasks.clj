@@ -867,9 +867,9 @@
 (defn auto-register-admin-user [opts]
   (let [password "foobar"]
     (register-user
-     (merge {:fullname "Malcolm Sparks"
-             :username "mal"
-             :password password} opts))
+     (merge {:username "mal"
+             :password password
+             :fullname "Malcolm Sparks"} opts))
     (assign-user-role
      (merge {:username "mal"
              :role "Admin"} opts))
@@ -927,8 +927,11 @@
 
     (let [password "foobar"]
       (register-user
-       (merge {:fullname "Alice Carroll"
-               :username "alice"
-               :password password} opts)))
+       (merge {:username "alice"
+               :password password
+               :fullname "Alice Carroll"} opts))
+      (assign-user-role
+       (merge {:username "alice"
+               :role "PetstoreOwner"} opts)))
 
     (println "Now browse to https://petstore.swagger.io/?url=http://localhost:4444/petstore/openapi.json#/pet/addPet")))

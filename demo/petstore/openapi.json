@@ -115,7 +115,7 @@
         ],
         "summary": "Add a new pet to the store",
         "description": "Add a new pet to the store",
-        "operationId": "https://data.example.org/petstore/operations/add-pet",
+        "operationId": "https://auth.example.org/operations/petstore/add-pet",
         "requestBody": {
           "description": "Create a new pet in the store",
           "content": {

@@ -189,6 +189,10 @@
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "Admin"
                            "operation" "put-user"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin"
+                           "operation" "assign-role"}}
 
    ;; Bootstrap role
    ;; It is necessary for bootstrapping to be able to create a user
@@ -390,8 +394,21 @@
  {:juxt.site/title "Petstore Demo"
   :juxt.site/dependencies ["juxt/site/openapi"]
   :juxt.site/installers
-  [{:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/petstore/operations/add-pet"}]}
+  [{:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/operations/petstore/add-pet"}
+
+   ;; TODO: Not sure that roles need to be declared in the resource
+   ;; server rather than the auth server. They are becoming more
+   ;; closely tied with users now.
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/roles/{{role}}"
+    :juxt.site/parameters {"role" "PetstoreOwner"}
+    :juxt.site/description "This role is for owners of petstores"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "PetstoreOwner"
+                           "operation" "petstore/add-pet"}}]}
 
  "juxt/site/sessions"
  {:juxt.site/title "Sessions"
