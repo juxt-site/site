@@ -161,21 +161,17 @@
 
   ;; These functions are temporary, and just a convenience for now.
 
-  auto-register-admin-user
+  register-admin-user
   {:doc "Auto register admin user"
-   :task (juxt.site.bb.tasks/auto-register-admin-user
+   :task (juxt.site.bb.tasks/register-admin-user
           (juxt.site.bb.tasks/parse-opts))}
 
-  auto-configure
+  install-openapi-support
   {:doc "Auto configure"
-   :task (juxt.site.bb.tasks/auto-configure
+   :task (juxt.site.bb.tasks/install-openapi-support
           (juxt.site.bb.tasks/parse-opts))}
 
-  reload-petstore
+  install-petstore
   {:doc "Reload petstore"
-   :task (juxt.site.bb.tasks/reload-petstore
-          (juxt.site.bb.tasks/parse-opts))}
-
-
-
-  }}
+   :task (juxt.site.bb.tasks/install-petstore
+          (juxt.site.bb.tasks/parse-opts))}}}

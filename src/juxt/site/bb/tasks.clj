@@ -864,7 +864,7 @@
 
 ;; Temporary convenience for ongoing development
 
-(defn auto-register-admin-user [opts]
+(defn register-admin-user [opts]
   (let [password "foobar"]
     (register-user
      (merge {:username "mal"
@@ -881,7 +881,7 @@
       (throw (ex-info "Failed to get token" {})))))
 
 ;; Call this with a user in the Admin role
-(defn auto-configure [opts]
+(defn install-openapi-support [opts]
   (let [cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
     (install-bundles
@@ -904,14 +904,11 @@
        ;; Register swagger-ui
        ;; TODO: Try not registering this one and see the awful Jetty
        ;; error that results!
-       ["juxt/site/system-client" {"client-id" "swagger-ui"}]
-       ]))
+       ["juxt/site/system-client" {"client-id" "swagger-ui"}]]))
 
-    (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/petstore/openapi.json")))
-    (println "Now browse to https://petstore.swagger.io/?url=http://localhost:4444/petstore/openapi.json")
-    ))
+    (println "Now browse to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json")))
 
-(defn reload-petstore [opts]
+(defn install-petstore [opts]
   (let [cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
 
