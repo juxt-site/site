@@ -29,7 +29,7 @@
    ["juxt/site/bootstrap"
     "juxt/site/api-operations"
     "juxt/site/users-api"
-    "juxt/site/openapi"
+    "juxt/site/openapis-api"
     "juxt/site/system-api-openapi"
     "juxt/site/login-form"
     "juxt/site/example-users"

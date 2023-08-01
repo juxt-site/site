@@ -20,8 +20,6 @@
 (defn install-openapi! []
   (install-bundles!
    [
-    ;; We need the get-openapi-document operation
-    ["juxt/site/openapi" {}]
     ;; This installs the operation that allows us to install an OpenAPI
     ["juxt/site/openapis-api" {}]]
    (get CONFIG "uri-map")))
