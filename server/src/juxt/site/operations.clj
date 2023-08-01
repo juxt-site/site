@@ -354,7 +354,7 @@
                    :juxt.site/permitted-by (mapv :juxt.site/permission permissions)}))
       []))))
 
-(defn common-sci-namespaces [operation-doc]
+(defn common-sci-namespaces [operation]
   {
    'user
    {'pprint-str (fn [x] (with-out-str (pprint x)))}
@@ -391,11 +391,11 @@
    {'validate (fn validate [schema value] (malli/validate schema value))
     'explain-input (fn explain [input]
                      (->
-                      (malli/explain (get-in operation-doc [:juxt.site.malli/input-schema]) input)
+                      (malli/explain (get-in operation [:juxt.site.malli/input-schema]) input)
                       (malli.error/humanize)))
     'validate-input
     (fn validate-input [input]
-      (let [schema (get-in operation-doc [:juxt.site.malli/input-schema])
+      (let [schema (get-in operation [:juxt.site.malli/input-schema])
             valid? (malli/validate schema input)]
         (when-not valid?
           (throw
