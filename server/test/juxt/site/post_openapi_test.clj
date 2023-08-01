@@ -31,7 +31,7 @@
 (use-fixtures :each system-xt-fixture handler-fixture init-fixture admin-token-fixture install-openapi-fixture)
 
 (deftest install-openapi-test
-  (let [openapi-file (io/file "../demo/openapi.json")
+  (let [openapi-file (io/file "../demo/petstore/openapi.json")
         openapi (json/read-value (slurp openapi-file))
         data-base-uri (get-in CONFIG ["uri-map" "https://data.example.org"])
 

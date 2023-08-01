@@ -47,7 +47,7 @@
     "juxt/site/protection-spaces"
     "juxt/site/api-operations"
     "juxt/site/whoami-api"
-    "juxt/site/openapi"
+    "juxt/site/openapis-api"
     "juxt/site/system-api-openapi"]
    RESOURCE_SERVER)
 
