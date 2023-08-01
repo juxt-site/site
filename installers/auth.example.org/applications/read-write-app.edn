@@ -9,7 +9,6 @@
   :juxt.site/input
   {:juxt.site/client-id "read-write-app"
    :juxt.site/client-type "public"
-   :juxt.site/origin "https://read-write-app.example.test"
    :juxt.site/authorization-server "https://auth.example.org"
    :juxt.site/resource-server "https://data.example.org"
    :juxt.site/redirect-uris ["https://read-write-app.example.test/callback"]

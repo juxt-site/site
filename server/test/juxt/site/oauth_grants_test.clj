@@ -43,20 +43,18 @@
         state (util/make-nonce 10)
 
         authorization-request
-        {:ring.request/method :get
-         :juxt.site/uri "https://auth.example.test/oauth/authorize"
-         :ring.request/query
-         (codec/form-encode
-          {"response_type" "token"
-           "client_id" "test/public-global-scope-app"
-           "state" state})}
+        (oauth/make-authorization-request
+         "https://auth.example.test/oauth/authorize"
+         {"response_type" "token"
+          "client_id" "test/public-global-scope-app"
+          "state" state})
 
         {:ring.response/keys [status headers]}
         (with-session-token session-token
           (*handler* authorization-request))
 
         _ (is (= 303 status))
-        _ (is (= "https://public-global-scope-app.test.com" (get headers "access-control-allow-origin")))
+        _ (is (= "https://petstore.example.com" (get headers "access-control-allow-origin")))
 
         {:strs [location]} headers
 
@@ -214,7 +212,7 @@
         {:strs [location access-control-allow-origin]} headers
 
         _ (is (= 303 status))
-        _ (is (= "https://public-global-scope-app.test.com" access-control-allow-origin))
+        _ (is (= "https://petstore.example.com" access-control-allow-origin))
 
         [_ location-uri query-string] (re-matches #"(https://.+?)\?(.*)" location)
         _ (is (= "https://public-global-scope-app.test.com/redirect.html" location-uri))
@@ -239,7 +237,7 @@
         {:strs [access-control-allow-origin]} headers
 
         _ (is (= 200 status))
-        _ (is (= "https://public-global-scope-app.test.com" access-control-allow-origin))
+        _ (is (= "https://petstore.example.com" access-control-allow-origin))
 
         token-response-payload-as-json (json/read-value body)
         _ (is (map? token-response-payload-as-json))
@@ -308,7 +306,7 @@
             _ (is (= 200 status))
 
             {:strs [access-control-allow-origin]} headers
-            _ (is (= "https://public-global-scope-app.test.com" access-control-allow-origin))
+            _ (is (= "https://petstore.example.com" access-control-allow-origin))
 
             token-response-payload-as-json (json/read-value body)
             _ (is (map? token-response-payload-as-json))

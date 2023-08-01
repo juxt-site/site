@@ -8,7 +8,6 @@
   :juxt.site/input
   {:juxt.site/client-id "read-only-app"
    :juxt.site/client-type "public"
-   :juxt.site/origin "https://read-only-app.example.test"
    :juxt.site/authorization-server "https://auth.example.org"
    :juxt.site/resource-server "https://data.example.org"
    :juxt.site/redirect-uris ["https://read-only-app.example.test/callback"]

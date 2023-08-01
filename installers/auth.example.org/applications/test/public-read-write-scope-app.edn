@@ -7,7 +7,6 @@
   :juxt.site/input
   {:juxt.site/client-id "test/public-read-write-scope-app"
    :juxt.site/client-type "public"
-   :juxt.site/origin "https://public-read-write-scope-app.test.com"
    :juxt.site/authorization-server "https://auth.example.org"
    :juxt.site/resource-server "https://data.example.org"
    :juxt.site/redirect-uris ["https://public-read-write-scope-app.test.com/redirect.html"]

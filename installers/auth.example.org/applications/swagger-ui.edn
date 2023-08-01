@@ -11,7 +11,7 @@
    ;; client_secret in the swagger-ui application code or
    ;; configuration.
    :juxt.site/client-type "confidential"
-   :juxt.site/origin "https://swagger-ui.apps.com"
    :juxt.site/authorization-server "https://auth.example.org"
    :juxt.site/resource-server "https://data.example.org"
-   :juxt.site/redirect-uris ["https://swagger-ui.apps.com/oauth2-redirect.html"]}}}
+   :juxt.site/redirect-uris ["https://petstore.swagger.io/oauth2-redirect.html"
+                             "https://swagger-ui.apps.com/oauth2-redirect.html"]}}}

@@ -179,13 +179,13 @@
                  :code-challenge-method code-challenge-method
                  :verification verification})))
 
-            (let [[{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-applications client-id)
+            (let [[{:keys [juxt.site/resource-server]} & others]
+                  (juxt.site/lookup-applications client-id)
 
                   ;; TODO: If client-id is unknown, we need to return
                   ;; an unauthorized_client error. Add a test for
                   ;; this.
 
-                  _ (assert origin)
                   _ (assert resource-server)
 
                   ;; TODO: We need to recheck whether the client's
@@ -256,7 +256,9 @@
                                   :juxt.site/application
                                   :juxt.site/keypair])
                           scope (assoc :juxt.site/scope scope)
-                          username (assoc :juxt.site/username username)))]
+                          username (assoc :juxt.site/username username)))
+
+                  origin (get-in *ctx* [:ring.request/headers "origin"])]
 
               [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
                [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
@@ -297,8 +299,7 @@
                     (error {"error" "invalid_grant"
                             "error_description" "Refresh token invalid or expired"}))
 
-                [{:juxt.site/keys [origin resource-server]} & others] (juxt.site/lookup-applications client-id)
-                _ (assert origin)
+                [{:keys [juxt.site/resource-server]} & others] (juxt.site/lookup-applications client-id)
                 _ (assert resource-server)
 
                 now (java.time.Instant/now)
@@ -369,7 +370,8 @@
                             "token_type" "bearer"
                             "expires_in" (.getSeconds access-token-expires-in)
                             "refresh_token" new-refresh-token}
-                     scope (assoc "scope" (clojure.string/join " " scope))))]
+                     scope (assoc "scope" (clojure.string/join " " scope))))
+                  origin (get-in *ctx* [:ring.request/headers "origin"])]
               [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
                [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
                ;; Delete the old refresh-token and access-token
@@ -409,7 +411,7 @@
 
                   requested-scope (:scope *prepare*)
 
-                  [{:juxt.site/keys [origin resource-server]
+                  [{:keys [juxt.site/resource-server]
                     client-scope :juxt.site/scope
                     :as client-doc} & others]
                   (juxt.site/lookup-applications client-id)
@@ -558,7 +560,7 @@
                      {"error" "invalid_client"
                       "error_description" "No such client"}))
 
-                {:juxt.site/keys [client-id origin]} client-doc
+                {:keys [juxt.site/client-id]} client-doc
 
                 _ (when-not client-id
                     (error

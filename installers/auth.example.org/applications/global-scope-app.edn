@@ -8,7 +8,6 @@
   :juxt.site/input
   {:juxt.site/client-id "global-scope-app"
    :juxt.site/client-type "public"
-   :juxt.site/origin "https://global-scope-app.example.test"
    :juxt.site/authorization-server "https://auth.example.org"
    :juxt.site/resource-server "https://data.example.org"
    :juxt.site/redirect-uris ["https://global-scope-app.example.test/callback"]}}}
