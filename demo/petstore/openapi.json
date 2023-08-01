@@ -115,7 +115,7 @@
         ],
         "summary": "Add a new pet to the store",
         "description": "Add a new pet to the store",
-        "operationId": "addPet",
+        "operationId": "https://data.example.org/petstore/operations/add-pet",
         "requestBody": {
           "description": "Create a new pet in the store",
           "content": {
@@ -1207,18 +1207,13 @@
         "type": "oauth2",
         "flows": {
           "implicit": {
-            "authorizationUrl": "https://petstore3.swagger.io/oauth/authorize",
+            "authorizationUrl": "https://auth.example.org/oauth/authorize",
             "scopes": {
               "write:pets": "modify pets in your account",
               "read:pets": "read your pets"
             }
           }
         }
-      },
-      "api_key": {
-        "type": "apiKey",
-        "name": "api_key",
-        "in": "header"
       }
     }
   }

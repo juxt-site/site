@@ -901,7 +901,7 @@
        ;; error that results!
        ["juxt/site/system-client" {"client-id" "remote-swagger-ui"}]]))
 
-    (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/openapi.json")))
+    (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/petstore/openapi.json")))
     (println "Now browse to https://petstore.swagger.io/?url=http://localhost:4444/petstore/openapi.json")
     ))
 
