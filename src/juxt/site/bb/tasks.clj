@@ -631,8 +631,6 @@
 
 (defn- install-bundle [cfg bundle params opts]
   (assert bundle)
-  (when-not (every? string? (keys params))
-    (throw (ex-info "Bad parameters" {:params params})))
   (let [title (get bundle :juxt.site/title)
         param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))]
     (println
@@ -641,7 +639,7 @@
        (format "Installing: %s with %s" title param-str)))
     (install
      opts
-     (bundle* cfg bundle (into opts params)))))
+     (bundle* cfg bundle (into opts (for [[k v] params] [(name k) v]))))))
 
 (defn install-bundle-task [{bundle-names :bundle :as opts}]
   (let [cfg (config opts)
