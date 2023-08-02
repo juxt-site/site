@@ -11,9 +11,15 @@
 
 (def CONFIG_FILE (str (System/getenv "SITE_HOME") "/site-cli.edn"))
 
-(if *command-line-args*
-  (apply shell "bb" "--config" CONFIG_FILE *command-line-args*)
-  (shell "bb" "--config" CONFIG_FILE "tasks"))
+(try
+  (if *command-line-args*
+    (apply shell "bb" "--config" CONFIG_FILE *command-line-args*)
+    (shell "bb" "--config" CONFIG_FILE "tasks"))
+  (catch Exception e
+    (binding [*out* *err*]
+      (let [message (.getMessage e)]
+        (when-not (str/blank? message)
+          (println message))))))
 
 ;; Local Variables:
 ;; mode: clojure
