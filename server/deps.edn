@@ -78,6 +78,9 @@
   ;; available for :juxt.site/respond programs.
   selmer/selmer {:mvn/version "1.12.55"}
 
+  ;; Used by /_site/users (401 handler), at least
+  hiccup/hiccup {:mvn/version "2.0.0-alpha2"}
+
   clj-commons/clj-yaml {:mvn/version "1.0.26"}
   }
 
