@@ -8,10 +8,18 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/operation "https://auth.example.org/operations/get-events"}}
+   {:get {;; TODO: Should we be calling this an operation? It isn't
+          ;; transacted. Could we call it something like a
+          ;; 'state-function' or query? Does 'operation' imply
+          ;; transaction?  Are we complecting acl-rules with
+          ;; operations?  Do operations only exist to 'normalise'
+          ;; endpoints? i.e. so REST unsafe methods and GraphQL
+          ;; mutations can share the same logic?
+          :juxt.site/operation "https://auth.example.org/operations/get-events"}}
    :juxt.site/variant-of "https://data.example.org/_site/events"
    :juxt.http/content-type "application/json"
 
+   ;; TODO: put in juxt.site/responses? See users.edn
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
