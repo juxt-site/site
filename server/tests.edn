@@ -21,6 +21,7 @@
            "juxt.site.schema-test"
            "juxt.site.basic-auth-test"
            "juxt.site.create-users-test"
-           "juxt.site.post-openapi-test"]}]
+           "juxt.site.post-openapi-test"
+           "juxt.site.error-test"]}]
 
  :reporter kaocha.report/documentation}
