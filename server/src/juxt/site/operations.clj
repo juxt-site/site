@@ -431,6 +431,8 @@
 (defn sanitize-ctx [ctx]
   (dissoc ctx :juxt.site/xt-node :juxt.site/db))
 
+(declare installer-seq->tx-ops)
+
 (defn prepare-sci-opts [operation ctx]
   {:namespaces
    (merge-with
@@ -467,7 +469,15 @@
       'get-modulus (fn [k] (.getModulus k))
       'get-public-exponent (fn [k] (.getPublicExponent k))
       'get-key-format (fn [k] (.getFormat k))
-      'install-resources (fn [_] (throw (ex-info "TODO: install-resources from clj" {})))}}
+
+      'installer-seq->tx-ops
+      (fn [installer-seq]
+        ;; TODO: Warning, illegal use of db in prepare. Rather, we
+        ;; should pull out the operations and their hashes, creating a
+        ;; mapping for installer-seq->tx-ops to map operation-uri to
+        ;; an operation, and ensure that the same operation used in
+        ;; the prepare is used in the transact (via a hash).
+        (installer-seq->tx-ops (:juxt.site/db ctx) installer-seq))}}
 
     (common-sci-namespaces operation))
 
@@ -559,50 +569,80 @@
 
     (xt/db xt-node tx)))
 
+(defn prepare-operation [{:keys [entities-by-id current-operation-index] :as acc}
+                         {:juxt.site/keys [subject-uri operation-uri input]}
+                         operation-in-db]
+  (try
+    (update acc :tx-ops conj
+            (prepare-tx-op
+             (cond-> {:juxt.site/subject-uri subject-uri
+                      :juxt.site/operation-uri operation-uri
+                      :juxt.site/operation-index current-operation-index
+                      :juxt.site/operation
+                      (or (get entities-by-id operation-uri)
+                          operation-in-db
+                          (throw (ex-info "Failed to find operation!" {:operation-uri operation-uri})))}
+               input
+               (merge {:juxt.site/received-representation
+                       {:juxt.http/content-type "application/edn"
+                        :juxt.http/body (.getBytes (pr-str input))}}))))
+    (catch Exception e
+      (update acc :errors conj
+              (ex-info
+               (format "Failed to prepare %s" operation-uri)
+               {:operation-uri operation-uri
+                :operation-index current-operation-index}
+               e)))))
+
 (defn installer-seq->tx-ops
   "Given a sequence of installers, return a collection of XTDB
   transaction operations. The db argument is used to lookup the
   operation which is required when preparing the transaction."
   [db installers]
-  (->> installers
-       (map :juxt.site/init-data)
-       ;; If we create an operation and later perform that operation in the
-       ;; same bundle, then when we prepare to perform the operation, the
-       ;; operation won't exist in the database. (all the prepares have to be
-       ;; completed in batch, before any are transacted). Therefore we adopt
-       ;; a strategy of allowing the prepare step to 'see' operations that
-       ;; appear in the bundle, prior to locating them as usual in the
-       ;; database.
-       (reduce
-        (fn [{:keys [entities-by-id operation-index] :as acc}
-             {:juxt.site/keys [subject-uri operation-uri input]}]
-          (cond-> acc
-            (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
-            (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
-            operation-uri
-            (->
-             (update :tx-ops conj
-                     (prepare-tx-op
-                      (cond-> {:juxt.site/subject-uri subject-uri
-                               :juxt.site/operation-uri operation-uri
-                               :juxt.site/operation-index operation-index
-                               :juxt.site/operation
-                               (or (get entities-by-id operation-uri)
-                                   (xt/entity db operation-uri)
-                                   (throw (ex-info "Failed to find operation!" {:operation-uri operation-uri})))
+  (let [{:keys [tx-ops errors]}
+        (->> installers
 
-                               :juxt.site/db db}
-                        input
-                        (merge {:juxt.site/received-representation
-                                {:juxt.http/content-type "application/edn"
-                                 :juxt.http/body (.getBytes (pr-str input))}}))))
-             ;; Increment operation-index
-             (update :operation-index inc))))
-        {:entities-by-id {}
-         :operation-index 0
-         :tx-ops []})
+             ;; TODO: Do this in the call-sites -- we have no need for
+             ;; the extra data.
+             (map :juxt.site/init-data)
 
-       :tx-ops))
+             ;; If we create an operation and later perform that
+             ;; operation in the same bundle, then when we prepare to
+             ;; perform the operation, the operation won't exist in
+             ;; the database (all the prepares have to be completed in
+             ;; batch, before any are transacted). Therefore we adopt
+             ;; a strategy of allowing the prepare step to 'see'
+             ;; operations that appear in the bundle, prior to
+             ;; locating them as usual in the database.
+             (reduce
+              (fn [{:keys [current-operation-index] :as acc}
+                   {:juxt.site/keys [operation-uri input] :as installer}]
+                (cond-> acc
+                  (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
+                  (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
+
+                  operation-uri (prepare-operation installer (xt/entity db operation-uri))
+
+                  ;; Increment operation-index
+                  current-operation-index (update :current-operation-index inc)))
+
+              {:entities-by-id {}
+               :current-operation-index 0
+               :tx-ops []
+               :errors []}))]
+
+    (when (seq errors)
+      ;; Completely abort
+      (throw
+       (ex-info
+        (format
+         (cond-> "Failed to prepare %d operation"
+           (> (count errors) 1) (str "s"))
+         (count errors))
+        {:errors errors})))
+
+    ;; Return the tx-ops
+    tx-ops))
 
 (defn transact-sci-opts
   [db
@@ -748,11 +788,7 @@
               keypair (jwt/lookup-keypair db kid)]
           (when-not keypair
             (throw (ex-info "Keypair not found" {:kid kid})))
-          (jwt/verify-jwt access-token keypair)))
-
-      'installer-seq->tx-ops
-      (fn [installer-seq]
-        (installer-seq->tx-ops db installer-seq))}
+          (jwt/verify-jwt access-token keypair)))}
 
      'grab
      {'parsed-types
@@ -834,7 +870,7 @@
                 "Submitted operations should have a valid juxt.site/transact entry"
                 {:operation operation})))
 
-            _ (log/debugf "FX are %s" (pr-str fx))
+            _ (log/debugf "FX are %s" (with-out-str (pprint fx)))
 
             ;; Validate
             _ (doseq [effect fx]

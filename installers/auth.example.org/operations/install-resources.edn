@@ -21,14 +21,17 @@
           installer-seq
           (case content-type
             "application/edn" (clojure.edn/read-string body)
-            "application/json" (jsonista.core/read-value-with-keywords body))]
+            "application/json" (jsonista.core/read-value-with-keywords body))
 
-      {:installer-seq installer-seq})}
+          tx-ops (juxt.site/installer-seq->tx-ops installer-seq)]
+
+
+      {:tx-ops tx-ops})}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [tx-ops (juxt.site/installer-seq->tx-ops (:installer-seq *prepare*))
+    (let [tx-ops (:tx-ops *prepare*)
           put-ids (map :xt/id (map second (filter (fn [x] (= (first x) :xtdb.api/put)) tx-ops)))
           #_#_body (pr-str put-ids) #_(clojure.string/join "\r\n"
                                         (cons
