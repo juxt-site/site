@@ -93,7 +93,7 @@
                  {:ring.response/status 400
                   :ring.response/headers
                   {"content-type" "application/json"
-                   "content-length" (count body-bytes)}
+                   "content-length" (str (count body-bytes))}
                   :ring.response/body body-bytes}
                  data)))))
 
