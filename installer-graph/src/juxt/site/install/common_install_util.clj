@@ -8,7 +8,8 @@
    [clojure.walk :refer [prewalk postwalk]]
    [selmer.parser :as selmer]
    [clojure.set :as set]
-   [clojure.edn :as edn]))
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]))
 
 (defn namespaced-name [kw]
   (str
@@ -207,9 +208,15 @@
 
       :else node)))
 
+(def ^:dynamic *working-dir* nil)
+
 (def READERS
   {'juxt.pprint (fn [x] (->Pretty x))
-   'juxt.template (fn [s] (->Template s))})
+   'juxt.template (fn [s] (->Template s))
+   'juxt.include (fn [path]
+                   (let [f (io/file *working-dir* path)]
+                     (binding [*working-dir* (.getParentFile f)]
+                       (slurp f))))})
 
 (defn unified-installer-map
   "This converts the existing package structure into a unified map of
@@ -229,15 +236,22 @@
                 url (uri-map-replace url uri-map)
                 content (try
                           (->
-                           (postwalk (make-uri-map-replace-walk-fn uri-map) (edn/read-string {:readers READERS} (slurp installer-file)))
+                           (postwalk (make-uri-map-replace-walk-fn uri-map)
+                                     (binding [*working-dir* (.getParentFile installer-file)]
+                                       (edn/read-string {:readers READERS} (slurp installer-file))))
                            (merge {:juxt.site.installer-graph/filepath (.toString filepath)
                                    :juxt.site.installer-graph/authority auth
                                    :juxt.site.installer-graph/path (str path1 path2)}))
                           (catch Exception e
-                            (throw (ex-info "Failure with url" {:url url
-                                                                :auth auth
-                                                                :path1 path1
-                                                                :path2 path2} e))))]]
+                            (throw
+                             (ex-info
+                              "Failure with url"
+                              {:url url
+                               :auth auth
+                               :path1 path1
+                               :path2 path2
+                               :cause (.getMessage e)}
+                              e))))]]
 
       [url content]))
    (into {})))
