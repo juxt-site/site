@@ -147,7 +147,7 @@
 
   </root>
 
-  <logger name="juxt" level="INFO">
+  <logger name="juxt.site" level="INFO">
     <appender-ref ref="APP_LOG_FILE" />
     <appender-ref ref="JSON_LOG_FILE" />
   </logger>
