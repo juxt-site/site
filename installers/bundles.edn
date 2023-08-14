@@ -489,13 +489,18 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/applications/test/clientA"}
    ]}
 
+ ;; Just used in system-api-test - could definitely be merged with juxt/site/test-clients
+ "juxt/site/system-test-clients"
+ {:juxt.site/description "System test clients"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/global-scope-app"}
+   {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/read-only-app"}
+   {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/read-write-app"}
+   {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/site-cli"}]}
+
  "juxt/site/system-client"
  {:juxt.site/title "System client"
-  :juxt.site/description "Register a client with the Bootstrap and SystemQuery roles"
-  ;; We declare required parameters in an ordered map. This helps the
-  ;; bb script introspect which parameters are required for each
-  ;; bundle, saving us the trouble of having to custom code a bb task
-  ;; for the installation of each bundle.
+  :juxt.site/description "Register a client with the Bootstrap and SystemQuery roles. System clients are able to authenticate themselves with the client_credentials grant."
   :juxt.site/parameters [["client-id" {}]]
   :juxt.site/installers
   [
@@ -504,12 +509,12 @@
     :juxt.site/parameters
     {"clientid" "{{client-id}}"}}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/role-assignments/{{clientid}}-{{rolename}}"
+    :juxt.site/installer-path "/_site/application-role-assignments/{{clientid}}-{{rolename}}"
     :juxt.site/parameters
     {"clientid" "{{client-id}}"
      "rolename" "Bootstrap"}}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/role-assignments/{{clientid}}-{{rolename}}"
+    :juxt.site/installer-path "/_site/application-role-assignments/{{clientid}}-{{rolename}}"
     :juxt.site/parameters
     {"clientid" "{{client-id}}"
      "rolename" "SystemQuery"}}]}
@@ -553,6 +558,26 @@
     :juxt.site/installer-path "/_site/user-identities/{{username}}"
     :juxt.site/parameters {"username" "carlos"
                            "password" "jackal"}}]}
+
+ "juxt/site/user-role-assignment"
+ {:juxt.site/title "User role assignment"
+  :juxt.site/parameters [["username" {}]
+                         ["rolename" {}]]
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/user-role-assignments/{{username}}-{{rolename}}"
+    :juxt.site/parameters {"username" "{{username}}"
+                           "rolename" "{{rolename}}"}}]}
+
+ "juxt/site/application-role-assignment"
+ {:juxt.site/title "Client role assignment"
+  :juxt.site/parameters [["clientid" {}]
+                         ["rolename" {}]]
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/application-role-assignments/{{clientid}}-{{rolename}}"
+    :juxt.site/parameters {"clientid" "{{clientid}}"
+                           "rolename" "{{rolename}}"}}]}
 
  "juxt/site/hospital-demo"
  {:juxt.site/description "Hospital demo resources"

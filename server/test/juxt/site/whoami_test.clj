@@ -6,7 +6,7 @@
    [jsonista.core :as json]
    [juxt.site.test-helpers.install :refer [perform-operation!]]
    [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -48,16 +48,11 @@
     "juxt/site/api-operations"
     "juxt/site/whoami-api"
     "juxt/site/openapis-api"
-    "juxt/site/system-api-openapi"]
-   RESOURCE_SERVER)
-
-  (converge!
-   [{:juxt.site/base-uri "https://data.example.test"
-     :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"
-     :juxt.site/parameters {"username" "alice"
-                            "rolename" "SystemQuery"}}]
-   RESOURCE_SERVER
-   {}))
+    "juxt/site/system-api-openapi"
+    ["juxt/site/user-role-assignment"
+     {"username" "alice"
+      "rolename" "SystemQuery"}]]
+   RESOURCE_SERVER))
 
 (defn bootstrap-fixture [f]
   (bootstrap)

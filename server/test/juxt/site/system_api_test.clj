@@ -9,7 +9,7 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -39,50 +39,25 @@
       "authorization-code-length" 12
       "jti-length" 12}]
     "juxt/site/oauth-token-endpoint"
-    ]
-   RESOURCE_SERVER)
-
-  ;; Alice has the Admin role which confers access to put-user
-  (converge!
-   [{:juxt.site/base-uri "https://data.example.test"
-     :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"
-     :juxt.site/parameters
+    ;; Alice has the Admin role which confers access to put-user
+    ["juxt/site/user-role-assignment"
      {"username" "alice"
-      "rolename" "Admin"}}]
-   RESOURCE_SERVER
-   {})
-
-  ;; ... whereas Bob has the SystemQuery role which doesn't
-  (converge!
-   [{:juxt.site/base-uri "https://data.example.test"
-     :juxt.site/installer-path "/_site/role-assignments/{{username}}-{{rolename}}"
-     :juxt.site/parameters
+      "rolename" "Admin"}]
+    ;; ... whereas Bob has the SystemQuery role which doesn't
+    ["juxt/site/user-role-assignment"
      {"username" "bob"
-      "rolename" "SystemReadonly"}}]
-   RESOURCE_SERVER
-   {})
+      "rolename" "SystemReadonly"}]
+    "juxt/site/system-test-clients"
+    ["juxt/site/application-role-assignment"
+     {"clientid" "site-cli"
+      "rolename" "SystemQuery"}]]
+   RESOURCE_SERVER)
 
   ;; TODO: Analyse the performance cost of install-bundles!
   ;; Perhaps optimise by only creating the installer graph once and
   ;; passing it in as a parameter.
+  )
 
-  (converge!
-   ;; TODO: Add these resources to a bundle
-   [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/global-scope-app"}
-    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/read-only-app"}
-    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/read-write-app"}
-    {:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/site-cli"}]
-   RESOURCE_SERVER
-   {})
-
-  (converge!
-   [{:juxt.site/base-uri "https://data.example.test"
-     :juxt.site/installer-path "/_site/role-assignments/{{clientid}}-{{rolename}}"
-     :juxt.site/parameters
-     {"clientid" "site-cli"
-      "rolename" "SystemQuery"}}]
-   RESOURCE_SERVER
-   {}))
 
 (defn bootstrap-fixture [f]
   (bootstrap)

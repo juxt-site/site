@@ -17,7 +17,7 @@
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.install :refer [perform-operation!]]
-   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.oauth :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [ring.util.codec :as codec]
@@ -54,19 +54,9 @@
 
 (defn install-hospital! []
   (install-bundles!
-   ["juxt/site/bootstrap"]
-   RESOURCE_SERVER)
-
-  ;; TODO: Create a bundle for this
-  (converge!
-   [{:juxt.site/base-uri "https://auth.hospital.com"
-     :juxt.site/installer-path "/keypairs/{{kid}}"
-     :juxt.site/parameters {"kid" "test-kid"}}]
-   RESOURCE_SERVER
-   {})
-
-  (install-bundles!
-   ["juxt/site/user-model"
+   ["juxt/site/bootstrap"
+    ["juxt/site/keypair" {"kid" "test-kid"}]
+    "juxt/site/user-model"
     "juxt/site/password-based-user-identity"
     "juxt/site/sessions"
     ["juxt/site/oauth-authorization-endpoint"

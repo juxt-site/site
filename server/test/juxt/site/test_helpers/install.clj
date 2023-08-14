@@ -52,19 +52,6 @@
       (catch Exception cause
         (throw (ex-info "Failed to perform operation" {:init-data op-data} cause))))))
 
-(defn converge!
-  "Given a set of resource ids and a dependency graph, create resources
-  and their dependencies."
-  [xt-node resources graph parameter-map]
-
-  (assert (map? parameter-map) "Parameter map arg must be a map")
-
-  (let [db (xt/db xt-node)
-        installer-seq (ciu/installer-seq graph parameter-map resources)
-        tx-ops (operations/installer-seq->tx-ops db installer-seq)]
-
-    (operations/apply-ops! xt-node tx-ops)))
-
 (defn normalize-uri-map [uri-map]
   (->> uri-map
        (mapcat (fn [[k v]]

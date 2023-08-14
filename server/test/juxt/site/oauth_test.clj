@@ -7,7 +7,7 @@
    [juxt.site.logging :refer [with-logging]]
    [juxt.site.repl :as repl]
    [juxt.site.test-helpers.install :refer [perform-operation!]]
-   [juxt.site.test-helpers.local-files-util :refer [install-bundles! converge!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.oauth :refer [AUTH_SERVER RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -25,14 +25,9 @@
       "jti-length" 12}]
     "juxt/site/oauth-token-endpoint"
     "juxt/site/test-clients"
-    "juxt/site/oauth-metadata-endpoints"]
-   RESOURCE_SERVER)
-
-  (converge!
-   [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/scopes/test/read"}]
-   AUTH_SERVER
-   {"description" "Read stuff"
-    "operations-in-scope" #{}}))
+    "juxt/site/oauth-metadata-endpoints"
+    "juxt/site/test-scopes"]
+   RESOURCE_SERVER))
 
 (defn bootstrap-fixture [f]
   (bootstrap)
@@ -122,7 +117,9 @@
               "token_endpoint" "https://auth.example.test/oauth/token"
               "jwks_uri" "https://auth.example.test/.well-known/jwks.json"
               "scopes_supported"
-	      ["https://auth.example.test/scopes/test/read"]
+	      ["https://auth.example.test/scopes/test/read"
+               "https://auth.example.test/scopes/test/write"
+               "https://auth.example.test/scopes/test/admin"]
               "response_types_supported" ["code" "token"]
               "response_modes_supported" ["query" "fragment"]
 	      "grant_types_supported" ["authorization_code" "implicit" "password" "refresh_token"]
