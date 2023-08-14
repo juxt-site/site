@@ -1,0 +1,14 @@
+{:deps ["https://data.example.org/_site/templates/document-base.html"
+        "https://data.example.org/_site/fetch-with-bearer-token.js"
+        "https://data.example.org/_site/juxt-pass.js"]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/put-resource"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :juxt.site/methods
+   {:get {:juxt.site/operation "https://auth.example.org/operations/get-unprotected-resource"}}
+
+   :juxt.http/content-type "text/html;charset=utf-8"
+   :juxt.http/content #juxt.template #juxt.include "fetch-html-content.html"}}}

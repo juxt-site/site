@@ -1,6 +1,9 @@
 {:deps
  ["https://auth.example.org/operations/get-users"
-  "https://auth.example.org/protection-spaces/bearer"]
+  "https://auth.example.org/protection-spaces/bearer"
+  "https://auth.example.org/permissions/get-unprotected-resource"
+  ;; This is the rendering of a 401, if text/html is selected
+  "https://data.example.org/_site/templates/fetch-html-content.html"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/operations/put-api-endpoint"
@@ -14,7 +17,22 @@
     {:juxt.site/operation "https://auth.example.org/operations/get-users"
      :openapi.v3/metadata
      {"tags" ["Users"]
-      "summary" "Get users"}}
+      "summary" "Get users"}
+     :juxt.site/responses
+     {"401"
+      {"content"
+       {"text/html"
+        {:juxt.site.sci/program
+         #juxt.pprint
+         (let [content
+               (selmer/render-file
+                "https://data.example.org/_site/templates/fetch-html-content.html"
+                {:title "Users"
+                 :content-src "{{$id}}"})]
+           (-> *ctx*
+               (assoc :ring.response/body content)
+               (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))
+               (update :ring.response/headers assoc "content-type" "text/html")))}}}}}
 
     :post
     {:juxt.site/operation

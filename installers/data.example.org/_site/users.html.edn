@@ -6,21 +6,18 @@
   :juxt.site/operation-uri "https://auth.example.org/operations/put-resource"
   :juxt.site/input
   {:xt/id "{{$id}}"
-
-   ;; This is arguably not required, since we can default across to
-   ;; the juxt.site/variant-of resource and use the methods there. But, as a counter-argument, duplication doesn't cost us much here, and adds flexibility.
    :juxt.site/methods
    {:get {:juxt.site/operation "https://auth.example.org/operations/get-users"}}
-
    :juxt.site/variant-of "https://data.example.org/_site/users"
-   :juxt.http/content-type "application/json"
+   :juxt.http/content-type "text/html;charset=utf-8"
+   :juxt.pick/quality-of-source 0.5 ; downgrade in content-negotiation
 
-   ;; TODO: This could go into a:
-   ;; [:juxt.site/responses 200 "content" "application/json"] section.
    :juxt.site/respond
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
+    (let [content (selmer/render
+                   #juxt.template #juxt.include "users.html"
+                   {:users *state*})]
       (-> *ctx*
           (assoc :ring.response/body content)
           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}

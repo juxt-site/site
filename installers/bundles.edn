@@ -186,6 +186,8 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users.edn"}
    {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/users.html"}
+   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users/{username}"}
 
    ;; Role assignments

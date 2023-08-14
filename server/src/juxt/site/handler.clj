@@ -26,7 +26,10 @@
    [juxt.site.util :as util]
    [ring.util.codec :as codec]
    [selmer.parser :as selmer]
+   selmer.tags
    [sci.core :as sci]
+   [hiccup2.core :as hiccup]
+   hiccup.util
    [xtdb.api :as xt])
   (:import (java.net URI)))
 
@@ -600,7 +603,7 @@
    (:ring.response/status req)))
 
 (defn respond
-  [{:juxt.site/keys [resource start-date request-id]
+  [{:juxt.site/keys [start-date request-id]
     :ring.request/keys [method]
     :ring.response/keys [body]
     :as req}]
@@ -622,7 +625,7 @@
         request-id
         (update :ring.response/headers assoc "Site-Request-Id" request-id)
 
-        (and resource (#{:get :head} method))
+        (#{:get :head} method)
         (update :ring.response/headers add-headers req body)
 
         (= method :head) (dissoc :ring.response/body))))
@@ -707,97 +710,6 @@
        (assoc :ex-data (dissoc (ex-data e) :juxt.site/request-context)))
      (when cause (errors-with-causes cause)))))
 
-(defn put-error-representation
-  "If method is PUT"
-  [{:juxt.site/keys [resource] :ring.response/keys [status] :as req}]
-  (let [{:juxt.http/keys [put-error-representations]} resource
-        put-error-representations
-        (filter
-         (fn [rep]
-           (if-some [applies-to (:ring.response/status rep)]
-             (= applies-to status)
-             true)) put-error-representations)]
-
-    (when (seq put-error-representations)
-      (some-> (conneg/negotiate-representation req put-error-representations)
-              ;; Content-Location is not appropriate for errors.
-              (dissoc :juxt.http/content-location)))))
-
-(defn post-error-representation
-  "If method is POST"
-  [{:juxt.site/keys [resource] :ring.response/keys [status] :as req}]
-  (let [{:juxt.http/keys [post-error-representations]} resource
-        post-error-representations
-        (filter
-         (fn [rep]
-           (if-some [applies-to (:ring.response/status rep)]
-             (= applies-to status)
-             true)) post-error-representations)]
-
-    (when (seq post-error-representations)
-      (some-> (conneg/negotiate-representation req post-error-representations)
-              ;; Content-Location is not appropriate for errors.
-              (dissoc :juxt.http/content-location)))))
-
-;; TODO: I'm beginning to think that a resource should include the handling of
-;; all possible errors and error representations. So there shouldn't be such a
-;; thing as an 'error resource'. In this perspective, site-wide 'common'
-;; policies, such as a common 404 page, can be merged into the resource by the
-;; resource locator. Whether a user-agent is given error information could be
-;; subject to policy which is part of a common configuration. But the resource
-;; itself should be ignorant of such policies. Additionally, this is more
-;; aligned to OpenAPI's declaration of per-resource errors.
-
-(defn error-resource
-  "Locate an error resource. Currently only uses a simple database lookup of an
-  'ErrorResource' entity matching the status. In future this could use rules to
-  use the environment (dev vs. prod), subject (developer vs. customer) or other
-  variables to determine the resource to use."
-  [{:juxt.site/keys [db]} status]
-  (when-let [res (ffirst
-            (xt/q db '{:find [(pull er [*])]
-                      :where [[er :juxt.site/type "ErrorResource"]
-                              [er :ring.response/status status]]
-                      :in [status]} status))]
-    (log/debugf "ErrorResource found for status %d: %s" status res)
-    res))
-
-(defn error-resource-representation
-  "Experimental. Not sure this is a good idea to have a 'global' error
-  resource. Better to merge error handling into each resource (using the
-  resource locator)."
-  [req]
-  (let [{:ring.response/keys [status]} req]
-
-    (when-let [er (error-resource req (or status 500))]
-      (let [
-            ;; Allow errors to be transmitted to developers
-            er
-            (assoc er
-                   :juxt.site/access-control-allow-origins
-                   [[".*" {:juxt.site/access-control-allow-origin "*"
-                           :juxt.site/access-control-allow-methods [:get :put :post :delete]
-                           :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]])
-
-            er
-            (-> er
-                #_(update :juxt.site/template-model assoc
-                          "_site" {"status" {"code" status
-                                             "message" (status-message status)}
-                                   "error" {"message" (.getMessage e)}
-                                   "uri" (:juxt.site/uri req)}))
-
-            error-representations
-            (conneg/current-representations
-             (assoc req
-                    :juxt.site/resource er
-                    :juxt.site/uri (:xt/id er)))]
-
-        (when (seq error-representations)
-          (some-> (conneg/negotiate-representation req error-representations)
-                  ;; Content-Location is not appropriate for errors.
-                  (dissoc :juxt.http/content-location)))))))
-
 (defn respond-internal-error [{:juxt.site/keys [request-id] :as req} e]
   (log/error e (str "Internal Error: " (.getMessage e)))
   ;; TODO: We should allow an ErrorResource for 500 errors
@@ -821,97 +733,93 @@
         :ring.response/body default-body}
        }))))
 
-(defn error-response
+#_(defn error-response
   "Respond with the given error"
-  [req e]
+  [{:ring.response/keys [status]
+    :ring.request/keys [method]
+    :juxt.site/keys [request-id] :as ctx} e]
 
-  (assert (:juxt.site/start-date req))
+  (assert (:juxt.site/start-date ctx))
 
-  (let [{:ring.response/keys [status]
-         :ring.request/keys [method]
-         :juxt.site/keys [request-id]} req
+  (let [
+        #_representation
+        #_(or
+           ;; If we have already set a body, then we assume the request
+           ;; contains the response representation
+           (when (:ring.response/body req) req)
 
-        representation
-        (or
-         ;; If we have already set a body, then we assume the request
-         ;; contains the response representation
-         (when (:ring.response/body req) req)
+           ;; Some default representations for errors
+           (some->
+            (conneg/negotiate-error-representation
+             req
+             [(let [content
+                    ;; We don't want to provide much information here, we don't
+                    ;; know much about the recipient, only that they're probably
+                    ;; using a web browser. We provide a link to the error
+                    ;; resource, because that will be subject to authorization
+                    ;; checks. So authorized users get to see extensive error
+                    ;; information, unauthorized users don't.
+                    (cond-> (str (status-message status) "\r\n")
+                      request-id (str (format "<a href=\"%s\" target=\"_site_error\">%s</a>\r\n" request-id "Error")))]
+                {:juxt.http/content-type "text/html;charset=utf-8"
+                 :juxt.http/content-length (count content)
+                 :juxt.http/content content})
+              (let [content (str (status-message status) "\r\n")]
+                {:juxt.http/content-type "text/plain;charset=utf-8"
+                 :juxt.http/content-length (count content)
+                 :juxt.http/content content
+                 })])
 
-         (when (= method :put) (put-error-representation req))
-         (when (= method :post) (post-error-representation req))
-         (error-resource-representation req)
+            ;; This is an error, it won't be cached, it isn't negotiable 'content'
+            ;; so the Vary header isn't deemed applicable. Let's not set it.
+            (dissoc :juxt.http/vary))
 
-         ;; Some default representations for errors
-         (some->
-          (conneg/negotiate-error-representation
-           req
-           [(let [content
-                  ;; We don't want to provide much information here, we don't
-                  ;; know much about the recipient, only that they're probably
-                  ;; using a web browser. We provide a link to the error
-                  ;; resource, because that will be subject to authorization
-                  ;; checks. So authorized users get to see extensive error
-                  ;; information, unauthorized users don't.
-                  (cond-> (str (status-message status) "\r\n")
-                    request-id (str (format "<a href=\"%s\" target=\"_site_error\">%s</a>\r\n" request-id "Error")))]
-              {:juxt.http/content-type "text/html;charset=utf-8"
-               :juxt.http/content-length (count content)
-               :juxt.http/content content})
-            (let [content (str (status-message status) "\r\n")]
-              {:juxt.http/content-type "text/plain;charset=utf-8"
-               :juxt.http/content-length (count content)
-               :juxt.http/content content
-               })])
+           ;; A last ditch error in plain-text, even though plain-text is not acceptable, we override this
+           (let [content (.getBytes (str (status-message status) "\r\n") "US-ASCII")]
+             {:juxt.http/content-type "text/plain;charset=us-ascii"
+              :juxt.http/content-length (count content)
+              :juxt.http/content content
+              :juxt.site/access-control-allow-origins
+              [[".*" {:juxt.site/access-control-allow-origin "*"
+                      :juxt.site/access-control-allow-methods [:get :put :post :delete]
+                      :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]]}))
 
-          ;; This is an error, it won't be cached, it isn't negotiable 'content'
-          ;; so the Vary header isn't deemed applicable. Let's not set it.
-          (dissoc :juxt.http/vary))
+        #_#_original-resource (:juxt.site/resource req)
 
-         ;; A last ditch error in plain-text, even though plain-text is not acceptable, we override this
-         (let [content (.getBytes (str (status-message status) "\r\n") "US-ASCII")]
-           {:juxt.http/content-type "text/plain;charset=us-ascii"
-            :juxt.http/content-length (count content)
-            :juxt.http/content content
-            :juxt.site/access-control-allow-origins
-            [[".*" {:juxt.site/access-control-allow-origin "*"
-                    :juxt.site/access-control-allow-methods [:get :put :post :delete]
-                    :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]]}))
+        #_#_error-resource (merge
+                            {:ring.response/status 500
+                             :juxt.site/errors (errors-with-causes e)}
+                            (dissoc req :juxt.site/request-context)
 
-        original-resource (:juxt.site/resource req)
+                            ;; Add CORS
+                            #_{:juxt.site/access-control-allow-origins
+                               [[".*" {:juxt.site/access-control-allow-origin "*"
+                                       :juxt.site/access-control-allow-methods [:get :put :post :delete]
+                                       :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]]}
 
-        error-resource (merge
-                        {:ring.response/status 500
-                         :juxt.site/errors (errors-with-causes e)}
-                        (dissoc req :juxt.site/request-context)
+                            ;; For the error itself
+                            (cond-> {:juxt.site/resource representation}
+                              original-resource (assoc :juxt.site/original-resource original-resource)))
 
-                        ;; Add CORS
-                        #_{:juxt.site/access-control-allow-origins
-                           [[".*" {:juxt.site/access-control-allow-origin "*"
-                                   :juxt.site/access-control-allow-methods [:get :put :post :delete]
-                                   :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]]}
+        #_#_error-resource (assoc
+                            error-resource
+                            :juxt.site/status-message (status-message (:ring.response/status error-resource)))
 
-                        ;; For the error itself
-                        (cond-> {:juxt.site/resource representation}
-                          original-resource (assoc :juxt.site/original-resource original-resource)))
+        ctx (try
+              (cond-> ctx
+                (not= method :head) response/add-error-payload)
+              (catch Exception e
+                (respond-internal-error ctx e)))]
 
-        error-resource (assoc
-                        error-resource
-                        :juxt.site/status-message (status-message (:ring.response/status error-resource)))
-
-        response (try
-                   (cond-> error-resource
-                     (not= method :head) response/add-error-payload)
-                   (catch Exception e
-                     (respond-internal-error req e)))]
-
-    (respond response)))
+    (respond ctx)))
 
 
 (defn wrap-error-handling
   "Return a handler that constructs proper Ring responses, logs and error
   handling where appropriate."
   [h]
-  (fn [{:juxt.site/keys [request-id] :as req}]
+  (fn [{:juxt.site/keys [request-id db]
+        :as req}]
     (org.slf4j.MDC/put "reqid" request-id)
     (try
       (h req)
@@ -924,31 +832,110 @@
         (log/errorf e "wrap-error-handling, ex-data: %s" (pr-str (ex-data e)))
 
         (let [ex-data (ex-data e)
-              ctx (or (:juxt.site/request-context ex-data) req)
-              status (or
-                      (:ring.response/status ex-data) ; explicit error status
-                      500)
-              headers (merge
-                       (:ring.response/headers ctx)
-                       (:ring.response/headers ex-data))
-              body (or (:ring.response/body ex-data) (:ring.response/body ctx))
-              ctx (cond-> ctx
-                    status (assoc :ring.response/status status)
-                    headers (assoc :ring.response/headers headers)
-                    body (assoc :ring.response/body body))]
 
-          (if (:juxt.site/start-date ctx)
-            (do
-              ;; Don't log exceptions which are used to escape (e.g. 302, 401).
-              (when (or (not (integer? status)) (>= status 500))
-                (let [ex-data (->storable ex-data)]
-                  (log/errorf e "%s: %s" (.getMessage e) (pr-str (dissoc ex-data :juxt.site/request-context)))))
+              status
+              (or
+               (:ring.response/status ex-data) ; explicit error status
+               500)
 
-              (error-response ctx e))
+              ctx (-> ex-data
+                      :juxt.site/request-context
+                      ;; TODO: should we allow this? try commenting this out
+                      (or req)
 
-            (error-response
-             req
-             (ex-info "ExceptionInfo caught, but with an invalid request-context attached" {:juxt.site/request-context ctx} e)))))
+                      ;; We must clear out any status, headers or body already determined.
+                      (dissoc :ring.response/status :ring.response/headers :ring.response/body)
+
+                      (assoc :ring.response/status status))
+
+              method (:ring.request/method ctx)
+
+
+
+              ctx
+              (cond-> ctx
+
+                (:ring.response/headers ex-data)
+                (assoc :ring.response/headers (:ring.response/headers ex-data))
+
+                (:ring.response/body ex-data)
+                (assoc :ring.response/body (:ring.response/body ex-data))
+
+                (not= method :head) response/add-error-payload)
+
+              resource (:juxt.site/resource ctx)]
+
+          (when-not (:juxt.site/start-date ctx)
+            (throw
+             (ex-info
+              "ExceptionInfo caught, but with an invalid request-context attached"
+              {:juxt.site/request-context ctx} e)))
+
+          ;; Don't log exceptions which are used to escape (e.g. 302, 401).
+          (when (or (not (integer? (:ring.response/status ctx))) (>= (:ring.response/status ctx) 500))
+            (let [ex-data (->storable ex-data)]
+              (log/errorf e "%s: %s" (.getMessage e) (pr-str (dissoc ex-data :juxt.site/request-context)))))
+
+          ;; Can we handle this status further?
+          (if-let [content (get-in resource [:juxt.site/methods method :juxt.site/responses (str status) "content"])]
+            ;; TODO: Content negotiation
+            (let [program (get-in content ["text/html" :juxt.site.sci/program])
+                  _ (assert program)
+                  ctx (sci/eval-string
+                       program
+                       {:namespaces
+                        (merge
+                         {'user {'*ctx* (dissoc ctx :juxt.site/xt-node)
+                                 'log (fn [& message]
+                                        (eval `(log/info ~(str/join " " message))))
+                                 'logf (fn [& args]
+                                         (eval `(log/infof ~@args)))}
+
+                          'selmer
+                          {'render (fn [s context-map] (selmer/render s context-map))
+                           'render-file
+                           (fn [file context-map]
+                             (selmer/render-file
+                              file context-map
+                              {:url-stream-handler
+                               (proxy [java.net.URLStreamHandler] []
+                                 (openConnection [url]
+                                   (proxy [java.net.URLConnection] [url]
+                                     (getInputStream []
+                                       (let [id (.toExternalForm url)
+                                             content
+                                             (if-let [content
+                                                      (first
+                                                       (map first
+                                                            (xt/q
+                                                             db
+                                                             '{:find [content]
+                                                               :where [[e :xt/id id]
+                                                                       ;; TODO: Shouldn't we have a 'template' type?
+                                                                       [e :juxt.site/type "https://meta.juxt.site/types/resource"]
+                                                                       [e :juxt.http/content content]]
+                                                               :in [id]} id)))]
+                                               content
+                                               (format "(no entity found for xt/id: %s)" id))]
+                                         (java.io.ByteArrayInputStream. (.getBytes content)))
+
+                                       ))))}))}
+
+                          'hiccup
+                          {'html
+                           (fn [content]
+                             (hiccup/html {} content))
+                           'raw-string
+                           (fn [x]
+                             (hiccup.util/raw-string x))
+                           }})
+                        :classes
+                        {'java.util.Date java.util.Date
+                         'java.time.Instant java.time.Instant
+                         'java.time.Duration java.time.Duration}})]
+              (respond ctx))
+
+            (respond ctx))))
 
       (catch Throwable t (respond-internal-error req t))
       (finally (org.slf4j.MDC/clear)))))

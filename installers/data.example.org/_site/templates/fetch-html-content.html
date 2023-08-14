@@ -1,0 +1,34 @@
+{% extends "https://data.example.org/_site/templates/document-base.html" %}
+{% block content %}
+<div id='content' style="border: 1px dotted black; margin: 2pt; padding: 12pt">
+  <p>
+    The content in this box will be replaced by the actual HTML table.
+  </p>
+  <details>
+    <summary>How this works</summary>
+
+    This is a 401 response for a browser which contains
+    '<a href="https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm#sec_5_1_7">code-on-demand</a>'
+    to help the user-agent to authorize itself as a client.
+
+  </details>
+</div>
+<script type="module">
+
+  import {fetchAndReplaceContent} from "https://data.example.org/_site/fetch-with-bearer-token.js";
+  import {registerOAuth2Worker, authorize} from "https://data.example.org/_site/juxt-pass.js";
+
+  registerOAuth2Worker();
+
+  authorize({
+    origin: "https://data.example.org",
+    client_id: "browser",
+    authorization_endpoint: "https://auth.example.org/oauth/authorize",
+    token_endpoint: "https://auth.example.org/oauth/token",
+    redirect_uri: "https://auth.example.org/oauth/browser-oauth-redirect.html",
+    requested_scopes: [],
+  });
+
+//  fetchAndReplaceContent('{{content-src}}', '709f15a109e522e448b2c1f5d29c03b2');
+</script>
+{% endblock %}

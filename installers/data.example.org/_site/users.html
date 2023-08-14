@@ -1,0 +1,17 @@
+<div>
+  <h1>Users</h1>
+  <table>
+    <thead>
+      <th>id</th>
+      <th>fullname</th>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+	<td><a href="{{user.xt/id}}">{{user.xt/id}}</a></td>
+	<td>{{user.fullname}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
