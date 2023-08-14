@@ -79,6 +79,11 @@
           ;; TODO: create-access-token.edn arguably has a superior
           ;; error-handler, which also checks the description
           ;; characters. Consider using the same here instead of this.
+
+          ;; TODO: Also note, that RFC 6749 Section 4.1.2.1 explains
+          ;; that we should inform the resource owner rather than the
+          ;; client.
+
           (fn [data]
             (let [body-bytes (jsonista.core/write-value-as-bytes data)]
               (throw
@@ -110,6 +115,7 @@
           [client-doc & others]
           (juxt.site/lookup-applications client-id)
 
+          ;; TODO: This is wrong, invalid_client is not to be used here!
           _ (when-not client-doc
               (resource-owner-error
                {"error" "invalid_client"
