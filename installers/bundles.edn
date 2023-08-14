@@ -403,6 +403,13 @@
   [{:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapi.json"}]}
 
+ "juxt/site/pass-support"
+ {:juxt.site/title "Support for JUXT Pass"
+  :juxt.site/description "See https://github.com/juxt-site/pass"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/oauth-service-worker.js"}]}
+
  "demo/petstore/operations"
  {:juxt.site/title "Petstore Demo"
   :juxt.site/dependencies ["juxt/site/openapi"]
@@ -504,6 +511,14 @@
     :juxt.site/parameters
     {"clientid" "{{client-id}}"
      "rolename" "SystemQuery"}}]}
+
+ "juxt/site/browser-client"
+ {:juxt.site/title "Browser client"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/applications/browser"}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/oauth/browser-oauth-redirect.html"}]}
 
  "juxt/site/example-users"
  {:juxt.site/description "Example users"
