@@ -664,10 +664,10 @@
               :resources-uri resources-uri
               :access-token (retrieve-token cfg))))))
 
-(defn- install-bundles [{bundle-names :bundles :as opts}]
+(defn- install-bundles [{bundle-specs :bundles :as opts}]
   (let [cfg (config opts)
         bundles (bundles cfg)]
-    (doseq [[bundle-name params] bundle-names
+    (doseq [[bundle-name params] bundle-specs
             :let [bundle (get bundles bundle-name)]]
       (install-bundle cfg bundle params opts))))
 
