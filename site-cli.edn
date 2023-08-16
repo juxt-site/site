@@ -29,6 +29,8 @@
   ;; reset. By default, don't allow a reset on remote hosts, it's too
   ;; easy to mistakenly delete all the resources.
   reset {:doc "Delete all resources. Only available via localhost."
+         :opts {:coerce {:no-confirm :boolean
+                         :no-countdown :boolean}}
          :task (juxt.site.bb.tasks/reset)}
 
   init {:doc "Initialise a server with minimal resources. Only available via localhost."

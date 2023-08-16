@@ -591,6 +591,17 @@
           (stderr
             (println "Written client secret to" (.getAbsolutePath secret-file))))))))
 
+(defn countdown [start]
+  (println "(To abort: Control-C)")
+  (print "Deleting resources in ")
+  (.flush *out*)
+  (Thread/sleep 200)
+  (doseq [n (reverse (map inc (range start)))]
+    (print (str n "... "))
+    (.flush *out*)
+    (Thread/sleep 1000))
+  (println))
+
 ;; Equivalent to: curl -X POST http://localhost:4911/reset
 (defn reset
   "Delete ALL resources from a Site instance"
@@ -600,21 +611,19 @@
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
       (stderr (println "Cannot reset. The admin-server is not reachable."))
-      (when (input/confirm "Factory reset and delete ALL resources?")
-        (println "(To abort: Control-C)")
-        (print "Deleting resources in ")
-        (.flush *out*)
-        (Thread/sleep 200)
-        (doseq [n (reverse (map inc (range 3)))]
-          (print (str n "... "))
-          (.flush *out*)
-          (Thread/sleep 1000))
-        (println)
-        (println "Requesting removal of all resources")
-        (let [{:keys [status body]}
-              (http/post (str admin-base-uri "/reset"))]
-          ;; print not println, as the body should be terminated in a CRLF
-          (print status body))))))
+      (let [abort?
+            (when-not (:no-confirm opts)
+              (when (input/confirm "Factory reset and delete ALL resources?")
+                (when-not (:no-countdown opts)
+                  (countdown 3))))]
+        (if abort?
+          (println "Aborting reset")
+          (do
+            (println "Requesting removal of all resources")
+            (let [{:keys [status body]}
+                  (http/post (str admin-base-uri "/reset"))]
+              ;; print not println, as the body should be terminated in a CRLF
+              (print status body))))))))
 
 (defn- install [{:keys [resources-uri access-token]} installers-seq]
   (assert resources-uri)
