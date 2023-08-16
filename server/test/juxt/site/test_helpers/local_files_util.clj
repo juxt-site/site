@@ -16,23 +16,23 @@
   (io/file ".."))
 
 (defn install-bundles!
-  ([specs uri-map]
-   (assert *xt-node*)
-   (let [root-dir (get-root-dir)
-         graph (ciu/unified-installer-map (io/file root-dir "installers") uri-map)
-         bundles (edn/read-string (slurp (io/file root-dir "installers/bundles.edn")))]
-     (vec
-      (for [spec specs
-            :let [[bundle-name params] (if (vector? spec) spec [spec {}])
-                  bundle (get bundles bundle-name)
-                  _ (when-not bundle (throw (ex-info (format "Bundle not found: %s" bundle-name) {:bundle bundle-name})))
-                  resources (some-> bundles
-                                    (get bundle-name)
-                                    :juxt.site/installers
-                                    (install/map-uris uri-map))]]
+  [specs uri-map]
+  (assert *xt-node*)
+  (let [root-dir (get-root-dir)
+        graph (ciu/unified-installer-map (io/file root-dir "installers") uri-map)
+        bundles (edn/read-string (slurp (io/file root-dir "installers/bundles.edn")))]
+    (vec
+     (for [spec specs
+           :let [[bundle-name params] (if (vector? spec) spec [spec {}])
+                 bundle (get bundles bundle-name)
+                 _ (when-not bundle (throw (ex-info (format "Bundle not found: %s" bundle-name) {:bundle bundle-name})))
+                 resources (some-> bundles
+                                   (get bundle-name)
+                                   :juxt.site/installers
+                                   (install/map-uris uri-map))]]
 
-        (let [db (xt/db *xt-node*)
-              installer-seq (ciu/installer-seq graph params resources)
-              tx-ops (operations/installer-seq->tx-ops db installer-seq)]
+       (let [db (xt/db *xt-node*)
+             installer-seq (ciu/installer-seq graph params resources)
+             tx-ops (operations/installer-seq->tx-ops db installer-seq)]
 
-          (operations/apply-ops! *xt-node* tx-ops)))))))
+         (operations/apply-ops! *xt-node* tx-ops))))))
