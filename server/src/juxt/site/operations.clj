@@ -826,6 +826,7 @@
   stale!"
   [xt-ctx
    {subject-uri :juxt.site/subject-uri
+    subject :juxt.site/subject
     operation-index :juxt.site/operation-index
     operation-uri :juxt.site/operation-uri
     resource :juxt.site/resource
@@ -841,6 +842,7 @@
              (ex-info
               (format "Operation '%s' not found in db" operation-uri)
               {:operation-uri operation-uri})))]
+
     (try
       (assert (or (nil? subject-uri) (string? subject-uri)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
       (assert (or (nil? resource) (map? resource)) "Resource to do-operation-in-tx-fn expected to be a string, or null")
@@ -922,6 +924,10 @@
                  operation-index (assoc :juxt.site/tx-event-index operation-index)
 
                  tx (into tx)
+
+                 ;; It is useful to denormalise and see the explicit
+                 ;; user or application in the event.
+                 true (into (select-keys subject [:juxt.site/user :juxt.site/application]))
 
                  (seq other-response-fx)
                  (assoc :juxt.site/response-fx other-response-fx)))])]
