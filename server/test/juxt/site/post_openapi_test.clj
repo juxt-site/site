@@ -57,7 +57,7 @@
 ;; This demonstrates how we can drive the development of an operation
 ;; with a very fast feedback-loop. This can be run in under 10ms.
 (comment
-  (let [openapi-file (io/file "../demo/openapi.json")
+  (let [openapi-file (io/file "../demo/petstore/openapi.json")
         openapi (json/read-value (slurp openapi-file))
         data-base-uri (get-in CONFIG ["uri-map" "https://data.example.org"])
         openapi (-> openapi
