@@ -31,7 +31,7 @@
         parameter-map {}
         installer-seq (ciu/installer-seq graph parameter-map resources)
         db (xt/db *xt-node*)
-        tx-ops (operations/installer-seq->tx-ops db installer-seq)
+        tx-ops (operations/installer-seq->tx-ops db (map :juxt.site/init-data installer-seq))
         new-db (operations/apply-ops! *xt-node* tx-ops)
         events (->> (xt/q
                      new-db

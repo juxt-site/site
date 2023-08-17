@@ -543,7 +543,8 @@
          (io/file (get cfg "installers-home"))
          uri-map)]
 
-    (ciu/installer-seq installer-map parameters installers)))
+    (->> (ciu/installer-seq installer-map parameters installers)
+         (map :juxt.site/init-data))))
 
 (defn bundle [{bundle-name :bundle :as opts}]
   (let [cfg (config opts)

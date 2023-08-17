@@ -607,10 +607,6 @@
   (let [{:keys [tx-ops errors]}
         (->> installers
 
-             ;; TODO: Do this in the call-sites -- we have no need for
-             ;; the extra data.
-             (map :juxt.site/init-data)
-
              ;; If we create an operation and later perform that
              ;; operation in the same bundle, then when we prepare to
              ;; perform the operation, the operation won't exist in

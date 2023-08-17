@@ -38,7 +38,10 @@
                      {"username" "alice"
                       "password" "foobar"})]
 
-    (with-bearer-token alice-token
+    (init/bundle-installer-seq
+        ["juxt/site/system-api-openapi" {}])
+
+    #_(with-bearer-token alice-token
       (install-bundle
        (init/bundle-installer-seq
         ["juxt/site/system-api-openapi" {}])))))
