@@ -930,7 +930,7 @@
 
         result-fx)
 
-      (catch Throwable e
+      (catch Exception e
         (let [create-error-structure
               (fn create-error-structure [error]
                 (let [cause (.getCause error)]
