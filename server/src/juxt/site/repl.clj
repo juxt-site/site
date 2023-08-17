@@ -87,7 +87,7 @@
   (->> (q '{:find [(pull e [*])]
             :where [[e :juxt.site/type "https://meta.juxt.site/types/event"]]})
        (map first)
-       (sort-by :xtdb.api/tx-id)))
+       (sort-by (juxt :xtdb.api/tx-id :juxt.site/tx-event-index))))
 
 (defn ls
   "Return all Site resources"
