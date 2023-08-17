@@ -874,7 +874,7 @@
           ;; Don't log exceptions which are used to escape (e.g. 302, 401).
           (when (or (not (integer? (:ring.response/status ctx))) (>= (:ring.response/status ctx) 500))
             (let [ex-data (->storable ex-data)]
-              (log/errorf e "%s: %s" (.getMessage e) (pr-str (dissoc ex-data :juxt.site/request-context)))))
+              (log/errorf e "%s:\n%s" (.getMessage e) (with-out-str (pprint (dissoc ex-data :juxt.site/request-context))))))
 
           ;; Can we handle this status further?
           (if-let [content (get-in resource [:juxt.site/methods method :juxt.site/responses (str status) "content"])]
