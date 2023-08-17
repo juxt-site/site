@@ -15,6 +15,12 @@
   ;; an override in future.
   (io/file ".."))
 
+(defn get-installers-dir []
+  (io/file (get-root-dir) "installers"))
+
+(defn bundles [dir]
+  (edn/read-string (slurp (io/file dir "installers/bundles.edn"))))
+
 (defn spec->installer-seq [spec uri-map bundles graph]
   (let [[bundle-name params] (if (vector? spec) spec [spec {}])
         bundle (get bundles bundle-name)
@@ -25,12 +31,14 @@
                           (install/map-uris uri-map))]
     (ciu/installer-seq graph params resources)))
 
+(defn graph [dir uri-map]
+  (ciu/unified-installer-map dir uri-map))
+
 (defn install-bundles!
   [specs uri-map]
   (assert *xt-node*)
-  (let [root-dir (get-root-dir)
-        graph (ciu/unified-installer-map (io/file root-dir "installers") uri-map)
-        bundles (edn/read-string (slurp (io/file root-dir "installers/bundles.edn")))]
+  (let [graph (graph (get-installers-dir) uri-map)
+        bundles (bundles (get-root-dir))]
     (mapv
      (fn [spec]
        (let [installer-seq (spec->installer-seq spec uri-map bundles graph)

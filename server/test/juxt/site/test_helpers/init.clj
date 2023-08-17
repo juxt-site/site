@@ -2,15 +2,18 @@
 
 (ns juxt.site.test-helpers.init
   (:require
-   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]))
+   [juxt.site.test-helpers.local-files-util :as local]))
 
 (def CONFIG
   {"uri-map"
    {"https://auth.example.org" "https://auth.example.test"
     "https://data.example.org" "https://data.example.test"}})
 
+(defn uri-map []
+  (get CONFIG "uri-map"))
+
 (defn init []
-  (install-bundles!
+  (local/install-bundles!
    [["juxt/site/bootstrap" {}]
     ;; Support the creation of JWT bearer tokens
     ["juxt/site/oauth-token-endpoint" {}]
@@ -27,6 +30,13 @@
     ["juxt/site/oauth-introspection-endpoint" {}]
     ;; Register the clients
     ["juxt/site/system-client" {"client-id" "site-cli"}]]
-   (get CONFIG "uri-map")))
+   (uri-map)))
 
 (defn init-fixture [f] (init) (f))
+
+(defn bundle-installer-seq [spec]
+  (let [uri-map (uri-map)]
+    (local/spec->installer-seq
+     spec uri-map
+     (local/bundles (local/get-root-dir))
+     (local/graph (local/get-installers-dir) uri-map))))

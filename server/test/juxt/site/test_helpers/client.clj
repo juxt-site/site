@@ -125,6 +125,15 @@
               "password" "foobar"})]
     (f)))
 
+(defn install-bundle [installer-seq]
+  (let [body (.getBytes (pr-str installer-seq))]
+    (http-post
+     (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/resources")
+     {:ring.request/headers
+      {"content-length" (str (count body))
+       "content-type" "application/edn"}
+      :ring.request/body (io/input-stream body)})))
+
 (defn install-openapi! [openapi]
   (let [body (.getBytes (json/write-value-as-string openapi))]
     (http-post
