@@ -44,10 +44,6 @@
              :where [['e :xt/id (set operations)]
                      ['e :juxt.site/rules 'rules]]})))
 
-;; This is broken out into its own function to assist debugging when
-;; authorization is denied and we don't know why. A better authorization
-;; debugger is definitely required.
-
 (defn- check-permissions
   [{:juxt.site/keys [db subject-uri operation-uri resource-uri scope purpose]}]
 
