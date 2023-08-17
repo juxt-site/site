@@ -523,16 +523,24 @@
   ;; place to do anything that is non-deterministic which can't
   ;; be done in the transaction, such as computing secure random
   ;; numbers.
-  (let [prepare (do-prepare operation ctx)
-        do-operation-tx-fn (:juxt.site/do-operation-tx-fn operation)]
-    (when-not do-operation-tx-fn
-      (throw
-       (ex-info
-        "Failed to determine :juxt.site/do-operation-tx-fn"
-        {:operation-uri (:xt/id operation)})))
-    [:xtdb.api/fn do-operation-tx-fn
-     (cond-> (sanitize-ctx ctx)
-       prepare (assoc :juxt.site/prepare prepare))]))
+  (let [prepare (do-prepare operation ctx)]
+    (if-let [tx-ops (:juxt.site/tx-ops prepare)]
+      ;; A special case where the prepare program has returned the
+      ;; tx-ops it wants to run with. This also allows us to avoid the
+      ;; recursive tx-fn problem which means that sub-tx-fn errors are
+      ;; swallowed by XTv1.
+      tx-ops
+
+      ;; The normal case where we invoke the do-operation-tx-fn.
+      (let [do-operation-tx-fn (:juxt.site/do-operation-tx-fn operation)]
+        (when-not do-operation-tx-fn
+          (throw
+           (ex-info
+            "Failed to determine :juxt.site/do-operation-tx-fn"
+            {:operation-uri (:xt/id operation)})))
+        [[:xtdb.api/fn do-operation-tx-fn
+          (cond-> (sanitize-ctx ctx)
+            prepare (assoc :juxt.site/prepare prepare))]]))))
 
 (defn apply-ops!
   [xt-node tx-ops]
@@ -569,7 +577,7 @@
                          {:juxt.site/keys [subject-uri operation-uri input]}
                          operation-in-db]
   (try
-    (update acc :tx-ops conj
+    (update acc :tx-ops concat
             (prepare-tx-op
              (cond-> {:juxt.site/subject-uri subject-uri
                       :juxt.site/operation-uri operation-uri
@@ -978,7 +986,7 @@
   the context modified with any fx produced by the operations. The
   context will also contain a modified database under :juxt.site/db."
   [{:juxt.site/keys [xt-node] :as ctx} invocations]
-  (let [tx-ops (map prepare-tx-op invocations)
+  (let [tx-ops (mapcat prepare-tx-op invocations)
         new-db (apply-ops! xt-node tx-ops)
         ;; Modify context with new db
         ctx (assoc ctx :juxt.site/db new-db)
