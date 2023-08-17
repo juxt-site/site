@@ -549,7 +549,7 @@
             {:juxt.site/keys [message ex-data]} (get-in exception-doc [:juxt.site.xt/ex-data :juxt.site/error])]
         (throw
          (ex-info
-          (format "Transaction %d failed to be committed" tx-id)
+          (format "Transaction failed to be committed (tx-id=%d)" tx-id)
           (into {:xtdb.api/tx-id tx-id
                  ;;:juxt.site/request-context ctx
                  :juxt.site/exception-doc exception-doc
@@ -595,6 +595,7 @@
   transaction operations. The db argument is used to lookup the
   operation which is required when preparing the transaction."
   [db installers]
+
   (let [{:keys [tx-ops errors]}
         (->> installers
 
@@ -613,6 +614,13 @@
              (reduce
               (fn [{:keys [current-operation-index] :as acc}
                    {:juxt.site/keys [operation-uri input] :as installer}]
+
+                (when-not input
+                  (throw
+                   (ex-info
+                    (format "No input for installer: %s" (pr-str installer))
+                    {:operation-uri operation-uri})))
+
                 (cond-> acc
                   (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
                   (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
@@ -837,17 +845,19 @@
             (throw
              (ex-info
               (format "Operation '%s' not found in db" operation-uri)
-              {:operation-uri operation-uri})))]
+              {:operation-uri operation-uri})))
+
+        permissions (check-permissions (assoc ctx :juxt.site/db db))]
 
     (try
       (assert (or (nil? subject-uri) (string? subject-uri)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
       (assert (or (nil? resource) (map? resource)) "Resource to do-operation-in-tx-fn expected to be a string, or null")
 
       ;; Check that we /can/ call the operation
-      (let [permissions (check-permissions (assoc ctx :juxt.site/db db))
+      (let [
             fx
             (cond
-              ;; Official: sci
+              ;; Official: SCI
               (-> operation :juxt.site/transact :juxt.site.sci/program)
               (try
                 (sci/eval-string
@@ -945,7 +955,8 @@
             "Error during transaction"
             {:juxt.site/subject-uri subject-uri
              :juxt.site/operation-uri operation-uri
-             :juxt.site/error (create-error-structure e)}
+             :juxt.site/error (create-error-structure e)
+             }
             e)))))))
 
 (defn apply-response-fx [ctx fx]
@@ -1040,7 +1051,7 @@
                  resource (assoc :juxt.site/resource-uri (:xt/id resource))
                  scope (assoc :juxt.site/scope scope)))
               (catch clojure.lang.ExceptionInfo e
-                (if (= :no-permission (::type  (ex-data e)))
+                (if (= :no-permission (::type (ex-data e)))
                   ;; This isn't a great solution. We ideally want
                   ;; to be able to call check-permissions without
                   ;; it throwing an exception. But in many cases,
