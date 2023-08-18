@@ -518,11 +518,10 @@
   (when-not operation
     (throw (ex-info "An operation is required in the prepare phase" {:operation-uri (:juxt.site/operation-uri ctx)})))
   ;; Prepare the transaction - this work happens prior to the
-  ;; transaction, one a single node, and may be wasted work if
-  ;; the transaction ultimately fails. However, it is a good
-  ;; place to do anything that is non-deterministic which can't
-  ;; be done in the transaction, such as computing secure random
-  ;; numbers.
+  ;; transaction, on a single node, and may be wasted work if the
+  ;; transaction ultimately fails. However, it is a good place to do
+  ;; anything that is non-deterministic which can't be done in the
+  ;; transaction, such as computing secure random numbers.
   (let [prepare (do-prepare operation ctx)]
     (if-let [tx-ops (:juxt.site/tx-ops prepare)]
       ;; A special case where the prepare program has returned the
