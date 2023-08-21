@@ -2,6 +2,8 @@
 
 (ns juxt.site.test-helpers.init
   (:require
+   [juxt.site.test-helpers.install :as install]
+   [juxt.site.install.common-install-util :as ciu]
    [juxt.site.test-helpers.local-files-util :as local]))
 
 (def CONFIG

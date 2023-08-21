@@ -23,8 +23,6 @@
             "application/edn" (clojure.edn/read-string body)
             "application/json" (jsonista.core/read-value-with-keywords body))
 
-          ;; TODO: We must include a permissions check for each
-          ;; installer. Make this a new transaction function.
           tx-ops (juxt.site/installer-seq->tx-ops installer-seq)]
 
       {:juxt.site/tx-ops tx-ops})}

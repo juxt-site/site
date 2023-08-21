@@ -44,7 +44,7 @@
              :where [['e :xt/id (set operations)]
                      ['e :juxt.site/rules 'rules]]})))
 
-(defn- check-permissions
+(defn check-permissions
   [{:juxt.site/keys [db subject-uri operation-uri resource-uri scope purpose]}]
 
   (assert (or (nil? subject-uri) (string? subject-uri)))
@@ -115,7 +115,7 @@
         permissions
         (throw
          (ex-info
-          "Operation denied, no permission"
+          (format "Operation denied, no permission (subject: %s, operation: %s)" subject-uri operation-uri)
           {::type :no-permission
            :juxt.site/subject-uri subject-uri
            :juxt.site/operation-uri operation-uri
@@ -468,12 +468,15 @@
 
       'installer-seq->tx-ops
       (fn [installer-seq]
-        ;; TODO: Warning, illegal use of db in prepare. Rather, we
-        ;; should pull out the operations and their hashes, creating a
-        ;; mapping for installer-seq->tx-ops to map operation-uri to
-        ;; an operation, and ensure that the same operation used in
-        ;; the prepare is used in the transact (via a hash).
-        (installer-seq->tx-ops (:juxt.site/db ctx) installer-seq))}}
+        (installer-seq->tx-ops
+         (:juxt.site/subject-uri ctx)
+         ;; TODO: Warning, illegal use of db in prepare. Rather, we
+         ;; should pull out the operations and their hashes, creating a
+         ;; mapping for installer-seq->tx-ops to map operation-uri to
+         ;; an operation, and ensure that the same operation used in
+         ;; the prepare is used in the transact (via a hash).
+         (:juxt.site/db ctx)
+         installer-seq))}}
 
     (common-sci-namespaces operation))
 
@@ -572,13 +575,21 @@
 
     (xt/db xt-node tx)))
 
-(defn prepare-operation [{:keys [entities-by-id current-operation-index] :as acc}
-                         {:juxt.site/keys [subject-uri operation-uri input]}
-                         operation-in-db]
+(defn- prepare-operation
+  [{:keys [entities-by-id current-operation-index] :as acc}
+   real-subject-uri ;; the subject performing this operation
+   {:juxt.site/keys [subject-uri operation-uri input]}
+   operation-in-db]
+
+  ;; TODO: Assert that we either have a real-subject-uri
+  ;; or (installer) subject-uri but not both. This will alert us to
+  ;; cases where there is ambiguity, and allow us to push back hard on
+  ;; system subject until it's minimised or got rid of altogether.
+
   (try
     (update acc :tx-ops concat
             (prepare-tx-op
-             (cond-> {:juxt.site/subject-uri subject-uri
+             (cond-> {:juxt.site/subject-uri (or real-subject-uri subject-uri)
                       :juxt.site/operation-uri operation-uri
                       :juxt.site/operation-index current-operation-index
                       :juxt.site/operation
@@ -601,7 +612,7 @@
   "Given a sequence of installers, return a collection of XTDB
   transaction operations. The db argument is used to lookup the
   operation which is required when preparing the transaction."
-  [db installers]
+  [subject-uri db installers]
 
   (let [{:keys [tx-ops errors]}
         (->> installers
@@ -628,7 +639,7 @@
                   (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
                   (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
 
-                  operation-uri (prepare-operation installer (xt/entity db operation-uri))
+                  operation-uri (prepare-operation subject-uri installer (xt/entity db operation-uri))
 
                   ;; Increment operation-index
                   current-operation-index (update :current-operation-index inc)))

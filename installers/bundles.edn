@@ -41,6 +41,14 @@
     :juxt.site/installer-path "/_site/roles/{{role}}"
     :juxt.site/parameters {"role" "Admin"}
     :juxt.site/description "This role grants access to most administrative operations"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/description "Let Admin create operations"
+    :juxt.site/installer-path "/_site/permissions/Admin/create-operation"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/description "Let Admin grant permission to operations"
+    :juxt.site/installer-path "/_site/permissions/Admin/grant-permission"}
    ]}
 
  "juxt/site/api-operations"
@@ -130,7 +138,14 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SystemQuery"
-                           "operation" "get-api-endpoints"}}]}
+                           "operation" "get-api-endpoints"}}
+
+   ;; Not sure where this belongs!
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin"
+                           "operation" "oauth/register-scope"}}
+   ]}
 
  "juxt/site/openapis-api"
  {:juxt.site/title "OpenAPIs API"
@@ -397,6 +412,24 @@
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-protection-space"}]}
+
+ #_"juxt/site/system-api-openapi-a"
+ #_{:juxt.site/installers
+  [
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/system/put-openapi-document"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "Admin"
+                           "operation" "put-openapi-document"}}]}
+
+ #_"juxt/site/system-api-openapi-b"
+ #_{:juxt.site/installers
+  [
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/openapi.json"}
+   ]}
 
  "juxt/site/system-api-openapi"
  {:juxt.site/title "System API OpenAPI"
