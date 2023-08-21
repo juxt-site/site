@@ -150,7 +150,9 @@
   install
   {:doc "Install bundle"
    :opts {:args->opts [:bundle]
-          :coerce {:bundle []}}
+          :alias {:n :debug}
+          :coerce {:bundle []
+                   :debug :boolean}}
    :task (juxt.site.bb.tasks/install-bundle-task
           (juxt.site.bb.tasks/parse-opts))}
 

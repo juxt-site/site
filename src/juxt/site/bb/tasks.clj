@@ -543,14 +543,15 @@
          (io/file (get cfg "installers-home"))
          uri-map)]
 
-    (->> (ciu/installer-seq installer-map parameters installers)
-         (map :juxt.site/init-data))))
+    (ciu/installer-seq installer-map parameters installers)))
 
 (defn bundle [{bundle-name :bundle :as opts}]
   (let [cfg (config opts)
         bundle (get (bundles cfg) bundle-name)]
     (if bundle
-      (pprint (bundle* cfg bundle opts))
+      (pprint
+       (->> (bundle* cfg bundle opts)
+            (map :juxt.site/init-data)))
       (stderr (println (format "Bundle not found: %s" bundle-name))))))
 
 (defn random-string [size]
@@ -637,21 +638,26 @@
           :throw false})]
     (case status
       200 (print body)
-      (print status body))))
+      (if (str/blank? body)
+        (println status)
+        (print status body)))))
 
-(defn- install-bundle [cfg bundle params opts]
+(defn- install-bundle [cfg bundle params {:keys [debug] :as opts}]
   (assert bundle)
   (let [title (get bundle :juxt.site/title)
-        param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))]
-    (println
-     (if (str/blank? param-str)
-       (format "Installing: %s" title)
-       (format "Installing: %s with %s" title param-str)))
-    (install
-     opts
-     (bundle* cfg bundle (into opts (for [[k v] params] [(name k) v]))))))
+        param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))
+        installers-seq (bundle* cfg bundle (into opts (for [[k v] params] [(name k) v])))]
+    (if debug
+      (pprint installers-seq)
+      (do
+        (println
+         (if (str/blank? param-str)
+           (format "Installing: %s" title)
+           (format "Installing: %s with %s" title param-str)))
+        (install opts (->> installers-seq
+                           (map :juxt.site/init-data)))))))
 
-(defn install-bundle-task [{bundle-names :bundle :as opts}]
+(defn install-bundle-task [{bundle-names :bundle _ :debug :as opts}]
   (let [cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         resources-uri (str data-base-uri "/_site/resources")
@@ -860,8 +866,11 @@
               :body json-body
               :throw false})]
 
-        (print status body)
-        (.flush *out*)))))
+        (if (str/blank? body)
+          (println status)
+          (do
+            (print status body)
+            (.flush *out*)))))))
 
 ;; site install-openapi demo/petstore/openapi.json
 (defn install-openapi-task [opts]
