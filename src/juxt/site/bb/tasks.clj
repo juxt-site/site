@@ -529,7 +529,7 @@
        :else node))
    installers))
 
-(defn- bundle* [cfg {:juxt.site/keys [parameters installers]} opts]
+(defn- installers-seq [cfg {:juxt.site/keys [parameters installers]} opts]
   (let [uri-map (get cfg "uri-map")
 
         parameters
@@ -550,7 +550,7 @@
         bundle (get (bundles cfg) bundle-name)]
     (if bundle
       (pprint
-       (->> (bundle* cfg bundle opts)
+       (->> (installers-seq cfg bundle opts)
             (map :juxt.site/init-data)))
       (stderr (println (format "Bundle not found: %s" bundle-name))))))
 
@@ -646,7 +646,7 @@
   (assert bundle)
   (let [title (get bundle :juxt.site/title)
         param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))
-        installers-seq (bundle* cfg bundle (into opts (for [[k v] params] [(name k) v])))]
+        installers-seq (installers-seq cfg bundle (into opts (for [[k v] params] [(name k) v])))]
     (if debug
       (pprint installers-seq)
       (do
