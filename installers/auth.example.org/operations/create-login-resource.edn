@@ -68,4 +68,21 @@ Password: <input name=password type=password>
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)
-     [permission :juxt.site/subject subject]]]}}}
+     [permission :juxt.site/subject subject]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/user-identity id]
+     [id :juxt.site/user user]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/user user]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/application app]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/application app]]]}}}

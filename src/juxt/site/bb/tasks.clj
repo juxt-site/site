@@ -748,6 +748,9 @@
            ["juxt/site/users-api" {}]
            ["juxt/site/endpoints-api" {}]
            ["juxt/site/openapis-api" {}]
+
+           ["juxt/site/sessions" {}]
+
            ;; RFC 7662 token introspection
            ["juxt/site/oauth-introspection-endpoint" {}]
            ;; Register the clients
