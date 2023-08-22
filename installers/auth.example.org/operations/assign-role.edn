@@ -59,6 +59,13 @@
     ;; documents.
     [[:xtdb.api/put *prepare*]]}
 
+   ;; This operation can be performed via its URI
+   :juxt.site/methods
+   {:post {:juxt.site/operation "{{$id}}"
+           :juxt.site/acceptable {"accept" "application/json,application/edn"}}}
+
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)
@@ -80,12 +87,5 @@
      [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
      [role-assignment :juxt.site/role role]
      [role-assignment :juxt.site/application app]]]
-
-   ;; This operation can be performed via its URI
-   :juxt.site/methods
-   {:post {:juxt.site/operation "{{$id}}"
-           :juxt.site/acceptable {"accept" "application/json,application/edn"}}}
-
-   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 
    }}}

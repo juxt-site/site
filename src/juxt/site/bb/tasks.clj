@@ -750,6 +750,8 @@
            ["juxt/site/openapis-api" {}]
 
            ["juxt/site/sessions" {}]
+           ["juxt/site/protection-spaces" {}]
+           ["juxt/site/roles" {}]
 
            ;; RFC 7662 token introspection
            ["juxt/site/oauth-introspection-endpoint" {}]
