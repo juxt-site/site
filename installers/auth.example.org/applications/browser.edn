@@ -9,5 +9,5 @@
    :juxt.site/client-type "public"
    :juxt.site/authorization-server "https://auth.example.org"
    :juxt.site/resource-server "https://data.example.org"
-   :juxt.site/redirect-uris ["https://auth.example.org/oauth/browser-oauth-redirect.html"]
+   :juxt.site/redirect-uris ["https://data.example.org/_site/browser/browser-oauth-redirect.html"]
    :juxt.site/scope #{"https://auth.example.org/scopes/system/read"}}}}

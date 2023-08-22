@@ -594,8 +594,8 @@
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/applications/browser"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/oauth/browser-oauth-redirect.html"}]}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/browser/browser-oauth-redirect.html"}]}
 
  "juxt/site/example-users"
  {:juxt.site/description "Example users"

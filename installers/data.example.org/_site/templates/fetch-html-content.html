@@ -12,6 +12,8 @@
     to help the user-agent to authorize itself as a client.
 
   </details>
+  <button id="authorize">Authorize</button>
+  <button id="get-content">Get content</button>
 </div>
 <script type="module">
 
@@ -20,15 +22,42 @@
 
   registerOAuth2Worker();
 
-  authorize({
-    origin: "https://data.example.org",
-    client_id: "browser",
-    authorization_endpoint: "https://auth.example.org/oauth/authorize",
-    token_endpoint: "https://auth.example.org/oauth/token",
-    redirect_uri: "https://auth.example.org/oauth/browser-oauth-redirect.html",
-    requested_scopes: [],
-  });
+  function authorizeCallback() {
+    authorize({
+      origin: "https://data.example.org",
+      client_id: "browser",
+      authorization_endpoint: "https://auth.example.org/oauth/authorize",
+      token_endpoint: "https://auth.example.org/oauth/token",
+      redirect_uri: "https://data.example.org/_site/browser/browser-oauth-redirect.html",
+      requested_scopes: [],
+    })
+  };
 
-//  fetchAndReplaceContent('{{content-src}}', '709f15a109e522e448b2c1f5d29c03b2');
+  document.getElementById('authorize').addEventListener('click', authorizeCallback);
+
+  async function getContent() {
+    console.log("FETCHING: {{content-src}}");
+    try {
+      const response = await fetch('{{content-src}}', {
+	method: 'GET',
+	headers: {
+          'Accept': 'text/html'
+	}
+      });
+
+      if (!response.ok) {
+	throw new Error('Network response was not ok');
+      }
+
+      const htmlContent = await response.text();
+      document.getElementById('content').innerHTML = htmlContent;
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error.message);
+    }
+  }
+
+  document.getElementById('get-content').addEventListener('click', getContent);
+
+
 </script>
 {% endblock %}

@@ -110,7 +110,8 @@ async function authorize(config) {
   localStorage.setItem("oauth2_client_id", config.client_id);
   localStorage.setItem("oauth2_token_endpoint", config.token_endpoint);
   localStorage.setItem("oauth2_redirect_uri", config.redirect_uri);
-  location.href = url;
+  window.open(url);
+//  location.href = url;
 }
 async function registerOAuth2Worker() {
   // TODO: Move this to auth.example.org, so it is not loaded by this service worker
