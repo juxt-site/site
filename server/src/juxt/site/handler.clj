@@ -487,7 +487,7 @@
     (let [res (h req)]
       (cond-> res
         ;; Don't allow Google to track your site visitors. Disable FLoC.
-        true (assoc-in [:ring.response/headers "Permissions-Policy"] "interest-cohort=()")))))
+        false (assoc-in [:ring.response/headers "Permissions-Policy"] "interest-cohort=()")))))
 
 (defn titlecase-response-headers [headers]
   (reduce-kv
