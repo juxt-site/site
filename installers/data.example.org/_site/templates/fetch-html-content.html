@@ -1,8 +1,9 @@
 {% extends "https://data.example.org/_site/templates/document-base.html" %}
 {% block content %}
-<div id='content' style="border: 1px dotted black; margin: 2pt; padding: 12pt">
+<div>
+  <h1>401 Unauthorized</h1>
   <p>
-    The content in this box will be replaced by the actual HTML table.
+    You are not authorized to view this content. However, you may authorize here and reload the page.
   </p>
   <details>
     <summary>How this works</summary>
@@ -12,12 +13,15 @@
     to help the user-agent to authorize itself as a client.
 
   </details>
-  <button id="authorize">Authorize</button>
-  <button id="get-content">Get content</button>
+  <p>
+    <button id="authorize">Authorize</button> to get a Bearer token.
+  </p>
+  <p>
+    <button id="reload">Reload</button> the page content with this Bearer token.
+  </p>
 </div>
 <script type="module">
 
-  import {fetchAndReplaceContent} from "https://data.example.org/_site/fetch-with-bearer-token.js";
   import {registerOAuth2Worker, authorize} from "https://data.example.org/_site/juxt-pass.js";
 
   registerOAuth2Worker();
@@ -36,7 +40,6 @@
   document.getElementById('authorize').addEventListener('click', authorizeCallback);
 
   async function getContent() {
-    console.log("FETCHING: {{content-src}}");
     try {
       const response = await fetch('{{content-src}}', {
 	method: 'GET',
@@ -50,13 +53,15 @@
       }
 
       const htmlContent = await response.text();
-      document.getElementById('content').innerHTML = htmlContent;
+      document.open();
+      document.write(htmlContent);
+      document.close();
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error.message);
     }
   }
 
-  document.getElementById('get-content').addEventListener('click', getContent);
+  document.getElementById('reload').addEventListener('click', getContent);
 
 
 </script>

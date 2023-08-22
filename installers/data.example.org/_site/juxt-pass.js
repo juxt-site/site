@@ -92,7 +92,8 @@ function exchangeCodeForAccessToken({
     body: payload_params,
     credentials: "include"
   });
-  window.close();
+  //window.opener.postMessage({message: "window closing"}, "*");
+  //window.close();
 }
 async function authorize(config) {
   // store config in service worker
@@ -111,6 +112,8 @@ async function authorize(config) {
   localStorage.setItem("oauth2_token_endpoint", config.token_endpoint);
   localStorage.setItem("oauth2_redirect_uri", config.redirect_uri);
   window.open(url);
+//  window.addEventListener("message", (event) => { console.log(`Received message: ${event}`)});
+
 //  location.href = url;
 }
 async function registerOAuth2Worker() {

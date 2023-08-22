@@ -468,6 +468,8 @@
   :juxt.site/description "See https://github.com/juxt-site/pass"
   :juxt.site/installers
   [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/juxt-pass.js"}
+   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/oauth-service-worker.js"}]}
 
  "demo/petstore/operations"

@@ -51,6 +51,7 @@ function createHeaders(headers, accessToken) {
   // Only add the Authorization header if the user hasn't added a custom one for a given protected resource URL.
   if (!newHeaders.has("Authorization")) {
     newHeaders.set("Authorization", `Bearer ${accessToken}`);
+    newHeaders.set("Accept", "text/html,application/json;q=0.4");
   }
   return newHeaders;
 }
@@ -113,6 +114,7 @@ function isTokenEndpoint(url) {
       return value;
     }
   }
+  return false;
 }
 
 // This function intercepts all responses, but only handles the ones from the token endpoint.
