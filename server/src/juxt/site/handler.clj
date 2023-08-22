@@ -897,7 +897,8 @@
                            (fn [file context-map]
                              (selmer/render-file
                               file context-map
-                              {:url-stream-handler
+                              {:cache false ;; TODO: Possible allow caller to control this?
+                               :url-stream-handler
                                (proxy [java.net.URLStreamHandler] []
                                  (openConnection [url]
                                    (proxy [java.net.URLConnection] [url]
