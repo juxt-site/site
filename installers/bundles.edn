@@ -381,14 +381,15 @@
  "juxt/site/oauth-authorization-endpoint"
  {:juxt.site/title "OAuth2 authorization endpoint"
   :juxt.site/description "OAuth2 authorization endpoint"
-  :juxt.site/parameters [["session-scope"
-                          {:choices
-                           [{:label "Password-based form"
-                             :value "https://auth.example.org/session-scopes/form-login-session"}
-                            {:label "OpenID Connect"
-                             :value "https://auth.example.org/session-scopes/openid-login-session"}]}]
-                         ["authorization-code-length" {:default 20}]
-                         ["jti-length" {:default 20}]]
+  :juxt.site/parameters
+  [["session-scope"
+    {:choices
+     [{:label "Password-based form"
+       :value "https://auth.example.org/session-scopes/form-login-session"}
+      {:label "OpenID Connect"
+       :value "https://auth.example.org/session-scopes/openid-login-session"}]}]
+   ["authorization-code-length" {:default 20}]
+   ["jti-length" {:default 20}]]
   :juxt.site/installers
   [
    ;; System permissions required (for tests, mostly)
