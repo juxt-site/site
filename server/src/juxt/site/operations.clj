@@ -121,7 +121,15 @@
            :juxt.site/operation-uri operation-uri
            :juxt.site/resource-uri resource-uri
            :juxt.site/query query
-           :juxt.site/scope scope}))))))
+           :juxt.site/scope scope
+           :juxt.site/error
+           {:juxt.site/ex-data
+            (if-not subject-uri
+              {:ring.response/status 401
+               :ring.response/body "<!DOCTYPE html><h1>Unauthorized</h1>"}
+
+              {:ring.response/status 403
+               :ring.response/body "<!DOCTYPE html><h1>Forbidden</h1>"})}}))))))
 
 (defn allowed-resources
   "Given a set of possible operations, and possibly a subject and purpose, which
