@@ -241,12 +241,16 @@
                  {:namespaces
                   (merge
                    {'user {'*operation* operation
-                           '*resource* (:juxt.site/resource req)
+                           '*resource* (:juxt.site/base-resource req)
                            '*ctx* (dissoc req :juxt.site/xt-node)
                            'log (fn [& message]
                                   (eval `(log/info ~(str/join " " message))))
                            'logf (fn [& args]
                                    (eval `(log/infof ~@args)))}
+                    
+                    'ring.util.codec
+                    {'form-decode ring.util.codec/form-decode}
+                    
                     'xt
                     {'entity
                      (fn [id] (xt/entity (:juxt.site/db req) id))
@@ -279,7 +283,10 @@
                      (fn [m]
                        (operations/allowed-operations
                         (:juxt.site/db req)
-                        (merge {:juxt.site/subject subject} m)))}
+                        (merge {:juxt.site/subject subject} m)))
+                     'query-params
+                     (fn []
+                       (ring.util.codec/form-decode (:ring.request/query req)))}
 
                     'juxt.site.logging
                     {'log-events (fn [] (logging/log-events))}})
@@ -435,7 +442,8 @@
               (not= (:xt/id variant) (:xt/id base-resource))
               (assoc :juxt.site/variant-of (:xt/id base-resource))))]
       (h (cond-> req
-           variant (assoc :juxt.site/resource variant))))))
+           variant (assoc :juxt.site/resource variant
+                          :juxt.site/base-resource base-resource))))))
 
 (defn wrap-http-authenticate [h]
   (fn [req]

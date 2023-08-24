@@ -33,14 +33,14 @@
              (first
               (xt/q
                db
-               '{:find [(pull resource [*]) grps]
+               '{:find [(pull resource [*]) groups]
                  :keys [resource groups]
                  :where [[resource :juxt.site/uri-template true]
                          ;; Compile the URI to a java.util.regex.Pattern
                          [(juxt.site.locator/to-regex resource) pat]
-                         [(re-matches pat uri) grps]
-                         [(first grps) grp0]
-                         [(some? grp0)]]
+                         [(re-matches pat uri) groups]
+                         [(first groups) group0]
+                         [(some? group0)]]
                  :in [uri]}
                uri))]
     (assoc
@@ -53,17 +53,12 @@
       (next groups)))))
 
 (defn locate-resource
-  "Call each locate-resource defmethod, in a particular order, ending
-  in :default."
+  "With a given uri, locate a resource"
   [{:juxt.site/keys [db uri]}]
 
   (assert uri)
   (assert db)
   (or
-   ;; Deprecated. Will be replaced with simple resources that contain enough
-   ;; OpenAPI metadata to render a openapi.json document. Isomorphic.
-   ;; (openapi/locate-resource db uri req)
-
    ;; Is it in XTDB?
    (when-let [e (xt/entity db uri)]
      (when-not (:juxt.site/uri-template e)

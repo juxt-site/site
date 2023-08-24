@@ -295,7 +295,7 @@
         ],
         "summary": "Find pet by ID",
         "description": "Returns a single pet",
-        "operationId": "getPetById",
+        "operationId": "https://auth.example.org/operations/petstore/get-pet-by-id",
         "parameters": [
           {
             "name": "petId",
