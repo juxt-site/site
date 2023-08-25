@@ -2,13 +2,13 @@
 
 (ns juxt.site.response)
 
-(defn add-payload [{:juxt.site/keys [resource]
+(defn add-payload [{:juxt.site/keys [resource variant]
                     :ring.request/keys [method]
                     :as req}]
   ;; Should not be called if method is HEAD
   (assert (not= method :head))
 
-  (let [{:juxt.http/keys [body content]} resource]
+  (let [{:juxt.http/keys [body content]} (or variant resource)]
     (cond
       ;; TODO: Fish out the charset from the content-type of the resource and
       ;; use when converting to bytes.

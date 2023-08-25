@@ -209,7 +209,7 @@
 
               {:juxt.http/body body}))))))))
 
-(defn GET [{:juxt.site/keys [resource subject]
+(defn GET [{:juxt.site/keys [resource variant subject]
             :as req}]
 
   ;; TODO: Is a HEAD cacheable?
@@ -217,6 +217,7 @@
   (conditional/evaluate-preconditions! req)
 
   (let [req (assoc req :ring.response/status 200)
+        resource (or variant resource)
         operation (:juxt.site/operation req)]
 
     (cond
@@ -241,7 +242,7 @@
                  {:namespaces
                   (merge
                    {'user {'*operation* operation
-                           '*resource* (:juxt.site/base-resource req)
+                           '*resource* (:juxt.site/resource req)
                            '*ctx* (dissoc req :juxt.site/xt-node)
                            'log (fn [& message]
                                   (eval `(log/info ~(str/join " " message))))
@@ -435,7 +436,7 @@
       (h req))))
 
 (defn wrap-negotiate-representation [h]
-  (fn [{base-resource :juxt.site/resource
+  (fn [{resource :juxt.site/resource
         cur-reps :juxt.site/current-representations
         :as req}]
     (let [variant (when (seq cur-reps)
@@ -443,11 +444,10 @@
           variant
           (when variant
             (cond-> variant
-              (not= (:xt/id variant) (:xt/id base-resource))
-              (assoc :juxt.site/variant-of (:xt/id base-resource))))]
+              (not= (:xt/id variant) (:xt/id resource))
+              (assoc :juxt.site/variant-of (:xt/id resource))))]
       (h (cond-> req
-           variant (assoc :juxt.site/resource variant
-                          :juxt.site/base-resource base-resource))))))
+           variant (assoc :juxt.site/variant variant))))))
 
 (defn wrap-http-authenticate [h]
   (fn [req]
@@ -517,9 +517,10 @@
 
 (defn add-headers [headers
                    {:ring.request/keys [method]
-                    :juxt.site/keys [resource]}
+                    :juxt.site/keys [variant resource]}
                    body]
-  (let [method (if (= method :head) :get method)]
+  (let [method (if (= method :head) :get method)
+        resource (or variant resource)]
     (cond-> headers
       (:juxt.http/content-length resource)
       (assoc "content-length" (or
