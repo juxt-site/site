@@ -40,10 +40,10 @@
       "authorization-code-length" 12
       "jti-length" 12}]
     "juxt/site/oauth-token-endpoint"
-    ;; Alice has the Admin role which confers access to put-user
+    ;; Alice has the SiteAdmin role which confers access to put-user
     ["juxt/site/user-role-assignment"
      {"username" "alice"
-      "rolename" "Admin"}]
+      "rolename" "SiteAdmin"}]
     ;; ... whereas Bob has the SystemQuery role which doesn't
     ["juxt/site/user-role-assignment"
      {"username" "bob"

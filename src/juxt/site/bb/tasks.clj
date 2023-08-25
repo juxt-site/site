@@ -802,8 +802,8 @@
       (print status body))))
 
 ;; Grant alice a role
-;; jo -- -s juxt.site/user=http://localhost:4444/_site/users/alice juxt.site/role=http://localhost:4444/_site/roles/Admin | curl --json @- http://localhost:4440/operations/assign-role
-;; site assign-user-role --username alice --role Admin
+;; jo -- -s juxt.site/user=http://localhost:4444/_site/users/alice juxt.site/role=http://localhost:4444/_site/roles/SiteAdmin | curl --json @- http://localhost:4440/operations/assign-role
+;; site assign-user-role --username alice --role SiteAdmin
 (defn assign-user-role [opts]
   (let [cfg (config opts)
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
@@ -897,7 +897,7 @@
              :fullname "Malcolm Sparks"} opts))
     (assign-user-role
      (merge {:username "mal"
-             :role "Admin"} opts))
+             :role "SiteAdmin"} opts))
     (if-let [token (request-token
                     (merge {:username "mal"
                             :password password
@@ -905,7 +905,7 @@
       (save-access-token token)
       (throw (ex-info "Failed to get token" {})))))
 
-;; Call this with a user in the Admin role
+;; Call this with a user in the SiteAdmin role
 (defn install-openapi-support [opts]
   (let [cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]

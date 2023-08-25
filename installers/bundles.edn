@@ -39,16 +39,16 @@
 
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/roles/{{role}}"
-    :juxt.site/parameters {"role" "Admin"}
+    :juxt.site/parameters {"role" "SiteAdmin"}
     :juxt.site/description "This role grants access to most administrative operations"}
 
    {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/description "Let Admin create operations"
-    :juxt.site/installer-path "/_site/permissions/Admin/create-operation"}
+    :juxt.site/description "Let SiteAdmin create operations"
+    :juxt.site/installer-path "/_site/permissions/SiteAdmin/create-operation"}
 
    {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/description "Let Admin grant permission to operations"
-    :juxt.site/installer-path "/_site/permissions/Admin/grant-permission"}
+    :juxt.site/description "Let SiteAdmin grant permission to operations"
+    :juxt.site/installer-path "/_site/permissions/SiteAdmin/grant-permission"}
    ]}
 
  "juxt/site/api-operations"
@@ -62,12 +62,12 @@
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "put-api-endpoint"}}
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "put-resource"}}]}
 
  "juxt/site/resources-api"
@@ -84,7 +84,7 @@
     :juxt.site/parameters {"role" "Bootstrap" "operation" "install-resources"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin" "operation" "install-resources"}}]}
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "install-resources"}}]}
 
  "juxt/site/logs-api"
  {:juxt.site/title "Logs API"
@@ -107,7 +107,7 @@
     :juxt.site/parameters {"role" "Bootstrap" "operation" "get-logs"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin" "operation" "get-logs"}}]}
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-logs"}}]}
 
  "juxt/site/events-api"
  {:juxt.site/title "Events API"
@@ -127,7 +127,7 @@
     :juxt.site/parameters {"role" "Bootstrap" "operation" "get-events"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin" "operation" "get-events"}}]}
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-events"}}]}
 
  "juxt/site/endpoints-api"
  {:juxt.site/title "API introspection"
@@ -143,7 +143,7 @@
     :juxt.site/installer-path "/_site/api-endpoints.csv"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "get-api-endpoints"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
@@ -153,7 +153,7 @@
    ;; Not sure where this belongs!
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "oauth/register-scope"}}
    ]}
 
@@ -182,12 +182,12 @@
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "post-openapi"}}
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "get-openapis"}}]}
 
  "juxt/site/users-api"
@@ -216,22 +216,22 @@
     :juxt.site/installer-path "/_site/users/{username}"}
 
    ;; Role assignments
-   ;; Admin role
+   ;; SiteAdmin role
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "get-users"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "get-user"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "put-user"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "assign-role"}}
 
    ;; Bootstrap role
@@ -366,7 +366,7 @@
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "oauth/register-application"}}]}
 
  "juxt/site/keypair"
@@ -399,10 +399,10 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/oauth/install-authorize-endpoint"}
 
-   ;; Permission to call the operation as Admin
+   ;; Permission to call the operation as SiteAdmin
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "oauth/install-authorize-endpoint"}}
 
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/authorize"}
@@ -443,7 +443,7 @@
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "put-protection-space"}}]}
 
  "juxt/site/system-api-openapi"
@@ -457,7 +457,7 @@
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "put-openapi-document"}}
 
    {:juxt.site/base-uri "https://data.example.org"
@@ -508,7 +508,7 @@
       :juxt.site/installer-path "/permissions/system/put-session-scope"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "put-session-scope"}}]}
 
  "juxt/site/user-model"
@@ -530,7 +530,7 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/create-login-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "create-login-resource"}}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/login-with-form"}
    ]}
@@ -542,7 +542,7 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/create-logout-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "create-logout-resource"}}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/logout"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/logout"}
@@ -772,14 +772,14 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/put-role"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "put-role"}}
 
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/assign-role"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/assign-role"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Admin"
+    :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "assign-role"}}
    ]}
 

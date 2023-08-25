@@ -111,7 +111,7 @@
               "fullname" "Alice"})
             (assign-user-role
              {"username" "alice"
-              "role" "Admin"}))]))
+              "role" "SiteAdmin"}))]))
 
 (defn admin-user-fixture [f] (create-admin-user) (f))
 

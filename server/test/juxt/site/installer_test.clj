@@ -34,7 +34,7 @@
 
             (assign-user-role
              {"username" "alice"
-              "role" "Admin"}))
+              "role" "SiteAdmin"}))
 
         alice-token (request-token
                      {"username" "alice"

@@ -25,7 +25,7 @@
    ;;:juxt.site/uri-prefix "https://my.juxt.site"
    :juxt.site/dynamic? false}
 
-  ;; Admin server is only locally bound
+  ;; SiteAdmin server is only locally bound
   :juxt.site.admin-server/listener
   {:juxt.site/xt-node #ig/ref :juxt.site.db/xt-node
    :juxt.site/port 4911
