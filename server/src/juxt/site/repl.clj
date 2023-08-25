@@ -54,7 +54,9 @@
 (defn grep [re coll]
   (filter #(re-matches (re-pattern re) %) coll))
 
-(defn rm! [& ids]
+(defn rm!
+  "Remove id(s) from the database"
+  [& ids]
   (->>
    (xt/submit-tx
     (xt-node)
