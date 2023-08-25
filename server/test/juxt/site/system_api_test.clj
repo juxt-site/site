@@ -44,14 +44,14 @@
     ["juxt/site/user-role-assignment"
      {"username" "alice"
       "rolename" "SiteAdmin"}]
-    ;; ... whereas Bob has the SystemQuery role which doesn't
+    ;; ... whereas Bob has the SiteSystemQuery role which doesn't
     ["juxt/site/user-role-assignment"
      {"username" "bob"
       "rolename" "SystemReadonly"}]
     "juxt/site/system-test-clients"
     ["juxt/site/application-role-assignment"
      {"clientid" "site-cli"
-      "rolename" "SystemQuery"}]]
+      "rolename" "SiteSystemQuery"}]]
    RESOURCE_SERVER)
 
   ;; TODO: Analyse the performance cost of install-bundles!

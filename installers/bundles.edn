@@ -18,7 +18,7 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/config"}
    {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/config"}
 
-   ;; A Bootstrap role for allowing site-cli and insite to add users
+   ;; A SiteBootstrap role for allowing site-cli and insite to add users
    ;; and grant permissions.
    ;;
    ;; TODO: Could
@@ -29,12 +29,12 @@
    ;;
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/roles/{{role}}"
-    :juxt.site/parameters {"role" "Bootstrap"}
+    :juxt.site/parameters {"role" "SiteBootstrap"}
     :juxt.site/description "This role grants access to operations that can add users and grant permissions."}
 
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/roles/{{role}}"
-    :juxt.site/parameters {"role" "SystemQuery"}
+    :juxt.site/parameters {"role" "SiteSystemQuery"}
     :juxt.site/description "This role grants access to operations that query sensitive system information."}
 
    {:juxt.site/base-uri "https://data.example.org"
@@ -81,7 +81,7 @@
    ;; Permissions (mapping roles to operations)
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Bootstrap" "operation" "install-resources"}}
+    :juxt.site/parameters {"role" "SiteBootstrap" "operation" "install-resources"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "install-resources"}}]}
@@ -104,7 +104,7 @@
    ;; Permissions (mapping roles to operations)
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Bootstrap" "operation" "get-logs"}}
+    :juxt.site/parameters {"role" "SiteBootstrap" "operation" "get-logs"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-logs"}}]}
@@ -124,7 +124,7 @@
    ;; Permissions (mapping roles to operations)
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Bootstrap" "operation" "get-events"}}
+    :juxt.site/parameters {"role" "SiteBootstrap" "operation" "get-events"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-events"}}]}
@@ -147,7 +147,7 @@
                            "operation" "get-api-endpoints"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SystemQuery"
+    :juxt.site/parameters {"role" "SiteSystemQuery"
                            "operation" "get-api-endpoints"}}
 
    ;; Not sure where this belongs!
@@ -234,7 +234,7 @@
     :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "assign-role"}}
 
-   ;; Bootstrap role
+   ;; SiteBootstrap role
    ;; It is necessary for bootstrapping to be able to create a user
 
    ;; We could use our permission to install-resources but the user of
@@ -242,21 +242,21 @@
    ;; parameters.
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Bootstrap"
+    :juxt.site/parameters {"role" "SiteBootstrap"
                            "operation" "put-user"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "Bootstrap"
+    :juxt.site/parameters {"role" "SiteBootstrap"
                            "operation" "assign-role"}}
 
-   ;; SystemQuery
+   ;; SiteSystemQuery
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SystemQuery"
+    :juxt.site/parameters {"role" "SiteSystemQuery"
                            "operation" "get-users"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SystemQuery"
+    :juxt.site/parameters {"role" "SiteSystemQuery"
                            "operation" "get-user"}}]}
 
  "juxt/site/whoami-api"
@@ -296,7 +296,7 @@
      {:juxt.site/base-uri "https://data.example.org"
       :juxt.site/installer-path "/_site/operations.edn"}
 
-     ;; Roles (deprecated, replaced with Bootstrap and SystemQuery)
+     ;; Roles (deprecated, replaced with SiteBootstrap and SiteSystemQuery)
      {:juxt.site/base-uri "https://data.example.org"
       :juxt.site/installer-path "/_site/roles/{{role}}"
       :juxt.site/parameters {"role" "System"}}
@@ -578,7 +578,7 @@
 
  "juxt/site/system-client"
  {:juxt.site/title "System client"
-  :juxt.site/description "Register a client with the Bootstrap and SystemQuery roles. System clients are able to authenticate themselves with the client_credentials grant."
+  :juxt.site/description "Register a client with the SiteBootstrap and SiteSystemQuery roles. System clients are able to authenticate themselves with the client_credentials grant."
   :juxt.site/parameters [["client-id" {}]]
   :juxt.site/installers
   [
@@ -590,12 +590,12 @@
     :juxt.site/installer-path "/_site/application-role-assignments/{{clientid}}-{{rolename}}"
     :juxt.site/parameters
     {"clientid" "{{client-id}}"
-     "rolename" "Bootstrap"}}
+     "rolename" "SiteBootstrap"}}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/application-role-assignments/{{clientid}}-{{rolename}}"
     :juxt.site/parameters
     {"clientid" "{{client-id}}"
-     "rolename" "SystemQuery"}}]}
+     "rolename" "SiteSystemQuery"}}]}
 
  "juxt/site/browser-client"
  {:juxt.site/title "Browser client"

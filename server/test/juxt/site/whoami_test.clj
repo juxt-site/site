@@ -51,7 +51,7 @@
     "juxt/site/system-api-openapi"
     ["juxt/site/user-role-assignment"
      {"username" "alice"
-      "rolename" "SystemQuery"}]]
+      "rolename" "SiteSystemQuery"}]]
    RESOURCE_SERVER))
 
 (defn bootstrap-fixture [f]
@@ -97,4 +97,4 @@
             edn (edn/read-string body)]
         (is (= 200 status))
         (is (= "application/edn" (get headers "content-type")))
-        (is (= ["https://data.example.test/_site/roles/SystemQuery"] (:juxt.site/roles edn)))))))
+        (is (= ["https://data.example.test/_site/roles/SiteSystemQuery"] (:juxt.site/roles edn)))))))
