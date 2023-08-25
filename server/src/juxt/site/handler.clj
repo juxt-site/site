@@ -247,10 +247,10 @@
                                   (eval `(log/info ~(str/join " " message))))
                            'logf (fn [& args]
                                    (eval `(log/infof ~@args)))}
-                    
+
                     'ring.util.codec
                     {'form-decode ring.util.codec/form-decode}
-                    
+
                     'xt
                     {'entity
                      (fn [id] (xt/entity (:juxt.site/db req) id))
@@ -408,16 +408,20 @@
 
 (defn wrap-find-current-representations
   [h]
-  (fn [{:ring.request/keys [method]
+  (fn [{method :ring.request/method
+        resource :juxt.site/resource
         :as req}]
     (if (#{:get :head :put :post :delete :patch} method)
-      (let [cur-reps (seq (conneg/current-representations req))]
+      (let [cur-reps
+            ;; Don't even look for variants if the resource is not found
+            (when (not= "https://meta.juxt.site/types/not-found" (:juxt.site/type resource))
+              (seq (conneg/current-representations req)))]
         (when (and
                (#{:get :head} method)
                (empty? cur-reps)
-                ;; We might have an operation installed for the GET method. This is
-                ;; rare but used for certain cases such as special
-                ;; redirections. In this case, we don't throw a 404, but return
+               ;; We might have an operation installed for the GET method. This is
+               ;; rare but used for certain cases such as special
+               ;; redirections. In this case, we don't throw a 404, but return
                ;; the result of the operation.
                ;; New note: let's not do this, but rather ensure that there is content, even if it's null content, on the redirection resource.
                ;;(empty? (get-in resource [:juxt.site/methods :get :juxt.site/operations]))
