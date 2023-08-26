@@ -671,10 +671,7 @@
     tx-ops))
 
 (defn transact-sci-opts
-  [db
-   {resource :juxt.site/resource
-    prepare :juxt.site/prepare}
-   subject operation permissions]
+  [db prepare subject operation resource permissions]
   {:namespaces
    (merge-with
     merge
@@ -855,9 +852,11 @@
     subject :juxt.site/subject
     operation-index :juxt.site/operation-index
     operation-uri :juxt.site/operation-uri
-    resource :juxt.site/resource
+    resource :juxt.site/resource ; TODO: can we avoid this?
     purpose :juxt.site/purpose
-    :as ctx}]
+    scope :juxt.site/scope
+    prepare :juxt.site/prepare
+    }]
   (let [db (xt/db xt-ctx)
         tx (xt/indexing-tx xt-ctx)
         _ (assert operation-uri)
@@ -869,7 +868,14 @@
               (format "Operation '%s' not found in db" operation-uri)
               {:operation-uri operation-uri})))
 
-        permissions (check-permissions (assoc ctx :juxt.site/db db))]
+        permissions
+        (check-permissions
+         {:juxt.site/db db
+          :juxt.site/subject-uri subject-uri
+          :juxt.site/operation-uri operation-uri
+          :juxt.site/resource-uri (:xt/id resource)
+          :juxt.site/scope scope
+          :juxt.site/purpose purpose})]
 
     (try
       (assert (or (nil? subject-uri) (string? subject-uri)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
@@ -884,7 +890,7 @@
               (try
                 (sci/eval-string
                  (-> operation :juxt.site/transact :juxt.site.sci/program)
-                 (transact-sci-opts db ctx subject operation permissions))
+                 (transact-sci-opts db prepare subject operation resource permissions))
 
                 (catch clojure.lang.ExceptionInfo e
                   ;; The sci.impl/callstack contains a volatile which isn't freezable.
