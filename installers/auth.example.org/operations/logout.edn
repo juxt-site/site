@@ -5,25 +5,29 @@
   {:xt/id "{{$id}}"
    :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
 
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    {:session-scope (:juxt.site/session-scope *ctx*)
+     :session-token-id (:xt/id (:juxt.site/session-token *ctx*))
+     :session-id (:xt/id (:juxt.site/session *ctx*))
+     :query-params (some-> *ctx* :ring.request/query ring.util.codec/form-decode)}}
+
    :juxt.site/transact
    {
     :juxt.site.sci/program
     #juxt.pprint
-    (let [session-scope (:juxt.site/session-scope *ctx*)
-
-
-
-          query-params (some-> *ctx* :ring.request/query ring.util.codec/form-decode)
+    (let [session-scope (:session-scope *prepare*)
+          query-params (:query-params *prepare*)
           return-to (get query-params "return-to")
           cookie-name (:juxt.site/cookie-name session-scope)
           cookie-path (or (:juxt.site/cookie-path session-scope) "/")
-
-          session-token (:juxt.site/session-token *ctx*)
-          session (:juxt.site/session *ctx*)]
+          session-token-id (:session-token-id *prepare*)
+          session-id (:session-id *prepare*)]
 
       (cond-> []
-        session-token (conj [:xtdb.api/delete (:xt/id session-token)])
-        session (conj [:xtdb.api/delete (:xt/id session)])
+        session-token-id (conj [:xtdb.api/delete session-token-id])
+        session-id (conj [:xtdb.api/delete session-id])
         cookie-name
         (conj [:ring.response/headers
                {"set-cookie"

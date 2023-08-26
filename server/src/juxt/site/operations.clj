@@ -673,9 +673,8 @@
 (defn transact-sci-opts
   [db
    {resource :juxt.site/resource
-    prepare :juxt.site/prepare
-    :as ctx}
-   operation permissions]
+    prepare :juxt.site/prepare}
+   subject operation permissions]
   {:namespaces
    (merge-with
     merge
@@ -684,7 +683,8 @@
       '*resource* resource
       '*permissions* permissions
       '*prepare* prepare
-      '*ctx* ctx}
+      '*subject* subject}
+
      ;; Allowed to access the database
      'xt
      {'entity (fn [id] (xt/entity db id))
@@ -884,7 +884,7 @@
               (try
                 (sci/eval-string
                  (-> operation :juxt.site/transact :juxt.site.sci/program)
-                 (transact-sci-opts db ctx operation permissions))
+                 (transact-sci-opts db ctx subject operation permissions))
 
                 (catch clojure.lang.ExceptionInfo e
                   ;; The sci.impl/callstack contains a volatile which isn't freezable.

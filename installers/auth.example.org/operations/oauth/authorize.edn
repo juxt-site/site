@@ -58,7 +58,8 @@
       (cond-> {:response-type response-type
                :client-id client-id
                :query query
-               :subject (:xt/id subject)}
+               :subject (:xt/id subject)
+               :origin (get-in *ctx* [:ring.request/headers "origin"])}
 
         scope (into {:scope (set (clojure.string/split scope (re-pattern " ")))})
 
@@ -219,7 +220,7 @@
               "Redirect"
               (assoc m :oauth-redirect "error"))))
 
-          origin (get-in *ctx* [:ring.request/headers "origin"])]
+          origin (:origin *prepare*)]
 
       (try
 

@@ -24,7 +24,8 @@
         {:form (-> body (String.) ring.util.codec/form-decode juxt.site.malli/validate-input)
          :subject-id (juxt.site.util/make-nonce 10)
          :session-id (juxt.site.util/make-nonce 16)
-         :session-token (juxt.site.util/make-nonce 16)}))}
+         :session-token (juxt.site.util/make-nonce 16)
+         :query-params (some-> *ctx* :ring.request/query ring.util.codec/form-decode)}))}
 
    :juxt.site/transact
    {
@@ -56,7 +57,7 @@
             _ (when-not session-scope
                 (throw (ex-info "Session scope does not exist in database" {:session-scope session-scope-id})))
 
-            query-params (some-> *ctx* :ring.request/query ring.util.codec/form-decode)
+            query-params (:query-params *prepare*)
             return-to (get query-params "return-to")
 
             session

@@ -117,7 +117,8 @@
          :code-verifier (get form "code_verifier")
          :jwt-claims {"iss" "https://auth.example.org"
                       "jti" (juxt.site.util/make-nonce jti-length)}
-         :new-refresh-token (juxt.site.util/make-nonce 16)}
+         :new-refresh-token (juxt.site.util/make-nonce 16)
+         :origin (get-in *ctx* [:ring.request/headers "origin"])}
 
         "refresh_token"
         {:grant-type "refresh_token"
@@ -125,7 +126,8 @@
          :scope (get form "scope")
          :jwt-claims {"iss" "https://auth.example.org"
                       "jti" (juxt.site.util/make-nonce jti-length)}
-         :new-refresh-token (juxt.site.util/make-nonce 16)}
+         :new-refresh-token (juxt.site.util/make-nonce 16)
+         :origin (get-in *ctx* [:ring.request/headers "origin"])}
 
         "password"
         (let [scope (get form "scope")]
@@ -133,7 +135,8 @@
                    :form form
                    :new-subject-id (juxt.site.util/make-nonce 10)
                    :new-access-token (juxt.site.util/make-nonce 16)
-                   :new-refresh-token (juxt.site.util/make-nonce 16)}
+                   :new-refresh-token (juxt.site.util/make-nonce 16)
+                   :origin (get-in *ctx* [:ring.request/headers "origin"])}
             scope (assoc :scope (set (clojure.string/split scope (re-pattern " "))))))
 
         "client_credentials"
@@ -143,7 +146,8 @@
                    :new-subject-id (juxt.site.util/make-nonce 10)
                    :jwt-claims {"iss" "https://auth.example.org"
                                 "jti" (juxt.site.util/make-nonce jti-length)}
-                   :new-access-token (juxt.site.util/make-nonce 16)}
+                   :new-access-token (juxt.site.util/make-nonce 16)
+                   :origin (get-in *ctx* [:ring.request/headers "origin"])}
             scope (assoc :scope (set (clojure.string/split scope (re-pattern " "))))))))}
 
    :juxt.site/transact
@@ -258,7 +262,7 @@
                           scope (assoc :juxt.site/scope scope)
                           username (assoc :juxt.site/username username)))
 
-                  origin (get-in *ctx* [:ring.request/headers "origin"])]
+                  origin (:origin *prepare*)]
 
               [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
                [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
@@ -371,7 +375,7 @@
                             "expires_in" (.getSeconds access-token-expires-in)
                             "refresh_token" new-refresh-token}
                      scope (assoc "scope" (clojure.string/join " " scope))))
-                  origin (get-in *ctx* [:ring.request/headers "origin"])]
+                  origin (:origin *prepare*)]
               [[:xtdb.api/put access-token-doc issued-at access-token-expiry]
                [:xtdb.api/put refresh-token-doc issued-at refresh-token-expiry]
                ;; Delete the old refresh-token and access-token
@@ -535,7 +539,7 @@
           ;; the user to find it!
 
           "client_credentials"
-          (let [subject-of-request (get *ctx* :juxt.site/subject)
+          (let [subject-of-request *subject*
 
                 _ (when-not subject-of-request
                     (error
