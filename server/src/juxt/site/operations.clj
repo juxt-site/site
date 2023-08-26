@@ -549,7 +549,14 @@
             "Failed to determine :juxt.site/do-operation-tx-fn"
             {:operation-uri (:xt/id operation)})))
         [[:xtdb.api/fn do-operation-tx-fn
-          (cond-> (sanitize-ctx ctx)
+          (cond-> (select-keys ctx [:juxt.site/subject-uri
+                                    :juxt.site/subject
+                                    :juxt.site/operation-index
+                                    :juxt.site/operation-uri
+                                    :juxt.site/resource
+                                    :juxt.site/purpose
+                                    :juxt.site/scope
+                                    :juxt.site/prepare])
             prepare (assoc :juxt.site/prepare prepare))]]))))
 
 (defn apply-ops!
@@ -855,8 +862,7 @@
     resource :juxt.site/resource ; TODO: can we avoid this?
     purpose :juxt.site/purpose
     scope :juxt.site/scope
-    prepare :juxt.site/prepare
-    }]
+    prepare :juxt.site/prepare}]
   (let [db (xt/db xt-ctx)
         tx (xt/indexing-tx xt-ctx)
         _ (assert operation-uri)
