@@ -525,7 +525,7 @@
           (merge (ex-data e) (ex-data (.getCause e)))
           e))))))
 
-(defn prepare-tx-op [{:juxt.site/keys [operation] :as ctx}]
+(defn prepare-tx-op [{:juxt.site/keys [resource operation] :as ctx}]
   (when-not operation
     (throw (ex-info "An operation is required in the prepare phase" {:operation-uri (:juxt.site/operation-uri ctx)})))
   ;; Prepare the transaction - this work happens prior to the
@@ -553,11 +553,11 @@
                                     :juxt.site/subject
                                     :juxt.site/operation-index
                                     :juxt.site/operation-uri
-                                    :juxt.site/resource
                                     :juxt.site/purpose
                                     :juxt.site/scope
                                     :juxt.site/prepare])
-            prepare (assoc :juxt.site/prepare prepare))]]))))
+            prepare (assoc :juxt.site/prepare prepare)
+            resource (assoc :juxt.site/resource-uri (:xt/id resource)))]]))))
 
 (defn apply-ops!
   [xt-node tx-ops]
@@ -859,7 +859,7 @@
     subject :juxt.site/subject
     operation-index :juxt.site/operation-index
     operation-uri :juxt.site/operation-uri
-    resource :juxt.site/resource ; TODO: can we avoid this?
+    resource-uri :juxt.site/resource-uri
     purpose :juxt.site/purpose
     scope :juxt.site/scope
     prepare :juxt.site/prepare}]
@@ -867,6 +867,7 @@
         tx (xt/indexing-tx xt-ctx)
         _ (assert operation-uri)
         operation (xt/entity db operation-uri)
+        resource (xt/entity db resource-uri)
 
         _ (when-not operation
             (throw
@@ -879,13 +880,13 @@
          {:juxt.site/db db
           :juxt.site/subject-uri subject-uri
           :juxt.site/operation-uri operation-uri
-          :juxt.site/resource-uri (:xt/id resource)
+          :juxt.site/resource-uri resource-uri
           :juxt.site/scope scope
           :juxt.site/purpose purpose})]
 
     (try
       (assert (or (nil? subject-uri) (string? subject-uri)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
-      (assert (or (nil? resource) (map? resource)) "Resource to do-operation-in-tx-fn expected to be a string, or null")
+      (assert (or (nil? resource-uri) (string? resource-uri)) "Resource to do-operation-in-tx-fn expected to be a string, or null")
 
       ;; Check that we /can/ call the operation
       (let [
