@@ -46,7 +46,10 @@
 
 (defn receive-representation
   "Check and load the representation enclosed in the request message payload."
-  [{:juxt.site/keys [resource start-date] :ring.request/keys [method] :as req}]
+  [{resource :juxt.site/resource,
+    start-date :juxt.site/start-date,
+    method :ring.request/method,
+    :as req}]
 
   (log/debugf "Receiving representation, for resource %s" (:xt/id resource))
 
@@ -209,7 +212,9 @@
 
               {:juxt.http/body body}))))))))
 
-(defn GET [{:juxt.site/keys [resource variant subject]
+(defn GET [{resource :juxt.site/resource,
+            variant :juxt.site/variant,
+            subject :juxt.site/subject,
             :as req}]
 
   ;; TODO: Is a HEAD cacheable?
@@ -376,7 +381,7 @@
 (defn DELETE [req]
   (perform-unsafe-method req))
 
-(defn OPTIONS [{:juxt.site/keys [allowed-methods] :as req}]
+(defn OPTIONS [{allowed-methods :juxt.site/allowed-methods, :as req}]
   (-> req
       (assoc :ring.response/status 200)
       (update :ring.response/headers
@@ -454,7 +459,7 @@
     (h (http-authn/authenticate req))))
 
 (defn wrap-method-not-allowed? [h]
-  (fn [{:juxt.site/keys [resource] :ring.request/keys [method] :as req}]
+  (fn [{resource :juxt.site/resource, method :ring.request/method, :as req}]
 
     (if resource
       (let [allowed-methods (set (keys (:juxt.site/methods resource)))
@@ -516,8 +521,9 @@
    headers))
 
 (defn add-headers [headers
-                   {:ring.request/keys [method]
-                    :juxt.site/keys [variant resource]}
+                   {method :ring.request/method,
+                    variant :juxt.site/variant,
+                    resource :juxt.site/resource}
                    body]
   (let [method (if (= method :head) :get method)
         resource (or variant resource)]
@@ -587,7 +593,7 @@
                   (contains? headers "authorization")
                   (assoc "authorization" "(redacted)"))))))
 
-(defn ->storable [{:juxt.site/keys [request-id db] :as req}]
+(defn ->storable [{request-id :juxt.site/request-id, db :juxt.site/db, :as req}]
   (-> req
       (into (select-keys db [:xtdb.api/valid-time :xtdb.api/tx-id]))
       (assoc :xt/id request-id :juxt.site/type "https://meta.juxt.site/types/request")
@@ -605,9 +611,7 @@
            (and (list? form) (>= (count form) 64))
            (#(take 64 %)))))))
 
-(defn log-request! [{:ring.request/keys [method]
-                     :juxt.site/keys [uri]
-                     :as req}]
+(defn log-request! [{method :ring.request/method, uri :juxt.site/uri, :as req}]
   (assert method)
   (log/infof
    "%-7s %s %d"
@@ -616,9 +620,10 @@
    (:ring.response/status req)))
 
 (defn respond
-  [{:juxt.site/keys [start-date request-id]
-    :ring.request/keys [method]
-    :ring.response/keys [body]
+  [{start-date :juxt.site/start-date,
+    request-id :juxt.site/request-id,
+    method :ring.request/method,
+    body :ring.response/body,
     :as req}]
 
   (assert req)
@@ -629,7 +634,7 @@
                    :juxt.site/end-date end-date
                    :juxt.site/date end-date
                    :juxt.site/duration-millis (- (.getTime end-date)
-                                             (.getTime start-date)))]
+                                                 (.getTime start-date)))]
     (cond->
         (update req
                 :ring.response/headers
@@ -658,7 +663,7 @@
 
 (defn wrap-cors-headers [h]
   (fn [req]
-    (let [{:juxt.site/keys [resource] :as req} (h req)
+    (let [{resource :juxt.site/resource, :as req} (h req)
 
           ;; The access-control declarations will be on the main
           ;; resource, not the variant.  WARNING: If restoring this,
@@ -667,7 +672,7 @@
 
 
           request-origin (get-in req [:ring.request/headers "origin"])
-          {:juxt.site/keys [access-control-allow-origins]} resource
+          {access-control-allow-origins :juxt.site/access-control-allow-origins} resource
 
           access-control
           (when request-origin
@@ -723,7 +728,7 @@
        (assoc :ex-data (dissoc (ex-data e) :juxt.site/request-context)))
      (when cause (errors-with-causes cause)))))
 
-(defn respond-internal-error [{:juxt.site/keys [request-id] :as req} e]
+(defn respond-internal-error [{request-id :juxt.site/request-id, :as req} e]
   (log/error e (str "Internal Error: " (.getMessage e)))
   ;; TODO: We should allow an ErrorResource for 500 errors
 
@@ -748,9 +753,10 @@
 
 #_(defn error-response
   "Respond with the given error"
-  [{:ring.response/keys [status]
-    :ring.request/keys [method]
-    :juxt.site/keys [request-id] :as ctx} e]
+  [{status :ring.response/status,
+    method :ring.request/method,
+    request-id :juxt.site/request-id,
+    :as ctx} e]
 
   (assert (:juxt.site/start-date ctx))
 
@@ -831,8 +837,7 @@
   "Return a handler that constructs proper Ring responses, logs and error
   handling where appropriate."
   [h]
-  (fn [{:juxt.site/keys [request-id db]
-        :as req}]
+  (fn [{request-id :juxt.site/request-id, db :juxt.site/db, :as req}]
     (org.slf4j.MDC/put "reqid" request-id)
     (try
       (h req)
@@ -1011,10 +1016,14 @@
 
 (defn wrap-initialize-request
   "Initialize request state."
-  [h {:juxt.site/keys [xt-node uri-prefix] :as opts}]
+  [h {xt-node :juxt.site/xt-node,
+      uri-prefix :juxt.site/uri-prefix,
+      :as opts}]
   (assert xt-node)
-  (fn [{:ring.request/keys [scheme path]
-        :juxt.site/keys [uri] :as req}]
+  (fn [{scheme :ring.request/scheme,
+        path :ring.request/path,
+        uri :juxt.site/uri,
+        :as req}]
 
     (assert (not (and uri path)))
 
@@ -1113,7 +1122,7 @@
       req)))
 
 (defn wrap-store-request [h]
-  (fn [{:juxt.site/keys [xt-node] :as req}]
+  (fn [{xt-node :juxt.site/xt-node, :as req}]
     (let [req (h req)]
       (when (:juxt.site/request-id req)
         (xt/submit-tx
@@ -1160,7 +1169,7 @@
     (h req)))
 
 (defn wrap-bind-uri-to-mdc [h]
-  (fn [{:juxt.site/keys [uri] :as req}]
+  (fn [{uri :juxt.site/uri, :as req}]
     (org.slf4j.MDC/put "uri" uri)
     (try
       (h req)

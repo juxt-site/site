@@ -63,7 +63,7 @@
 
   (testing "good credentials"
     (let [db (xt/db *xt-node*)
-          {:juxt.site/keys [client-secret]}
+          {client-secret :juxt.site/client-secret}
           (xt/entity db "https://auth.example.test/applications/test/clientA")
 
           response

@@ -54,7 +54,7 @@
 
 (defn locate-resource
   "With a given uri, locate a resource"
-  [{:juxt.site/keys [db uri]}]
+  [{db :juxt.site/db, uri :juxt.site/uri}]
 
   (assert uri)
   (assert db)

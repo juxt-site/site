@@ -21,7 +21,8 @@
     (let [subject (:juxt.site/subject *ctx*)
           subject-uri (:xt/id subject)
           operations (vec
-                      (for [{:juxt.site/keys [operation permitted-by]} (juxt.site/allowed-operations {})]
+                      (for [{operation :juxt.site/operation, permitted-by :juxt.site/permitted-by}
+                            (juxt.site/allowed-operations {})]
                         {:juxt.site/operation-ref (:xt/id operation)
                          :juxt.site/permitted-by permitted-by}))]
       (into {:juxt.site/subject subject

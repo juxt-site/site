@@ -51,7 +51,7 @@
         (pick-with-vary req representations)]
     selected-representation))
 
-(defn find-variants [{:juxt.site/keys [resource uri db]}]
+(defn find-variants [{resource :juxt.site/resource, uri :juxt.site/uri, db :juxt.site/db}]
   (let [variants (xt/q db '{:find [(pull v [*])]
                             :where [[v :juxt.site/variant-of uri]]
                             :in [uri]}
@@ -62,7 +62,7 @@
         (:juxt.http/content-type resource)
         (conj resource)))))
 
-(defn current-representations [{:juxt.site/keys [resource] :as req}]
+(defn current-representations [{resource :juxt.site/resource, :as req}]
   (or
    ;; This is not common to find statically in the db, but this option
    ;; allows 'dynamic' resources to declare multiple representations.

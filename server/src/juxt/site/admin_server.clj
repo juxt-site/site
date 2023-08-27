@@ -27,8 +27,8 @@
     {:juxt.site/methods
      {:get
       {::invoke
-       (fn [{:juxt.site/keys [db]
-             :ring.request/keys [query]
+       (fn [{db :juxt.site/db
+             query :ring.request/query
              :as req}]
          (let [results
                (if query
@@ -63,7 +63,7 @@
       {:juxt.site/acceptable
        {"accept" "application/edn,application/json"}
        ::invoke
-       (fn [{:juxt.site/keys [xt-node db] :as req}]
+       (fn [{xt-node :juxt.site/xt-node, db :juxt.site/db, :as req}]
          (let [req (h/receive-representation req)
                rep (:juxt.site/received-representation req)
                body (slurp (:juxt.http/body rep))
@@ -97,9 +97,7 @@
     {:juxt.site/methods
      {:get
       {::invoke
-       (fn [{:juxt.site/keys [db]
-             :ring.request/keys [query]
-             :as req}]
+       (fn [{db :juxt.site/db, query :ring.request/query, :as req}]
          (assert query)
          (let [result
                (if-let [uri (get (form-decode query) "uri")]
@@ -130,8 +128,7 @@
       {:juxt.site/methods
        {:get
         {::invoke
-         (fn [{:juxt.site/keys [db]
-               :as req}]
+         (fn [{db :juxt.site/db, :as req}]
            (let [result
                  (->> (xt/q
                        db
@@ -154,7 +151,7 @@
     {:juxt.site/methods
      {:post
       {::invoke
-       (fn [{:juxt.site/keys [xt-node db] :as req}]
+       (fn [{xt-node :juxt.site/xt-node, db :juxt.site/db, :as req}]
          (->>
           (xt/submit-tx
            xt-node
@@ -202,7 +199,7 @@
          pipeline)]
     ((apply comp new-pipeline) identity)))
 
-(defmethod ig/init-key ::listener [_ {:juxt.site/keys [port dynamic?] :as opts}]
+(defmethod ig/init-key ::listener [_ {port :juxt.site/port, dynamic? :juxt.site/dynamic?, :as opts}]
   (log/infof "Starting HTTP listener (admin) on port %d" port)
   (let [mb-container (MBeanContainer. (ManagementFactory/getPlatformMBeanServer))]
     (doto

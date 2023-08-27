@@ -52,7 +52,8 @@
            :juxt.site/subject-is-ephemeral? true)))
 
 (defn authenticate-with-basic-auth [req db token68 protection-spaces]
-  (when-let [{:juxt.site/keys [canonical-root-uri authorization-server]
+  (when-let [{canonical-root-uri :juxt.site/canonical-root-uri,
+              authorization-server :juxt.site/authorization-server,
               :as protection-space} (first protection-spaces)]
     (let [[_ username password]
           (re-matches
@@ -124,7 +125,7 @@
                  :juxt.reap.alpha.rfc7235/auth-param-value realm}))}))))
 
 (defn authenticate-with-authorization-header
-  [{:juxt.site/keys [db] :as req}
+  [{db :juxt.site/db, :as req}
    authorization-header protection-spaces]
   (let [{:keys [juxt.reap.alpha.rfc7235/auth-scheme
                 juxt.reap.alpha.rfc7235/token68]}
@@ -156,7 +157,7 @@
 (defn authenticate
   "Authenticate a request. Return a modified request, with information about user,
   roles and other credentials."
-  [{:juxt.site/keys [db resource] :as req}]
+  [{db :juxt.site/db, resource :juxt.site/resource, :as req}]
 
   ;; TODO: This might be where we also add the 'on-behalf-of' info
 

@@ -31,7 +31,10 @@
                      :juxt.site/subject subject))))
 
 (defn wrap-session-scope [h]
-  (fn [{:juxt.site/keys [db uri resource] :as req}]
+  (fn [{db :juxt.site/db,
+        uri :juxt.site/uri,
+        resource :juxt.site/resource,
+        :as req}]
 
     (let [scope-id (:juxt.site/session-scope resource)
 

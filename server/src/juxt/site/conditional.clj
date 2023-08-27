@@ -11,7 +11,7 @@
   "Evaluate an If-None-Match precondition header field in the context of a
   resource. If the precondition is found to be false, an exception is thrown
   with ex-data containing the proper response."
-  [{:juxt.site/keys [current-representations] :as req}]
+  [{current-representations :juxt.site/current-representations, :as req}]
   ;; (All quotes in this function's comments are from Section 3.2, RFC 7232,
   ;; unless otherwise stated).
   (when-let [header-field (reap/if-match (get-in req [:ring.request/headers "if-match"]))]
@@ -55,7 +55,7 @@
   resource and, when applicable, the representation metadata of the selected
   representation. If the precondition is found to be false, an exception is
   thrown with ex-data containing the proper response."
-  [{:juxt.site/keys [resource] :as req}]
+  [{resource :juxt.site/resource, :as req}]
   ;; (All quotes in this function's comments are from Section 3.2, RFC 7232,
   ;; unless otherwise stated).
   (let [header-field (reap/if-none-match (get-in req [:ring.request/headers "if-none-match"]))]
@@ -103,7 +103,7 @@
               ;; request methods."
               412))}))))))
 
-(defn evaluate-if-unmodified-since! [{:juxt.site/keys [resource] :as req}]
+(defn evaluate-if-unmodified-since! [{resource :juxt.site/resource, :as req}]
   (let [if-unmodified-since-date
         (-> req
             (get-in [:ring.request/headers "if-unmodified-since"])
@@ -117,7 +117,7 @@
         "Precondition failed"
         {:juxt.site/request-context (assoc req :ring.resposne/status 304)})))))
 
-(defn evaluate-if-modified-since! [{:juxt.site/keys [resource] :as req}]
+(defn evaluate-if-modified-since! [{resource :juxt.site/resource, :as req}]
   (let [if-modified-since-date
         (-> req
             (get-in [:ring.request/headers "if-modified-since"])

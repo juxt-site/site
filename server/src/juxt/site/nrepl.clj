@@ -6,7 +6,7 @@
    [integrant.core :as ig]
    [nrepl.server :refer [start-server stop-server]]))
 
-(defmethod ig/init-key ::server [_ {:juxt.site/keys [port]}]
+(defmethod ig/init-key ::server [_ {port :juxt.site/port}]
   (log/infof "Starting nREPL server on port %d" port)
   (start-server :port port))
 

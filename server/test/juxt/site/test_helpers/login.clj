@@ -51,7 +51,7 @@
 (defn assoc-session-token [req session-token]
   (let [{:keys [scope]}
         (lookup-session-details session-token)
-        {:juxt.site/keys [cookie-name]} scope]
+        {cookie-name :juxt.site/cookie-name} scope]
     (when-not cookie-name
       (throw (ex-info "No cookie name determined for session-token" {:session-token session-token})))
     (assoc-in req [:ring.request/headers "cookie"] (format "%s=%s" cookie-name session-token))))

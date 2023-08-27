@@ -529,7 +529,11 @@
        :else node))
    installers))
 
-(defn- installers-seq [cfg {:juxt.site/keys [parameters installers]} opts]
+(defn- installers-seq
+  [cfg
+   {parameters :juxt.site/parameters
+    installers :juxt.site/installers}
+   opts]
   (let [uri-map (get cfg "uri-map")
 
         parameters

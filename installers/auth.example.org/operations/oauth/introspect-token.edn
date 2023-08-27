@@ -28,8 +28,9 @@
    {:juxt.site.sci/program
     #juxt.pprint
     (let [token (:token *prepare*)
-
-          {:juxt.site/keys [subject application] :as access-token-doc}
+          {subject :juxt.site/subject
+           application :juxt.site/application
+           :as access-token-doc}
           (juxt.site/lookup-access-token token)
 
           jwt (try

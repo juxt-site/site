@@ -9,7 +9,7 @@
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
 
-(defmethod ig/init-key ::listener [k {:juxt.site/keys [port dynamic?] :as opts}]
+(defmethod ig/init-key ::listener [k {port :juxt.site/port, dynamic? :juxt.site/dynamic?, :as opts}]
   (if-let [nk (and (coll? k) (second k))]
     (log/infof "Starting HTTP listener (%s) on port %d" (name nk) port)
     (log/infof "Starting HTTP listener on port %d" port))

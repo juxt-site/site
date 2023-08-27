@@ -161,7 +161,11 @@
           "authorization_code"
           (let [{:keys [client-id code code-verifier]} *prepare*
 
-                {:juxt.site/keys [code-challenge code-challenge-method subject scope] :as code-doc}
+                {code-challenge :juxt.site/code-challenge
+                 code-challenge-method :juxt.site/code-challenge-method
+                 subject :juxt.site/subject
+                 scope :juxt.site/scope
+                 :as code-doc}
                 (juxt.site/lookup-authorization-code code)
 
                 _ (when-not code-doc
@@ -294,7 +298,11 @@
                     {"scope" (clojure.string/join " " scope)})))]]))
 
           "refresh_token"
-          (let [{:juxt.site/keys [subject application keypair scope] :as existing-refresh-token-doc}
+          (let [{subject :juxt.site/subject,
+                 application :juxt.site/application,
+                 keypair :juxt.site/keypair,
+                 scope :juxt.site/scope,
+                 :as existing-refresh-token-doc}
                 (juxt.site/lookup-refresh-token (:refresh-token *prepare*))
 
                 client-id application ;; TODO: Consider a rename

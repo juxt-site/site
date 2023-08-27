@@ -21,9 +21,8 @@
           (->> (xt/q
                 '{:find [(pull e [*])]
                   :where [[e :juxt.site/type "https://meta.juxt.site/types/api-endpoint"]]})
-               (map first)
-               )
-          [method {:juxt.site/keys [operation]}] (:juxt.site/methods endpoint)]
+               (map first))
+          [method {operation :juxt.site/operation}] (:juxt.site/methods endpoint)]
       {:uri (:xt/id endpoint)
        :method (clojure.string/upper-case (name method))
        :operation-uri operation})}

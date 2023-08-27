@@ -20,7 +20,10 @@
       (seq deps) (assoc :deps deps))))
 
 (defn perform-operation!
-  [xt-node {:juxt.site/keys [subject-uri operation-uri input] :as op-data}]
+  [xt-node {subject-uri :juxt.site/subject-uri,
+            operation-uri :juxt.site/operation-uri,
+            input :juxt.site/input,
+            :as op-data}]
   (assert xt-node)
   (let [db (xt/db xt-node)
         subject (xt/entity db subject-uri)

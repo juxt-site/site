@@ -2,9 +2,11 @@
 
 (ns juxt.site.response)
 
-(defn add-payload [{:juxt.site/keys [resource variant]
-                    :ring.request/keys [method]
-                    :as req}]
+(defn add-payload
+  [{resource :juxt.site/resource,
+    variant :juxt.site/variant,
+    method :ring.request/method,
+    :as req}]
   ;; Should not be called if method is HEAD
   (assert (not= method :head))
 
@@ -24,9 +26,7 @@
       :else req)))
 
 (defn add-error-payload
-  [{:juxt.site/keys [resource]
-    :ring.request/keys [method]
-    :as req}]
+  [{resource :juxt.site/resource, method :ring.request/method, :as req}]
   ;; Should not be called if method is HEAD
   (assert (not= method :head))
 

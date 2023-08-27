@@ -45,7 +45,9 @@
           ;; request and this cannot be done in a transaction
           ;; function. The returned ID_TOKEN will be checked and verified
           ;; in the transaction function.
-          {:juxt.site/keys [client-id client-secret redirect-uri]
+          {client-id :juxt.site/client-id,
+           client-secret :juxt.site/client-secret,
+           redirect-uri :juxt.site/redirect-uri,
            :as openid-client-configuration*}
           (xt/entity* openid-client-configuration-id)
           _ (when-not openid-client-configuration*

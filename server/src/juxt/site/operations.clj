@@ -45,7 +45,12 @@
                      ['e :juxt.site/rules 'rules]]})))
 
 (defn check-permissions
-  [{:juxt.site/keys [db subject-uri operation-uri resource-uri scope purpose]}]
+  [{db :juxt.site/db,
+    subject-uri :juxt.site/subject-uri,
+    operation-uri :juxt.site/operation-uri,
+    resource-uri :juxt.site/resource-uri,
+    scope :juxt.site/scope,
+    purpose :juxt.site/purpose}]
 
   (assert (or (nil? subject-uri) (string? subject-uri)))
   (assert (or (nil? resource-uri) (string? resource-uri)))
@@ -134,7 +139,7 @@
 (defn allowed-resources
   "Given a set of possible operations, and possibly a subject and purpose, which
   resources are allowed?"
-  [db operation {:juxt.site/keys [subject purpose]}]
+  [db operation {subject :juxt.site/subject, purpose :juxt.site/purpose}]
   (let [rules (operation->rules db operation)
         query {:find '[resource]
                :where
@@ -218,7 +223,7 @@
          (assoc ctx :juxt.site/resource resource))
 
         pull-expr (vec (mapcat
-                        (fn [{:juxt.site/keys [operation]}]
+                        (fn [{operation :juxt.site/operation}]
                           (:juxt.site/pull operation))
                         check-result))]
     (xt/pull db pull-expr (:xt/id resource))))
@@ -238,7 +243,10 @@
   "Given a subject and an operation, which resources are allowed, and
   get me the documents. If resources-in-scope is given, only consider
   resources in that set."
-  [db operation {:juxt.site/keys [subject purpose include-rules resources-in-scope]}]
+  [db operation {subject :juxt.site/subject,
+                 purpose :juxt.site/purpose,
+                 include-rules :juxt.site/include-rules,
+                 resources-in-scope :juxt.site/resources-in-scope}]
   (assert (string? operation))
   (let [rules (operation->rules db operation)
         _ (when-not (seq rules)
@@ -308,7 +316,7 @@
 (defn allowed-operations
   "Return all the operations that a subject is allowed to perform, along
   with the permissions that permit them."
-  [db {:juxt.site/keys [subject purpose]}]
+  [db {subject :juxt.site/subject, purpose :juxt.site/purpose}]
   (let [
         ;; Start with a list of all operations
         operations
@@ -525,7 +533,9 @@
           (merge (ex-data e) (ex-data (.getCause e)))
           e))))))
 
-(defn prepare-tx-op [{:juxt.site/keys [resource operation] :as ctx}]
+(defn prepare-tx-op [{resource :juxt.site/resource,
+                      operation :juxt.site/operation,
+                      :as ctx}]
   (when-not operation
     (throw (ex-info "An operation is required in the prepare phase" {:operation-uri (:juxt.site/operation-uri ctx)})))
   ;; Prepare the transaction - this work happens prior to the
@@ -571,7 +581,7 @@
     ;; headers and body.
     (when-not (xt/tx-committed? xt-node tx)
       (let [exception-doc (xt-util/tx-exception-doc xt-node tx-id)
-            {:juxt.site/keys [message ex-data]} (get-in exception-doc [:juxt.site.xt/ex-data :juxt.site/error])]
+            {message :juxt.site/message, ex-data :juxt.site/ex-data} (get-in exception-doc [:juxt.site.xt/ex-data :juxt.site/error])]
         (throw
          (ex-info
           (format "Transaction failed to be committed (tx-id=%d)" tx-id)
@@ -593,7 +603,9 @@
 (defn- prepare-operation
   [{:keys [entities-by-id current-operation-index] :as acc}
    real-subject-uri ;; the subject performing this operation
-   {:juxt.site/keys [subject-uri operation-uri input]}
+   {subject-uri :juxt.site/subject-uri,
+    operation-uri :juxt.site/operation-uri,
+    input :juxt.site/input}
    operation-in-db]
 
   ;; TODO: Assert that we either have a real-subject-uri
@@ -642,7 +654,9 @@
              ;; locating them as usual in the database.
              (reduce
               (fn [{:keys [current-operation-index] :as acc}
-                   {:juxt.site/keys [operation-uri input] :as installer}]
+                   {operation-uri :juxt.site/operation-uri,
+                    input :juxt.site/input,
+                    :as installer}]
 
                 (when-not input
                   (throw
@@ -1012,7 +1026,7 @@
   successive operation contexts, perform the operations and return the
   the context modified with any fx produced by the operations. The
   context will also contain a modified database under :juxt.site/db."
-  [{:juxt.site/keys [xt-node] :as ctx} invocations]
+  [{xt-node :juxt.site/xt-node, :as ctx} invocations]
   (let [tx-ops (mapcat prepare-tx-op invocations)
         new-db (apply-ops! xt-node tx-ops)
         ;; Modify context with new db
@@ -1047,8 +1061,13 @@
 ;; the request. Therefore we can do this check now, to let the request
 ;; through, in case we won't be transacting.
 (defn wrap-authorize-with-operation [h]
-  (fn [{:juxt.site/keys [db resource uri subject scope subject-is-ephemeral?]
-        :ring.request/keys [method]
+  (fn [{db :juxt.site/db,
+        resource :juxt.site/resource,
+        uri :juxt.site/uri,
+        subject :juxt.site/subject,
+        scope :juxt.site/scope,
+        subject-is-ephemeral? :juxt.site/subject-is-ephemeral?,
+        method :ring.request/method,
         :as req}]
 
     (assert (or (nil? subject) (map? subject)))
