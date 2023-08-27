@@ -10,7 +10,7 @@
   ;; Should not be called if method is HEAD
   (assert (not= method :head))
 
-  (let [{:juxt.http/keys [body content]} (or variant resource)]
+  (let [{body :juxt.http/body, content :juxt.http/content} (or variant resource)]
     (cond
       ;; TODO: Fish out the charset from the content-type of the resource and
       ;; use when converting to bytes.
@@ -30,7 +30,7 @@
   ;; Should not be called if method is HEAD
   (assert (not= method :head))
 
-  (let [{:juxt.http/keys [body content]} resource]
+  (let [{body :juxt.http/body, content :juxt.http/content} resource]
     (cond
       content (assoc req :ring.response/body content)
       body (assoc req :ring.response/body body)

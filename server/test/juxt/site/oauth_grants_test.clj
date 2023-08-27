@@ -49,7 +49,7 @@
           "client_id" "test/public-global-scope-app"
           "state" state})
 
-        {:ring.response/keys [status headers]}
+        {status :ring.response/status, headers :ring.response/headers}
         (with-session-token session-token
           (*handler* authorization-request))
 
@@ -94,7 +94,9 @@
 (deftest client-not-registered-test
   (let [session-token (login-with-form! "alice" "garden")
         state (util/make-nonce 10)
-        {:ring.response/keys [status headers body]}
+        {status :ring.response/status,
+         headers :ring.response/headers,
+         body :ring.response/body}
         (with-session-token session-token
           (*handler*
            (oauth/make-authorization-request
@@ -155,7 +157,9 @@
           "content-length" (str (count (.getBytes token-request-payload)))}
          :ring.request/body (io/input-stream (.getBytes token-request-payload))}
 
-        {:ring.response/keys [status headers body]}
+        {status :ring.response/status,
+         headers :ring.response/headers,
+         body :ring.response/body}
         (*handler* token-request)
 
         _ (is 400 status)
@@ -198,7 +202,7 @@
         code-challenge (util/code-challenge code-verifier)
 
         session-token (login-with-form! "alice" "garden")
-        {:ring.response/keys [status headers]}
+        {status :ring.response/status, headers :ring.response/headers}
         (with-session-token session-token
           (*handler*
            (oauth/make-authorization-request
@@ -231,7 +235,9 @@
           "client_id" "test/public-global-scope-app"
           "code_verifier" code-verifier})
 
-        {:ring.response/keys [status headers body]}
+        {status :ring.response/status,
+         headers :ring.response/headers,
+         body :ring.response/body}
         (*handler* token-request)
 
         {:strs [access-control-allow-origin]} headers
@@ -278,25 +284,29 @@
     ;; This should be migrated in another dedicated test because it
     ;; requires client authentication
     #_(testing "access token-info endpoint"
-      (let [{:ring.response/keys [status headers body]}
-            (with-session-token session-token
-              (*handler*
-               (oauth/make-token-info-request
-                "https://auth.example.test/oauth/introspect"
-                {"token" access-token})))
+        (let [{status :ring.response/status,
+               headers :ring.response/headers,
+               body :ring.response/body}
+              (with-session-token session-token
+                (*handler*
+                 (oauth/make-token-info-request
+                  "https://auth.example.test/oauth/introspect"
+                  {"token" access-token})))
 
-            _ (is (= 200 status))
-            _ (is (= "application/json" (get headers "content-type")))
-            {:strs [iss aud active]
-             client-id "client_id"} (json/read-value body)
-            _ (is active)
-            _ (is (= "https://auth.example.test" iss))
-            _ (is (= "https://data.example.test" aud))
-            _ (is (= "https://data.example.test" aud))
-            _ (is (= "test/public-global-scope-app" client-id))]))
+              _ (is (= 200 status))
+              _ (is (= "application/json" (get headers "content-type")))
+              {:strs [iss aud active]
+               client-id "client_id"} (json/read-value body)
+              _ (is active)
+              _ (is (= "https://auth.example.test" iss))
+              _ (is (= "https://data.example.test" aud))
+              _ (is (= "https://data.example.test" aud))
+              _ (is (= "test/public-global-scope-app" client-id))]))
 
     (testing "use refresh token"
-      (let [{:ring.response/keys [status headers body]}
+      (let [{status :ring.response/status,
+             headers :ring.response/headers,
+             body :ring.response/body}
             (with-session-token session-token
               (*handler*
                (oauth/make-token-request

@@ -572,7 +572,7 @@
 (defn apply-ops!
   [xt-node tx-ops]
   (let [tx (xt/submit-tx xt-node tx-ops)
-        {::xt/keys [tx-id] :as tx} (xt/await-tx xt-node tx)]
+        {:xtdb.api/keys [tx-id] :as tx} (xt/await-tx xt-node tx)]
 
     ;; If the transaction has failed to commit, we pull out the
     ;; underlying exception document that XTDB has recorded in
@@ -956,10 +956,10 @@
              ;; Add an operation log entry for this transaction
              [:xtdb.api/put
               (into
-               (cond-> {:xt/id (cond-> (str (:juxt.site/events-base-uri operation) (::xt/tx-id tx))
+               (cond-> {:xt/id (cond-> (str (:juxt.site/events-base-uri operation) (:xtdb.api/tx-id tx))
                                  operation-index (str "/" operation-index))
                         :juxt.site/type "https://meta.juxt.site/types/event"
-                        ::xt/tx-id (::xt/tx-id tx)
+                        :xtdb.api/tx-id (:xtdb.api/tx-id tx)
                         :juxt.site/subject-uri subject-uri
                         :juxt.site/operation-uri operation-uri
                         :juxt.site/purpose purpose
@@ -967,13 +967,13 @@
                         (vec
                          (keep
                           (fn [[tx-op {id :xt/id}]]
-                            (when (= tx-op ::xt/put) id))
+                            (when (= tx-op :xtdb.api/put) id))
                           xtdb-ops))
                         :juxt.site/deletes
                         (vec
                          (keep
                           (fn [[tx-op {id :xt/id}]]
-                            (when (= tx-op ::xt/delete) id))
+                            (when (= tx-op :xtdb.api/delete) id))
                           xtdb-ops))}
 
                  operation-index (assoc :juxt.site/tx-event-index operation-index)

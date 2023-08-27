@@ -16,7 +16,7 @@
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
 
-(defn locate-resource [{:ring.request/keys [path]}]
+(defn locate-resource [{path :ring.request/path}]
   (condp re-matches path
     #"/"
     {:juxt.site/methods {:get {}}
@@ -175,7 +175,7 @@
       (h (assoc req :juxt.site/resource res)))))
 
 (defn wrap-invoke-method [h]
-  (fn [{:ring.request/keys [method] :as req}]
+  (fn [{method :ring.request/method, :as req}]
     (if-let [f (get-in req [:juxt.site/resource :juxt.site/methods method ::invoke])]
       (f req)
       (h (case method

@@ -107,7 +107,9 @@
   ;; oauth-authorization-server is public
   (testing "RFC 8414: Authorization Server Metadata"
 
-    (let [{:ring.response/keys [status headers body]}
+    (let [{status :ring.response/status,
+           headers :ring.response/headers,
+           body :ring.response/body}
           (*handler* {:ring.request/method :get
                       :juxt.site/uri "https://auth.example.test/.well-known/oauth-authorization-server"})]
       (is (= 200 status))

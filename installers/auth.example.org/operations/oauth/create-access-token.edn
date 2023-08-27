@@ -423,7 +423,7 @@
 
                   requested-scope (:scope *prepare*)
 
-                  [{:keys [juxt.site/resource-server]
+                  [{resource-server :juxt.site/resource-server
                     client-scope :juxt.site/scope
                     :as client-doc} & others]
                   (juxt.site/lookup-applications client-id)

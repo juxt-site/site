@@ -4,18 +4,19 @@
   (:require
    [juxt.grab.alpha.parser :as parser]
    [juxt.grab.alpha.document :as document]
-   [juxt.grab.alpha.graphql :as-alias graphql]
    [juxt.grab.alpha.schema :as schema]))
 
 (defn selection->operation-id
-  [{::graphql/keys [name] ::document/keys [scoped-type-name] :as _selection} schema]
-  (get-in schema [::schema/types-by-name
+  [{name :juxt.grab.alpha.graphql/name,
+    scoped-type-name :juxt.grab.alpha.document/scoped-type-name,
+    :as _selection} schema]
+  (get-in schema [:juxt.grab.alpha.schema/types-by-name
                   scoped-type-name
-                  ::schema/fields-by-name
+                  :juxt.grab.alpha.schema/fields-by-name
                   name
-                  ::schema/directives-by-name
+                  :juxt.grab.alpha.schema/directives-by-name
                   "site"
-                  ::graphql/arguments
+                  :juxt.grab.alpha.graphql/arguments
                   "operation"]))
 
 (declare build-query-for-selection-set)
@@ -89,14 +90,15 @@
 
 
 (defn name-scoped-name-pair->operations
-  [{::graphql/keys [name] ::document/keys [scoped-type-name]} schema]
-  (get-in schema [::schema/types-by-name
+  [{name :juxt.grab.alpha.graphql/name,
+    scoped-type-name :juxt.grab.alpha.document/scoped-type-name} schema]
+  (get-in schema [:juxt.grab.alpha.schema/types-by-name
                   scoped-type-name
-                  ::schema/fields-by-name
+                  :juxt.grab.alpha.schema/fields-by-name
                   name
-                  ::schema/directives-by-name
+                  :juxt.grab.alpha.schema/directives-by-name
                   "site"
-                  ::graphql/arguments
+                  :juxt.grab.alpha.graphql/arguments
                   "operation"]))
 
 
@@ -135,7 +137,7 @@
   (let [root-selection-set
         (->
          query-document
-         ::document/operations
+         :juxt.grab.alpha.document/operations
          first
          :juxt.grab.alpha.graphql/selection-set)
         name-scoped-name-pairs (selection-set->name-scoped-name-pair schema root-selection-set)]

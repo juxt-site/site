@@ -6,7 +6,7 @@
 
 (defn- graphql->eql-ast*
   [schema field]
-  (let [{::document/keys [scoped-type-name]} field
+  (let [{scoped-type-name :juxt.grab.alpha.document/scoped-type-name} field
         gtype (some-> schema :juxt.grab.alpha.schema/types-by-name (get scoped-type-name))
         sel-name (:juxt.grab.alpha.graphql/name field)
         k (case sel-name

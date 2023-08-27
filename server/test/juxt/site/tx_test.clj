@@ -24,8 +24,8 @@
          [:xtdb.api/put {:xt/id ::create-person
                          :xt/fn '(fn [ctx eid name age op-ix]
                                    (let [{:xtdb.api/keys [tx-id]} (xtdb.api/indexing-tx ctx)]
-                                     [[::xt/put {:xt/id eid :name name :age age}]
-                                      [::xt/put {:xt/id (str "/events/" tx-id "/" op-ix)
+                                     [[:xtdb.api/put {:xt/id eid :name name :age age}]
+                                      [:xtdb.api/put {:xt/id (str "/events/" tx-id "/" op-ix)
                                                  :juxt.site/type "https://meta.juxt.site/types/event"
                                                  :op-ix op-ix}]]))}]
 
@@ -34,8 +34,8 @@
                                    (let [db (xtdb.api/db ctx)
                                          entity (xtdb.api/entity db eid)
                                          {:xtdb.api/keys [tx-id]} (xtdb.api/indexing-tx ctx)]
-                                     [[::xt/put (update entity :age inc)]
-                                      [::xt/put {:xt/id (str "/events/" tx-id "/" op-ix)
+                                     [[:xtdb.api/put (update entity :age inc)]
+                                      [:xtdb.api/put {:xt/id (str "/events/" tx-id "/" op-ix)
                                                  :juxt.site/type "https://meta.juxt.site/types/event"
                                                  :op-ix op-ix}]]))}]
 
@@ -70,8 +70,8 @@
            [:xtdb.api/put {:xt/id ::create-person
                            :xt/fn '(fn [ctx eid name age op-ix]
                                      (let [{:xtdb.api/keys [tx-id]} (xtdb.api/indexing-tx ctx)]
-                                       [[::xt/put {:xt/id eid :name name :age age}]
-                                        [::xt/put {:xt/id (str "/events/" tx-id "/" op-ix)
+                                       [[:xtdb.api/put {:xt/id eid :name name :age age}]
+                                        [:xtdb.api/put {:xt/id (str "/events/" tx-id "/" op-ix)
                                                    :juxt.site/type "https://meta.juxt.site/types/event"
                                                    :op-ix op-ix}]]))}]
 
@@ -80,8 +80,8 @@
                                      (let [db (xtdb.api/db ctx)
                                            entity (xtdb.api/entity db eid)
                                            {:xtdb.api/keys [tx-id]} (xtdb.api/indexing-tx ctx)]
-                                       [[::xt/put (update entity :age inc)]
-                                        [::xt/put {:xt/id (str "/events/" tx-id "/" op-ix)
+                                       [[:xtdb.api/put (update entity :age inc)]
+                                        [:xtdb.api/put {:xt/id (str "/events/" tx-id "/" op-ix)
                                                    :juxt.site/type "https://meta.juxt.site/types/event"
                                                    :op-ix op-ix}]]))}]
 
@@ -115,12 +115,7 @@
                  :xtdb.tx.event/tx-events ; pull out events
                  (map #(get % 2))  ; get the document-hash of each event
                  set
-                 (xt.db/fetch-docs document-store)
-
-                 )))
-
-
-      )))
+                 (xt.db/fetch-docs document-store)))))))
 
 (deftest tx-event-docs-test
   (let [tx-ops
@@ -131,20 +126,20 @@
          [:xtdb.api/put {:xt/id ::create-person
                          :xt/fn '(fn [ctx eid name age op-ix]
                                    (let [{:xtdb.api/keys [tx-id]} (xtdb.api/indexing-tx ctx)]
-                                     [[::xt/put {:xt/id eid :name name :age age}]
-                                      [::xt/put {:xt/id (str "/events/" tx-id "/" op-ix)
-                                                 :juxt.site/type "https://meta.juxt.site/types/event"
-                                                 :op-ix op-ix}]]))}]
+                                     [[:xtdb.api/put {:xt/id eid :name name :age age}]
+                                      [:xtdb.api/put {:xt/id (str "/events/" tx-id "/" op-ix)
+                                                      :juxt.site/type "https://meta.juxt.site/types/event"
+                                                      :op-ix op-ix}]]))}]
 
          [:xtdb.api/put {:xt/id ::increment-age
                          :xt/fn '(fn [ctx eid op-ix]
                                    (let [db (xtdb.api/db ctx)
                                          entity (xtdb.api/entity db eid)
                                          {:xtdb.api/keys [tx-id]} (xtdb.api/indexing-tx ctx)]
-                                     [[::xt/put (update entity :age inc)]
-                                      [::xt/put {:xt/id (str "/events/" tx-id "/" op-ix)
-                                                 :juxt.site/type "https://meta.juxt.site/types/event"
-                                                 :op-ix op-ix}]]))}]
+                                     [[:xtdb.api/put (update entity :age inc)]
+                                      [:xtdb.api/put {:xt/id (str "/events/" tx-id "/" op-ix)
+                                                      :juxt.site/type "https://meta.juxt.site/types/event"
+                                                      :op-ix op-ix}]]))}]
 
          [:xtdb.api/fn ::create-person "https://example.org/users/alice" "Alice" 40 0]
          [:xtdb.api/fn ::create-person "https://example.org/users/bob" "Bob" 42 1]

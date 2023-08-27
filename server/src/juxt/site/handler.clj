@@ -351,7 +351,7 @@
         (= (:ring.request/method req) :get)
         response/add-payload))))
 
-(defn perform-unsafe-method [{:keys [ring.request/method] :as req}]
+(defn perform-unsafe-method [{method :ring.request/method, :as req}]
   (let [req (cond-> req
               (#{:post :put :patch} method) receive-representation)
 
@@ -394,7 +394,7 @@
                "content-length" "0"})))
 
 (defn wrap-method-not-implemented? [h]
-  (fn [{:ring.request/keys [method] :as req}]
+  (fn [{method :ring.request/method, :as req}]
     (when-not (contains?
                #{:get :head :post :put :delete :options
                  :patch
@@ -482,7 +482,7 @@
       (h req))))
 
 (defn wrap-invoke-method [h]
-  (fn [{:ring.request/keys [method] :as req}]
+  (fn [{method :ring.request/method, :as req}]
     (h (case method
          (:get :head) (GET req)
          :post (POST req)
@@ -1041,7 +1041,7 @@
                   (or uri-prefix
                       (when host
                         (->
-                         (let [{::rfc7230/keys [host]}
+                         (let [{:juxt.reap.alpha.rfc7230/keys [host]}
                                (host-header-parser
                                 (re/input
                                  host))]
