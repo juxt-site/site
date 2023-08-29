@@ -37,16 +37,17 @@
 
 (defn lookup-session-details [session-token]
   (when session-token
-    (let [db (xt/db *xt-node*)]
-      (first
-       (xt/q db '{:find [(pull session [*]) (pull scope [*])]
-                  :keys [session scope]
-                  :where [[e :juxt.site/type "https://meta.juxt.site/types/session-token"]
-                          [e :juxt.site/session-token session-token]
-                          [e :juxt.site/session session]
-                          [session :juxt.site/session-scope scope]]
-                  :in [session-token]}
-             session-token)))))
+    (first
+     (xt/q
+      *xt-node*
+      '{:find [(pull session [*]) (pull scope [*])]
+        :keys [session scope]
+        :where [[e :juxt.site/type "https://meta.juxt.site/types/session-token"]
+                [e :juxt.site/session-token session-token]
+                [e :juxt.site/session session]
+                [session :juxt.site/session-scope scope]]
+        :in [session-token]}
+      session-token))))
 
 (defn assoc-session-token [req session-token]
   (let [{:keys [scope]}

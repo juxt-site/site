@@ -8,8 +8,7 @@
    [juxt.site.test-helpers.xt :refer [*xt-node*]]
    [clojure.java.io :as io]
    [juxt.site.operations :as operations]
-   [xtdb.api :as xt]
-   [juxt.site.install.common-install-util :as ciu]))
+   [juxt.site.xt-util :as xtu]))
 
 (defn get-root-dir []
   ;; Just assume where we're calling the tests from for now, but allow
@@ -45,8 +44,7 @@
     (mapv
      (fn [spec]
        (let [installer-seq (spec->installer-seq spec uri-map bundles graph)
-             db (xt/db *xt-node*)
+             db (xtu/db *xt-node*)
              tx-ops (operations/installer-seq->tx-ops nil db installer-seq)]
-
          (operations/apply-ops! *xt-node* tx-ops)))
      specs)))

@@ -679,7 +679,7 @@
                   (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
                   (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
 
-                  operation-uri (prepare-operation subject-uri installer (xt/entity db operation-uri))
+                  operation-uri (prepare-operation subject-uri installer (xtu/entity db operation-uri))
 
                   ;; Increment operation-index
                   current-operation-index (update :current-operation-index inc)))
@@ -888,11 +888,11 @@
     purpose :juxt.site/purpose
     scope :juxt.site/scope
     prepare :juxt.site/prepare}]
-  (let [db (xt/db xt-ctx)
-        tx (xt/indexing-tx xt-ctx)
+  (let [db (xtu/db xt-ctx)
+        ;;tx (xtu/indexing-tx xt-ctx)
         _ (assert operation-uri)
-        operation (xt/entity db operation-uri)
-        resource (xt/entity db resource-uri)
+        operation (xtu/entity db operation-uri)
+        resource (xtu/entity db resource-uri)
 
         _ (when-not operation
             (throw
@@ -935,29 +935,31 @@
               :else
               (throw
                (ex-info
-                (format "Operation '%s' not found in db" operation-uri)
-                {:operation-uri operation-uri})))]
-      (try
-        (assert (or (nil? subject-uri) (string? subject-uri)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
-        (assert (or (nil? resource) (map? resource)) "Resource to do-operation-in-tx-fn expected to be a string, or null")
+                "Submitted operations should have a valid juxt.site/transact entry"
+                {:operation operation})))
 
-        _ (log/debugf "FX are %s" (with-out-str (pprint fx)))
+            _ (log/debugf "FX are %s" (with-out-str (pprint fx)))
 
-        (catch clojure.lang.ExceptionInfo e
-                    ;; The sci.impl/callstack contains a volatile which isn't freezable.
-                    ;; Also, we want to unwrap the original cause exception.
-                    ;; Possibly, in future, we should get the callstack
-                    (throw (or (.getCause e) e))))
+            ;; Validate
+            _ (doseq [effect fx]
+                (when-not (and (vector? effect)
+                               (keyword? (first effect))
+                               (if (= :xtdb.api/put (first effect))
+                                 (map? (second effect))
+                                 true))
+                  (throw (ex-info (format "Invalid effect: %s" effect) {:juxt.site/operation operation :effect effect}))))
 
-                ;; There might be other strategies in the future (although the
-                ;; fewer the better really)
-                :else
-                (throw
-                 (ex-info
-                  "Submitted operations should have a valid juxt.site/transact entry"
-                  {:operation operation})))
+            xtdb-ops (filter (fn [[effect]] (= (namespace effect) "xtdb.api")) fx)
 
-              _ (log/debugf "FX are %s" (pr-str fx))
+            ;; Decisions we've made which don't update the database but should
+            ;; be record and reflected in the response.
+            other-response-fx
+            (remove
+             (fn [[kw]]
+               (or
+                (= (namespace kw) "xtdb.api")
+                (= kw :juxt.site/apply-to-request-context)))
+             fx)
 
             result-fx
             (conj
@@ -965,10 +967,10 @@
              ;; Add an operation log entry for this transaction
              [:xtdb.api/put
               (into
-               (cond-> {:xt/id (cond-> (str (:juxt.site/events-base-uri operation) (:xtdb.api/tx-id tx))
+               (cond-> {:xt/id (cond-> (str (:juxt.site/events-base-uri operation) (:xtdb.api/tx-id db))
                                  operation-index (str "/" operation-index))
                         :juxt.site/type "https://meta.juxt.site/types/event"
-                        :xtdb.api/tx-id (:xtdb.api/tx-id tx)
+                        :xtdb.api/tx-id (:xtdb.api/tx-id db)
                         :juxt.site/subject-uri subject-uri
                         :juxt.site/operation-uri operation-uri
                         :juxt.site/purpose purpose
@@ -985,17 +987,9 @@
                             (when (= tx-op :xtdb.api/delete) id))
                           xtdb-ops))}
 
-              xtdb-ops (filter (fn [[effect]] (= (namespace effect) "xtdb.api")) fx)
+                 operation-index (assoc :juxt.site/tx-event-index operation-index)
 
-              ;; Decisions we've made which don't update the database but should
-              ;; be record and reflected in the response.
-              other-response-fx
-              (remove
-               (fn [[kw]]
-                 (or
-                  (= (namespace kw) "xtdb.api")
-                  (= kw :juxt.site/apply-to-request-context)))
-               fx)
+;;                 tx (into tx)
 
                  ;; It is useful to denormalise and see the explicit
                  ;; user or application in the event.
@@ -1004,7 +998,7 @@
                  (seq other-response-fx)
                  (assoc :juxt.site/response-fx other-response-fx)))])]
 
-                   operation-index (assoc :juxt.site/tx-event-index operation-index)
+        result-fx)
 
       (catch Exception e
         (let [create-error-structure
@@ -1014,8 +1008,7 @@
                            :juxt.site/ex-data (ex-data error)}
                     cause (assoc :juxt.site/cause (create-error-structure cause)))))]
 
-                   (seq other-response-fx)
-                   (assoc :juxt.site/response-fx other-response-fx)))])]
+          (log/errorf e "Error when performing operation: %s" operation-uri)
 
           (throw
            (ex-info
@@ -1092,9 +1085,10 @@
     (assert (or (nil? subject) (map? subject)))
     (assert (or (nil? resource) (map? resource)))
 
-    (let [db (cond-> db
-               subject-is-ephemeral?
-               (xt/with-tx [[:xtdb.api/put subject]]))
+    (let [db db
+          #_(cond-> db
+              subject-is-ephemeral?
+              (xt/with-tx [[:xtdb.api/put subject]]))
 
           method (if (= method :head) :get method)
           operation-uri (get-in resource [:juxt.site/methods method :juxt.site/operation])

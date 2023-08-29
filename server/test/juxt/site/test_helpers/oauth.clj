@@ -12,7 +12,7 @@
    [juxt.site.test-helpers.login :as login :refer [with-session-token]]
    [juxt.site.test-helpers.xt :refer [*xt-node*]]
    [ring.util.codec :as codec]
-   [xtdb.api :as xt]))
+   [juxt.site.xt-util :as xtu]))
 
 ;; These are the uri-maps used by the tests
 
@@ -58,8 +58,8 @@
     :as args}]
   (assert (or authorization-uri token-uri) "Must provide either authorization-uri, token-uri or both")
   (assert grant-type "Must provide grant-type")
-  (let [db (xt/db *xt-node*)
-        client-doc (xt/entity db client)
+  (let [db (xtu/db *xt-node*)
+        client-doc (xtu/entity db client)
         _ (assert client-doc (str "Client not registered: " client))
         client-id (:juxt.site/client-id client-doc)
         _ (assert client-id (str "No client-id for client: " client))]

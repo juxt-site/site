@@ -4,15 +4,14 @@
   (:require
    [clojure.pprint :refer [pprint]]
    [juxt.site.main :as main]
-   [xtdb.api :as xt])
-  (:import
-   (xtdb.api IXtdb)))
+   [xtdb.api :as xt]
+   [xtdb.node :as xtn]))
 
 (def ^:dynamic *opts* {})
-(def ^:dynamic ^IXtdb *xt-node*)
+(def ^:dynamic *xt-node*)
 
 (defmacro with-xt [& body]
-  `(with-open [node# (xt/start-node *opts*)]
+  `(with-open [node# (xtn/start-node *opts*)]
      (binding [*xt-node* node#]
        ~@body)))
 
@@ -20,7 +19,7 @@
   (with-xt (f)))
 
 (defmacro with-system-xt [& body]
-  `(with-open [node# (xt/start-node *opts*)]
+  `(with-open [node# (xtn/start-node *opts*)]
      (binding [*xt-node* node#
                main/*system* {:juxt.site.db/xt-node node#}]
        ~@body)))
@@ -28,7 +27,7 @@
 (defn system-xt-fixture [f]
   (with-system-xt (f)))
 
-(defn submit-and-await! [transactions]
+;; No longer a thing in XT2
+#_(defn submit-and-await! [transactions]
   (->>
-   (xt/submit-tx *xt-node* transactions)
-   (xt/await-tx *xt-node*)))
+   (xt/submit-tx *xt-node* transactions)))

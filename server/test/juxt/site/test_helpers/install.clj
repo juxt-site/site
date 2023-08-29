@@ -8,7 +8,7 @@
    [clojure.walk :refer [postwalk]]
    [juxt.site.install.common-install-util :as ciu]
    [juxt.site.operations :as operations]
-   [xtdb.api :as xt]))
+   [juxt.site.xt-util :as xtu]))
 
 (defn index-by-id [installer-graph]
   (into {} (map (juxt :id identity) installer-graph)))
@@ -25,15 +25,15 @@
             input :juxt.site/input,
             :as op-data}]
   (assert xt-node)
-  (let [db (xt/db xt-node)
-        subject (xt/entity db subject-uri)
+  (let [db (xtu/db xt-node)
+        subject (xtu/entity db subject-uri)
         _ (when-not subject
             (throw
              (ex-info
               (format "No such subject found in database for %s" subject-uri)
               {:subject-uri subject-uri})))
 
-        operation (xt/entity db operation-uri)
+        operation (xtu/entity db operation-uri)
         _ (when-not operation
             (throw
              (ex-info
