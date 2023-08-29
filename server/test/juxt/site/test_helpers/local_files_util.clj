@@ -36,6 +36,21 @@
 (defn graph [dir uri-map]
   (ciu/unified-installer-map dir uri-map))
 
+(defn install-bundles*
+  [specs uri-map]
+  (assert *xt-node*)
+  (let [graph (graph (get-installers-dir) uri-map)
+        bundles (bundles (get-root-dir))]
+    (mapv
+     (fn [spec]
+       (let [installer-seq (spec->installer-seq spec uri-map bundles graph)
+             db (xtu/db *xt-node*)
+             tx-ops (operations/installer-seq->tx-ops nil db installer-seq)]
+         tx-ops
+         ))
+     specs
+     )))
+
 (defn install-bundles!
   [specs uri-map]
   (assert *xt-node*)

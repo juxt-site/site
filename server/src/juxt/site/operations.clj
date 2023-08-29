@@ -491,14 +491,17 @@
       'installer-seq->tx-ops
       (fn [installer-seq]
         (installer-seq->tx-ops
+         installer-seq
          (:juxt.site/subject-uri ctx)
          ;; TODO: Warning, illegal use of db in prepare. Rather, we
          ;; should pull out the operations and their hashes, creating a
          ;; mapping for installer-seq->tx-ops to map operation-uri to
          ;; an operation, and ensure that the same operation used in
          ;; the prepare is used in the transact (via a hash).
-         (:juxt.site/db ctx)
-         installer-seq))}}
+         {}
+         ;;(query-operations-index)
+         ;;(:juxt.site/db ctx)
+         ))}}
 
     (common-sci-namespaces operation))
 
@@ -618,7 +621,7 @@
    {subject-uri :juxt.site/subject-uri,
     operation-uri :juxt.site/operation-uri,
     input :juxt.site/input}
-   operation-in-db]
+   operations-index]
 
   ;; TODO: Assert that we either have a real-subject-uri
   ;; or (installer) subject-uri but not both. This will alert us to
@@ -633,7 +636,7 @@
                       :juxt.site/operation-index current-operation-index
                       :juxt.site/operation
                       (or (get entities-by-id operation-uri)
-                          operation-in-db
+                          (operations-index operation-uri)
                           (throw (ex-info "Failed to find operation!" {:operation-uri operation-uri})))}
                input
                (merge {:juxt.site/received-representation
@@ -649,9 +652,10 @@
 
 (defn installer-seq->tx-ops
   "Given a sequence of installers, return a collection of XTDB
-  transaction operations. The db argument is used to lookup the
-  operation which is required when preparing the transaction."
-  [subject-uri db installers]
+  transaction operations. The operations-index argument is a map
+  between a operation-uri and an operation."
+  [installers subject-uri operations-index]
+
   (let [{:keys [tx-ops errors]}
         (->> installers
 
@@ -677,9 +681,12 @@
 
                 (cond-> acc
                   (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
+
+                  ;; This is the direct put
                   (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
 
-                  operation-uri (prepare-operation subject-uri installer (xtu/entity db operation-uri))
+                  ;; This is the operation call
+                  operation-uri (prepare-operation subject-uri installer operations-index)
 
                   ;; Increment operation-index
                   current-operation-index (update :current-operation-index inc)))

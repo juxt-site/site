@@ -71,7 +71,9 @@
   [])
 
 (defn entity [xt-node eid]
-  (throw (ex-info "TODO: whatever entity you were looking up, can you look it up aot in the context?" {})))
+
+  (throw (ex-info "TODO: whatever entity you were looking up, can you look it up aot in the context?" {}))
+  )
 
 (defn db
   ([xt-node]

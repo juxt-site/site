@@ -6,7 +6,7 @@
    [jsonista.core :as json]
    [juxt.site.test-helpers.install :refer [perform-operation!]]
    [juxt.site.test-helpers.login :as login]
-   [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
+   [juxt.site.test-helpers.local-files-util :refer [install-bundles! install-bundles*]]
    [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
@@ -14,6 +14,12 @@
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [clojure.edn :as edn]
    [juxt.site.repl :as repl]))
+
+(with-fixtures
+  (install-bundles*
+   ["juxt/site/bootstrap"]
+   RESOURCE_SERVER)
+  )
 
 (defn bootstrap []
   (install-bundles!
@@ -58,7 +64,7 @@
   (bootstrap)
   (f))
 
-(use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
+(use-fixtures :once system-xt-fixture handler-fixture #_bootstrap-fixture)
 
 (deftest get-subject-test
   ;; Register an application
