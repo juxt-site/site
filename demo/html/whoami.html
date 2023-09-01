@@ -1,0 +1,71 @@
+<!doctype html>
+
+<html>
+  <head>
+    <title>Site: Who am I?</title>
+    <link rel='icon' href='data:,'>
+  </head>
+
+  <body>
+
+    <h1>Who am I?</h1>
+
+    <div>
+      <p>
+	<button id="authorize">Authorize</button> to get a Bearer token.
+      </p>
+      <p>
+	<button id="reload">Reload</button> the page content with this Bearer token.
+      </p>
+    </div>
+
+    <script type="module">
+      console.log("TODO: Make a fetch to get http://localhost:4444/_site/whoami.html");
+    </script>
+
+    <script type="module">
+      import {authorize, registerOAuth2Worker} from "http://localhost:8000/juxt-pass.js";
+
+      registerOAuth2Worker();
+
+      function authorizeCallback() {
+	authorize({
+	  origin: "http://localhost:8000",
+	  client_id: "whoami-client",
+	  authorization_endpoint: "http://localhost:4440/oauth/authorize",
+	  token_endpoint: "http://localhost:4440/oauth/token",
+	  redirect_uri: "http://localhost:8000/oauth-redirect.html",
+	  requested_scopes: [],
+	})
+      };
+
+      document.getElementById('authorize').addEventListener('click', authorizeCallback);
+
+      async function getContent() {
+	try {
+	  const response = await fetch('http://localhost:4444/_site/users', {
+	    method: 'GET',
+	    headers: {
+              'Accept': 'text/html'
+	    }
+	  });
+
+	  if (!response.ok) {
+	    throw new Error('Network response was not ok');
+	  }
+
+	  const htmlContent = await response.text();
+	  document.open();
+	  document.write(htmlContent);
+	  document.close();
+	} catch (error) {
+	  console.error('There was a problem with the fetch operation:', error.message);
+	}
+      }
+
+      document.getElementById('reload').addEventListener('click', getContent);
+
+
+    </script>
+  </body>
+</html>

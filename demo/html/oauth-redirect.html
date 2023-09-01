@@ -2,9 +2,11 @@
 <html lang="en-US">
   <head>
     <title>OAuth2 Redirect</title>
+    <link rel='icon' href='data:,'>
   </head>
   <body>
     <script type="module">
+
       const queryParams = new URLSearchParams(window.location.search);
       const storedState = localStorage.getItem("pkce_state");
       const queryParamState = queryParams.get("state");
@@ -35,13 +37,15 @@
       const token_endpoint =
         localStorage.getItem("oauth2_token_endpoint") || "";
 
+      console.log("oauth-redirect: fetching from ", token_endpoint);
+
       fetch(token_endpoint, {
         method: "POST",
         headers: new Headers({
           "Content-Type": "application/x-www-form-urlencoded",
         }),
         body: payload_params,
-      }).then(() => window.close());
+      }); // .then(() => window.close());
     </script>
   </body>
 </html>

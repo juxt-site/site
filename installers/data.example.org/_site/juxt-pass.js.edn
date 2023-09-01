@@ -10,4 +10,9 @@
 
    :juxt.http/content-type "text/javascript"
    :juxt.http/content #juxt.include "juxt-pass.js"
+
+   :juxt.site/access-control-allow-origins
+   [[".*" {:juxt.site/access-control-allow-origin "*"
+           :juxt.site/access-control-allow-methods [:get]
+           :juxt.site/access-control-allow-headers ["authorization"]}]]
    }}}
