@@ -12,11 +12,6 @@
              [clojure.edn :as edn]
              [clojure.java.io :as io])
 
-  ;; Override bb's help
-  help
-  {:doc "Show help"
-   :task (juxt.site.bb.tasks/help-task)}
-
   post-init
   {:doc "Show post-init options. Requires the server."
    :task (juxt.site.bb.tasks/post-init-task)}
