@@ -15,7 +15,8 @@
   ;; Override bb's help
   help
   {:doc "Show help"
-   :task (juxt.site.bb.tasks/help-task)}
+   :task (juxt.site.bb.tasks/help-task)
+   :override-builtin true}
 
   post-init
   {:doc "Show post-init options. Requires the server."
