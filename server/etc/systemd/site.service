@@ -5,12 +5,12 @@ Description=Site
 Type=simple
 Environment="DISPLAY=:0"
 Environment="MALLOC_ARENA_MAX=2"
-ExecStart=/home/site/site/bin/site-server
+ExecStart=/home/site/site/server/bin/site-server
 ExecReload=kill -HUP $MAINPID
 
 Restart=always
 User=site
-WorkingDirectory=/home/site/site
+WorkingDirectory=/home/site/site/server
 
 [Install]
 WantedBy=multi-user.target
