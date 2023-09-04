@@ -433,6 +433,10 @@
    {'form-encode codec/form-encode
     'form-decode codec/form-decode}
 
+   'clojure.walk
+   {'keywordize-keys
+    clojure.walk/keywordize-keys}
+
    'clojure.pprint
    {'pprint pprint}})
 
@@ -833,7 +837,7 @@
           (when-not keypair
             (throw (ex-info "Keypair not found" {:kid kid})))
           (jwt/verify-jwt access-token keypair)))}
-
+     
      'grab
      {'parsed-types
       (fn parsed-types [schema-id]

@@ -7,16 +7,19 @@
 
    :juxt.site/prepare
    {:juxt.site.sci/program
-    #juxt.include "add-pet-prepare.clj"}
+    #juxt.pprint
+    {:docs (concat (map :xt/id (:juxt.site/current-representations *ctx*))
+                   [(:xt/id (:juxt.site/resource *ctx*))])}}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
     (for [doc (:docs *prepare*)]
-      [:xtdb.api/put doc])}
+      [:xtdb.api/delete doc])}
 
    :juxt.site/scope
    #{"https://auth.example.org/scopes/petstore/write"}
+   
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)

@@ -7,16 +7,39 @@
 
    :juxt.site/prepare
    {:juxt.site.sci/program
-    #juxt.include "add-pet-prepare.clj"}
+    #juxt.pprint
+    (let [content-type (-> *ctx*
+                           :juxt.site/received-representation
+                           :juxt.http/content-type)
+          body (-> *ctx*
+                   :juxt.site/received-representation
+                   :juxt.http/body)
+          pet-update (case content-type
+                       "application/json"
+                       (some->
+                        body
+                        (String.)
+                        jsonista.core/read-value-with-keywords)
+                       "application/x-www-form-urlencoded"
+                       (some->
+                        body
+                        (String.)
+                        ring.util.codec/form-decode
+                        clojure.walk/keywordize-keys))]
+      (logf (str pet-update))
+      {:doc
+       (into (:juxt.site/resource *ctx*)
+             pet-update)})}
 
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    (for [doc (:docs *prepare*)]
-      [:xtdb.api/put doc])}
+    [[:xtdb.api/put (:doc *prepare*)]]}
 
    :juxt.site/scope
-   #{"https://auth.example.org/scopes/petstore/write"}
+   #{"https://auth.example.org/scopes/petstore/read"
+     "https://auth.example.org/scopes/petstore/write"}
+   
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)
