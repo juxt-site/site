@@ -8,16 +8,17 @@
    {:juxt.site.sci/program
     #juxt.pprint
     (let [query-params (:ring.request/query *ctx*)
-          status
+          tags
           (if query-params
-            (-> query-params ring.util.codec/form-decode (get "status"))
-            "available")]
+            (-> query-params ring.util.codec/form-decode (get "tags"))
+            [])]
       (->> (xt/q
             '{:find [(pull e [*])]
               :where [[e :juxt.site/type "https://data.example.org/types/pet"]
-                      [e :status status]]
-              :in [status]}
-            status)
+                      [e :tags tags]
+                      [tags :name tag]]
+              :in [[tag ...]]}
+            ["tag1" "tag3"])
            (map first)
            (map (fn [dog]
                   (reduce-kv
@@ -31,10 +32,6 @@
            (vec)
            ))
     }
-
-   :juxt.site/scope
-   #{"https://auth.example.org/scopes/petstore/read"}
-   
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)

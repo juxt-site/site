@@ -23,7 +23,10 @@
                     "https://auth.example.org/operations/petstore/get-pet-by-id"}
                    :delete
                    {:juxt.site/operation
-                    "deletePet"}}
+                    "https://auth.example.org/operations/petstore/delete-pet-by-id"}
+                   :post
+                   {:juxt.site/operation
+                    "https://auth.example.org/operations/petstore/update-pet-by-id"}}
                   :juxt.site/protection-spaces
                   #{"https://auth.example.org/protection-spaces/bearer"}
                      :juxt.site/access-control-allow-origins

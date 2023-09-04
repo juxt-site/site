@@ -4,36 +4,21 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
-   :juxt.site/state
+
+   :juxt.site/prepare
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [query-params (:ring.request/query *ctx*)
-          status
-          (if query-params
-            (-> query-params ring.util.codec/form-decode (get "status"))
-            "available")]
-      (->> (xt/q
-            '{:find [(pull e [*])]
-              :where [[e :juxt.site/type "https://data.example.org/types/pet"]
-                      [e :status status]]
-              :in [status]}
-            status)
-           (map first)
-           (map (fn [dog]
-                  (reduce-kv
-                   (fn [acc k v]
-                     (if (not= "juxt.site" (namespace k))
-                       (assoc acc k v)
-                       acc))
-                   {}
-                   dog)))
-           (sort-by :xt/id)
-           (vec)
-           ))
-    }
+    {:docs (concat (map :xt/id (:juxt.site/current-representations *ctx*))
+                   [(:xt/id (:juxt.site/resource *ctx*))])}}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (for [doc (:docs *prepare*)]
+      [:xtdb.api/delete doc])}
 
    :juxt.site/scope
-   #{"https://auth.example.org/scopes/petstore/read"}
+   #{"https://auth.example.org/scopes/petstore/write"}
    
    :juxt.site/rules
    [

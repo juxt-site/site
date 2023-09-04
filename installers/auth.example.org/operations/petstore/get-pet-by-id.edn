@@ -8,6 +8,10 @@
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.include "get-pet-by-id-state.clj"}
+
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/petstore/read"}
+
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)

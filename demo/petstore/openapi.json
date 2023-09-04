@@ -236,7 +236,7 @@
         ],
         "summary": "Finds Pets by tags",
         "description": "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.",
-        "operationId": "findPetsByTags",
+        "operationId": "https://auth.example.org/operations/petstore/find-by-tags",
         "parameters": [
           {
             "name": "tags",
@@ -349,7 +349,7 @@
         ],
         "summary": "Updates a pet in the store with form data",
         "description": "",
-        "operationId": "updatePetWithForm",
+        "operationId": "https://auth.example.org/operations/petstore/update-pet-by-id",
         "parameters": [
           {
             "name": "petId",
@@ -398,7 +398,7 @@
         ],
         "summary": "Deletes a pet",
         "description": "",
-        "operationId": "deletePet",
+        "operationId": "https://auth.example.org/operations/petstore/delete-pet-by-id",
         "parameters": [
           {
             "name": "api_key",
@@ -1209,8 +1209,8 @@
           "implicit": {
             "authorizationUrl": "https://auth.example.org/oauth/authorize",
             "scopes": {
-              "write:pets": "modify pets in your account",
-              "read:pets": "read your pets"
+              "https://auth.example.org/scopes/petstore/write": "modify pets in your account",
+              "https://auth.example.org/scopes/petstore/read": "read your pets"
             }
           }
         }
