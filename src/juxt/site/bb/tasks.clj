@@ -926,7 +926,10 @@
        ;; error that results!
        ["juxt/site/system-client" {"client-id" "swagger-ui"}]]))
 
-    (println "Now browse to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json")))
+    (println
+     (format
+      "Now browse to https://petstore.swagger.io/?url=%s/_site/openapi.json"
+      data-base-uri))))
 
 (defn install-petstore [opts]
   (let [cfg (config opts)
@@ -951,4 +954,7 @@
        (merge {:username "alice"
                :role "PetstoreOwner"} opts)))
 
-    (println "Now browse to https://petstore.swagger.io/?url=http://localhost:4444/petstore/openapi.json#/pet/addPet")))
+    (println
+     (format
+      "Now browse to https://petstore.swagger.io/?url=%s/petstore/openapi.json"
+      data-base-uri))))
