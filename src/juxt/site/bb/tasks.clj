@@ -85,6 +85,24 @@
                          "cache-client-secret" true}
    "curl" {"save-access-token-to-default-config-file" true}})
 
+(defn configure
+  "Create a static edn configuration file"
+  [{:keys [auth-base-uri data-base-uri]}]
+  (let [dir (some identity
+             [(io/file (System/getenv "XDG_CONFIG_HOME"))
+              (io/file (System/getenv "HOME") ".config/site")])
+        config-file (io/file dir "site-cli.edn")]
+    (when (.exists config-file)
+      (throw (ex-info "Config file already exists" {:file config-file})))
+    (spit
+     config-file
+     (with-out-str
+       (pprint
+        (cond-> (default-config)
+          auth-base-uri (assoc-in ["uri-map" "https://auth.example.org"] auth-base-uri)
+          data-base-uri (assoc-in ["uri-map" "https://data.example.org"] data-base-uri)
+          ))))))
+
 (defn profile [opts]
   (or
    (get opts :profile)

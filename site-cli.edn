@@ -12,6 +12,14 @@
              [clojure.edn :as edn]
              [clojure.java.io :as io])
 
+  configure
+  {:doc "Generate a site-cli.edn configuration file"
+   :opts {:require [:auth-base-uri :data-base-uri]
+          :coerce {:auth-base-uri :string
+                   :data-base-uri :string}}
+   :task (juxt.site.bb.tasks/configure
+          (juxt.site.bb.tasks/parse-opts))}
+
   post-init
   {:doc "Show post-init options. Requires the server."
    :task (juxt.site.bb.tasks/post-init-task)}
