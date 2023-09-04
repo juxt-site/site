@@ -18,7 +18,7 @@
   ;; Primary listener
   [:juxt.site.listener/listener :juxt.site.listener/primary-listener]
   {:juxt.site/xt-node #ig/ref :juxt.site.db/xt-node
-   :juxt.site/port 4444
+   :juxt.site/port 8082
    ;; If specified, inbound URLs will be uri-prefix + path. If not
    ;; specified, will default to concatenating the request's proto (or
    ;; X-Forwarded-Proto header) and Host (or X-Forwarded-Host) request header.
