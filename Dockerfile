@@ -3,6 +3,7 @@ FROM clojure:temurin-17-bullseye-slim
 EXPOSE 4444
 EXPOSE 4440
 EXPOSE 4911
+EXPOSE 9091
 
 WORKDIR /site
 
@@ -24,4 +25,5 @@ cp $SITE_HOME/server/etc/config/local-development.edn ~/.config/site/config.edn
 HEALTHCHECK --interval=5m --timeout=3s \
 CMD site ping || exit 1
 
-ENTRYPOINT ["site-server"]
+WORKDIR /site/server
+ENTRYPOINT ["clj", "-M:dev"]
