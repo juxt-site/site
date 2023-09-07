@@ -18,6 +18,14 @@
 
     [:juxt.site/client-type [:enum "confidential" "public"]]
 
+    [:juxt.site/client-secret
+     ;; Optional, but if unspecified one will be generated.  This
+     ;; strategy allows us to choose pre-configured client secrets,
+     ;; for simplifying testing and pushing through a secret from
+     ;; another source, such as AWS Secrets Manager.
+     {:optional true}
+     [:re "[a-zA-Z0-9-][a-zA-Z0-9-]+"]]
+
     ;; "The authorization server SHOULD require all clients to register
     ;; their redirection endpoint prior to utilizing the authorization endpoint."
     ;;
@@ -69,14 +77,17 @@
 
               client-secret
               (when (= (:juxt.site/client-type input) "confidential")
-                (juxt.site.util/make-nonce 20))
+                (or (:juxt.site/client-secret input)
+                    (juxt.site.util/make-nonce 20)))
 
               redirect-uris (:juxt.site/redirect-uris input)]
 
           (cond-> (into input
                         {:xt/id (format "https://auth.example.org/applications/%s" client-id)
                          :juxt.site/type "https://meta.juxt.site/types/application"
-                         :juxt.site/client-id client-id})
+                         :juxt.site/client-id client-id
+                         :juxt.site/authorization-server "https://auth.example.org"
+                         :juxt.site/resource-server "https://data.example.org"})
             client-secret (assoc :juxt.site/client-secret client-secret)
             ;; In case the client-secret has been provided in the input
             (not client-secret) (dissoc :juxt.site/client-secret)
@@ -99,7 +110,8 @@
         [[:xtdb.api/put *prepare*]]
         )
 
-    [[:xtdb.api/put *prepare*]]}
+    [[:xtdb.api/put *prepare*]
+     [:ring.response/status 201]]}
 
    :juxt.site/rules
    [[(allowed? subject operation resource permission)

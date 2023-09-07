@@ -116,6 +116,15 @@
    :task (juxt.site.bb.tasks/assign-user-role
           (juxt.site.bb.tasks/parse-opts))}
 
+  register-application
+  {:doc "Register an application"
+   :opts {:coerce {:client-id :string
+                   :client-type :string
+                   :redirect-uris [:string]
+                   :scope [:string]}}
+   :task (juxt.site.bb.tasks/register-application
+          (juxt.site.bb.tasks/parse-opts))}
+
   users
   {:doc "Show current users"
    :opts {:args->opts [:pattern]}

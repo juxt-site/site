@@ -39,6 +39,25 @@
       "origin" "https://petstore.example.com"}
      :ring.request/body (io/input-stream (.getBytes payload))}))
 
+(defn client-credentials-token-request
+  [uri {:keys [client-id client-secret]}]
+  (->
+   (make-token-request uri {"grant_type" "client_credentials"})
+   (assoc-in [:ring.request/headers "authorization"]
+             (format "Basic %s" (util/as-b64-str (.getBytes (str client-id ":" client-secret)))))))
+
+(defn request-token-with-client-credentials
+  [uri opts]
+  (let [response
+        (*handler* (client-credentials-token-request uri opts))
+        status (:ring.response/status response)]
+    (when-not (= 200 status)
+      (throw (ex-info "Unexpected response status" {:status status :response response})))
+    (-> response
+        :ring.response/body
+        json/read-value
+        (get "access_token"))))
+
 (defn make-token-info-request [uri params]
   (let [payload (codec/form-encode params)]
     {:ring.request/method :post
