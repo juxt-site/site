@@ -75,6 +75,10 @@ function getTimestampInSeconds() {
 async function handleTokenResponse(response, configItem) {
 
   const { access_token, refresh_token, expires_in } = await response.json();
+
+  // The 'aud' of the JWT is the audience. For an OAuth2 access token,
+  // this will be the resource server. A JWT should ONLY be sent to
+  // servers that are included in the audience of the JWT.
   const { aud } = parseJwt(access_token);
 
   tokenStore.set(aud, access_token);
