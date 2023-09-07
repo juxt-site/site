@@ -170,7 +170,7 @@
                     (http/get
                      (cond-> (str admin-base-uri "/resources")
                        pattern (str "?pattern=" (url-encode pattern)))
-                     {"accept" "application/json"})))]
+                     {:headers {:accept "application/json"}})))]
         (println res)))))
 
 (defn find []
@@ -185,7 +185,7 @@
               (http/get
                (cond-> (str admin-base-uri "/resources")
                  pattern (str "?pattern=" (url-encode pattern)))
-               {"accept" "application/json"})))
+               {:headers {:accept "application/json"}})))
 
             resource (cond
                        (= (count resources) 0)
@@ -369,7 +369,7 @@
             {:keys [status body]}
             (http/post
              token-endpoint
-             {:headers {"content-type" "application/x-www-form-urlencoded"}
+             {:headers {:content-type "application/x-www-form-urlencoded"}
               :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
                             "password" username password client-id)
               :throw false})]
@@ -413,7 +413,7 @@
           {introspection-status :status introspection-body :body}
           (http/post
            introspection-uri
-           {:headers {"authorization" (format "Bearer %s" token)}
+           {:headers {:authorization (format "Bearer %s" token)}
             :form-params {"token" token}
             :throw false})
 
@@ -457,15 +457,19 @@
   (let [opts (parse-opts)
         cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-        endpoint (cond-> (str data-base-uri path)
-                   (get opts :edn) (str ".edn")
-                   (get opts :txt) (str ".txt")
-                   (get opts :csv) (str ".csv"))
+        endpoint (str data-base-uri path)
+        headers {:content-type "application/json"
+                 :authorization (authorization cfg)
+                 :accept (cond
+                           (get opts :edn) "application/edn"
+                           (get opts :txt) "text/plain"
+                           (get opts :csv) "text/csv"
+                           :else "application/json")}
+        _ (prn "headers:" headers)
         {:keys [status body]}
         (http/get
          endpoint
-         {:headers {"content-type" "application/json"
-                    "authorization" (authorization cfg)}
+         {:headers headers
           :throw false})]
     (case status
       200 (print body)
@@ -484,10 +488,11 @@
             ;; TODO: There is a problem with babashka.http-client's
             ;; handling of the accept header :(
             ;; As a workaround, we go direct to the EDN representation.
-            endpoint (str data-base-uri (str path ".edn"))
+            endpoint (str data-base-uri path)
             {:keys [status body]} (http/get
                                    endpoint
-                                   {:headers {"authorization" (authorization cfg)}
+                                   {:headers {:authorization (authorization cfg)
+                                              :accept "application/edn"}
                                     :throw false})]
         (case status
           200 (let [edn (clojure.edn/read-string body)
@@ -594,7 +599,7 @@
          (:body
           (http/get
            (str admin-base-uri "/applications/" client-id)
-           {"accept" "application/json"})))]
+           {:headers {:accept "application/json"}})))]
     (get client-details "juxt.site/client-secret")))
 
 (defn print-or-save-client-secret [{:keys [client-id save] :as opts}]
@@ -654,8 +659,8 @@
   (let [{:keys [status body]}
         (http/post
          resources-uri
-         {:headers (cond-> {"content-type" "application/edn"}
-                     access-token (assoc "authorization" (format "Bearer %s" access-token)))
+         {:headers (cond-> {:content-type "application/edn"}
+                     access-token (assoc :authorization (format "Bearer %s" access-token)))
           :body (pr-str installers-seq)
           :throw false})]
     (case status
@@ -760,6 +765,7 @@
            ["juxt/site/whoami-api" {}]
            ["juxt/site/users-api" {}]
            ["juxt/site/endpoints-api" {}]
+           ["juxt/site/applications-api" {}]
            ["juxt/site/openapis-api" {}]
 
            ["juxt/site/sessions" {}]
@@ -805,9 +811,9 @@
         {:keys [status body]}
         (http/post
          (str base-uri "/_site/users")
-         {:headers {"content-type" "application/json"
-                    "accept" "application/json"
-                    "authorization" (authorization cfg)}
+         {:headers {:content-type "application/json"
+                    :accept "application/json"
+                    :authorization (authorization cfg)}
           :body (json/generate-string opts {:pretty true})
           :throw false})]
     (case status
@@ -833,6 +839,46 @@
     (case status
       200 (print body)
       (print status body))))
+
+(defn register-application [{:keys [client-id client-type redirect-uris scope] :as opts}]
+  (let [cfg (config opts)
+        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+
+        client-id (or client-id (input/input {:header (format "Input client id")}))
+        client-type (or client-type
+                        (input/choose
+                         ["public" "confidential"]
+                         {:header (format "Input client type")}))
+        redirect-uris (or redirect-uris
+                          (str/split
+                           (input/input {:header "Redirect URIs (space-separated)"})
+                           #"\s+"))
+        scope (or scope (str/split
+                         (input/input {:header "Scope (space-separated)"})
+                         #"\s+"))
+        #_{:keys [status body]}
+        #_(http/post
+           (str data-base-uri "/_site/applications")
+           {:headers {"content-type" "application/json"
+                      :accept "application/json"
+                      "authorization" (authorization cfg)}
+            :body (json/generate-string opts {:pretty true})
+            :throw false})]
+
+    (when-not (#{"public" "confidential"} client-type)
+      (throw (ex-info "Invalid client-type" {})))
+
+    (println
+     (json/generate-string
+      {"client_id" client-id
+       "client_type" client-type
+       "redirect_uris" redirect-uris
+       "scope" scope}))
+
+    #_(case status
+        200 (print body)
+        (print status body))))
 
 (defn bundles-task []
   (doseq [[k _] (bundles (config (parse-opts)))]
