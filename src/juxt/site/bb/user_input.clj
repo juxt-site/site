@@ -32,6 +32,7 @@
                   :opts (cond-> opts
                           true (assoc :header.foreground "#C72" :prompt.foreground "#444" :width 60)
                           true (dissoc :heading :prompt)
+                          true (assoc :cursor.foreground "#AAA")
                           (nil? header) (assoc :header (str heading "\n\n" prompt)))})]
       (when (= status 130)
         (System/exit 2))
