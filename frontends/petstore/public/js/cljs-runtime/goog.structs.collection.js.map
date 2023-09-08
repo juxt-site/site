@@ -1,0 +1,9 @@
+{
+"version":3,
+"file":"goog.structs.collection.js",
+"lineCount":8,
+"mappings":"AAUAA,IAAKC,CAAAA,OAAL,CAAa,yBAAb,CAAA;AASAD,IAAKE,CAAAA,OAAQC,CAAAA,UAAb,GAA0BC,QAAQ,EAAG;CAArC;AAMAJ,IAAKE,CAAAA,OAAQC,CAAAA,UAAWE,CAAAA,SAAUC,CAAAA,GAAlC;AAMAN,IAAKE,CAAAA,OAAQC,CAAAA,UAAWE,CAAAA,SAAUE,CAAAA,MAAlC;AAOAP,IAAKE,CAAAA,OAAQC,CAAAA,UAAWE,CAAAA,SAAUG,CAAAA,QAAlC;AAMAR,IAAKE,CAAAA,OAAQC,CAAAA,UAAWE,CAAAA,SAAUI,CAAAA,QAAlC;;",
+"sources":["goog/structs/collection.js"],
+"sourcesContent":["/**\n * @license\n * Copyright The Closure Library Authors.\n * SPDX-License-Identifier: Apache-2.0\n */\n\n/**\n * @fileoverview Defines the collection interface.\n */\n\ngoog.provide('goog.structs.Collection');\n\n\n\n/**\n * An interface for a collection of values.\n * @interface\n * @template T\n */\ngoog.structs.Collection = function() {};\n\n\n/**\n * @param {T} value Value to add to the collection.\n */\ngoog.structs.Collection.prototype.add;\n\n\n/**\n * @param {T} value Value to remove from the collection.\n */\ngoog.structs.Collection.prototype.remove;\n\n\n/**\n * @param {T} value Value to find in the collection.\n * @return {boolean} Whether the collection contains the specified value.\n */\ngoog.structs.Collection.prototype.contains;\n\n\n/**\n * @return {number} The number of values stored in the collection.\n */\ngoog.structs.Collection.prototype.getCount;\n"],
+"names":["goog","provide","structs","Collection","goog.structs.Collection","prototype","add","remove","contains","getCount"]
+}

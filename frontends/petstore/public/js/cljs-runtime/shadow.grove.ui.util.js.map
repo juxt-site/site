@@ -1,0 +1,1 @@
+{"version":3,"sources":["shadow/grove/ui/util.cljs"],"mappings":";AAEA,AAAKA,2BACH,wCAAA,tCAAI,QAAAC;AAAJ,AACG,OAACC;GADJ;AAAA,AAEG,OAACC","names":["shadow.grove.ui.util/now","js/performance","js/performance.now","js/Date.now"],"sourcesContent":["(ns shadow.grove.ui.util)\n\n(def now\n  (if (exists? js/performance)\n    #(js/performance.now)\n    #(js/Date.now)))\n\n"]}

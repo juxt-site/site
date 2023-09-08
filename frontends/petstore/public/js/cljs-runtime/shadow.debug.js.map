@@ -1,0 +1,1 @@
+{"version":3,"sources":["shadow/debug.cljs"],"mappings":";AAGA,wBAAA,xBAAMA,wDAAOC,IAAIC;AAAjB,AACE,kBAAA,mFAAA,rGAACC,kLAA0BF,IAAIC;;AAC/BD","names":["shadow.debug/tap->","obj","opts","cljs.core/tap>"],"sourcesContent":["(ns shadow.debug\n  (:require-macros [shadow.debug]))\n\n(defn tap-> [obj opts]\n  (tap> [:shadow.remote/wrap obj opts])\n  obj)"]}

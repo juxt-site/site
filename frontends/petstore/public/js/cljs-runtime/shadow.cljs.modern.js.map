@@ -1,0 +1,1 @@
+{"version":3,"sources":["shadow/cljs/modern.cljs"],"mappings":"","names":[],"sourcesContent":["(ns shadow.cljs.modern\n  (:require-macros [shadow.cljs.modern]))\n"]}

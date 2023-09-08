@@ -1,0 +1,20 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src/dev"
+  "src/main"
+  "src/test"]
+
+ :dependencies
+ [[com.thheller/shadow-grove "0.4.2"]
+  [cljs-ajax/cljs-ajax "0.8.4"]
+  [aero/aero "1.1.6"]]
+
+ :dev-http
+ {3000 "public"}
+
+ :builds
+ {:ui
+  {:target :browser
+   :output-dir "public/js"
+   :modules {:main {:init-fn pet.ui/init
+                    :preloads [shadow.grove.dev-support]}}}}}
