@@ -465,7 +465,6 @@
                            (get opts :txt) "text/plain"
                            (get opts :csv) "text/csv"
                            :else "application/json")}
-        _ (prn "headers:" headers)
         {:keys [status body]}
         (http/get
          endpoint
