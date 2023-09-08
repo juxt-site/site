@@ -5,7 +5,7 @@
 
 (defn resolve-parameters [parameters args]
   (reduce
-   (fn [acc [parameter {:keys [default choices]}]]
+   (fn [acc [parameter {:keys [label default choices password]}]]
      (assoc acc parameter
             (or (get args parameter)
                 default
@@ -15,7 +15,10 @@
 
                                 value (get-in (into {} choice-v) [choice :value])]
                             value)
-                  :else
-                  (input/input {:header parameter})))))
+
+                  password (input/input {:header (or label parameter)
+                                         :password true})
+
+                  :else (input/input {:header (or label parameter)})))))
    {}
    parameters))

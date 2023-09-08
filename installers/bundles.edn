@@ -849,17 +849,74 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/register-password-based-user-identity"}
    ]}
 
- "juxt/site/openid"
- {:juxt.site/description "Configure Site as an OpenID Connect client to authenticate resource owners"
+ "juxt/site/openid-support"
+ {:juxt.site/title "OpenID Connect support"
+  :juxt.site/description "Configure Site as an OpenID Connect client to authenticate resource owners"
   :juxt.site/installers
   [
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/openid/exchange-code-for-id-token"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/register-openid-issuer"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/register-openid-client"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/register-openid-user-identity"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/register-openid-issuer"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/register-openid-client"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/register-openid-user-identity"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/install-openid-login-endpoint"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/install-openid-callback-endpoint"}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "register-openid-issuer"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "register-openid-client"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "register-openid-user-identity"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "install-openid-login-endpoint"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "install-openid-callback-endpoint"}}]}
+
+ "juxt/site/openid-issuer"
+ {:juxt.site/title "OpenID Connect issuer"
+  :juxt.site/parameters
+  [["iss" {:label "Issuer"}]]
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/openid/issuers/{{iss|urlescape}}"}]}
+
+ "juxt/site/openid-client"
+ {:juxt.site/title "OpenID Connect client"
+  :juxt.site/parameters
+  [["iss" {:label "Issuer"}]
+   ["client-id" {:label "Client ID"}]
+   ["client-secret" {:label "Client Secret" :password true}]]
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/openid/clients/{{iss|urlescape}}/{{client-id}}"}]}
+
+ "juxt/site/openid-user-identity"
+ {:juxt.site/title "OpenID Connect user identity"
+  :juxt.site/parameters
+  [["iss" {:label "Issuer"}]
+   ["nickname" {:label "Nickname"}]
+   ["user" {:label "Associated user (URI)"}]]
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/openid-user-identities/{{iss|urlescape}}/nickname/{{nickname}}"}]}
+
+ "juxt/site/login-with-openid"
+ {:juxt.site/title "OpenID redirect"
+  :juxt.site/parameters
+  [["iss" {:label "Issuer"}]
+   ["client-id" {:label "Client ID"}]]
+  :juxt.site/installers
+  [
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/login-with-openid"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/login-with-openid"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/login-with-openid"}
    ]}
 
  "juxt/site/testing/basic-auth-protected-resource"
@@ -880,7 +937,7 @@
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.test" :juxt.site/installer-path "/applications/test-admin-client"}
    {:juxt.site/base-uri "https://data.example.org"
-      :juxt.site/installer-path "/_site/application-role-assignments/{{clientid}}-{{rolename}}"
-      :juxt.site/parameters {"clientid" "test-admin-client" "rolename" "SiteAdmin"}}]}
+    :juxt.site/installer-path "/_site/application-role-assignments/{{clientid}}-{{rolename}}"
+    :juxt.site/parameters {"clientid" "test-admin-client" "rolename" "SiteAdmin"}}]}
 
  }

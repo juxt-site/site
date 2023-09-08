@@ -1,13 +1,12 @@
 {:deps
  ["https://auth.example.org/operations/register-openid-client"
-  "https://auth.example.org/permissions/system/register-openid-client"
-  "https://auth.example.org/openid/issuers/{{iss}}"]
+  "https://auth.example.org/openid/issuers/{{iss|urlescape}}"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/operations/register-openid-client"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/issuer-configuration "https://auth.example.org/openid/issuers/{{iss}}"
+   :juxt.site/issuer-configuration "https://auth.example.org/openid/issuers/{{iss|urlescape}}"
    :juxt.site/client-id "{{client-id}}"
    :juxt.site/client-secret "{{client-secret}}"
    :juxt.site/redirect-uri "https://auth.example.org/openid/callback"}}}

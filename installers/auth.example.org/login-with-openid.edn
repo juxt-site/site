@@ -1,12 +1,16 @@
 {:deps
- ["https://auth.example.org/openid/clients/{{client-id}}"
+ [;; TODO: This can't be 'reinstalled' as we don't have the
+  ;; client-secret parameter, but after we've changed the installer to
+  ;; fail on missing dependencies (rather than reinstall them) we
+  ;; should uncomment out this dependency.
+  #_"https://auth.example.org/openid/clients/{{iss|urlescape}}/{{client-id}}"
+
   "https://auth.example.org/openid/callback"
-  "https://auth.example.org/operations/install-openid-login-endpoint"
-  "https://auth.example.org/permissions/system/install-openid-login-endpoint"]
+  "https://auth.example.org/operations/install-openid-login-endpoint"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/operations/install-openid-login-endpoint"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/openid-client-configuration "https://auth.example.org/openid/clients/{{client-id}}"
+   :juxt.site/openid-client-configuration "https://auth.example.org/openid/clients/{{iss|urlescape}}/{{client-id}}"
    :juxt.site/session-scope "https://auth.example.org/session-scopes/openid-login-session"}}}

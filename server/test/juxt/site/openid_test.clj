@@ -26,7 +26,7 @@
 
       #_(install-bundles! [["juxt/site/bootstrap" {}]
                          ["juxt/site/core" {}]
-                         ["juxt/site/openid" {}]])
+                         ["juxt/site/openid-client" {}]])
 
       (repl/ls)
       (repl/e "https://site.test/login")
