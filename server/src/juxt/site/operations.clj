@@ -453,10 +453,7 @@
   {:namespaces
    (merge-with
     merge
-    {'user { ;;'*subject* subject
-            ;;'*operation* operation
-            ;;'*resource* resource
-            '*ctx* (sanitize-ctx ctx)
+    {'user {'*ctx* (sanitize-ctx ctx)
             'logf (fn [fmt & fmt-args]
                     (log/infof (apply format fmt fmt-args)))
             'log (fn [message]
@@ -837,7 +834,7 @@
           (when-not keypair
             (throw (ex-info "Keypair not found" {:kid kid})))
           (jwt/verify-jwt access-token keypair)))}
-     
+
      'grab
      {'parsed-types
       (fn parsed-types [schema-id]

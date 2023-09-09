@@ -12,7 +12,8 @@
     {:state (juxt.site.util/make-nonce 8)
      :nonce (juxt.site.util/make-nonce 12)
      :session-id (str "https://auth.example.org/sessions/" (juxt.site.util/make-nonce 16))
-     :session-token (juxt.site.util/make-nonce 16)}}
+     :session-token (juxt.site.util/make-nonce 16)
+     :query-params (some-> *ctx* :ring.request/query ring.util.codec/form-decode)}}
 
    :juxt.site/transact
    {:juxt.site.sci/program
@@ -70,7 +71,7 @@
           _ (when-not session-id
               (throw (ex-info "Prepare step should have prepared a random 'session-id' value" {})))
 
-          query-params (some-> *ctx* :ring.request/query ring.util.codec/form-decode)
+          query-params (:query-params *prepare*)
 
           return-to (get query-params "return-to")
 

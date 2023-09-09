@@ -16,7 +16,8 @@
    :juxt.site/prepare
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [query-params (some-> *ctx* :ring.request/query (ring.util.codec/form-decode "US-ASCII"))
+    (let [resource (:juxt.site/resource *ctx*)
+          query-params (some-> *ctx* :ring.request/query (ring.util.codec/form-decode "US-ASCII"))
           _ (when-not query-params
               (throw (ex-info "No query params" {})))
 
@@ -32,12 +33,12 @@
               (throw
                (ex-info "No code in query params" {})))
 
-          openid-client-configuration-id (:juxt.site/openid-client-configuration *resource*)
+          openid-client-configuration-id (:juxt.site/openid-client-configuration resource)
           _ (when-not openid-client-configuration-id
               (throw
                (ex-info
                 "Resource does not have a non-nil :juxt.site/openid-client entry"
-                {:resource *resource*})))
+                {:resource resource})))
 
           ;; The use of the asterisk as a suffix is meant to indicate that
           ;; this data may be stale, and shouldn't be used to make
@@ -101,21 +102,30 @@
           ;; The subject-id will be randomized, so we can't generate this
           ;; in the transaction function (since different nodes would
           ;; almost certainly generate different values!)
-          subject-id (juxt.site.util/make-nonce 10)]
+          subject-id (juxt.site.util/make-nonce 10)
 
-      ;; We send the issuer and the encoded-id-token. Although the client
-      ;; configuration may still change prior to this transaction reaching
-      ;; the head of the queue, the id token is still valid with respect
-      ;; to the issuer. We include the issuer to allow the transaction to
-      ;; check it hasn't changed (if it has, the id-token must be
-      ;; reacquired from the new issuer). Note that while this might
-      ;; appear to be an unreasonable about of caution to preserve strict
-      ;; serializability of data.
+          session (:juxt.site/session *ctx*)
+          _ (when-not session
+              (throw (ex-info "No session in request-context" {})))
+          ]
+
+      ;; We send the issuer and the encoded-id-token. Although the
+      ;; client configuration may still change prior to this
+      ;; transaction reaching the head of the queue, the id token is
+      ;; still valid with respect to the issuer. We include the issuer
+      ;; to allow the transaction to check it hasn't changed (if it
+      ;; has, the id-token must be reacquired from the new
+      ;; issuer). Note that this might appear to be an unreasonable
+      ;; about of caution to preserve strict serializability of data.
       {:issuer (:juxt.site/issuer issuer-configuration*)
        :encoded-id-token encoded-id-token
        :received-state received-state
        :subject-id subject-id
-       :new-session-token (juxt.site.util/make-nonce 16)})}
+       :new-session-token (juxt.site.util/make-nonce 16)
+       :openid-client-configuration-id openid-client-configuration-id
+       :session session
+       :session-token-id (:juxt.site/session-token-id! *ctx*)
+       :session-scope (:juxt.site/session-scope *ctx*)})}
 
    :juxt.site/transact
    {:juxt.site.sci/program
@@ -124,10 +134,13 @@
            encoded-id-token :encoded-id-token
            received-state :received-state
            subject-id :subject-id
-           new-session-token :new-session-token}
+           new-session-token :new-session-token
+           openid-client-configuration-id :openid-client-configuration-id
+           session :session
+           session-token-id :session-token-id
+           session-scope :session-scope}
           *prepare*
 
-          openid-client-configuration-id (:juxt.site/openid-client-configuration *resource*)
           openid-client-configuration (xt/entity openid-client-configuration-id)
           client-id (:juxt.site/client-id openid-client-configuration)
           issuer-config-id (:juxt.site/issuer-configuration openid-client-configuration)
@@ -148,9 +161,8 @@
           ;; Arguably do the nonce check below in the validation of the
           ;; ID_TOKEN.  Pass in the session if necessary.
 
-          session (:juxt.site/session *ctx*)
           _ (when-not session
-              (throw (ex-info "No session in request context" {})))
+              (throw (ex-info "No session in prepare" {})))
 
           expected-state (:juxt.site/state session)
           _ (when-not expected-state
@@ -230,6 +242,12 @@
            :juxt.site/session-token new-session-token
            :juxt.site/session (:xt/id session)}]
 
+      (when-not session-scope
+        (throw
+         (ex-info
+          "No :juxt.site/session-scope passed in prepare"
+          {})))
+
       (remove
        nil?
        [[:xtdb.api/put subject
@@ -250,20 +268,14 @@
         ;; https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#renew-the-session-id-after-any-privilege-level-change)
         [:xtdb.api/put new-session-token-doc]
 
-        (when-let [old-session-token (:juxt.site/session-token-id! *ctx*)]
-          [:xtdb.api/delete old-session-token])
+        ;; Delete the old session token
+        (when session-token-id
+          [:xtdb.api/delete session-token-id])
 
         [:ring.response/status (if (:juxt.site/return-to session) 303 200)]
 
         [:ring.response/headers
-         (let [session-scope (:juxt.site/session-scope *ctx*)
-               _ (when-not session-scope
-                   (throw
-                    (ex-info
-                     "No :juxt.site/session-scope attached to context"
-                     {})))
-
-               cookie-name (:juxt.site/cookie-name session-scope)
+         (let [cookie-name (:juxt.site/cookie-name session-scope)
                _ (when-not cookie-name
                    (throw
                     (ex-info
