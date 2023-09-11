@@ -75,3 +75,6 @@
   (println (ansi/yellow "Enter (help) for help"))
 
   :ready)
+
+(when (System/getProperty "dev")
+  (start))

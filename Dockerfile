@@ -1,3 +1,4 @@
+## -*- dockerfile-image-name: "site-server" -*-
 FROM clojure:temurin-17-bullseye-slim
 
 EXPOSE 4444
@@ -11,6 +12,9 @@ COPY . .
 
 ENV SITE_HOME=/site
 ENV PATH="$SITE_HOME/bin:$SITE_HOME/server/bin:${PATH}"
+
+# Make sure gum has color
+ENV CLICOLOR_FORCE=true
 
 COPY --from=ghcr.io/babashka/babashka:latest /usr/local/bin/bb /usr/bin/bb
 COPY --from=ghcr.io/charmbracelet/gum:latest /usr/local/bin/gum /usr/bin/gum
