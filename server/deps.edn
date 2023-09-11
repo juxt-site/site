@@ -98,6 +98,8 @@
                "--middleware" "[cider.nrepl/cider-middleware]"]
    :jvm-opts
    ["-XX:-OmitStackTraceInFastThrow"
+    "-Dlogback.configurationFile=dev/logback.xml"
+    "-Ddev"
     "-Dclojure.spec.check-asserts=true"]}
 
   :test
