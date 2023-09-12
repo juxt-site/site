@@ -2,8 +2,6 @@
 
 (ns juxt.site.test-helpers.init
   (:require
-   [juxt.site.test-helpers.install :as install]
-   [juxt.site.install.common-install-util :as ciu]
    [juxt.site.test-helpers.local-files-util :as local]))
 
 (def CONFIG
@@ -22,6 +20,8 @@
     ;; Install a keypair to sign JWT bearer tokens
     ["juxt/site/keypair" {"kid" "test-kid"}]
     ;; Install the required APIs
+    "juxt/site/user-model"
+    "juxt/site/protection-spaces"
     ["juxt/site/api-operations" {}]
     ["juxt/site/resources-api" {}]
     ["juxt/site/events-api" {}]

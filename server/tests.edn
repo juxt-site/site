@@ -12,6 +12,7 @@
            "juxt.site.events-test"
            "juxt.site.graphql-compiler-test"
            "juxt.site.form-based-auth-test"
+           "juxt.site.bundles-test"
            "juxt.site.eql-datalog-compiler-test"
            "juxt.site.oauth-test"
            "juxt.site.oauth-grants-test"
@@ -24,6 +25,7 @@
            "juxt.site.post-openapi-test"
            "juxt.site.error-test"
            "juxt.site.installer-test"
-           "juxt.site.petstore-test"]}]
+           "juxt.site.petstore-test"
+           ]}]
 
  :reporter kaocha.report/documentation}

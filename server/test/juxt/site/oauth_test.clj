@@ -19,6 +19,7 @@
    ["juxt/site/bootstrap"
     ["juxt/site/keypair" {"kid" "test-kid"}]
     "juxt/site/sessions"
+    "juxt/site/login-form"
     ["juxt/site/oauth-authorization-endpoint"
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
       "authorization-code-length" 12

@@ -23,11 +23,12 @@
   (install-bundles!
    ["juxt/site/system-api-openapi"
     "juxt/site/login-form"
+    "juxt/site/password-based-user-identity"
     "juxt/site/example-users"
     ["juxt/site/oauth-authorization-endpoint"
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
-        "authorization-code-length" 12
-        "jti-length" 12}]
+      "authorization-code-length" 12
+      "jti-length" 12}]
     "juxt/site/oauth-token-endpoint"]
    (get CONFIG "uri-map")))
 

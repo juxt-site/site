@@ -32,7 +32,8 @@
                           (install/map-uris uri-map))]
     (->>
      (ciu/installer-seq graph params resources)
-     (map :juxt.site/init-data))))
+     ;; (map :juxt.site/init-data)
+     )))
 
 (defn graph [dir uri-map]
   (ciu/unified-installer-map dir uri-map))
@@ -47,6 +48,5 @@
        (let [installer-seq (spec->installer-seq spec uri-map bundles graph)
              db (xt/db *xt-node*)
              tx-ops (operations/installer-seq->tx-ops nil db installer-seq)]
-
          (operations/apply-ops! *xt-node* tx-ops)))
      specs)))

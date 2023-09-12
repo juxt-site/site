@@ -657,27 +657,49 @@
              ;; operations that appear in the bundle, prior to
              ;; locating them as usual in the database.
              (reduce
-              (fn [{:keys [current-operation-index] :as acc}
-                   {operation-uri :juxt.site/operation-uri,
-                    input :juxt.site/input,
-                    :as installer}]
+              (fn [{:keys [current-operation-index dependency-list] :as acc}
+                  {init-data :juxt.site/init-data
+                   dependencies :juxt.site/dependencies
+                   uri :juxt.site/uri
+                   :as installer}
+                  ;; {operation-uri :juxt.site/operation-uri,
+                  ;;   input :juxt.site/input,
+                  ;;   :as installer}
+                  ]
+                (let [{operation-uri :juxt.site/operation-uri
+                       input :juxt.site/input
+                       :as init-data}
+                      init-data]
 
-                (when-not input
-                  (throw
-                   (ex-info
-                    (format "No input for installer: %s" (pr-str installer))
-                    {:operation-uri operation-uri})))
+                  (when-not input
+                    (throw
+                     (ex-info
+                      (format "No input for installer: %s" (pr-str installer))
+                      {:operation-uri operation-uri})))
 
-                (cond-> acc
-                  (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
-                  (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
+                  (when (seq dependencies)
+                    (doall (map
+                            (fn [dep]
+                              (or (xt/entity db dep)
+                                  ((set dependency-list) dep)
+                                  (throw (ex-info (format "Dependency '%s' missing, needed to install '%s'" dep uri)
+                                                  {:dependency dep
+                                                   :uri uri
+                                                   :deplist dependency-list}))))
+                            dependencies)))
 
-                  operation-uri (prepare-operation subject-uri installer (xt/entity db operation-uri))
+                  (cond-> acc
+                    true (update :dependency-list #(into % (conj dependencies uri)))
+                    (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
+                    (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
 
-                  ;; Increment operation-index
-                  current-operation-index (update :current-operation-index inc)))
+                    operation-uri (prepare-operation subject-uri init-data (xt/entity db operation-uri))
+
+                    ;; Increment operation-index
+                    current-operation-index (update :current-operation-index inc))))
 
               {:entities-by-id {}
+               :dependency-list #{}
                :current-operation-index 0
                :tx-ops []
                :errors []}))]
