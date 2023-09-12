@@ -51,7 +51,7 @@
   (println "Site by JUXT. Copyright (c) 2020-2023, JUXT LTD.")
   (println "Compiling code, please wait...")
   (log/info "Starting development system")
-  (alter-var-root #'main/profile (constantly :dev))
+  ;; (alter-var-root #'main/profile (constantly :dev))
   (let [system-config (main/system-config)
         system (ig/init system-config)]
     (alter-var-root #'main/*system* (constantly system)))
@@ -75,3 +75,6 @@
   (println (ansi/yellow "Enter (help) for help"))
 
   :ready)
+
+(when (System/getProperty "dev")
+  (start))
