@@ -577,7 +577,8 @@
     (if bundle
       (pprint
        (->> (installers-seq cfg bundle opts)
-            (map :juxt.site/init-data)))
+            ;; (map :juxt.site/init-data)
+            ))
       (stderr (println (format "Bundle not found: %s" bundle-name))))))
 
 (defn random-string [size]
@@ -681,7 +682,8 @@
            (format "Installing: %s" title)
            (format "Installing: %s with %s" title param-str)))
         (install opts (->> installers-seq
-                           (map :juxt.site/init-data)))))))
+                           ;; (map :juxt.site/init-data)
+                           ))))))
 
 (defn install-bundle-task [{bundle-names :bundle _ :debug :as opts}]
   (let [cfg (config opts)

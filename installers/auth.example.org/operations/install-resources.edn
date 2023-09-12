@@ -26,22 +26,7 @@
           tx-ops (juxt.site/installer-seq->tx-ops installer-seq)]
 
       {:juxt.site/tx-ops tx-ops})}
-
-   :juxt.site/transact
-   {:juxt.site.sci/program
-    #juxt.pprint
-    (let [tx-ops (:juxt.site/tx-ops *prepare*)
-          put-ids (map :xt/id (map second (filter (fn [x] (= (first x) :xtdb.api/put)) tx-ops)))
-          #_#_body (pr-str put-ids) #_(clojure.string/join "\r\n"
-                                        (cons
-                                         (format "Successful application of %d tx-ops\r\n" (count tx-ops))
-                                         put-ids)
-                                        )]
-
-      (-> tx-ops
-          #_(conj
-           [:ring.response/body (pr-str tx-ops)])))}
-
+   
    :juxt.site/scope
    #{"https://auth.example.org/scopes/system/write"}
 

@@ -59,6 +59,7 @@
     "juxt/site/user-model"
     "juxt/site/password-based-user-identity"
     "juxt/site/sessions"
+    "juxt/site/login-form"
     ["juxt/site/oauth-authorization-endpoint"
      {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"
       "authorization-code-length" 12

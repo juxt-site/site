@@ -23,6 +23,8 @@
   (install-bundles!
    [["juxt/site/system-client" {"client-id" "site-cli"}]
     "juxt/site/login-form"
+    "juxt/site/user-model"
+    "juxt/site/password-based-user-identity"
     "juxt/site/example-users"
     "juxt/site/test-scopes"
     "juxt/site/test-clients"

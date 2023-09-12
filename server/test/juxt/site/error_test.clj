@@ -14,6 +14,8 @@
 (defn install-bundles-fixture [f]
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/user-model"
+    "juxt/site/protection-spaces"
     "juxt/site/api-operations"
     "juxt/site/users-api"]
    RESOURCE_SERVER)

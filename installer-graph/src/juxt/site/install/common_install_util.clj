@@ -105,7 +105,8 @@
          :concrete-id concrete-id
          :dependency dependency
          ;;:graph (keys graph)
-         })))))
+         }
+        )))))
 
 ;; installer-seq
 
@@ -130,24 +131,18 @@
   templates."
   [graph user-parameters installer-specs]
   (->> installer-specs
-       (mapcat
+       (map
         (fn [installer-spec]
           (let [installer-parameters (:juxt.site/parameters installer-spec)
                 expanded-installer-parameters (render-form-templates installer-parameters user-parameters)
                 combined-parameters (merge user-parameters expanded-installer-parameters)
                 root (lookup-root installer-spec graph combined-parameters)]
-
-            (reverse
-             (tree-seq
-              some?
-              (fn [parent]
-                (assert parent)
-                (for [dep (:deps parent)
-                      :let [child (lookup-dependency dep graph combined-parameters parent)]]
-                  (-> child
-                      (assoc :juxt.site/ultimate-dependant installer-spec)
-                      (assoc :deps (:deps child)))))
-              (assoc root :juxt.site/parameters combined-parameters))))))))
+            
+            (assoc root
+                   :juxt.site/parameters combined-parameters
+                   :juxt.site/dependencies
+                   (for [dep (:deps root)]
+                     (render-with-required-check dep combined-parameters))))))))
 
 (defn installer-seq
   "Given a graph of installer templates indexed by a (possibly templated) uri,
@@ -158,32 +153,28 @@
   (->> installer-specs
        (installer-seq-pt1 graph user-parameters)
        (reduce
-        (fn [{:keys [seen-uri-set] :as acc}
+        (fn [acc
              {:keys [juxt.site/uri install juxt.site/parameters] :as installer}]
-          (if-not (contains? seen-uri-set uri)
-            (let [init-data
-                  (try
-                    (render-form-templates install (assoc (merge user-parameters parameters) "$id" uri))
-                    (catch clojure.lang.ExceptionInfo cause
-                      (throw
-                       (ex-info
-                        (format "Failed to render init-data for '%s'" uri)
-                        {:juxt.site/uri uri
-                         :installer installer
-                         :installer-parameters parameters
-                         :user-parameters user-parameters
-                         :cause cause}
-                        cause))))]
-              (when (nil? init-data)
-                (throw (ex-info "Nil init data" {:juxt.site/uri uri})))
-              (-> acc
-                  (update :installers conj (-> installer
-                                               (assoc :juxt.site/init-data init-data)
-                                               (dissoc :install)))
-                  (update :seen-uri-set conj uri)))
-            acc))
-        {:seen-uri-set #{}
-         :installers []})
+          (let [init-data
+                 (try
+                   (render-form-templates install (assoc (merge user-parameters parameters) "$id" uri))
+                   (catch clojure.lang.ExceptionInfo cause
+                     (throw
+                      (ex-info
+                       (format "Failed to render init-data for '%s'" uri)
+                       {:juxt.site/uri uri
+                        :installer installer
+                        :installer-parameters parameters
+                        :user-parameters user-parameters
+                        :cause cause}
+                       cause))))]
+             (when (nil? init-data)
+               (throw (ex-info "Nil init data" {:juxt.site/uri uri})))
+             (-> acc
+                 (update :installers conj (-> installer
+                                              (assoc :juxt.site/init-data init-data)
+                                              (dissoc :install))))))
+        {:installers []})
        :installers))
 
 

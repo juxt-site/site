@@ -15,6 +15,10 @@
 (defn bootstrap []
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/user-model"
+    "juxt/site/protection-spaces"
+    "juxt/site/oauth-token-endpoint"
+    "juxt/site/password-based-user-identity"
     "juxt/site/testing/basic-auth-protected-resource"
     "juxt/site/test-clients"
     "juxt/site/example-users"]

@@ -27,14 +27,18 @@
 (defn bootstrap []
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/protection-spaces"
+    "juxt/site/user-model"
     "juxt/site/api-operations"
     "juxt/site/users-api"
     "juxt/site/openapis-api"
     "juxt/site/system-api-openapi"
+    ["juxt/site/sessions" {}]
     "juxt/site/login-form"
+    "juxt/site/password-based-user-identity"
+    "juxt/site/roles"
     "juxt/site/example-users"
     ["juxt/site/keypair" {"kid" "test-kid"}]
-    ["juxt/site/sessions" {}]
     ["juxt/site/oauth-authorization-endpoint"
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
       "authorization-code-length" 12
