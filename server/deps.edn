@@ -81,7 +81,8 @@
   ;; Used by /_site/users (401 handler), at least
   hiccup/hiccup {:mvn/version "2.0.0-alpha2"}
 
-  clj-commons/clj-yaml {:mvn/version "1.0.26"}}
+  clj-commons/clj-yaml {:mvn/version "1.0.26"}
+  }
 
  :aliases
  {:dev
@@ -91,16 +92,13 @@
     djblue/portal {:mvn/version "0.29.1"}
     borkdude/rewrite-edn {:mvn/version "0.4.6"}
     juxt.site/installer-graph {:local/root "../installer-graph"}
-    cider/cider-nrepl {:mvn/version "0.37.0"}
-    nrepl/nrepl {:mvn/version "1.0.0"}}
-   :main-opts ["-m" "nrepl.cmdline"
-               "-p" "9091"
-               "--middleware" "[cider.nrepl/cider-middleware]"]
+    ;;lambdaisland/kaocha {:mvn/version "1.0.887"}
+    }
    :jvm-opts
    ["-XX:-OmitStackTraceInFastThrow"
-    "-Dlogback.configurationFile=dev/logback.xml"
-    "-Ddev"
-    "-Dclojure.spec.check-asserts=true"]}
+    "-Dclojure.server.site={:port,50505,:accept,juxt.site.repl-server/repl}"
+    "-Dclojure.spec.check-asserts=true"
+    "--add-opens" "java.base/java.util.concurrent=ALL-UNNAMED"]}
 
   :test
   {:extra-paths ["test"]
