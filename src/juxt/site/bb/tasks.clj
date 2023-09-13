@@ -768,7 +768,9 @@
            ;; Install a keypair to sign JWT bearer tokens
            ["juxt/site/keypair" {"kid" (random-string 16)}]
            ;; Install the required APIs
+           ["juxt/site/user-model" {}]
            ["juxt/site/api-operations" {}]
+           ["juxt/site/protection-spaces" {}]
            ["juxt/site/resources-api" {}]
            ["juxt/site/events-api" {}]
            ["juxt/site/logs-api" {}]
@@ -779,7 +781,6 @@
            ["juxt/site/openapis-api" {}]
 
            ["juxt/site/sessions" {}]
-           ["juxt/site/protection-spaces" {}]
            ["juxt/site/roles" {}]
 
            ;; RFC 7662 token introspection
