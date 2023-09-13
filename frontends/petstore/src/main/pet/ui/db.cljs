@@ -59,14 +59,28 @@
       (assoc-in env [:db ::m/current-filter] filter))))
 
 (sg/reg-event env/rt-ref ::m/create-new!
-  (fn [env {::m/keys [pet-name pet-status]}]
-    (update env :db
-      (fn [db]
-        (let [{::m/keys [id-seq]} db]
-          (let [new-pet {::m/pet-id id-seq ::m/pet-name pet-name ::m/pet-status pet-status}]
-            (-> db
-                (update ::m/id-seq inc)
-                (db/add ::m/pet new-pet [::m/pets]))))))))
+              (fn [env {::m/keys [pet-name pet-status]}]
+                (js/console.log (str "POSTING PET" pet-name pet-status))
+                (ajax/POST (str (get config/config "resource-server") "/petstore/pet")
+                           {:format :json
+                            :params {:name pet-name :status pet-status :id (inc (get-in env [:db ::m/id-seq]))}
+                            :response-format :json
+                            :timeout 5000
+                            :keywords? true
+                            :handler (fn [resp]
+                                       (js/console.log "posted"))
+                            :error-handler (fn [e]
+                                             (if (= (:status e) 200)
+                                               ""
+                                               (js/console.log (str "ERROR:" e))))})
+                (update env :db
+                        (fn [db]
+                          (let [{::m/keys [id-seq]} db
+                                next-id (inc id-seq)
+                                new-pet {::m/pet-id next-id ::m/pet-name pet-name ::m/pet-status pet-status}]
+                            (-> db
+                                (update ::m/id-seq inc)
+                                (db/add ::m/pet new-pet [::m/pets])))))))
 
 (sg/reg-event env/rt-ref ::m/delete!
   (fn [env {:keys [pet]}]
@@ -129,17 +143,20 @@
 ;;                 (assoc-in env [:db ::m/whoami] whoami)))
 
 (sg/reg-event env/rt-ref ::m/login-toggle!
-              (fn [env _]
+              (fn [env {::m/keys [read write]}]
                 (if (get-in env [:db ::m/logged-in])
                   (do (js/console.log "LOGGING OUT"))
                   (do (js/console.log "LOGGING IN")
-                      (let [response (authorize (clj->js config/authorize-payload))]
+                      (let [response (authorize (clj->js (config/authorize-payload
+                                                          [(str (get config/config "authorization-server") "/scopes/system/self-identification")]
+                                                          )))]
                         (.then response
                                #(do
                                   (js/console.log (str "Authorization Response Received"))
                                   (ajax/GET (str (get config/config "resource-server") "/_site/whoami")
                                             {:response-format :json
                                              :keywords? true
+                                             :timeout 5000
                                              :handler (fn [h]
                                                         (sg/run-tx! env/rt-ref
                                                                     {:e ::m/refresh-whoami!

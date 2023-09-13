@@ -6,10 +6,11 @@
              "client-id" "petstore"})
 
 
-(def authorize-payload
+(defn authorize-payload [scopes]
   {"origin" (get config "resource-server")
    "client_id" (get config "client-id")
    "authorization_endpoint" (str (get config "authorization-server") "/oauth/authorize")
    "token_endpoint" (str (get config "authorization-server") "/oauth/token")
    "redirect_uri" (str (get config "frontend-server") "/oauth-redirect.html")
-   "requested_scopes" [(str (get config "authorization-server") "/scopes/system/self-identification")]})
+   ;; "requested_scopes" [(str (get config "authorization-server") "/scopes/system/self-identification")]
+   })

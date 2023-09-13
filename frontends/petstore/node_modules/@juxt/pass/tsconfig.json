@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "isolatedModules": true,
+    "module": "es2020",
+    "target": "es2020",
+    "declaration": true,
+    "noImplicitAny": true,
+    "strict": true,
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

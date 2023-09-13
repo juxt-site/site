@@ -48,6 +48,19 @@ body {
 .pet-form {
 }
 
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+.column-override {
+    display: flex;
+    margin: 4px;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
 .pet-view {
     margin: auto;
     padding: 50px;
