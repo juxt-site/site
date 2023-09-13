@@ -503,7 +503,7 @@
         ],
         "summary": "Returns pet inventories by status",
         "description": "Returns a map of status codes to quantities",
-        "operationId": "getInventory",
+        "operationId": "https://auth.example.org/operations/petstore/order/inventory",
         "responses": {
           "200": {
             "description": "successful operation",
@@ -534,7 +534,7 @@
         ],
         "summary": "Place an order for a pet",
         "description": "Place a new order in the store",
-        "operationId": "placeOrder",
+        "operationId": "https://auth.example.org/operations/petstore/order/place",
         "requestBody": {
           "content": {
             "application/json": {
@@ -578,7 +578,7 @@
         ],
         "summary": "Find purchase order by ID",
         "description": "For valid response try integer IDs with value <= 5 or > 10. Other values will generate exceptions.",
-        "operationId": "getOrderById",
+        "operationId": "https://auth.example.org/operations/petstore/order/get-by-id",
         "parameters": [
           {
             "name": "orderId",
@@ -621,7 +621,7 @@
         ],
         "summary": "Delete purchase order by ID",
         "description": "For valid response try integer IDs with value < 1000. Anything above 1000 or nonintegers will generate API errors",
-        "operationId": "deleteOrder",
+        "operationId": "https://auth.example.org/operations/petstore/order/delete-by-id",
         "parameters": [
           {
             "name": "orderId",

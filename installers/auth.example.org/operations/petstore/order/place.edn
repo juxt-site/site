@@ -1,0 +1,117 @@
+{:install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
+
+   :juxt.site.malli/input-schema
+   [:map
+    [:id :int]
+    [:petId :int]
+    [:quantity :int]
+    [:shipDate :string]
+    [:status [:enum "placed" "approved" "delivered"]]
+    [:complete :boolean]]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+     (let [{:juxt.site/keys [received-representation]} *ctx*
+           {:juxt.http/keys [body content-type]} received-representation
+           order
+           ;; TODO This should become a helper
+           (case content-type
+             "application/json"
+             (some->
+              body
+              (String.)
+              jsonista.core/read-value-with-keywords))]
+       (when (juxt.site.malli/validate-input order)
+         {:docs
+          [(merge
+            order
+            {:xt/id (format "https://data.example.org/petstore/store/order/%s" (:id order))
+             :juxt.site/type "https://data.example.org/types/order"
+             :juxt.site/methods
+             {:get
+              {:juxt.site/operation
+               "https://auth.example.org/operations/petstore/order/get-by-id"}
+              :delete
+              {:juxt.site/operation
+               "https://auth.example.org/operations/petstore/order/delete-by-id"}}
+             :juxt.site/protection-spaces
+             #{"https://auth.example.org/protection-spaces/bearer"}
+             :juxt.site/access-control-allow-origins
+             [[".*" {:juxt.site/access-control-allow-origin "*"
+                     :juxt.site/access-control-allow-methods [:get :delete]
+                     :juxt.site/access-control-allow-headers ["authorization"]}]]
+             :juxt.site/rules
+             ['[(allowed? subject operation resource permission)
+                [subject :juxt.site/user user]
+                [permission :juxt.site/role role]
+                [role :juxt.site/type "https://meta.juxt.site/types/role"]
+                [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+                [role-assignment :juxt.site/role role]
+                [role-assignment :juxt.site/user user]]
+
+              '[(allowed? subject operation resource permission)
+                [subject :juxt.site/application app]
+                [permission :juxt.site/role role]
+                [role :juxt.site/type "https://meta.juxt.site/types/role"]
+                [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+                [role-assignment :juxt.site/role role]
+                [role-assignment :juxt.site/application app]]]})
+           {:xt/id (format "https://data.example.org/petstore/store/order/%s.json" (:id order))
+            :juxt.http/content-type "application/json"
+            :juxt.site/variant-of (format "https://data.example.org/petstore/store/order/%s" (:id order))
+            :juxt.site/protection-spaces
+            #{"https://auth.example.org/protection-spaces/bearer"}
+            :juxt.site/respond
+            {:juxt.site.sci/program
+             (pr-str '(let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
+                        (-> *ctx*
+                            (assoc :ring.response/body content)
+                            (update :ring.response/headers assoc "content-length" (str (count (.getBytes content)))))))}
+            :juxt.site/access-control-allow-origins
+            [[".*" {:juxt.site/access-control-allow-origin "*"
+                    :juxt.site/access-control-allow-methods [:get :delete]
+                    :juxt.site/access-control-allow-headers ["authorization"]}]]}]}))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+     (let [{:keys [docs]} *prepare*]
+       (if (->> docs
+                first
+                :petId
+                (xt/q
+                 '{:find [(pull e [*])]
+                   :where [[e :juxt.site/type "https://data.example.org/types/pet"]
+                           [e :id petId]]
+                   :in [petId]})
+                seq)
+         (for [doc docs]
+           [:xtdb.api/put doc])
+         {:ring.response/status 404
+          :ring.response/body (format "No pet with ID %s found" (->> docs first :petId))}))}
+
+   :juxt.site/scope
+   #{"https://auth.example.org/scopes/petstore/write"}
+
+   :juxt.site/rules
+   [[(allowed? subject operation resource permission)
+     [subject :juxt.site/user user]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/user user]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/application app]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/application app]]]}}}
