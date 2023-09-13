@@ -741,6 +741,15 @@
         cfg (config opts)]
     (post-init cfg)))
 
+(defn help [cfg]
+  (println "Site Help")
+  (println))
+
+(defn help-task []
+  (let [opts (parse-opts)
+        cfg (config opts)]
+    (help cfg)))
+
 (defn init [opts]
   (let [cfg (config opts)
         admin-base-uri (get cfg "admin-base-uri")]

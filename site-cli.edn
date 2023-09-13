@@ -20,6 +20,12 @@
    :task (juxt.site.bb.tasks/configure
           (juxt.site.bb.tasks/parse-opts))}
 
+  ;; Override bb's help
+  help
+  {:doc "Show help"
+   :task (juxt.site.bb.tasks/help-task)
+   :override-builtin true}
+
   post-init
   {:doc "Show post-init options. Requires the server."
    :task (juxt.site.bb.tasks/post-init-task)}
