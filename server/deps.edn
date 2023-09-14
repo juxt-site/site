@@ -90,9 +90,13 @@
    {org.eclipse.jetty/jetty-jmx {:mvn/version "9.4.44.v20210927"}
     djblue/portal {:mvn/version "0.29.1"}
     borkdude/rewrite-edn {:mvn/version "0.4.6"}
-    juxt.site/installer-graph {:local/root "../installer-graph"}
-    cider/cider-nrepl {:mvn/version "0.37.0"}
+    juxt.site/installer-graph {:local/root "../installer-graph"}}}
+
+  :repl
+  {:extra-deps
+   {cider/cider-nrepl {:mvn/version "0.37.0"}
     nrepl/nrepl {:mvn/version "1.0.0"}}
+
    :main-opts ["-m" "nrepl.cmdline"
                "-p" "9091"
                "--middleware" "[cider.nrepl/cider-middleware]"]

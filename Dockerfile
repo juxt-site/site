@@ -30,4 +30,4 @@ HEALTHCHECK --interval=5m --timeout=3s \
 CMD site ping || exit 1
 
 WORKDIR /site/server
-ENTRYPOINT ["clj", "-M:dev"]
+ENTRYPOINT ["clj", "-M:dev:repl"]
