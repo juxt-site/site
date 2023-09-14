@@ -1,0 +1,11 @@
+= Contributing to Site
+
+== Commits
+
+Our convention is to write each commit message in the imperative tense.
+
+There are no constraints on the rest of the message, and do use it to communicate to other developers the intent behind your commit.
+
+Split your commits up to individual commits if you can.
+
+TIP: Emacs users should make use of Magit's hunk staging capabilities
