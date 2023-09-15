@@ -111,7 +111,7 @@ body {
     text-align: right;
     -webkit-text-rendering: optimizeLegibility;
     -moz-text-rendering: optimizeLegibility;
-    text-rendering: optimizeLegibility;    
+    text-rendering: optimizeLegibility;
 }
 
 .login {
@@ -123,7 +123,11 @@ body {
     text-align: right;
     -webkit-text-rendering: optimizeLegibility;
     -moz-text-rendering: optimizeLegibility;
-    text-rendering: optimizeLegibility;    
+    text-rendering: optimizeLegibility;
+    color: green;
+    border: 2pt solid green;
+    padding: 2pt;
+    cursor: pointer;
 }
 
 .nabar :hover {

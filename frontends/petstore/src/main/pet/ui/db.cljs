@@ -166,29 +166,22 @@
               (fn [env {::m/keys [read write]}]
                 (if (get-in env [:db ::m/logged-in])
                   (do (js/console.log "LOGGING OUT"))
-                  (do (js/console.log "LOGGING IN")
-                      (let [response (authorize (clj->js (config/authorize-payload
-                                                          (-> [(str (get config/config "authorization-server") "/scopes/system/self-identification")]
-                                                              (#(if read
-                                                                  (conj % (str (get config/config "authorization-server") "/scopes/petstore/read"))
-                                                                  %))
-                                                              (#(if write
-                                                                  (conj % (str (get config/config "authorization-server") "/scopes/petstore/write"))
-                                                                  %)))
-                                                          )))]
-                        (.then response
-                               #(do
-                                  (js/console.log (str "Authorization Response Received"))
-                                  (ajax/GET (str (get config/config "resource-server") "/_site/whoami")
-                                            {:response-format :json
-                                             :keywords? true
-                                             :timeout 5000
-                                             :handler (fn [h]
-                                                        (sg/run-tx! env/rt-ref
-                                                                    {:e ::m/refresh-whoami!
-                                                                     :whoami h}))
-                                             :error-handler (fn [e] (js/console.log (str "ERROR:" e)))})
-                                  )))))
+                  (do
+                    (js/console.log "LOGGING IN")
+                    (let [response (authorize (clj->js (config/authorize-payload)))]
+                      (.then response
+                             #(do
+                                (js/console.log (str "Authorization Response Received"))
+                                (ajax/GET (str (get config/config "resource-server") "/_site/whoami")
+                                          {:response-format :json
+                                           :keywords? true
+                                           :timeout 5000
+                                           :handler (fn [h]
+                                                      (sg/run-tx! env/rt-ref
+                                                                  {:e ::m/refresh-whoami!
+                                                                   :whoami h}))
+                                           :error-handler (fn [e] (js/console.log (str "ERROR:" e)))})
+                                )))))
                 (update-in env [:db ::m/logged-in] #'not)))
 
 (sg/reg-event env/rt-ref ::m/change-route!
@@ -219,4 +212,3 @@
             (assoc-in db [ident ::m/completed?] completed?))
           db
           (db/all-idents-of db ::m/pet))))))
-

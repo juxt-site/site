@@ -13,7 +13,7 @@
        ::m/completed?]))
 
   (render
-   (<< [:li 
+   (<< [:li
          [:div.view
           [:label "Name: " pet-name]
           [:label "Status: " pet-status]
@@ -52,19 +52,16 @@
         (sg/query-root
          [::m/logged-in]))
   (render
-   (if logged-in
+   (when logged-in
      (<<
       [:nav.nabar
-       [:a.login {:on-click {:e ::m/login-toggle!}}
+       [:a {:on-click {:e ::m/login-toggle!}}
         "LOG OUT"]
-       [:a.login {:on-click {:e ::m/change-route! :route "/"}}
+       [:a {:on-click {:e ::m/change-route! :route "/"}}
         "PETS"]
-       [:a.login {:on-click {:e ::m/change-route! :route "/whoami"}}
+       [:a {:on-click {:e ::m/change-route! :route "/whoami"}}
         "WHOAMI"]])
-     (<<
-      [:nav.nabar
-       [:a.login {:on-click {:e ::m/change-route! :route "/login"}}
-        "LOG IN"]]))))
+     )))
 
 (defc whoami []
   (bind {::m/keys [whoami] :as query}
@@ -128,34 +125,12 @@
               (ui-pet-list)]))])
      (<<
       [:div.pet-view
-       [:h2 "You do not have permission to view this page"]]))))
-
-(defc login-page []
-  (event ::m/login-toggle! [env _ ^js e]
-         (let [[read write & _]
-               (.-form (.-target e))]
-           (js/console.log (str "READ " (.-checked read)
-                                "\n"
-                                "WRITE " (.-checked write)))
-           (sg/run-tx env {:e ::m/login-toggle!
-                           ::m/read (.-checked read)
-                           ::m/write (.-checked write)})
-           (sg/run-tx env {:e ::m/change-route! :route "/"})))
-  (render
-   (<<
-    [:div.pet-view
-     [:h2 "This app wants to authorise Site"]
-     [:h3 "Select the scopes you wish to allow"]
-     [:form.auth-form
-      [:div.column-override
-       [:input {:type "checkbox" :value "read" :id "read-1"}]
-       [:label {:for "read-1"} "read pets"]]
-      [:div.column-override
-       [:input {:type "checkbox" :value "write" :id "write-1"}]
-       [:label {:for "write-1"} "write pets"]]
-      [:input.submit-pet {:on-click {:e ::m/login-toggle!}
-                          :type "submit"
-                          :value "authorize"}]]])))
+       [:h2 "This app is not yet authorized to view pets"]
+       [:a.login {:on-click {:e ::m/login-toggle!}
+                  :type "submit"
+                  :value "authorize"}
+        "Authorize"]
+       ]))))
 
 
 (defc ui-root []
@@ -170,7 +145,5 @@
     (case route
       "/"
       (pets)
-      "/login"
-      (login-page)
       "/whoami"
       (whoami)))))
