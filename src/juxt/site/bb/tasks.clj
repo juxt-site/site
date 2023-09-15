@@ -988,13 +988,13 @@
       (retrieve-token cfg)
       :bundles
       [
+       ;; Assuming https://auth.example.org/session-scopes/form-login-session...
+       ["juxt/site/login-form" {}]
        ;; This is public and you may not want to expose this
        ["juxt/site/system-api-openapi" {}]
        ["juxt/site/oauth-authorization-endpoint"
         { ;;"session-scope" "https://auth.example.org/session-scopes/form-login-session"
          }]
-       ;; Assuming https://auth.example.org/session-scopes/form-login-session...
-       ["juxt/site/login-form" {}]
 
        ;; Register swagger-ui
        ;; TODO: Try not registering this one and see the awful Jetty
