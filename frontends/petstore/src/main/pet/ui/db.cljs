@@ -63,7 +63,7 @@
                 (js/console.log (str "POSTING PET" pet-name pet-status))
                 (ajax/POST (str (get config/config "resource-server") "/petstore/pet")
                            {:format :json
-                            :params {:name pet-name :status pet-status :id (inc (get-in env [:db ::m/id-seq]))}
+                            :params {:name pet-name :status pet-status :id (str (random-uuid))}
                             :response-format :json
                             :timeout 5000
                             :keywords? true
@@ -75,9 +75,7 @@
                                                (js/console.log (str "ERROR:" e))))})
                 (update env :db
                         (fn [db]
-                          (let [{::m/keys [id-seq]} db
-                                next-id (inc id-seq)
-                                new-pet {::m/pet-id next-id ::m/pet-name pet-name ::m/pet-status pet-status}]
+                          (let [new-pet {::m/pet-id (str (random-uuid)) ::m/pet-name pet-name ::m/pet-status pet-status}]
                             (-> db
                                 (update ::m/id-seq inc)
                                 (db/add ::m/pet new-pet [::m/pets])))))))
@@ -90,9 +88,24 @@
             (dissoc pet)
             (update ::m/pets without pet))))))
 
-(sg/reg-event env/rt-ref ::m/toggle-completed!
+(sg/reg-event env/rt-ref ::m/delete-handler!
   (fn [env {:keys [pet]}]
-    (update-in env [:db pet ::m/completed?] not)))
+    (js/console.log (str "a: " (db/ident-val pet)))
+    (ajax/DELETE (str (get config/config "resource-server") "/petstore/pet/" (db/ident-val pet))
+                 {:response-format :json
+                  :format :json
+                  :keywords? true
+                  :handler (fn [h]
+                             (js/console.log (str h))
+                             (sg/run-tx! env/rt-ref
+                                         {:e ::m/delete!
+                                          :pet pet}))
+                  :error-handler (fn [e] (js/console.log (str "ERROR:" e)))})
+    env))
+
+(sg/reg-event env/rt-ref ::m/toggle-completed!
+              (fn [env {:keys [pet]}]
+                (update-in env [:db pet ::m/completed?] not)))
 
 (sg/reg-event env/rt-ref ::m/edit-start!
   (fn [env {:keys [pet]}]
@@ -115,32 +128,39 @@
                 (js/console.log (str "WHOAMI REFRESH HANDLER"))
                 (assoc-in env [:db ::m/whoami] whoami)))
 
-;; (sg/reg-event env/rt-ref ::m/refresh-pets!
-;;               (fn [env {:keys [pets]}]
-;;                 (js/console.log (str "PETS REFRESH"))
-;;                 (js/console.log (str pets))
-;;                 (reduce
-;;                  (fn [db pet]
-;;                    (let [{::m/keys [id-seq]} db]
-;;                      (let [new-pet {::m/pet-id id-seq ::m/pet-name (:pet-name pet) ::m/pet-status (:pet-status pet)}]
-;;                        (-> db
-;;                            (update ::m/id-seq inc)
-;;                            (db/add ::m/pet new-pet [::m/pets])))))
-;;                  pets
-;;                  (:db env))))
+(sg/reg-event env/rt-ref ::m/refresh-pets!
+              (fn [env {:keys [pets]}]
+                (js/console.log (str "PETS REFRESH"))
+                (update env :db
+                        (fn [db]
+                          (-> db
+                              (r->
+                               (fn [db pet]
+                                 (db/remove db pet))
+                               (db/all-of db ::m/pet))
+                              (db/merge-seq ::m/pet
+                                            (map
+                                             (fn [pet]
+                                               {::m/pet-id (:id pet)
+                                                ::m/pet-name (:name pet)
+                                                ::m/pet-status (:status pet)})
+                                             pets)
+                                            [::m/pets]))))
+                ))
 
-;; (sg/reg-event env/rt-ref ::m/refresh-pets-handler!
-;;               (fn [env {:keys [whoami]}]
-;;                 (js/console.log (str "PETS REFRESH HANDLER"))
-;;                 (ajax/GET (str (get config/config "resource-server") "/_site/pets")
-;;                           {:response-format :json
-;;                            :keywords? true
-;;                            :handler (fn [h]
-;;                                       (sg/run-tx! env/rt-ref
-;;                                                   {:e ::m/refresh-pets!
-;;                                                    :pets h}))
-;;                            :error-handler (fn [e] (js/console.log (str "ERROR:" e)))})
-;;                 (assoc-in env [:db ::m/whoami] whoami)))
+(sg/reg-event env/rt-ref ::m/refresh-pets-handler!
+              (fn [env {:keys [whoami]}]
+                (js/console.log (str "PETS REFRESH HANDLER"))
+                (ajax/GET (str (get config/config "resource-server") "/petstore/pets")
+                          {:response-format :json
+                           :keywords? true
+                           :handler (fn [h]
+                                      (js/console.log (str h))
+                                      (sg/run-tx! env/rt-ref
+                                                  {:e ::m/refresh-pets!
+                                                   :pets h}))
+                           :error-handler (fn [e] (js/console.log (str "ERROR:" e)))})
+                env))
 
 (sg/reg-event env/rt-ref ::m/login-toggle!
               (fn [env {::m/keys [read write]}]
@@ -148,7 +168,13 @@
                   (do (js/console.log "LOGGING OUT"))
                   (do (js/console.log "LOGGING IN")
                       (let [response (authorize (clj->js (config/authorize-payload
-                                                          [(str (get config/config "authorization-server") "/scopes/system/self-identification")]
+                                                          (-> [(str (get config/config "authorization-server") "/scopes/system/self-identification")]
+                                                              (#(if read
+                                                                  (conj % (str (get config/config "authorization-server") "/scopes/petstore/read"))
+                                                                  %))
+                                                              (#(if write
+                                                                  (conj % (str (get config/config "authorization-server") "/scopes/petstore/write"))
+                                                                  %)))
                                                           )))]
                         (.then response
                                #(do

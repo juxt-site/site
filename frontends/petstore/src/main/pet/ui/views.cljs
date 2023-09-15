@@ -17,7 +17,7 @@
          [:div.view
           [:label "Name: " pet-name]
           [:label "Status: " pet-status]
-          [:button.destroy {:on-click {:e ::m/delete! :pet pet}}]]])))
+          [:button.destroy {:on-click {:e ::m/delete-handler! :pet pet}}]]])))
 
 (defc ui-filter-select []
   (bind {::m/keys [current-filter]}

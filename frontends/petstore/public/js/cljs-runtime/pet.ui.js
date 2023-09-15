@@ -9,11 +9,11 @@ return shadow.grove.render(pet.ui.env.rt_ref,pet.ui.root_el,pet.ui.views.ui_root
 });
 pet.ui.init = (function pet$ui$init(){
 if(goog.DEBUG){
-cljs.core.swap_BANG_.cljs$core$IFn$_invoke$arity$4(pet.ui.env.rt_ref,cljs.core.assoc,new cljs.core.Keyword("shadow.grove.runtime","tx-reporter","shadow.grove.runtime/tx-reporter",-1162168653),(function (p__25349){
-var map__25350 = p__25349;
-var map__25350__$1 = cljs.core.__destructure_map(map__25350);
-var report = map__25350__$1;
-var event = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__25350__$1,new cljs.core.Keyword(null,"event","event",301435442));
+cljs.core.swap_BANG_.cljs$core$IFn$_invoke$arity$4(pet.ui.env.rt_ref,cljs.core.assoc,new cljs.core.Keyword("shadow.grove.runtime","tx-reporter","shadow.grove.runtime/tx-reporter",-1162168653),(function (p__13906){
+var map__13907 = p__13906;
+var map__13907__$1 = cljs.core.__destructure_map(map__13907);
+var report = map__13907__$1;
+var event = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__13907__$1,new cljs.core.Keyword(null,"event","event",301435442));
 return console.log(new cljs.core.Keyword(null,"e","e",1381269198).cljs$core$IFn$_invoke$arity$1(event),event,report);
 }));
 } else {

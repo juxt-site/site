@@ -18,9 +18,9 @@ this.cljs$lang$protocol_mask$partition1$ = 2048;
 (shadow.grove.db.ident.Ident.prototype.cljs$core$ILookup$_lookup$arity$2 = (function (this$,key){
 var self__ = this;
 var this$__$1 = this;
-var G__9906 = key;
-var G__9906__$1 = (((G__9906 instanceof cljs.core.Keyword))?G__9906.fqn:null);
-switch (G__9906__$1) {
+var G__9890 = key;
+var G__9890__$1 = (((G__9890 instanceof cljs.core.Keyword))?G__9890.fqn:null);
+switch (G__9890__$1) {
 case "entity-type":
 return self__.entity_type;
 
