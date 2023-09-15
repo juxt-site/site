@@ -562,6 +562,8 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/petstore/find-by-status"}
    {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/operations/petstore/all-pets"}
+   {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/petstore/find-by-tags"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/petstore/order/place"}
@@ -594,11 +596,16 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
+
                            "operation" "petstore/get-pet-by-id"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
                            "operation" "petstore/find-by-status"}}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "PetstoreOwner"
+                           "operation" "petstore/all-pets"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"

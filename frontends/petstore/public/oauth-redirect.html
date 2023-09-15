@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <title>OAuth2 Redirect</title>
+  </head>
+  <body>
+    <script type="module">
+      const queryParams = new URLSearchParams(window.location.search);
+      const storedState = localStorage.getItem("pkce_state");
+      const queryParamState = queryParams.get("state");
+      const code = queryParams.get("code");
+
+      if (!code || !queryParamState) {
+        throw new Error("No code or state in query params");
+      }
+
+      if (storedState !== queryParamState) {
+        throw new Error(
+          "exchangeCodeForAccessToken mismatch between stored state and query param state"
+        );
+      }
+
+      const redirect_uri = localStorage.getItem("oauth2_redirect_uri") || "";
+      const client_id = localStorage.getItem("oauth2_client_id") || "";
+      const code_verifier = localStorage.getItem("pkce_code_verifier") || "";
+
+      const payload_params = new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code,
+        redirect_uri: redirect_uri,
+        client_id: client_id,
+        code_verifier: code_verifier,
+      });
+
+      const token_endpoint =
+        localStorage.getItem("oauth2_token_endpoint") || "";
+
+      fetch(token_endpoint, {
+        method: "POST",
+        headers: new Headers({
+          "Content-Type": "application/x-www-form-urlencoded",
+        }),
+        body: payload_params,
+      }).then(() => window.close());
+    </script>
+  </body>
+</html>

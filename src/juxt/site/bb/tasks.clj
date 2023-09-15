@@ -1016,7 +1016,8 @@
             :access-token (retrieve-token cfg)
             :bundles
             [["juxt/site/openapis-api" {}]
-             ["demo/petstore/operations" {}]]))
+             ["demo/petstore/operations" {}]
+             ["juxt/site/system-client" {"client-id" "petstore"}]]))
 
     (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/petstore/openapi.json")))
 

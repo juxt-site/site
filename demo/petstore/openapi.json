@@ -44,7 +44,50 @@
       "description": "Operations about user"
     }
   ],
-  "paths": {
+    "paths": {
+        "/pets": {
+            "get": {
+                "tags": [
+                    "pet"
+                ],
+                "summary": "Finds All Pets in DB",
+                "description": "Finds All Pets in DB",
+                "operationId": "https://auth.example.org/operations/petstore/all-pets",
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/xml": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Pet"
+                                    }
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Pet"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid status value"
+                    }
+                },
+                "security": [
+                    {
+                        "petstore_auth": [
+                            "read:pets"
+                        ]
+                    }
+                ]
+            }
+        },
     "/pet": {
       "put": {
         "tags": [
@@ -937,9 +980,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "format": "int64",
-            "example": 10
+            "example": "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0"
           },
           "petId": {
             "type": "integer",
@@ -977,9 +1020,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "format": "int64",
-            "example": 100000
+            "example": "d60587d0-e96c-4d2c-8351-76c0f18c3c58"
           },
           "username": {
             "type": "string",
@@ -1028,9 +1071,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "format": "int64",
-            "example": 1
+            "example": "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0"
           },
           "name": {
             "type": "string",
@@ -1045,9 +1088,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "format": "int64",
-            "example": 10
+            "example": "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0"
           },
           "username": {
             "type": "string",
@@ -1088,7 +1131,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "format": "int64"
           },
           "name": {
@@ -1107,9 +1150,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "format": "int64",
-            "example": 10
+            "example": "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0"
           },
           "name": {
             "type": "string",

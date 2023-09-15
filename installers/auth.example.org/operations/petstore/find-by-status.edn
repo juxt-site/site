@@ -31,10 +31,8 @@
            (vec)
            ))
     }
-
    :juxt.site/scope
    #{"https://auth.example.org/scopes/petstore/read"}
-   
    :juxt.site/rules
    [
     [(allowed? subject operation resource permission)

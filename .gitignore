@@ -17,3 +17,4 @@ opt/graphiql/target
 **/generated/*
 /target/
 /server/.clj-kondo/
+frontends/petstore/node_modules/
