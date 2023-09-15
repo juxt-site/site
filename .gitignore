@@ -20,3 +20,4 @@ opt/graphiql/target
 frontends/petstore/node_modules/
 /frontends/petstore/public/js/cljs-runtime/
 /frontends/petstore/.shadow-cljs/
+/frontends/petstore/public/js/main.js
