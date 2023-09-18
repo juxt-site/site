@@ -576,9 +576,10 @@
         bundle (get (bundles cfg) bundle-name)]
     (if bundle
       (pprint
-       (->> (installers-seq cfg bundle opts)
-            ;; (map :juxt.site/init-data)
-            ))
+       {:name bundle-name
+        :installers (installers-seq cfg bundle opts)}
+       ;; (map :juxt.site/init-data)
+       )
       (stderr (println (format "Bundle not found: %s" bundle-name))))))
 
 (defn random-string [size]
@@ -654,14 +655,14 @@
               ;; print not println, as the body should be terminated in a CRLF
               (print status body))))))))
 
-(defn- install [{:keys [resources-uri access-token]} installers-seq]
+(defn- install [{:keys [resources-uri access-token]} bundle]
   (assert resources-uri)
   (let [{:keys [status body]}
         (http/post
          resources-uri
          {:headers (cond-> {:content-type "application/edn"}
                      access-token (assoc :authorization (format "Bearer %s" access-token)))
-          :body (pr-str installers-seq)
+          :body (pr-str bundle)
           :throw false})]
     (case status
       200 (print body)
@@ -681,9 +682,8 @@
          (if (str/blank? param-str)
            (format "Installing: %s" title)
            (format "Installing: %s with %s" title param-str)))
-        (install opts (->> installers-seq
-                           ;; (map :juxt.site/init-data)
-                           ))))))
+        (install opts {:name title
+                       :installers installers-seq})))))
 
 (defn install-bundle-task [{bundle-names :bundle _ :debug :as opts}]
   (let [cfg (config opts)

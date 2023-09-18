@@ -23,7 +23,7 @@
             "application/edn" (clojure.edn/read-string body)
             "application/json" (jsonista.core/read-value-with-keywords body))
 
-          tx-ops (juxt.site/installer-seq->tx-ops installer-seq)]
+          tx-ops (juxt.site/bundle->tx-ops installer-seq)]
 
       {:juxt.site/tx-ops tx-ops})}
    

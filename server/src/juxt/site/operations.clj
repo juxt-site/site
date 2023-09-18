@@ -447,7 +447,7 @@
 (defn sanitize-ctx [ctx]
   (dissoc ctx :juxt.site/xt-node :juxt.site/db))
 
-(declare installer-seq->tx-ops)
+(declare bundle->tx-ops)
 
 (defn prepare-sci-opts [operation ctx]
   {:namespaces
@@ -483,9 +483,9 @@
       'get-public-exponent (fn [k] (.getPublicExponent k))
       'get-key-format (fn [k] (.getFormat k))
 
-      'installer-seq->tx-ops
-      (fn [installer-seq]
-        (installer-seq->tx-ops
+      'bundle->tx-ops
+      (fn [bundle]
+        (bundle->tx-ops
          (:juxt.site/subject-uri ctx)
          ;; TODO: Warning, illegal use of db in prepare. Rather, we
          ;; should pull out the operations and their hashes, creating a
@@ -493,7 +493,7 @@
          ;; an operation, and ensure that the same operation used in
          ;; the prepare is used in the transact (via a hash).
          (:juxt.site/db ctx)
-         installer-seq))}}
+         bundle))}}
 
     (common-sci-namespaces operation))
 
@@ -636,12 +636,11 @@
                 :operation-index current-operation-index}
                e)))))
 
-(defn installer-seq->tx-ops
+(defn bundle->tx-ops
   "Given a sequence of installers, return a collection of XTDB
   transaction operations. The db argument is used to lookup the
   operation which is required when preparing the transaction."
-  [subject-uri db installers]
-
+  [subject-uri db {:keys [installers]}]
   (let [{:keys [tx-ops errors]}
         (->> installers
 
@@ -659,10 +658,8 @@
                    dependencies :juxt.site/dependencies
                    uri :juxt.site/uri
                    :as installer}
-                  ;; {operation-uri :juxt.site/operation-uri,
-                  ;;   input :juxt.site/input,
-                  ;;   :as installer}
                   ]
+                (log/info init-data)
                 (let [{operation-uri :juxt.site/operation-uri
                        input :juxt.site/input
                        :as init-data}

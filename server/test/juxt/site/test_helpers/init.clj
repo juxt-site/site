@@ -42,7 +42,7 @@
 
 (defn bundle-installer-seq [spec]
   (let [uri-map (uri-map)]
-    (local/spec->installer-seq
+    (local/spec->bundle
      spec uri-map
      (local/bundles (local/get-root-dir))
      (local/graph (local/get-installers-dir) uri-map))))

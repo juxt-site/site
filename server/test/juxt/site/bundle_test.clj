@@ -15,7 +15,7 @@
 
 (use-fixtures :each system-xt-fixture handler-fixture)
 
-(deftest bundles-test
+(deftest catch-missing-dependency-test
   (try
     (local/install-bundles!
      [["juxt/site/bootstrap" {}]
@@ -24,3 +24,10 @@
     (catch Exception e
       (is (= "https://auth.example.test/operations/get-api-endpoints"
              (:dependency (ex-data e)))))))
+
+(deftest put-bundle-test
+  (local/install-bundles!
+   [["juxt/site/bootstrap" {}]]
+   (get init/CONFIG "uri-map"))
+
+  )
