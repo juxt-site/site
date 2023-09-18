@@ -105,8 +105,8 @@
 
 (defn profile [opts]
   (or
-   (get opts :profile)
-   (keyword (System/getenv "SITE_PROFILE"))
+   (name (get opts :profile))
+   (System/getenv "SITE_PROFILE")
    :default))
 
 (defn profile-task []
