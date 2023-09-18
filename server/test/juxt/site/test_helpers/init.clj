@@ -35,6 +35,7 @@
     ;; RFC 7662 token introspection
     ["juxt/site/oauth-introspection-endpoint" {}]
     ;; Register the clients
+    "juxt/site/roles"
     ["juxt/site/system-client" {"client-id" "site-cli"}]]
    (uri-map)))
 
