@@ -105,7 +105,7 @@
 
 (defn profile [opts]
   (or
-   (name (get opts :profile))
+   (some-> (get opts :profile) name)
    (System/getenv "SITE_PROFILE")
    :default))
 
