@@ -715,35 +715,39 @@
             :let [bundle (get bundles bundle-name)]]
       (install-bundle cfg bundle params opts))))
 
-(defn post-init [cfg]
-  (let [admin-base-uri (get cfg "admin-base-uri")]
-    (if-not admin-base-uri
-      (stderr (println "Cannot init. The admin-server is not reachable."))
-      (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-            data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-            insite-secret (request-client-secret admin-base-uri "insite")
-            site-cli-secret (request-client-secret admin-base-uri "site-cli")
-            token-endpoint (str auth-base-uri "/oauth/token")
-            site-api-root (str data-base-uri "/_site")]
-        (if-not (and insite-secret site-cli-secret)
-          (do
-            (println "Register the site-cli app to proceed")
-            (println "One way to do this is to run 'site init'"))
-          (do
-            (println "Next steps: you should continue to configure your Site instance,")
-            (println "using one of the following methods:")
-            (println)
+(defn post-init
+  ([cfg]
+   (post-init cfg false))
+  ([cfg silent]
+   (let [admin-base-uri (get cfg "admin-base-uri")]
+     (if-not admin-base-uri
+       (stderr (println "Cannot init. The admin-server is not reachable."))
+       (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+             data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+             insite-secret (request-client-secret admin-base-uri "insite")
+             site-cli-secret (request-client-secret admin-base-uri "site-cli")
+             token-endpoint (str auth-base-uri "/oauth/token")
+             site-api-root (str data-base-uri "/_site")]
+         (when-not silent
+           (if-not (and insite-secret site-cli-secret)
+             (do
+               (println "Register the site-cli app to proceed")
+               (println "One way to do this is to run 'site init'"))
+             (do
+               (println "Next steps: you should continue to configure your Site instance,")
+               (println "using one of the following methods:")
+               (println)
 
-            (println (format
-                      "A. Proceed to https://insite.juxt.site?token_endpoint=%s&client_secret=%s&site_api_root=%s"
-                      token-endpoint
-                      insite-secret
-                      site-api-root))
+               (println (format
+                         "A. Proceed to https://insite.juxt.site?token_endpoint=%s&client_secret=%s&site_api_root=%s"
+                         token-endpoint
+                         insite-secret
+                         site-api-root))
 
-            (println " or ")
-            (println (format "B. Continue with this site tool, acquiring an access token with:" ))
-            ;; TODO: We could pipe this to '| xclip -selection clipboard'
-            (println (format "site request-token --client-secret %s" site-cli-secret))))))))
+               (println " or ")
+               (println (format "B. Continue with this site tool, acquiring an access token with:"))
+             ;; TODO: We could pipe this to '| xclip -selection clipboard'
+               (println (format "site request-token --client-secret %s" site-cli-secret))))))))))
 
 (defn post-init-task []
   (let [opts (parse-opts)
@@ -759,52 +763,54 @@
         cfg (config opts)]
     (help cfg)))
 
-(defn init [opts]
-  (let [cfg (config opts)
-        admin-base-uri (get cfg "admin-base-uri")]
-    (if-not admin-base-uri
-      (stderr (println "Cannot init. The admin-server is not reachable."))
-      (do
-        (install-bundles
-         (assoc
-          opts
-          :resources-uri
-          (str admin-base-uri "/resources")
-          :bundles
-          [["juxt/site/bootstrap" {}]
-           ;; Support the creation of JWT bearer tokens
-           ["juxt/site/oauth-token-endpoint" {}]
-           ;; Install a keypair to sign JWT bearer tokens
-           ["juxt/site/keypair" {"kid" (random-string 16)}]
-           ;; Install the required APIs
+(defn init
+  ([opts]
+   (init opts false))
+  ([opts silent]
+   (let [cfg (config opts)
+         admin-base-uri (get cfg "admin-base-uri")]
+     (if-not admin-base-uri
+       (stderr (println "Cannot init. The admin-server is not reachable."))
+       (do
+         (install-bundles
+          (assoc
+           opts
+           :resources-uri
+           (str admin-base-uri "/resources")
+           :bundles
+           [["juxt/site/bootstrap" {}]
+            ;; Support the creation of JWT bearer tokens
+            ["juxt/site/oauth-token-endpoint" {}]
+            ;; Install a keypair to sign JWT bearer tokens
+            ["juxt/site/keypair" {"kid" (random-string 16)}]
+            ;; Install the required APIs
            ["juxt/site/user-model" {}]
-           ["juxt/site/api-operations" {}]
-           ["juxt/site/protection-spaces" {}]
-           ["juxt/site/resources-api" {}]
-           ["juxt/site/events-api" {}]
-           ["juxt/site/logs-api" {}]
-           ["juxt/site/whoami-api" {}]
-           ["juxt/site/users-api" {}]
-           ["juxt/site/endpoints-api" {}]
-           ["juxt/site/applications-api" {}]
-           ["juxt/site/openapis-api" {}]
+            ["juxt/site/api-operations" {}]
+            ["juxt/site/protection-spaces" {}]
+            ["juxt/site/resources-api" {}]
+            ["juxt/site/events-api" {}]
+            ["juxt/site/logs-api" {}]
+            ["juxt/site/whoami-api" {}]
+            ["juxt/site/users-api" {}]
+            ["juxt/site/endpoints-api" {}]
+            ["juxt/site/openapis-api" {}]
 
-           ["juxt/site/sessions" {}]
-           ["juxt/site/roles" {}]
+            ["juxt/site/sessions" {}]
+            ["juxt/site/roles" {}]
 
-           ;; RFC 7662 token introspection
-           ["juxt/site/oauth-introspection-endpoint" {}]
-           ;; Register the clients
-           ["juxt/site/system-client" {"client-id" "site-cli"}]
-           ["juxt/site/system-client" {"client-id" "insite"}]]))
+            ;; RFC 7662 token introspection
+            ["juxt/site/oauth-introspection-endpoint" {}]
+            ;; Register the clients
+            ["juxt/site/system-client" {"client-id" "site-cli"}]
+            ["juxt/site/system-client" {"client-id" "insite"}]]))
 
-        ;; Delete any stale client-secret files
-        (doseq [client-id ["site-cli" "insite"]
-                :let [secret-file (client-secret-file opts client-id)]]
-          ;; TODO: Replace with babashka.fs
-          (.delete secret-file))
+         ;; Delete any stale client-secret files
+         (doseq [client-id ["site-cli" "insite"]
+                 :let [secret-file (client-secret-file opts client-id)]]
+           ;; TODO: Replace with babashka.fs
+           (.delete secret-file))
 
-        (post-init cfg)))))
+         (post-init cfg silent))))))
 
 (defn new-keypair []
   (let [opts (parse-opts)
