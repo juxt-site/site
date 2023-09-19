@@ -726,7 +726,8 @@
  "juxt/site/system-client"
  {:juxt.site/title "System client"
   :juxt.site/description "Register a client with the SiteBootstrap and SiteSystemQuery roles. System clients are able to authenticate themselves with the client_credentials grant."
-  :juxt.site/parameters [["client-id" {}]]
+  :juxt.site/parameters [["client-id" {}]
+                         ["client-secret" {:optional true}]]
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/applications/{{client-id}}"

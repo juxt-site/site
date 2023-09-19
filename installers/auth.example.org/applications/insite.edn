@@ -6,6 +6,7 @@
   :juxt.site/operation-uri "https://auth.example.org/operations/oauth/register-application"
   :juxt.site/input
   {:juxt.site/client-id "insite"
+   :juxt.site/client-secret ^:optional {:value "{{client-secret}}"}
    :juxt.site/client-type "confidential"
    :juxt.site/supported-grant-types ["authorization_code"]
    :juxt.site/authorization-server "https://auth.example.org"

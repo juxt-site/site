@@ -22,14 +22,18 @@
 ;; now. There must be a better way, but for now, wrapping the program
 ;; in a type will do.
 
+(defn- render-params-missing?
+  [template m]
+  (try
+    (seq
+     (set/difference
+      (set (map namespaced-name (selmer/known-variables template)))
+      (set (keys m))))
+    (catch Exception e
+      (throw (ex-info "DEBUG" {:template template} e)))))
+
 (defn render-with-required-check [template m]
-  (when-let [missing (try
-                       (seq
-                        (set/difference
-                         (set (map namespaced-name (selmer/known-variables template)))
-                         (set (keys m))))
-                       (catch Exception e
-                         (throw (ex-info "DEBUG" {:template template} e))))]
+  (when-let [missing (render-params-missing? template m)]
     (throw
      (ex-info
       (format "Required template variables missing: %s" (str/join ", " missing))
@@ -116,7 +120,17 @@
         (fn [x]
           (cond-> x
             (instance? juxt.site.install.common_install_util.Pretty x) (-> unwrap (render-form-templates params) (->Pretty))
-            (string? x) (render-with-required-check params))))
+            (string? x) (render-with-required-check params)
+            ;; Optional key value pairs are removed if the parameter is not provided.
+            (map? x)
+            (#(reduce (fn [acc [k v]]
+                        (if (:optional (meta v))
+                          (if (render-params-missing? (:value v) params)
+                            acc
+                            (assoc acc k (selmer/render (:value v) params)))
+                          (assoc acc k v)))
+                      {}
+                      %)))))
        ;; Unwrap the templates
        (postwalk
         (fn [x]
@@ -137,7 +151,7 @@
                 expanded-installer-parameters (render-form-templates installer-parameters user-parameters)
                 combined-parameters (merge user-parameters expanded-installer-parameters)
                 root (lookup-root installer-spec graph combined-parameters)]
-            
+
             (assoc root
                    :juxt.site/parameters combined-parameters
                    :juxt.site/dependencies
