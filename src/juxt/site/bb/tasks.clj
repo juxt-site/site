@@ -328,23 +328,15 @@
         (io/delete-file secret-file))
       (println "No such file:" (.getAbsolutePath secret-file)))))
 
-(defn- retrieve-token
-  [cfg]
-  (let [{curl "curl" access-token-file "access-token"} cfg
-        {save-access-token-to-default-config-file "save-access-token-to-default-config-file"} curl
-        token (cond
-                (and access-token-file save-access-token-to-default-config-file)
-                (throw (ex-info "Ambiguous configuration" {}))
-
-                save-access-token-to-default-config-file
-                (let [curl-config-file (curl-config-file)]
-                  (when (and (.exists curl-config-file) (.isFile curl-config-file))
-                    (last (keep (comp second #(re-matches #"oauth2-bearer\s+(.+)" %)) (line-seq (io/reader curl-config-file))))))
-
-                access-token-file
-                (when (and (.exists access-token-file) (.isFile access-token-file))
-                  (slurp access-token-file)))]
-    token))
+(defn request-client-secret [admin-base-uri client-id]
+  (assert admin-base-uri)
+  (let [client-details
+        (json/parse-string
+         (:body
+          (http/get
+           (str admin-base-uri "/applications/" client-id)
+           {"accept" "application/json"})))]
+    (get client-details "juxt.site/client-secret")))
 
 ;; site request-token --client-secret $(site client-secret)
 ;; site request-token --username alice --password $(gum input --password)
@@ -400,6 +392,31 @@
         (case status
           200 (get (json/parse-string body) "access_token")
           (print status body))))))
+
+(defn- retrieve-token
+  [cfg]
+  (let [{curl "curl" access-token-file "access-token"} cfg
+        {save-access-token-to-default-config-file "save-access-token-to-default-config-file"} curl
+        admin-base-uri (get cfg "admin-base-uri")
+        client-id "site-cli"
+        token (cond
+                (and access-token-file save-access-token-to-default-config-file)
+                (throw (ex-info "Ambiguous configuration" {}))
+
+                save-access-token-to-default-config-file
+                (let [curl-config-file (curl-config-file)]
+                  (when (and (.exists curl-config-file) (.isFile curl-config-file))
+                    (last (keep (comp second #(re-matches #"oauth2-bearer\s+(.+)" %)) (line-seq (io/reader curl-config-file))))))
+
+                access-token-file
+                (when (and (.exists access-token-file) (.isFile access-token-file))
+                  (slurp access-token-file)))]
+    (if token
+      token
+      (request-token
+       {:client-id client-id
+        :client-secret
+        (request-client-secret admin-base-uri client-id)}))))
 
 (defn request-token-task [opts]
   (when-let [token (request-token opts)]
@@ -592,15 +609,7 @@
                               (range (int \a) (inc (int \z)))
                               (range (int \0) (inc (int \9))))))))))
 
-(defn request-client-secret [admin-base-uri client-id]
-  (assert admin-base-uri)
-  (let [client-details
-        (json/parse-string
-         (:body
-          (http/get
-           (str admin-base-uri "/applications/" client-id)
-           {:headers {:accept "application/json"}})))]
-    (get client-details "juxt.site/client-secret")))
+
 
 (defn print-or-save-client-secret [{:keys [client-id save] :as opts}]
 
