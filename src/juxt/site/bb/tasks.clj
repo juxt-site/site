@@ -1046,3 +1046,35 @@
      (format
       "Now browse to https://petstore.swagger.io/?url=%s/petstore/openapi.json"
       data-base-uri))))
+
+(defn bootstrap [opts]
+  (let [cfg (config opts)
+        admin-base-uri (get cfg "admin-base-uri")
+        client-id "site-cli"
+        token (atom nil)]
+    (init opts true)
+    ;; Flush the output
+    (println)
+    (reset! token
+            (request-token
+             {:client-id client-id
+              :client-secret
+              (request-client-secret admin-base-uri client-id)}))
+    (register-admin-user opts)
+    (println "A user with 'site-admin' with password 'site-admin' has been created.")
+    (install-bundles
+     (assoc
+      opts
+      :resources-uri
+      (str admin-base-uri "/resources")
+      :bundles
+      [["juxt/site/system-api-openapi"]
+       ["juxt/site/oauth-authorization-endpoint" {"session-scope" "https://auth.example.org/session-scopes/form-login-session"}]
+       ["juxt/site/login-form"]
+       ["juxt/site/system-client" {"client-id" "swagger-ui"}]]))
+    (println "\n\n")
+    (println "Next steps: ")
+    (println "\tBrowse to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json")
+    (println "\tClick on authorize, add swagger-ui as the client_id, select all scopes and authorize.")
+    ;; TODO As more demos are added, adjust this to be a gum selector
+    (install-petstore opts)))
