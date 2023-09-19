@@ -975,18 +975,15 @@
 ;; Temporary convenience for ongoing development
 
 (defn register-admin-user [opts]
-  (let [password "foobar"]
-    (register-user
-     (merge {:username "mal"
-             :password password
-             :fullname "Malcolm Sparks"} opts))
-    (assign-user-role
-     (merge {:username "mal"
-             :role "SiteAdmin"} opts))
-    (if-let [token (request-token
-                    (merge {:username "mal"
-                            :password password
-                            :client-id "site-cli"} opts))]
+  (let [password "site-admin"
+        opts (merge {:username "site-admin"
+                     :password password
+                     :role "SiteAdmin"
+                     :client-id "site-cli"
+                     :fullname "Site Admin"} opts)]
+    (register-user opts)
+    (assign-user-role opts)
+    (if-let [token (request-token opts)]
       (save-access-token token)
       (throw (ex-info "Failed to get token" {})))))
 
