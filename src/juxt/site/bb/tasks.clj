@@ -786,8 +786,14 @@
            ;; RFC 7662 token introspection
            ["juxt/site/oauth-introspection-endpoint" {}]
            ;; Register the clients
-           ["juxt/site/system-client" {"client-id" "site-cli"}]
-           ["juxt/site/system-client" {"client-id" "insite"}]]))
+           ["juxt/site/system-client" (let [site-cli-config {"client-id" "site-cli"}]
+                                        (if-let [site-cli-secret (:site-cli-secret opts)]
+                                          (assoc site-cli-config "client-secret" site-cli-secret)
+                                          site-cli-config))]
+           ["juxt/site/system-client" (let [insite-config {"client-id" "insite"}]
+                                        (if-let [insite-secret (:insite-secret opts)]
+                                          (assoc insite-config "client-secret" insite-secret)
+                                          insite-config))]]))
 
         ;; Delete any stale client-secret files
         (doseq [client-id ["site-cli" "insite"]
