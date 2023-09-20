@@ -199,6 +199,16 @@
 
       :else node)))
 
+(defn bundle-map [title installers uri-map]
+  {:uri (str (get-in uri-map ["https://data.example.org"]) "/bundles/" (clojure.string/replace (clojure.string/lower-case title) " " "-"))
+   :title title
+   :installers installers
+   :juxt.site/type (str (get-in uri-map ["https://data.example.org"]) "/types/bundle")
+   :juxt.site/events-base-uri (str (get uri-map "https://auth.example.org") "/_site/events/")
+   :juxt.site/methods
+   {:get
+    {:juxt.site/operation (str (get-in uri-map ["https://auth.example.org"]) "/_site/operations/get-bundle-by-id")}}})
+
 (def ^:dynamic *working-dir* nil)
 
 (def READERS

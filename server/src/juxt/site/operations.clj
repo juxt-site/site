@@ -640,7 +640,7 @@
   "Given a sequence of installers, return a collection of XTDB
   transaction operations. The db argument is used to lookup the
   operation which is required when preparing the transaction."
-  [subject-uri db {:keys [installers]}]
+  [subject-uri db {:keys [installers title uri] :as bundle-map}]
   (let [{:keys [tx-ops errors]}
         (->> installers
 
@@ -657,9 +657,7 @@
                   {init-data :juxt.site/init-data
                    dependencies :juxt.site/dependencies
                    uri :juxt.site/uri
-                   :as installer}
-                  ]
-                (log/info init-data)
+                   :as installer}]
                 (let [{operation-uri :juxt.site/operation-uri
                        input :juxt.site/input
                        :as init-data}
@@ -709,7 +707,24 @@
         {:errors errors})))
 
     ;; Return the tx-ops
-    tx-ops))
+    (into tx-ops
+          [[:xtdb.api/put (update (assoc bundle-map :xt/id uri)
+                                  :installers
+                                  #(mapv :juxt.site/uri %))]
+           [:xtdb.api/put {:xt/id (str uri ".json")
+                           :juxt.http/content-type "application/json"
+                           :juxt.site/variant-of uri
+                           :juxt.site/respond
+                           {:juxt.site.sci/program
+                            (pr-str '(let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
+                                       (-> *ctx*
+                                           (assoc :ring.response/body content)
+                                           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content)))))))}
+                           :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+                           :juxt.site/access-control-allow-origins
+                           [[".*" {:juxt.site/access-control-allow-origin "*"
+                                   :juxt.site/access-control-allow-methods [:get]
+                                   :juxt.site/access-control-allow-headers ["authorization"]}]]}]])))
 
 (defn transact-sci-opts
   [db prepare subject operation resource permissions]

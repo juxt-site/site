@@ -682,8 +682,7 @@
          (if (str/blank? param-str)
            (format "Installing: %s" title)
            (format "Installing: %s with %s" title param-str)))
-        (install opts {:name title
-                       :installers installers-seq})))))
+        (install opts (ciu/bundle-map title installers-seq (get cfg "uri-map")))))))
 
 (defn install-bundle-task [{bundle-names :bundle _ :debug :as opts}]
   (let [cfg (config opts)
