@@ -21,9 +21,10 @@
 
 (defn bootstrap-fixture [f]
   (install-bundles!
-   [["juxt/site/system-client" {"client-id" "site-cli"}]
+   ["juxt/site/roles"
     "juxt/site/login-form"
     "juxt/site/user-model"
+    ["juxt/site/system-client" {"client-id" "site-cli"}]
     "juxt/site/password-based-user-identity"
     "juxt/site/example-users"
     "juxt/site/test-scopes"

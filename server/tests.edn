@@ -27,6 +27,7 @@
             "juxt.site.installer-test"
             "juxt.site.petstore-test"
             "juxt.site.order-test"
+            "juxt.site.application-registration-test"
             "juxt.site.bundle-test"]}]
 
   :reporter kaocha.report/documentation}
