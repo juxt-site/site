@@ -270,10 +270,17 @@
 
                       :otherwise nil)]
 
+
+
           (when (= #{} scope)
+            (log/error (format "Invalid scope: %s"
+                               {:requested-scope (pr-str requested-scope)
+                                :client-scope (pr-str client-scope)
+                                :available-scope (pr-str available-scope)}))
             (client-error
              {"error" "invalid_scope"
-              "error_description" "No intersection between requested scope and available scope"}))
+              "error_description" "No intersection between requested scope and available scope"
+              }))
 
           (case response-type
 
