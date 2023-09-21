@@ -71,7 +71,7 @@
                installer-seq (case (:juxt.http/content-type rep)
                                "application/edn" (edn/read-string body)
                                "application/json" (json/read-value body (json/object-mapper {:decode-key-fn true})))
-               tx-ops (operations/installer-seq->tx-ops
+               tx-ops (operations/bundle->tx-ops
                        nil ; this is the 'nil' subject
                        db installer-seq)
 
