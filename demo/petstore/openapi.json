@@ -982,7 +982,7 @@
           "id": {
             "type": "string",
             "format": "int64",
-            "example": "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0"
+            "example": "9de5fe12-4116-454c-a34a-6a1e3e6699f1"
           },
           "petId": {
             "type": "integer",
@@ -1073,7 +1073,7 @@
           "id": {
             "type": "string",
             "format": "int64",
-            "example": "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0"
+            "example": "65b6ca23-d6ab-497c-aa44-55fedcdd993d"
           },
           "name": {
             "type": "string",
@@ -1090,7 +1090,7 @@
           "id": {
             "type": "string",
             "format": "int64",
-            "example": "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0"
+            "example": "9b750108-aba2-4ea0-ad27-b946d7e58f2d"
           },
           "username": {
             "type": "string",
@@ -1152,7 +1152,7 @@
           "id": {
             "type": "string",
             "format": "int64",
-            "example": "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0"
+            "example": "2a86a7cf-1a09-4650-9d43-dca76821a45b"
           },
           "name": {
             "type": "string",
