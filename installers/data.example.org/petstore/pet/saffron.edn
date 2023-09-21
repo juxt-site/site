@@ -4,7 +4,7 @@
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/operations/petstore/add-pet"
   :juxt.site/input
-  {:xt/id "{{$id}}"
+  {:id "saffron"
    :name "Saffron"
    :owner "jam"
    :status "unavailable"
