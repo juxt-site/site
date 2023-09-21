@@ -651,6 +651,9 @@
  {:juxt.site/title "Some pets!"
   :juxt.site/installers
   [{:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/petstore/pet/saffron"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/petstore/pet/cooper"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/petstore/pet/pumpkin-and-knight"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/petstore/pet/unknown"}
    ]
   }
 
