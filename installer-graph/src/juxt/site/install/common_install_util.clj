@@ -112,6 +112,19 @@
          }
         )))))
 
+(defn- render-optional-parameters
+  "Given a map and a selection of parameters either renders optional
+  parameters or removes them from the map if the parameter is not available"
+  [form params]
+  (reduce (fn [acc [k v]]
+            (if (:optional (meta v))
+              (if (render-params-missing? (:value v) params)
+                acc
+                (assoc acc k (selmer/render (:value v) params)))
+              (assoc acc k v)))
+          {}
+          form))
+
 ;; installer-seq
 
 (defn render-form-templates [form params]
@@ -122,15 +135,7 @@
             (instance? juxt.site.install.common_install_util.Pretty x) (-> unwrap (render-form-templates params) (->Pretty))
             (string? x) (render-with-required-check params)
             ;; Optional key value pairs are removed if the parameter is not provided.
-            (map? x)
-            (#(reduce (fn [acc [k v]]
-                        (if (:optional (meta v))
-                          (if (render-params-missing? (:value v) params)
-                            acc
-                            (assoc acc k (selmer/render (:value v) params)))
-                          (assoc acc k v)))
-                      {}
-                      %)))))
+            (map? x) (render-optional-parameters params))))
        ;; Unwrap the templates
        (postwalk
         (fn [x]
