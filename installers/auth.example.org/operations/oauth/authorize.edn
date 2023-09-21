@@ -181,10 +181,9 @@
             ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.3
             (if (some (fn [x] (= redirect-uri x)) registered-redirect-uris)
               redirect-uri
-              (throw (ex-info "Invalid redirect URI"
-                              {:ring.response/status 400
-                               :redirect-uri redirect-uri
-                               :registered-redirect-uris registered-redirect-uris})))
+              (resource-owner-error
+               {"error" "invalid_request"
+                "error_description" "Invalid redirect URI"}))
 
             ;; Presumably, if there's no redirect-uri in the request,
             ;; then we pick the registered redirect-uri. By logical
