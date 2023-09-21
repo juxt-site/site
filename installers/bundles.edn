@@ -832,9 +832,6 @@
     :juxt.site/installer-path "/hospital-demo/_site/permissions/{{username}}/get-any-patient"
     :juxt.site/parameters {"username" "alice"}}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/hospital-demo/_site/permissions/{{username}}/get-any-patient"
-    :juxt.site/parameters {"username" "alice"}}
-   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/hospital-demo/_site/permissions/{{username}}/get-patient/{{pid}}"
     :juxt.site/parameters {"username" "bob" "pid" "004"}}
    {:juxt.site/base-uri "https://data.example.org"
