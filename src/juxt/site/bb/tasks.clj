@@ -973,20 +973,24 @@
 
 ;; Temporary convenience for ongoing development
 
-(defn register-admin-user [opts]
-  (let [password "site-admin"
-        opts (merge {:username "site-admin"
-                     :password password
-                     :role "SiteAdmin"
-                     :client-id "site-cli"
-                     :fullname "Site Admin"} opts)]
-    (register-user opts)
-    (assign-user-role opts)
-    (if-let [token (request-token opts)]
+;; TODO: Replace this with a bundle
+#_(defn register-admin-user [opts]
+  (let [password "foobar"]
+    (register-user
+     (merge {:username "mal"
+             :password password
+             :fullname "Malcolm Sparks"} opts))
+    (assign-user-role
+     (merge {:username "mal"
+             :role "SiteAdmin"} opts))
+    (if-let [token (request-token
+                    (merge {:username "mal"
+                            :password password
+                            :client-id "site-cli"} opts))]
       (save-access-token token)
       (throw (ex-info "Failed to get token" {})))))
 
-;; Call this with a user in the SiteAdmin role
+;; Call this with a user or application in the SiteAdmin role
 (defn install-openapi-support [opts]
   (let [cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
@@ -1032,15 +1036,6 @@
 
     (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/petstore/openapi.json")))
 
-    (let [password "foobar"]
-      (register-user
-       (merge {:username "alice"
-               :password password
-               :fullname "Alice Carroll"} opts))
-      (assign-user-role
-       (merge {:username "alice"
-               :role "PetstoreOwner"} opts)))
-
     (println
      (format
       "Now browse to https://petstore.swagger.io/?url=%s/petstore/openapi.json"
@@ -1052,15 +1047,12 @@
         client-id "site-cli"
         token (atom nil)]
     (init opts true)
-    ;; Flush the output
-    (println)
     (reset! token
             (request-token
              {:client-id client-id
               :client-secret
               (request-client-secret admin-base-uri client-id)}))
-    (register-admin-user opts)
-    (println "A user with 'site-admin' with password 'site-admin' has been created.")
+    (save-access-token @token)
     (install-bundles
      (assoc
       opts
@@ -1068,12 +1060,39 @@
       (str admin-base-uri "/resources")
       :bundles
       [["juxt/site/system-api-openapi"]
-       ["juxt/site/oauth-authorization-endpoint" {"session-scope" "https://auth.example.org/session-scopes/form-login-session"}]
        ["juxt/site/login-form"]
+       ["juxt/site/oauth-authorization-endpoint" {"session-scope" "https://auth.example.org/session-scopes/form-login-session"}]
        ["juxt/site/system-client" {"client-id" "swagger-ui"}]]))
     (println "\n\n")
     (println "Next steps: ")
     (println "\tBrowse to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json")
     (println "\tClick on authorize, add swagger-ui as the client_id, select all scopes and authorize.")
     ;; TODO As more demos are added, adjust this to be a gum selector
-    (install-petstore opts)))
+    (install-petstore opts)
+
+    ;; Now all that is left to do is register a user.
+    ))
+
+
+;; To install an openid-user (rather than a password one), do the following:
+;;
+;; Register a user without a password with
+;;
+;; site register-user --username alice
+;;
+;; Use 'site users' to get the user's uri (xt/id)
+;;
+;;
+;; Install
+;; site install juxt/site/openid-support
+
+;; site install juxt/site/openid-issuer
+;; Issuer: https://juxt.eu.auth0.com/
+
+
+
+;;
+;; site install juxt/site/openid-user-identity
+;; Issuer: https://juxt.eu.auth0.com/
+;; Nickname: the github username of the user
+;; Associated user (URI): the user uri as found above
