@@ -37,7 +37,7 @@
                   #{"https://auth.example.org/protection-spaces/bearer"}
                      :juxt.site/access-control-allow-origins
                   [[".*" {:juxt.site/access-control-allow-origin "*"
-                          :juxt.site/access-control-allow-methods [:get]
+                          :juxt.site/access-control-allow-methods [:get :delete :put]
                           :juxt.site/access-control-allow-headers ["authorization"]}]]
                   :juxt.site/rules
                   '[[(allowed? subject operation resource permission)
