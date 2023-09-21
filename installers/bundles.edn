@@ -221,13 +221,7 @@
  {:juxt.site/title "Users API"
   :juxt.site/description "Users API"
   :juxt.site/installers
-  [;; Operations
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-users"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-user"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/put-user"}
+  [
 
    ;; HTML
    {:juxt.site/base-uri "https://data.example.org"
@@ -661,6 +655,7 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/oauth/register-scope"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/scopes/system/read"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/scopes/system/write"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/get-users"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/get-user"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/put-user"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/put-user"}]}
