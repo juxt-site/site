@@ -61,8 +61,8 @@
                         (when-let [description
                                    (or
                                     (:juxt.site/description method-details)
-                                    (:juxt.site/description operation))])
-                        {"description" description}
+                                    (:juxt.site/description operation))]
+                          {"description" description})
                         (when (seq scope)
                           {"security" [{"oauth" (vec (seq scope))}]})
                         {"responses"
