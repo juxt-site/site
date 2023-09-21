@@ -10,7 +10,13 @@
                 (some->
                  body
                  (String.)
-                 jsonista.core/read-value-with-keywords))]
+                 jsonista.core/read-value-with-keywords)
+
+                "application/edn"
+                (some->
+                 body
+                 (String.)
+                 clojure.edn/read-string))]
 
       (let [id (:id pet)]
         {:docs [(merge

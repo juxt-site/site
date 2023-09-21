@@ -100,7 +100,7 @@
  {:juxt.site/title "Resources API"
   :juxt.site/description "Resources API"
   :juxt.site/installers
-  [;; Resources
+  [ ;; Resources
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/install-resources"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -142,7 +142,7 @@
  {:juxt.site/title "Events API"
   :juxt.site/description "Events API"
   :juxt.site/installers
-  [;; Endpoints
+  [ ;; Endpoints
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/get-events"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -193,7 +193,7 @@
  {:juxt.site/title "OpenAPIs API"
   :juxt.site/description "An API to discover and install OpenAPIs"
   :juxt.site/installers
-  [;; Openapis
+  [ ;; Openapis
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/get-openapis"}
    {:juxt.site/base-uri "https://auth.example.org"
@@ -353,7 +353,7 @@
  #_"juxt/site/system-api"
  #_{:juxt.site/description "Site System API"
     :juxt.site/installers
-    [;; Operations
+    [ ;; Operations
      {:juxt.site/base-uri "https://auth.example.org"
       :juxt.site/installer-path "/operations/get-operations"}
      {:juxt.site/base-uri "https://auth.example.org"
@@ -419,7 +419,7 @@
  {:juxt.site/title "OAuth2 token endpoint"
   :juxt.site/description "OAuth2 token endpoint"
   :juxt.site/installers
-  [;; System permissions required
+  [ ;; System permissions required
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/oauth/create-access-token"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/create-access-token"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/install-token-endpoint"}
@@ -466,7 +466,7 @@
    ["authorization-code-length" {:default 20}]
    ["jti-length" {:default 20}]]
   :juxt.site/installers
-  [;; System permissions required (for tests, mostly)
+  [ ;; System permissions required (for tests, mostly)
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/oauth/install-authorize-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org"
@@ -486,7 +486,7 @@
  {:juxt.site/title "OAuth2 RFC 7662 introspection endpoint"
   :juxt.site/description "OAuth2 RFC 7662 introspection endpoint"
   :juxt.site/installers
-  [;; Introspection endpoint -- see RFC 7662
+  [ ;; Introspection endpoint -- see RFC 7662
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/introspect-token"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/oauth/introspect-token"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/install-token-introspection-endpoint"}
@@ -496,7 +496,7 @@
  "juxt/site/oauth-metadata-endpoints"
  {:juxt.site/description "OAuth2 RFC 8414 metadata endpoints"
   :juxt.site/installers
-  [;; Metadata endpoint -- see RFC 8414
+  [ ;; Metadata endpoint -- see RFC 8414
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/oauth/get-authorization-server-metadata"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/get-authorization-server-metadata"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/install-metadata-endpoint"}
@@ -534,7 +534,7 @@
  {:juxt.site/title "System API OpenAPI"
   :juxt.site/description "OpenAPI documentation for System API"
   :juxt.site/installers
-  [;; Temporary
+  [ ;; Temporary
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-openapi-document"}
 
@@ -646,6 +646,13 @@
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
                            "operation" "petstore/order/get-by-id"}}]}
+
+ "demo/petstore/pets"
+ {:juxt.site/title "Some pets!"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/petstore/pet/saffron"}
+   ]
+  }
 
  "juxt/site/sessions"
  {:juxt.site/title "Sessions"
@@ -784,7 +791,7 @@
  "juxt/site/example-users"
  {:juxt.site/description "Example users"
   :juxt.site/installers
-  [;; Alice
+  [ ;; Alice
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/users/{{username}}"
     :juxt.site/parameters {"username" "alice"
@@ -1035,10 +1042,7 @@
   :juxt.site/installers
   [
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/openid/callback"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/login-with-openid"}
-
-
-   ]}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/login-with-openid"}]}
 
  "juxt/site/testing/basic-auth-protected-resource"
  {:juxt.site/installers
