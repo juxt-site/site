@@ -46,6 +46,10 @@
         :task (juxt.site.bb.tasks/init
                (juxt.site.bb.tasks/parse-opts))}
 
+  bootstrap {:doc "Bootstrap an instance with a default user & a demo API."
+             :task (juxt.site.bb.tasks/bootstrap
+                    (juxt.site.bb.tasks/parse-opts))}
+
   list
   {:doc "List resources. Only available via localhost."
    :opts {:args->opts [:pattern]}
