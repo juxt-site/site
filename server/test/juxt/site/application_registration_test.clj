@@ -18,6 +18,7 @@
 (defn bootstrap []
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/unprotected-resources"
     "juxt/site/protection-spaces"
     "juxt/site/user-model"
     "juxt/site/roles"

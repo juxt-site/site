@@ -15,6 +15,7 @@
 (defn init []
   (local/install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/unprotected-resources"
     "juxt/site/protection-spaces"
     ;; Support the creation of JWT bearer tokens
     "juxt/site/oauth-token-endpoint"

@@ -68,6 +68,12 @@
    ;;  :juxt.site/installer-path "/_site/permissions/SiteAdmin/all-bundles"}
    ]}
 
+ "juxt/site/unprotected-resources"
+ {:juxt.site/title "Unprotected resources"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/get-unprotected-resource"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/get-unprotected-resource"}]}
+
  "juxt/site/api-operations"
  {:juxt.site/title "API endpoints"
   :juxt.site/description "API endpoints"
@@ -76,10 +82,6 @@
     :juxt.site/installer-path "/operations/put-api-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-api-endpoint"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/get-unprotected-resource"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-unprotected-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
@@ -678,8 +680,6 @@
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/login"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/login"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/get-unprotected-resource"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/get-unprotected-resource"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/create-login-resource"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/create-login-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
