@@ -21,7 +21,7 @@
 (defn bundles [dir]
   (edn/read-string (slurp (io/file dir "installers/bundles.edn"))))
 
-(defn spec->installer-seq [spec uri-map bundles graph]
+(defn spec->bundle [spec uri-map bundles graph]
   (let [[bundle-name params] (if (vector? spec) spec [spec {}])
         bundle (get bundles bundle-name)
         _ (when-not bundle (throw (ex-info (format "Bundle not found: %s" bundle-name) {:bundle bundle-name})))
@@ -29,10 +29,7 @@
                           (get bundle-name)
                           :juxt.site/installers
                           (install/map-uris uri-map))]
-    (->>
-     (ciu/installer-seq graph params resources)
-     ;; (map :juxt.site/init-data)
-     )))
+    (ciu/bundle-map bundle-name (ciu/installer-seq graph params resources) uri-map)))
 
 (defn graph [dir uri-map]
   (ciu/unified-installer-map dir uri-map))
@@ -44,8 +41,8 @@
         bundles (bundles (get-root-dir))]
     (mapv
      (fn [spec]
-       (let [installer-seq (spec->installer-seq spec uri-map bundles graph)
+       (let [bundle (spec->bundle spec uri-map bundles graph)
              db (xt/db *xt-node*)
-             tx-ops (operations/installer-seq->tx-ops nil db installer-seq)]
+             tx-ops (operations/bundle->tx-ops nil db bundle)]
          (operations/apply-ops! *xt-node* tx-ops)))
      specs)))

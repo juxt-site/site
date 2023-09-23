@@ -17,6 +17,8 @@
 (defn bootstrap-fixture [f]
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/unprotected-resources"
+    "juxt/site/protection-spaces"
     "juxt/site/sessions"
     "juxt/site/login-form"
     "juxt/site/logout"

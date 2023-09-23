@@ -19,6 +19,7 @@
   (install-bundles!
    ["juxt/site/bootstrap"
     ["juxt/site/keypair" {"kid" "test-kid"}]
+    "juxt/site/unprotected-resources"
     "juxt/site/sessions"
     "juxt/site/login-form"
     "juxt/site/user-model"

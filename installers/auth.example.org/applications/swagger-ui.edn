@@ -14,4 +14,8 @@
    :juxt.site/authorization-server "https://auth.example.org"
    :juxt.site/resource-server "https://data.example.org"
    :juxt.site/redirect-uris ["https://petstore.swagger.io/oauth2-redirect.html"
-                             "https://swagger-ui.apps.com/oauth2-redirect.html"]}}}
+                             "https://swagger-ui.apps.com/oauth2-redirect.html"
+                             ;; For alx
+                             "https://juxt-site-petshop.vercel.app/oauth-redirect.html"
+                             "http://localhost:5173/oauth-redirect.html"
+                             ]}}}

@@ -1,6 +1,5 @@
 {:deps
  ["https://auth.example.org/operations/install-openid-callback-endpoint"
-  "https://auth.example.org/permissions/system/install-openid-callback-endpoint"
 
   ;; TODO: This can't be 'reinstalled' as we don't have the
   ;; client-secret parameter, but after we've changed the installer to

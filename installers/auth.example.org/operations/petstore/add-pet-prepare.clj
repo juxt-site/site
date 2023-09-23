@@ -10,7 +10,13 @@
                 (some->
                  body
                  (String.)
-                 jsonista.core/read-value-with-keywords))]
+                 jsonista.core/read-value-with-keywords)
+
+                "application/edn"
+                (some->
+                 body
+                 (String.)
+                 clojure.edn/read-string))]
 
       (let [id (:id pet)]
         {:docs [(merge
@@ -31,7 +37,7 @@
                   #{"https://auth.example.org/protection-spaces/bearer"}
                      :juxt.site/access-control-allow-origins
                   [[".*" {:juxt.site/access-control-allow-origin "*"
-                          :juxt.site/access-control-allow-methods [:get]
+                          :juxt.site/access-control-allow-methods [:get :delete :put]
                           :juxt.site/access-control-allow-headers ["authorization"]}]]
                   :juxt.site/rules
                   '[[(allowed? subject operation resource permission)

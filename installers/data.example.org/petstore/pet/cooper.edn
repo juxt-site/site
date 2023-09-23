@@ -1,0 +1,12 @@
+{:deps
+ ["https://auth.example.org/operations/petstore/add-pet"]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/petstore/add-pet"
+  :juxt.site/input
+  {:id "cooper"
+   :name "Cooper"
+   :owner "joa"
+   :status "unavailable"
+   :category {:name "Dogs"}
+   :photoUrls ["https://files.slack.com/files-tmb/T02AJV0T3-F04QAHXK4JX-77d9e5aff0/pxl_20230219_142642753_960.jpg"]}}}

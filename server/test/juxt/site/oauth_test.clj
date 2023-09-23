@@ -18,7 +18,10 @@
   (install-bundles!
    ["juxt/site/bootstrap"
     ["juxt/site/keypair" {"kid" "test-kid"}]
+    "juxt/site/unprotected-resources"
     "juxt/site/sessions"
+    "juxt/site/user-model"
+    "juxt/site/protection-spaces"
     "juxt/site/login-form"
     ["juxt/site/oauth-authorization-endpoint"
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
@@ -122,9 +125,11 @@
               "token_endpoint" "https://auth.example.test/oauth/token"
               "jwks_uri" "https://auth.example.test/.well-known/jwks.json"
               "scopes_supported"
-	      ["https://auth.example.test/scopes/test/read"
-               "https://auth.example.test/scopes/test/write"
-               "https://auth.example.test/scopes/test/admin"]
+	      ["https://auth.example.test/scopes/system/read"
+	       "https://auth.example.test/scopes/test/read"
+	       "https://auth.example.test/scopes/test/write"
+	       "https://auth.example.test/scopes/system/write"
+	       "https://auth.example.test/scopes/test/admin"]
               "response_types_supported" ["code" "token"]
               "response_modes_supported" ["query" "fragment"]
 	      "grant_types_supported" ["authorization_code" "implicit" "password" "refresh_token"]

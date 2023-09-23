@@ -16,6 +16,7 @@
   (install-bundles!
    ["juxt/site/bootstrap"
     "juxt/site/user-model"
+    "juxt/site/api-operations"
     "juxt/site/protection-spaces"
     "juxt/site/oauth-token-endpoint"
     "juxt/site/password-based-user-identity"

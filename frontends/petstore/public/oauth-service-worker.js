@@ -10,6 +10,15 @@ addEventListener("activate", (event) => {
   event.waitUntil(clients.claim());
 });
 
+// to send a message to all clients
+function sendMessage(message) {
+  self.clients.matchAll().then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage(message);
+    });
+  });
+}
+
 // These Maps are indexed by the origin of the protected resource URLs.
 // There will be one entry in each Map for each protected resource URL,
 // which is provided by the user when calling the authenticate({...}) method.
@@ -68,6 +77,7 @@ async function handleTokenResponse(response, configItem) {
     expires_in,
     date: getTimestampInSeconds(),
   });
+  sendMessage({ type: "accessTokenStored" });
 }
 
 // This function intercepts all requests, but only handles those directed to the protected resource URLs.

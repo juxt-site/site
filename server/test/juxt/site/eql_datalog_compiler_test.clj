@@ -55,6 +55,8 @@
 (defn install-hospital! []
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/unprotected-resources"
+    "juxt/site/protection-spaces"
     ["juxt/site/keypair" {"kid" "test-kid"}]
     "juxt/site/user-model"
     "juxt/site/password-based-user-identity"
@@ -80,7 +82,6 @@
   (install-bundles!
    ["juxt/site/example-users"
     "juxt/site/login-form"
-    "juxt/site/protection-spaces"
     "juxt/site/hospital-demo"]
    RESOURCE_SERVER))
 

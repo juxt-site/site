@@ -53,4 +53,12 @@
      [role :juxt.site/type "https://meta.juxt.site/types/role"]
      [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
      [role-assignment :juxt.site/role role]
-     [role-assignment :juxt.site/user user]]]}}}
+     [role-assignment :juxt.site/user user]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/application app]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/application app]]]}}}

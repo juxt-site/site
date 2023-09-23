@@ -17,21 +17,28 @@
 
    :juxt.site/access-control-allow-origins
    [["https://petstore.swagger.io"
-       {:juxt.site/access-control-allow-origin "https://petstore.swagger.io"
-        :juxt.site/access-control-allow-methods [:post]
-        :juxt.site/access-control-allow-headers ["authorization"
-                                                 ;; Swagger requires this
-                                                 "x-requested-with"]}]
+     {:juxt.site/access-control-allow-origin "https://petstore.swagger.io"
+      :juxt.site/access-control-allow-methods [:post]
+      :juxt.site/access-control-allow-headers ["authorization"
+                                               ;; Swagger requires this
+                                               "x-requested-with"]}]
     ["https://swagger-ui.apps.com"
-       {:juxt.site/access-control-allow-origin "https://swagger-ui.apps.com"
-        :juxt.site/access-control-allow-methods [:post]
-        :juxt.site/access-control-allow-headers ["authorization"
-                                                 ;; Swagger requires this
-                                                 "x-requested-with"]}]
+     {:juxt.site/access-control-allow-origin "https://swagger-ui.apps.com"
+      :juxt.site/access-control-allow-methods [:post]
+      :juxt.site/access-control-allow-headers ["authorization"
+                                               ;; Swagger requires this
+                                               "x-requested-with"]}]
 
     ["https://localhost:5173"
-       {:juxt.site/access-control-allow-origin "https://localhost:5173"
-        :juxt.site/access-control-allow-methods [:post]
-        :juxt.site/access-control-allow-headers ["authorization"
-                                                 ;; Swagger requires this
-                                                 "x-requested-with"]}]]}}}
+     {:juxt.site/access-control-allow-origin "https://localhost:5173"
+      :juxt.site/access-control-allow-methods [:post]
+      :juxt.site/access-control-allow-headers ["authorization"
+                                               ;; Swagger requires this
+                                               "x-requested-with"]}]
+
+    ["https://juxt-site-petshop.vercel.app"
+     {:juxt.site/access-control-allow-origin "https://juxt-site-petshop.vercel.app"
+      :juxt.site/access-control-allow-methods [:post]
+      :juxt.site/access-control-allow-headers ["authorization"
+                                               ;; Swagger requires this
+                                               "x-requested-with"]}]]}}}

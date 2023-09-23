@@ -14,6 +14,7 @@
 (defn install-bundles-fixture [f]
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/unprotected-resources"
     "juxt/site/user-model"
     "juxt/site/protection-spaces"
     "juxt/site/api-operations"
