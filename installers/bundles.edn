@@ -207,6 +207,10 @@
     :juxt.site/installer-path "/_site/openapis.edn"}
 
    ;; Permissions
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "put-openapi-document"}}
 
    ;; Used by System API
    {:juxt.site/base-uri "https://auth.example.org"
@@ -527,16 +531,7 @@
  {:juxt.site/title "System API OpenAPI"
   :juxt.site/description "OpenAPI documentation for System API"
   :juxt.site/installers
-  [ ;; Temporary
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/system/put-openapi-document"}
-
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteAdmin"
-                           "operation" "put-openapi-document"}}
-
-   {:juxt.site/base-uri "https://data.example.org"
+  [{:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapi.json"}]}
 
  "juxt/site/pass-support"
