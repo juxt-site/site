@@ -28,6 +28,7 @@
             "juxt.site.petstore-test"
             "juxt.site.order-test"
             "juxt.site.application-registration-test"
-            "juxt.site.bundle-test"]}]
+            "juxt.site.bundle-test"
+            "juxt.site.bundles-integrity-test"]}]
 
   :reporter kaocha.report/documentation}
