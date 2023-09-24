@@ -501,15 +501,13 @@
     (if-not verbose
       (let [cfg (config opts)
             data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-            ;; TODO: There is a problem with babashka.http-client's
-            ;; handling of the accept header :(
-            ;; As a workaround, we go direct to the EDN representation.
             endpoint (str data-base-uri path)
-            {:keys [status body]} (http/get
-                                   endpoint
-                                   {:headers {:authorization (authorization cfg)
-                                              :accept "application/edn"}
-                                    :throw false})]
+            {:keys [status body]}
+            (http/get
+             endpoint
+             {:headers {:authorization (authorization cfg)
+                        :accept "application/edn"}
+              :throw false})]
         (case status
           200 (let [edn (clojure.edn/read-string body)
                     whoami (or
@@ -518,8 +516,8 @@
                 (if whoami
                   (println whoami)
                   (stderr
-                    (println
-                     "No valid subject (hint: try requesting an access token with site request-token)"))))
+                   (println
+                    "No valid subject (hint: try requesting an access token with site request-token)"))))
           401 (do
                 (print status body)
                 (println "Hint: Try requesting an access-token (site request-token)"))
