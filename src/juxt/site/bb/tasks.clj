@@ -470,7 +470,7 @@
 (defn authorization [cfg]
   (format "Bearer %s" (retrieve-token cfg)))
 
-(defn api-request-json [path]
+(defn api-request-json [path {:keys [default-accept]}]
   (let [opts (parse-opts)
         cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
@@ -481,7 +481,7 @@
                            (get opts :edn) "application/edn"
                            (get opts :txt) "text/plain"
                            (get opts :csv) "text/csv"
-                           :else "application/json")}
+                           :else default-accept)}
         {:keys [status body]}
         (http/get
          endpoint
@@ -525,22 +525,22 @@
             (print status body)
             (.flush *out*))))
       ;; Verbose
-      (api-request-json path))))
+      (api-request-json path {:default-accept "application/json"}))))
 
 (defn api-endpoints []
-  (api-request-json "/_site/api-endpoints"))
+  (api-request-json "/_site/api-endpoints" {:default-accept "application/json"}))
 
 (defn users []
-  (api-request-json "/_site/users"))
+  (api-request-json "/_site/users" {:default-accept "application/json"}))
 
 (defn openapis []
-  (api-request-json "/_site/openapis"))
+  (api-request-json "/_site/openapis" {:default-accept "application/json"}))
 
 (defn events []
-  (api-request-json "/_site/events"))
+  (api-request-json "/_site/events" {:default-accept "application/json"}))
 
 (defn logs []
-  (api-request-json "/_site/logs"))
+  (api-request-json "/_site/logs" {:default-accept "application/jsonlines"}))
 
 (memoize
  (defn bundles [cfg]
