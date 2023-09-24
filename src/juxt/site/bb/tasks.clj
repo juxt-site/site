@@ -778,6 +778,8 @@
            (str admin-base-uri "/resources")
            :bundles
            [["juxt/site/bootstrap" {}]
+            ["juxt/site/unprotected-resources" {}]
+            ["juxt/site/protection-spaces" {}]
             ;; Support the creation of JWT bearer tokens
             ["juxt/site/oauth-token-endpoint" {}]
             ;; Install a keypair to sign JWT bearer tokens
