@@ -5,20 +5,21 @@
 
 (defn resolve-parameters [parameters args]
   (reduce
-   (fn [acc [parameter {:keys [label default choices password]}]]
-     (assoc acc parameter
-            (or (get args parameter)
-                default
-                (cond
-                  choices (let [choice-v (map (juxt #(format "%s (%s)" (:label %) (:value %)) identity) choices)
-                                choice (input/choose (map first choice-v) {:header (format "Choose %s" parameter)})
+   (fn [acc [parameter {:keys [label default choices password optional]}]]
+     (let [value (or (get args parameter)
+                     default
+                     (when-not optional
+                       (cond
+                         choices (let [choice-v (map (juxt #(format "%s (%s)" (:label %) (:value %)) identity) choices)
+                                       choice (input/choose (map first choice-v) {:header (format "Choose %s" parameter)})
 
-                                value (get-in (into {} choice-v) [choice :value])]
-                            value)
+                                       value (get-in (into {} choice-v) [choice :value])]
+                                   value)
 
-                  password (input/input {:header (or label parameter)
-                                         :password true})
+                         password (input/input {:header (or label parameter)
+                                                :password true})
 
-                  :else (input/input {:header (or label parameter)})))))
+                         :else (input/input {:header (or label parameter)}))))]
+       (if value (assoc acc parameter value) acc)))
    {}
    parameters))

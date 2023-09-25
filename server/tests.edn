@@ -1,34 +1,35 @@
 #kaocha/v1
- {:plugins [;;:kaocha.plugin.alpha/info
+{:plugins [;;:kaocha.plugin.alpha/info
            ;;:kaocha.plugin/cloverage
-            ]
+           ]
 
-  :tests [{:id :test
-           :test-paths ["test"]
-           :ns-patterns
-           ["juxt.site.cors-test"
-            "juxt.site.return-test"
-            "juxt.site.tx-test"
-            "juxt.site.events-test"
-            "juxt.site.graphql-compiler-test"
-            "juxt.site.form-based-auth-test"
-            "juxt.site.bundles-test"
-            "juxt.site.eql-datalog-compiler-test"
-            "juxt.site.oauth-test"
-            "juxt.site.oauth-grants-test"
-            "juxt.site.openid-test"
-            "juxt.site.system-api-test"
-            "juxt.site.whoami-test"
-            "juxt.site.schema-test"
-            "juxt.site.basic-auth-test"
-            "juxt.site.create-users-test"
-            "juxt.site.post-openapi-test"
-            "juxt.site.error-test"
-            "juxt.site.installer-test"
-            "juxt.site.petstore-test"
-            "juxt.site.order-test"
-            "juxt.site.application-registration-test"
-            "juxt.site.bundle-test"
-            "juxt.site.bundles-integrity-test"]}]
+ :tests [{:id :test
+          :test-paths ["test"]
+          :ns-patterns
+          ["juxt.site.cors-test"
+           "juxt.site.return-test"
+           "juxt.site.tx-test"
+           "juxt.site.events-test"
+           "juxt.site.graphql-compiler-test"
+           "juxt.site.form-based-auth-test"
+           "juxt.site.bundles-test"
+           "juxt.site.eql-datalog-compiler-test"
+           "juxt.site.oauth-test"
+           "juxt.site.oauth-grants-test"
+           "juxt.site.openid-test"
+           "juxt.site.system-api-test"
+           "juxt.site.whoami-test"
+           "juxt.site.schema-test"
+           "juxt.site.basic-auth-test"
+           "juxt.site.create-users-test"
+           "juxt.site.post-openapi-test"
+           "juxt.site.error-test"
+           "juxt.site.installer-test"
+           "juxt.site.petstore-test"
+           "juxt.site.order-test"
+           "juxt.site.application-registration-test"
+           "juxt.site.install.common-install-util-test"
+           "juxt.site.bundle-test"
+           "juxt.site.bundles-integrity-test"]}]
 
-  :reporter kaocha.report/documentation}
+ :reporter kaocha.report/documentation}
