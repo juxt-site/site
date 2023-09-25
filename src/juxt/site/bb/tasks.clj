@@ -470,18 +470,19 @@
 (defn authorization [cfg]
   (format "Bearer %s" (retrieve-token cfg)))
 
-(defn api-request-json [path]
+(defn api-request [path]
   (let [opts (parse-opts)
         cfg (config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         endpoint (str data-base-uri path)
-        headers {:content-type "application/json"
-                 :authorization (authorization cfg)
-                 :accept (cond
-                           (get opts :edn) "application/edn"
-                           (get opts :txt) "text/plain"
-                           (get opts :csv) "text/csv"
-                           :else "application/json")}
+        accept (cond
+                 (get opts :edn) "application/edn"
+                 (get opts :txt) "text/plain"
+                 (get opts :csv) "text/csv")
+        headers (merge
+                 {:content-type "application/json"
+                  :authorization (authorization cfg)}
+                 (when accept {:accept accept}))
         {:keys [status body]}
         (http/get
          endpoint
@@ -501,15 +502,13 @@
     (if-not verbose
       (let [cfg (config opts)
             data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-            ;; TODO: There is a problem with babashka.http-client's
-            ;; handling of the accept header :(
-            ;; As a workaround, we go direct to the EDN representation.
             endpoint (str data-base-uri path)
-            {:keys [status body]} (http/get
-                                   endpoint
-                                   {:headers {:authorization (authorization cfg)
-                                              :accept "application/edn"}
-                                    :throw false})]
+            {:keys [status body]}
+            (http/get
+             endpoint
+             {:headers {:authorization (authorization cfg)
+                        :accept "application/edn"}
+              :throw false})]
         (case status
           200 (let [edn (clojure.edn/read-string body)
                     whoami (or
@@ -518,8 +517,8 @@
                 (if whoami
                   (println whoami)
                   (stderr
-                    (println
-                     "No valid subject (hint: try requesting an access token with site request-token)"))))
+                   (println
+                    "No valid subject (hint: try requesting an access token with site request-token)"))))
           401 (do
                 (print status body)
                 (println "Hint: Try requesting an access-token (site request-token)"))
@@ -527,22 +526,22 @@
             (print status body)
             (.flush *out*))))
       ;; Verbose
-      (api-request-json path))))
+      (api-request path))))
 
 (defn api-endpoints []
-  (api-request-json "/_site/api-endpoints"))
+  (api-request "/_site/api-endpoints"))
 
 (defn users []
-  (api-request-json "/_site/users"))
+  (api-request "/_site/users"))
 
 (defn openapis []
-  (api-request-json "/_site/openapis"))
+  (api-request "/_site/openapis"))
 
 (defn events []
-  (api-request-json "/_site/events"))
+  (api-request "/_site/events"))
 
 (defn logs []
-  (api-request-json "/_site/logs"))
+  (api-request "/_site/logs"))
 
 (memoize
  (defn bundles [cfg]
@@ -778,12 +777,14 @@
            (str admin-base-uri "/resources")
            :bundles
            [["juxt/site/bootstrap" {}]
+            ["juxt/site/unprotected-resources" {}]
+            ["juxt/site/protection-spaces" {}]
             ;; Support the creation of JWT bearer tokens
             ["juxt/site/oauth-token-endpoint" {}]
             ;; Install a keypair to sign JWT bearer tokens
             ["juxt/site/keypair" {"kid" (random-string 16)}]
             ;; Install the required APIs
-           ["juxt/site/user-model" {}]
+            ["juxt/site/user-model" {}]
             ["juxt/site/api-operations" {}]
             ["juxt/site/protection-spaces" {}]
             ["juxt/site/resources-api" {}]
@@ -800,9 +801,17 @@
             ;; RFC 7662 token introspection
             ["juxt/site/oauth-introspection-endpoint" {}]
             ;; Register the clients
-            ["juxt/site/system-client" {"client-id" "site-cli"}]
-            ["juxt/site/system-client" {"client-id" "insite"}]]))
-
+            ["juxt/site/system-client"
+             (let [site-cli-config {"client-id" "site-cli"}]
+               (if-let [site-cli-secret (:site-cli-secret opts)]
+                 (assoc site-cli-config "client-secret" site-cli-secret)
+                 site-cli-config))]
+            ["juxt/site/system-client"
+             (let [insite-config {"client-id" "insite"}]
+               (if-let [insite-secret (:insite-secret opts)]
+                 (assoc insite-config "client-secret" insite-secret)
+                 insite-config))]])
+          )
          ;; Delete any stale client-secret files
          (doseq [client-id ["site-cli" "insite"]
                  :let [secret-file (client-secret-file opts client-id)]]

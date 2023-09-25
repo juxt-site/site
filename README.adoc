@@ -1,15 +1,37 @@
 = Site (2.0)
 
-Site is an *Application Data Platform*, allowing the deployment of Application Programming Interfaces to serve state to applications.
+With Site, you can build complete API services 100x quicker than by using traditional web frameworks.
 
-== Description
+Here's how you use Site:
+
+* You write an API description, in https://swagger.io/specification/[OpenAPI] format.
+* You set up a Site instance, running in on a machine you own, or with your cloud provider.
+* Where necessary, you code some of the operations needed to serve the API.
+* You deploy the API to your Site instance.
+
+Site does the rest, which includes:
+
+* Serving your API over proper HTTP, with proper method semantics, response codes, headers, conditional requests, caching and much more.
+* Securing your API with OAuth2, with proper registration of clients, integration with authentication providers, declarative access control, scope and much more.
+* Managing your data, provide data consistency guarentees, an audit trail, event logging and bitemporal data access.
+
+You get to design your API exactly as you want it. Site does the rest.
+
+== A better way of building APIs
+
+Site is RESTful. Everything in Site is a web resource, with a URI which you can link to.
+Web security is built in, not an afterthought.
+
+== An 'application server' for today's web and mobile apps
+
+Site is an *Application Data Platform*, allowing the deployment of Application Programming Interfaces to serve state to applications.
 
 Site offers the following:
 
 * Bitemporal data storage (via https://xtdb.com[XTDB])
 * User authentication (including https://openid.net/[OpenID])
 * Flexible access-control (https://en.wikipedia.org/wiki/Role-based_access_control[RBAC], https://en.wikipedia.org/wiki/Attribute-based_access_control[ABAC] and policy-based)
-* Support for https://www.openapis.org/[OpenAPI] and https://graphql.org/[GraphQL] programmable APIs, with an https://github.com/babashka/SCI[embedded powerful language].
+* Support for https://www.openapis.org/[OpenAPI] programmable APIs, with an https://github.com/babashka/SCI[embedded powerful language].
 * A built-in OAuth2 Authorization Server for issuing access tokens
 * Excellent conformance with standards (HTTP, OAuth2, OpenID) to maximise interoperability and minimize lock-in
 
@@ -71,7 +93,7 @@ resource server:: The server hosting the protected resources, capable of accepti
 Resources are documents which represent a resource's identity (URI), configuration and current state (which might be some data, image or other media).
 Site stores resources in a database.
 
-A resource request is a standard web request to a URI (as part of an API, such as https://www.openapis.org/[OpenAPI]) or https://graphql.org/[GraphQL] request.
+A resource request is a standard web request to a URI (as part of an API, such as https://www.openapis.org/[OpenAPI]).
 
 Requests contain an access-token, acquired from an authorization server:
 
@@ -94,7 +116,6 @@ Current development is still focussed on the technical feature set, as required 
 * Content Negotiation
 * Conditional Requests
 * Access Control (https://en.wikipedia.org/wiki/Role-based_access_control[RBAC], https://en.wikipedia.org/wiki/Attribute-based_access_control[ABAC] or policy based)
-* GraphQL
 
 === Authorization Server
 

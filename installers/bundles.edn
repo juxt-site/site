@@ -7,7 +7,6 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/create-operation"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/system/bootstrap"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/grant-permission"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/system/bootstrap"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/operations/install-not-found"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/permissions/system/install-not-found"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/_site/not-found"}
@@ -86,6 +85,12 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/bundles.txt"}]}
 
+ "juxt/site/unprotected-resources"
+ {:juxt.site/title "Unprotected resources"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/get-unprotected-resource"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/get-unprotected-resource"}]}
+
  "juxt/site/api-operations"
  {:juxt.site/title "API endpoints"
   :juxt.site/description "API endpoints"
@@ -94,10 +99,6 @@
     :juxt.site/installer-path "/operations/put-api-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/put-api-endpoint"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/get-unprotected-resource"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-unprotected-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
@@ -225,6 +226,10 @@
     :juxt.site/installer-path "/_site/openapis.edn"}
 
    ;; Permissions
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "put-openapi-document"}}
 
    ;; Used by System API
    {:juxt.site/base-uri "https://auth.example.org"
@@ -286,10 +291,6 @@
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "put-user"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteAdmin"
-                           "operation" "assign-role"}}
 
    ;; SiteBootstrap role
    ;; It is necessary for bootstrapping to be able to create a user
@@ -441,8 +442,6 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/create-access-token"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/install-token-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/install-oauth-token-endpoint"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/put-protection-space"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/put-protection-space"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/protection-spaces/client-credentials"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/token"}
 
@@ -455,7 +454,12 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin"
-                           "operation" "oauth/register-application"}}]}
+                           "operation" "oauth/register-application"}}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "oauth/install-token-endpoint"}}]}
 
  "juxt/site/keypair"
  {:juxt.site/title "Keypair"
@@ -551,16 +555,7 @@
  {:juxt.site/title "System API OpenAPI"
   :juxt.site/description "OpenAPI documentation for System API"
   :juxt.site/installers
-  [ ;; Temporary
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/system/put-openapi-document"}
-
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteAdmin"
-                           "operation" "put-openapi-document"}}
-
-   {:juxt.site/base-uri "https://data.example.org"
+  [{:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/openapi.json"}]}
 
  "juxt/site/pass-support"
@@ -707,8 +702,6 @@
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/login"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/login"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/get-unprotected-resource"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/get-unprotected-resource"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/create-login-resource"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/create-login-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
@@ -760,7 +753,8 @@
  "juxt/site/system-client"
  {:juxt.site/title "System client"
   :juxt.site/description "Register a client with the SiteBootstrap and SiteSystemQuery roles. System clients are able to authenticate themselves with the client_credentials grant."
-  :juxt.site/parameters [["client-id" {}]]
+  :juxt.site/parameters [["client-id" {}]
+                         ["client-secret" {:optional true}]]
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/applications/{{client-id}}"
@@ -862,8 +856,7 @@
  "juxt/site/hospital-demo"
  {:juxt.site/description "Hospital demo resources"
   :juxt.site/installers
-  [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/protection-spaces/bearer"}
-   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/hospital-demo/_site/operations/get-patient"}
+  [{:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/hospital-demo/_site/operations/get-patient"}
 
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/hospital-demo/_site/permissions/{{username}}/get-any-patient"

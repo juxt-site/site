@@ -18,8 +18,10 @@
   (install-bundles!
    ["juxt/site/bootstrap"
     ["juxt/site/keypair" {"kid" "test-kid"}]
+    "juxt/site/unprotected-resources"
     "juxt/site/sessions"
     "juxt/site/user-model"
+    "juxt/site/protection-spaces"
     "juxt/site/login-form"
     ["juxt/site/oauth-authorization-endpoint"
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
