@@ -437,7 +437,12 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin"
-                           "operation" "oauth/register-application"}}]}
+                           "operation" "oauth/register-application"}}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "oauth/install-token-endpoint"}}]}
 
  "juxt/site/keypair"
  {:juxt.site/title "Keypair"
