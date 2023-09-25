@@ -303,6 +303,7 @@
                   (cond-> {:xt/id (str "https://auth.example.org/authorization-codes/" code)
                            :juxt.site/type "https://meta.juxt.site/types/authorization-code"
                            :juxt.site/subject subject
+                           :juxt.site/client-id client-id
                            :juxt.site/application (:xt/id client-doc)
                            :juxt.site/code code}
                     code-challenge (assoc :juxt.site/code-challenge code-challenge)
