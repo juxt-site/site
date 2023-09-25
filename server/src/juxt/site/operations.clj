@@ -708,6 +708,7 @@
 
     ;; Return the tx-ops
     (into tx-ops
+          ;; Add the bundle
           [[:xtdb.api/put (update (assoc bundle-map :xt/id uri)
                                   :installers
                                   #(mapv :juxt.site/uri %))]

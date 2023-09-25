@@ -53,21 +53,38 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/description "Let SiteAdmin grant permission to operations"
     :juxt.site/installer-path "/_site/permissions/SiteAdmin/grant-permission"}
-
-   ;; {:juxt.site/base-uri "https://auth.example.org"
-   ;;  :juxt.site/installer-path "/_site/operations/get-bundle-by-id"}
-
-   ;; {:juxt.site/base-uri "https://auth.example.org"
-   ;;  :juxt.site/description "Let SiteAdmin search for a bundle"
-   ;;  :juxt.site/installer-path "/_site/permissions/SiteAdmin/get-bundle-by-id"}
-
-   ;; {:juxt.site/base-uri "https://auth.example.org"
-   ;;  :juxt.site/installer-path "/_site/operations/all-bundles"}
-
-   ;; {:juxt.site/base-uri "https://auth.example.org"
-   ;;  :juxt.site/description "Let SiteAdmin search for all bundles"
-   ;;  :juxt.site/installer-path "/_site/permissions/SiteAdmin/all-bundles"}
    ]}
+
+ "juxt/site/bundles-api"
+ {:juxt.site/title "Bundles API"
+  :juxt.site/description "Bundle API"
+  :juxt.site/installers
+  [
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/_site/operations/get-bundle-by-id"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/description "Let SiteAdmin search for a bundle"
+    :juxt.site/installer-path "/_site/permissions/SiteAdmin/get-bundle-by-id"}
+
+      {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/_site/operations/delete-bundle-by-id"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/description "Let SiteAdmin search for a bundle"
+    :juxt.site/installer-path "/_site/permissions/SiteAdmin/delete-bundle-by-id"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/_site/operations/all-bundles"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/description "Let SiteAdmin search for all bundles"
+    :juxt.site/installer-path "/_site/permissions/SiteAdmin/all-bundles"}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundles"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundles.txt"}]}
 
  "juxt/site/api-operations"
  {:juxt.site/title "API endpoints"
