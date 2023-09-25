@@ -44,13 +44,14 @@
   (local/install-bundles!
    [["juxt/site/bootstrap" {}]
     ;; Support the creation of JWT bearer tokens
+    "juxt/site/protection-spaces"
+    "juxt/site/unprotected-resources"
     ["juxt/site/oauth-token-endpoint" {}]
     ;; Install a keypair to sign JWT bearer tokens
     ["juxt/site/keypair" {"kid" "test-kid"}]
     ;; Install the required APIs
     "juxt/site/user-model"
     "juxt/site/roles"
-    "juxt/site/protection-spaces"
     ["juxt/site/api-operations" {}]
     ["juxt/site/resources-api" {}]
     ["juxt/site/events-api" {}]
@@ -73,7 +74,6 @@
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
       "authorization-code-length" 12
       "jti-length" 12}]
-    "juxt/site/oauth-token-endpoint"
     ["juxt/site/user-role-assignment"
      {"username" "alice"
       "rolename" "SiteAdmin"}]
@@ -93,7 +93,6 @@
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
       "authorization-code-length" 12
       "jti-length" 12}]
-    "juxt/site/oauth-token-endpoint"
     ["juxt/site/user-role-assignment"
      {"username" "alice"
       "rolename" "SiteAdmin"}]
