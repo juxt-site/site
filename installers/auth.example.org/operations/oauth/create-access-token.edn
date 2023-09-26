@@ -74,6 +74,7 @@
 
           {grant-type "grant_type"
            client-id "client_id"
+           client-secret "client_secret"
            code "code"
            code-verifier "code_verifier"
            refresh-token "refresh_token"
@@ -125,10 +126,9 @@
                        "jti" (juxt.site.util/make-nonce jti-length)}
           :new-refresh-token (juxt.site.util/make-nonce 16)
           :origin (get-in *ctx* [:ring.request/headers "origin"])}
-         (when client-id
-           {:client-id client-id})
-         (when code-verifier
-           {:code-verifier code-verifier}))
+         (when client-id {:client-id client-id})
+         (when code-verifier {:code-verifier code-verifier})
+         (when client-secret {:client-secret client-secret}))
 
         "refresh_token"
         (merge
@@ -172,7 +172,7 @@
       (try
         (case grant-type
           "authorization_code"
-          (let [{:keys [client-id code code-verifier]} *prepare*
+          (let [{:keys [client-id client-secret code code-verifier]} *prepare*
 
                 {code-challenge :juxt.site/code-challenge
                  code-challenge-method :juxt.site/code-challenge-method
@@ -187,7 +187,19 @@
 
                 ;; If client-id is not specified, default to the one
                 ;; stored in the database.
-                client-id (or client-id (:juxt.site/client-id code-doc))]
+                client-id (or client-id (:juxt.site/client-id code-doc))
+
+                [{resource-server :juxt.site/resource-server
+                  registered-client-secret :juxt.site/client-secret
+                  }
+                 & others]
+                (juxt.site/lookup-applications client-id)
+
+                ;; TODO: If client-id is unknown, we need to return
+                ;; an unauthorized_client error. Add a test for
+                ;; this.
+
+                _ (assert resource-server)]
 
             ;; Client verification
             (cond
@@ -206,26 +218,25 @@
                      :code-challenge-method code-challenge-method
                      :verification verification}))))
 
+              client-secret
+              (when-not (= registered-client-secret client-id)
+                (error {"error" "invalid_request"
+                        "error_description" "Mismatch in client_id parameter and client authentication"}))
+
               *subject*
               (let [client-uri (:juxt.site/application *subject*)
                     client (xt/entity client-uri)]
                 (when-not (= (:juxt.site/client-id client) client-id)
                   (error {"error" "invalid_request"
                           "error_description" "Mismatch in client_id parameter and client authentication"})))
+
+
               :else
               (error {"error" "invalid_client"
-                      "error_description" "Client authentication failed"}))
+                      "error_description" (str "Client authentication failed: " client-id)
+                      "client_id" client-id}))
 
-            (let [[{:keys [juxt.site/resource-server]} & others]
-                  (juxt.site/lookup-applications client-id)
-
-                  ;; TODO: If client-id is unknown, we need to return
-                  ;; an unauthorized_client error. Add a test for
-                  ;; this.
-
-                  _ (assert resource-server)
-
-                  ;; TODO: We need to recheck whether the client's
+            (let [;; TODO: We need to recheck whether the client's
                   ;; scope is a superset of the requested scope. A
                   ;; client's scope may have changed on the time-line
                   ;; since granting the authorization code.
