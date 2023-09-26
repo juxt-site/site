@@ -7,8 +7,21 @@
   :juxt.site/operation-uri "https://auth.example.org/operations/oauth/install-authorize-endpoint"
   :juxt.site/input
   {:xt/id "{{$id}}"
+
+   :juxt.site/respond
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content (selmer/render
+                   #juxt.template #juxt.include "index.html"
+                   (assoc
+                    *state*
+                    :all-state (pr-str *state*)))]
+      (-> *ctx*
+          (assoc :ring.response/body content)
+          (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
+
    :juxt.http/content-type "text/html;charset=utf-8"
-   :juxt.http/content "<p>Welcome to the Site authorize endpoint.</p>"
+
    :juxt.site/session-scope "{{session-scope}}"
    ;; This is needed for the implicit flow. The implicit flow can
    ;; create a signed access-token via this endpoint (rather than the

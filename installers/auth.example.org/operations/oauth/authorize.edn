@@ -30,11 +30,24 @@
    :juxt.site/prepare
    {:juxt.site.sci/program
     #juxt.pprint
-    (let [qs (:ring.request/query *ctx*)
+    (let [input (:juxt.site/received-representation *ctx*)
+          content-type (apply format "%s/%s"
+                              ((juxt :juxt.reap.alpha.rfc7231/type
+                                     :juxt.reap.alpha.rfc7231/subtype)
+                               (:juxt.reap.alpha.rfc7231/content-type input)))
 
-          query (when qs (ring.util.codec/form-decode qs))
+          {client-id "client_id"
+           response-type "response_type"
+           scope "scope"
+           :as form}
+          (case content-type
+            "application/x-www-form-urlencoded"
+            (some->
+             input
+             :juxt.http/body
+             (String.)
+             ring.util.codec/form-decode))
 
-          client-id (get query "client_id")
           ;; A client-id is required to lookup a registered
           ;; redirect-uri. We can't redirect until we have established
           ;; that the redirect-uri is OK.
@@ -49,15 +62,11 @@
                  ;; 2023-05-17: I'm not sure this is correct
                  :juxt.site/request-context *ctx*})))
 
-          response-type (get query "response_type")
-
-          scope (get query "scope")
-
           subject (:juxt.site/subject *ctx*)]
 
       (cond-> {:response-type response-type
                :client-id client-id
-               :query query
+               :form form
                :subject (:xt/id subject)
                :origin (get-in *ctx* [:ring.request/headers "origin"])}
 
@@ -98,7 +107,7 @@
                   :ring.response/body body-bytes}
                  data)))))
 
-          {:keys [response-type client-id query subject]} *prepare*
+          {:keys [response-type client-id form subject]} *prepare*
 
           ;; "If the request fails due to a missing, invalid, or
           ;; mismatching redirection URI, or if the client identifier
@@ -141,7 +150,7 @@
           ;;
           ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.4
 
-          redirect-uri (get query "redirect_uri")
+          redirect-uri (get form "redirect_uri")
 
           ;; "The authorization server MAY allow the client to
           ;; register multiple redirection endpoints."
@@ -169,7 +178,7 @@
               (when-not redirect-uri
                 (resource-owner-error
                  {"error" "invalid_request"
-                  "error_description" "Redirection URI is required as a query parameter"})))
+                  "error_description" "Redirection URI is required as input"})))
 
           redirect-uri
           (if redirect-uri
@@ -195,7 +204,7 @@
 
           _ (assert redirect-uri)
 
-          state (get query "state")
+          state (get form "state")
 
           ;; From now on, if we encounter an error we can inform the
           ;; client via redirect-uri.
@@ -226,22 +235,22 @@
         (when-not response-type
           (client-error
            {"error" "invalid_request"
-            "error_description" "A response_type query parameter is required."}))
+            "error_description" "A response_type parameter is required."}))
 
         (when (sequential? response-type)
           (client-error
            {"error" "invalid_request"
-            "error_description" "A response_type query parameter must only be provided once."}))
+            "error_description" "A response_type parameter must only be provided once."}))
 
         (when-not (contains? #{"code" "token"} response-type)
           (client-error
            {"error" "unsupported_response_type"
-            "error_description" "The response_type query parameter must either by 'code' or 'token'."}))
+            "error_description" "The response_type parameter must either by 'code' or 'token'."}))
 
         (when-not state
           (client-error
            {"error" "invalid_request"
-            "error_description" "A state query parameter is required."}))
+            "error_description" "A state parameter is required."}))
 
         (when-not subject
           (client-error
@@ -287,8 +296,8 @@
             "code"
             (let [{:keys [code]} *prepare*
 
-                  code-challenge (get query "code_challenge")
-                  code-challenge-method (get query "code_challenge_method")
+                  code-challenge (get form "code_challenge")
+                  code-challenge-method (get form "code_challenge_method")
 
                   now (java.time.Instant/now)
 
@@ -379,7 +388,7 @@
                      "token_type" "bearer"
                      "expires_in" (.getSeconds expires-in)}
                     (when scope {"scope" (clojure.string/join " " scope)})
-                    {"state" (get query "state")}))
+                    {"state" (get form "state")}))
 
                   location (format "%s#%s" redirect-uri fragment)
                   ]
@@ -393,7 +402,7 @@
 
         (catch clojure.lang.ExceptionInfo cause
           (if (:oauth-redirect (ex-data cause))
-            (let [state (get query "state")
+            (let [state (get form "state")
                   encoded
                   (ring.util.codec/form-encode
                    (cond->

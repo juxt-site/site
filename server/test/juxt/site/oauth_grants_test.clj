@@ -134,10 +134,10 @@
     (condp re-matches location
       #"https://public-global-scope-app.test.com/redirect.html\?(.*)"
       :>>
-      (fn [[_ query] ]
+      (fn [[_ query]]
         (let [form (codec/form-decode query)]
           (is (=  "invalid_request" (get form "error")))
-          (is (= "A response_type query parameter is required." (get form "error_description") ))))
+          (is (= "A response_type parameter is required." (get form "error_description") ))))
       (is false (str "Location wasn't correctly formed: " location)))))
 
 ;; TODO: Test different combinations, including errors
@@ -197,7 +197,7 @@
       (fn [[_ query] ]
         (let [form (codec/form-decode query)]
           (is (=  "invalid_request" (get form "error")))
-          (is (= "A state query parameter is required." (get form "error_description")))))
+          (is (= "A state parameter is required." (get form "error_description")))))
       (is false (str "Location wasn't correctly formed: " location)))))
 
 (deftest full-authorization-code-grant-with-pkce-test

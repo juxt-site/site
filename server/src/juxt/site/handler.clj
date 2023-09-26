@@ -30,7 +30,9 @@
    [sci.core :as sci]
    [hiccup2.core :as hiccup]
    hiccup.util
-   [xtdb.api :as xt])
+   [juxt.site.sci-api :as api]
+   [xtdb.api :as xt]
+   [juxt.site.repl :as repl])
   (:import (java.net URI)))
 
 (defn join-keywords
@@ -305,7 +307,6 @@
                   {'java.util.Date java.util.Date
                    'java.time.Instant java.time.Instant
                    'java.time.Duration java.time.Duration}})))
-
             respond-program
             (-> resource :juxt.site/respond :juxt.site.sci/program)
 
