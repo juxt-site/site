@@ -40,16 +40,18 @@
           (first (map first (xt/q db '{:find [(pull e [*])]
                                        :where [[e :xt/id "https://data.example.test/bundles/juxt/site/bootstrap"]]}))))))))
 
-#_(deftest get-bundle-test
+(deftest get-bundle-test
   (local/install-bundles!
    [["juxt/site/bootstrap" {}]
     ;; Support the creation of JWT bearer tokens
+    "juxt/site/protection-spaces"
+    "juxt/site/unprotected-resources"
     ["juxt/site/oauth-token-endpoint" {}]
     ;; Install a keypair to sign JWT bearer tokens
     ["juxt/site/keypair" {"kid" "test-kid"}]
     ;; Install the required APIs
     "juxt/site/user-model"
-    "juxt/site/protection-spaces"
+    "juxt/site/roles"
     ["juxt/site/api-operations" {}]
     ["juxt/site/resources-api" {}]
     ["juxt/site/events-api" {}]
@@ -59,27 +61,27 @@
     ["juxt/site/openapis-api" {}]
 
     ["juxt/site/sessions" {}]
+    "juxt/site/login-form"
+    "juxt/site/system-api-openapi"
 
     ;; RFC 7662 token introspection
     ["juxt/site/oauth-introspection-endpoint" {}]
     ;; Register the clients
     ["juxt/site/system-client" {"client-id" "site-cli"}]
-    "juxt/site/system-api-openapi"
-    "juxt/site/login-form"
     "juxt/site/password-based-user-identity"
     "juxt/site/example-users"
     ["juxt/site/oauth-authorization-endpoint"
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
       "authorization-code-length" 12
       "jti-length" 12}]
-    "juxt/site/oauth-token-endpoint"
     ["juxt/site/user-role-assignment"
      {"username" "alice"
       "rolename" "SiteAdmin"}]
     "juxt/site/system-test-clients"
     ["juxt/site/application-role-assignment"
      {"clientid" "site-cli"
-      "rolename" "SiteSystemQuery"}]]
+      "rolename" "SiteSystemQuery"}]
+    "juxt/site/bundles-api"]
    (get CONFIG "uri-map"))
   (client/create-admin-user)
   (local/install-bundles!
@@ -91,7 +93,6 @@
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
       "authorization-code-length" 12
       "jti-length" 12}]
-    "juxt/site/oauth-token-endpoint"
     ["juxt/site/user-role-assignment"
      {"username" "alice"
       "rolename" "SiteAdmin"}]
@@ -115,5 +116,13 @@
                      :ring.request/method :get}
             {:ring.response/keys [status body]} (*handler* request)]
         (is (= 200 status))
-        ;; (is (= "" (json/read-value body)))
-        ))))
+        (is (get (json/read-value body) "installers")))
+      (let [request {:juxt.site/uri "https://data.example.test/bundles/juxt/site/login-form"
+                     :ring.request/method :delete
+                     :ringrequest/headers {"accept" "application/json"}}
+            {:ring.response/keys [status body]} (*handler* request)]
+        (is (= 200 status)))
+      (let [request {:juxt.site/uri "https://data.example.test/bundles/juxt/site/login-form"
+                     :ring.request/method :get}
+            {:ring.response/keys [status body]} (*handler* request)]
+        (is (= 404 status))))))
