@@ -248,11 +248,15 @@
                   (merge
                    {'user {'*operation* operation
                            '*resource* (:juxt.site/resource req)
-                           '*ctx* (dissoc req :juxt.site/xt-node)
-                           'log (fn [& message]
-                                  (eval `(log/info ~(str/join " " message))))
-                           'logf (fn [& args]
-                                   (eval `(log/infof ~@args)))}
+                           '*ctx* (dissoc req :juxt.site/xt-node)}
+
+                       'log
+                    {'trace (fn [message] (log/trace message))
+                     'debug (fn [message] (log/debug message))
+                     'info (fn [message] (log/info message))
+                     'warn (fn [message] (log/warn message))
+                     'error (fn [message] (log/error message))}
+
 
                     'ring.util.codec
                     {'form-decode ring.util.codec/form-decode}

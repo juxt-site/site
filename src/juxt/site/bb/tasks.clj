@@ -473,6 +473,7 @@
 (defn api-request [path]
   (let [opts (parse-opts)
         cfg (config opts)
+        args (select-keys opts [:reqid :match :logger-name :before :after])
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         endpoint (str data-base-uri path)
         accept (cond
@@ -487,6 +488,7 @@
         (http/get
          endpoint
          {:headers headers
+          :query-params args
           :throw false})]
     (case status
       200 (print body)
