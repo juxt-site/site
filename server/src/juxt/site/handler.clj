@@ -252,13 +252,12 @@
                            '*resource* (:juxt.site/resource req)
                            '*ctx* (dissoc req :juxt.site/xt-node)}
 
-                       'log
+                    'log
                     {'trace (fn [message] (log/trace message))
                      'debug (fn [message] (log/debug message))
                      'info (fn [message] (log/info message))
                      'warn (fn [message] (log/warn message))
                      'error (fn [message] (log/error message))}
-
 
                     'ring.util.codec
                     {'form-decode ring.util.codec/form-decode}
@@ -298,7 +297,9 @@
                         (merge {:juxt.site/subject subject} m)))
                      'query-params
                      (fn []
-                       (ring.util.codec/form-decode (:ring.request/query req)))}
+                       (ring.util.codec/form-decode (:ring.request/query req)))
+                     'lookup-applications
+                     (fn [client-id] (api/lookup-applications (:juxt.site/db req) client-id))}
 
                     'juxt.site.logging
                     {'log-events (fn [] (logging/log-events))}})
