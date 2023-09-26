@@ -67,6 +67,17 @@
 
 (use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
 
+#_(with-fixtures
+  (let [session-token (login/login-with-form! "alice" "garden")]
+    (oauth/acquire-access-token!
+     { ;;:grant-type "authorization_code"
+      :grant-type "implicit"
+      :authorization-uri "https://auth.example.test/oauth/authorize"
+      :session-token session-token
+      :client "https://auth.example.test/applications/test-app"})
+    )
+  )
+
 (deftest get-subject-test
   ;; Register an application
   ;; TODO: Only temporary while moving init below pkg

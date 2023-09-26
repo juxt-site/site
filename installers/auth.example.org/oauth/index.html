@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Site: Authorize Application</title>
+    <link rel="stylesheet" href="https://jenil.github.io/bulmaswatch/darkly/bulmaswatch.min.css" title="Darkly">
+    <link rel="alternate stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" title="Bulma">
+    <link rel="alternate stylesheet" href="https://jenil.github.io/bulmaswatch/lux/bulmaswatch.min.css" title="Lux">
+    <link rel="alternate stylesheet" href="https://jenil.github.io/bulmaswatch/journal/bulmaswatch.min.css" title="Journal">
+  </head>
+  <body>
+    <nav></nav>
+    <section class="hero is-primary">
+      <div class="hero-body">
+	<p class="title">
+	  Site
+	</p>
+	<p class="subtitle">
+	  Authorization Server
+	</p>
+      </div>
+    </section>
+    <section class="section">
+      <h2 class="title">Authorization Request</h2>
+      <div class="block">
+	Your authorization is requested.
+      </div>
+      <table class="table">
+	<tr>
+	  <td>Client id</td>
+	  <td>{{client-id}}</td>
+	</tr>
+	<tr>
+	  <td>Redirect URI</td>
+	  <td>{{redirect-uri}}</td>
+	</tr>
+	<tr>
+	  <td>Response type</td>
+	  <td>{{query.response_type}}</td>
+	</tr>
+	<tr>
+	  <td>Scope requested</td>
+	  <td>
+	    <ul>
+	      {% for u in access-ranges-requested %}
+	      <li>{{u}}</li>
+	      {% endfor %}
+	    </ul>
+	  </td>
+	</tr>
+      </table>
+
+      <div class="block">
+	The request matches the following application.
+      </div>
+      <div class="panel">
+	<p class="panel-heading">{{application.title}}</p>
+	<div class="panel-block">
+	  <p>{{application.description}}</p>
+	</div>
+	<div class="panel-block">
+	  <table class="table is-fullwidth">
+	    <tr>
+	      <td>Client id</td>
+	      <td>{{application.client-id}}</td>
+	    </tr>
+	    <tr>
+	      <td>Client type</td>
+	      <td>{{application.client-type}}</td>
+	    </tr>
+	    <tr>
+	      <td>Resource server</td>
+	      <td>{{application.resource-server}}</td>
+	    </tr>
+	    <tr>
+	      <td>Redirect URIs</td>
+	      <td>
+		<ul>
+		  {% for u in application.redirect-uris %}
+		  <li>{{u}}</li>
+		  {% endfor %}
+		</ul>
+	      </td>
+	    </tr>
+	  </table>
+	</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="title">Approval</h2>
+
+      {% if not valid-redirect-uri? %}
+      <div class="notification is-warning">
+	<p class="block">
+	  Invalid redirect URI: <tt>{{redirect-uri}}</tt>
+	</p>
+	<p>
+	  The redirect URI in the authorization request is not one of
+	  the redirect URIs that was registered with the application.
+	</p>
+      </div>
+      {% endif %}
+
+      <form method="POST">
+	<input type="hidden" name="response_type" value="{{query.response_type}}">
+	<input type="hidden" name="client_id" value="{{query.client_id}}">
+	<input type="hidden" name="redirect_uri" value="{{query.redirect_uri}}">
+	<input type="hidden" for="state" name="state" value="{{query.state}}">
+
+	{% for range in access-ranges-details %}
+	<div class="field">
+	  <input type="checkbox" name="{{range.id}}"> {{range.description}}
+	</div>
+	{% endfor %}
+
+	{% if valid-redirect-uri? %}
+	<div class="field">
+	  <button class="button is-primary" type="submit">Authorize</button>
+	</div>
+	{% endif %}
+      </form>
+    </section>
+  </body>
+</html>

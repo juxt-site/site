@@ -23,11 +23,13 @@
 
 ;; TODO: Not sure I like the make- prefix any more
 (defn make-authorization-request [uri m]
-  {:ring.request/method :get
-   :ring.request/headers {"origin" "https://petstore.example.com"}
-   :juxt.site/uri uri
-   :ring.request/query
-   (codec/form-encode m)})
+  (let [payload-bytes (.getBytes (codec/form-encode m))]
+    {:ring.request/method :post
+     :ring.request/headers {"origin" "https://petstore.example.com"
+                            "content-type" "application/x-www-form-urlencoded"
+                            "content-length" (str (count payload-bytes))}
+     :juxt.site/uri uri
+     :ring.request/body (io/input-stream payload-bytes)}))
 
 (defn make-token-request [uri params]
   (let [payload (codec/form-encode params)]

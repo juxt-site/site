@@ -20,6 +20,7 @@
    [ring.util.codec :as codec]
    [sci.core :as sci]
    [xtdb.api :as xt]
+   [juxt.site.sci-api :as api]
    juxt.site.schema))
 
 (defn operation->rules
@@ -776,21 +777,7 @@
                    :in ['password]} password)))
 
       'lookup-applications
-      (fn [client-id]
-        (seq
-         (map first
-              (try
-                (xt/q
-                 db
-                 '{:find [(pull e [*])]
-                   :where [[e :juxt.site/type "https://meta.juxt.site/types/application"]
-                           [e :juxt.site/client-id client-id]]
-                   :in [client-id]} client-id)
-                (catch Exception cause
-                  (throw
-                   (ex-info
-                    (format "Failed to lookup client: %s" client-id)
-                    {:client-id client-id} cause)))))))
+      (fn [client-id] (api/lookup-applications db client-id))
 
       'lookup-scope
       (fn [scope]

@@ -30,7 +30,9 @@
    [sci.core :as sci]
    [hiccup2.core :as hiccup]
    hiccup.util
-   [xtdb.api :as xt])
+   [juxt.site.sci-api :as api]
+   [xtdb.api :as xt]
+   [juxt.site.repl :as repl])
   (:import (java.net URI)))
 
 (defn join-keywords
@@ -241,66 +243,72 @@
       (-> resource :juxt.site/respond :juxt.site.sci/program)
       (let [state
             (when-let [program (-> operation :juxt.site/state :juxt.site.sci/program)]
-              (sci/binding [sci/out *out*]
-                (sci/eval-string
-                 program
-                 {:namespaces
-                  (merge
-                   {'user {'*operation* operation
-                           '*resource* (:juxt.site/resource req)
-                           '*ctx* (dissoc req :juxt.site/xt-node)
-                           'log (fn [& message]
-                                  (eval `(log/info ~(str/join " " message))))
-                           'logf (fn [& args]
-                                   (eval `(log/infof ~@args)))}
+              (let [db (:juxt.site/db req)]
+                (sci/binding [sci/out *out*]
+                  (sci/eval-string
+                   program
+                   {:namespaces
+                    (merge
+                     {'user {'*operation* operation
+                             '*resource* (:juxt.site/resource req)
+                             '*ctx* (dissoc req :juxt.site/xt-node)
+                             }
 
-                    'ring.util.codec
-                    {'form-decode ring.util.codec/form-decode}
+                      'log
+                      {'trace (fn [message] (log/trace message))
+                       'debug (fn [message] (log/debug message))
+                       'info (fn [message] (log/info message))
+                       'warn (fn [message] (log/warn message))
+                       'error (fn [message] (log/error message))}
 
-                    'xt
-                    {'entity
-                     (fn [id] (xt/entity (:juxt.site/db req) id))
-                     'pull
-                     (fn [query eid]
-                       (xt/pull (:juxt.site/db req) query eid))
-                     'q
-                     (fn [query & args]
-                       (apply xt/q (:juxt.site/db req) query args))}
+                      'ring.util.codec
+                      {'form-decode ring.util.codec/form-decode}
 
-                    'juxt.site.util
-                    {'base64-urlencode util/base64-urlencode}
+                      'xt
+                      {'entity
+                       (fn [id] (xt/entity db id))
+                       'pull
+                       (fn [query eid]
+                         (xt/pull db query eid))
+                       'q
+                       (fn [query & args]
+                         (apply xt/q db query args))}
 
-                    'jsonista.core
-                    {'write-value-as-string (fn [x] (json/write-value-as-string x (json/object-mapper {:pretty true})))
-                     'write-value-as-bytes (fn [x] (json/write-value-as-bytes x (json/object-mapper {:pretty true})))
-                     'read-value json/read-value
-                     'read-value-with-keywords (fn [x] (json/read-value x (json/object-mapper {:decode-key-fn true})))}
+                      'juxt.site.util
+                      {'base64-urlencode util/base64-urlencode}
 
-                    'juxt.site
-                    {'pull-allowed-resources
-                     (fn [m]
-                       (operations/pull-allowed-resources
-                        (:juxt.site/db req)
-                        m
-                        {:juxt.site/subject subject
-                         ;; TODO: Don't forget purpose
-                         }))
-                     'allowed-operations
-                     (fn [m]
-                       (operations/allowed-operations
-                        (:juxt.site/db req)
-                        (merge {:juxt.site/subject subject} m)))
-                     'query-params
-                     (fn []
-                       (ring.util.codec/form-decode (:ring.request/query req)))}
+                      'jsonista.core
+                      {'write-value-as-string (fn [x] (json/write-value-as-string x (json/object-mapper {:pretty true})))
+                       'write-value-as-bytes (fn [x] (json/write-value-as-bytes x (json/object-mapper {:pretty true})))
+                       'read-value json/read-value
+                       'read-value-with-keywords (fn [x] (json/read-value x (json/object-mapper {:decode-key-fn true})))}
 
-                    'juxt.site.logging
-                    {'log-events (fn [] (logging/log-events))}})
+                      'juxt.site
+                      {'pull-allowed-resources
+                       (fn [m]
+                         (operations/pull-allowed-resources
+                          db m
+                          {:juxt.site/subject subject
+                           ;; TODO: Don't forget purpose
+                           }))
+                       'allowed-operations
+                       (fn [m]
+                         (operations/allowed-operations
+                          db
+                          (merge {:juxt.site/subject subject} m)))
+                       'query-params
+                       (fn []
+                         (ring.util.codec/form-decode (:ring.request/query req)))
+                       'lookup-applications
+                       (fn [client-id] (api/lookup-applications db client-id))}
 
-                  :classes
-                  {'java.util.Date java.util.Date
-                   'java.time.Instant java.time.Instant
-                   'java.time.Duration java.time.Duration}})))
+                      'juxt.site.logging
+                      {'log-events (fn [] (logging/log-events))}})
+
+                    :classes
+                    {'java.util.Date java.util.Date
+                     'java.time.Instant java.time.Instant
+                     'java.time.Duration java.time.Duration}}))))
 
             respond-program
             (-> resource :juxt.site/respond :juxt.site.sci/program)
