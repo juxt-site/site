@@ -10,8 +10,38 @@
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.pprint
-    ;; Apply server-side filters
-    (juxt.site.logging/log-events)}
+    (let [{:strs [reqid match before logger-name after]}
+          (if (:ring.request/query *ctx*)
+            (ring.util.codec/form-decode (:ring.request/query *ctx*))
+            {})
+
+          filters
+          (comp
+           ;; reqid param equal to reqid on log
+           (filter (fn [log] (if reqid (= reqid (get log "reqid"))
+                                true)))
+           ;; match param regex matches to message
+           (filter (fn [log] (if match
+                              (re-find (re-pattern match) (get log "message"))
+                              true)))
+           ;; logger-name param equal to logger_name on log
+           (filter (fn [log] (if logger-name (= logger-name (get log "logger_name"))
+                                true)))
+           ;; before param is ISO date after @timestamp on log
+           (filter (fn [log] (if before
+                              (.isBefore
+                               (java.time.Instant/parse (get log "@timestamp"))
+                               (java.time.Instant/parse (clojure.string/replace (clojure.string/replace before " " "+") "," ".")))
+                              log)))
+           ;; after param is ISO date before @timestamp on log
+           (filter (fn [log] (if after
+                              (.isBefore
+                               (java.time.Instant/parse (clojure.string/replace (clojure.string/replace after " " "+") "," "."))
+                               (java.time.Instant/parse (get log "@timestamp")))
+                              log))))]
+      ;; Apply server-side filters
+      (into [] filters
+            (juxt.site.logging/log-events)))}
 
    :juxt.site/scope
    #{"https://auth.example.org/scopes/system/read"}

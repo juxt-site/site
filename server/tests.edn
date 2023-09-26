@@ -6,7 +6,7 @@
  :tests [{:id :test
           :test-paths ["test"]
           :ns-patterns
-          ["juxt.site.cors-test"
+          [ "juxt.site.cors-test"
            "juxt.site.return-test"
            "juxt.site.tx-test"
            "juxt.site.events-test"
@@ -30,6 +30,8 @@
            "juxt.site.application-registration-test"
            "juxt.site.install.common-install-util-test"
            "juxt.site.bundle-test"
-           "juxt.site.bundles-integrity-test"]}]
+           "juxt.site.bundles-integrity-test"
+           "juxt.site.log-api-test"
+           ]}]
 
  :reporter kaocha.report/documentation}
