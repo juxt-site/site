@@ -72,7 +72,13 @@
           ;; value it issues." -- RFC 6749 Section 4.2.2
           jti-length 16
 
-          {grant-type "grant_type" :as form}
+          {grant-type "grant_type"
+           client-id "client_id"
+           code "code"
+           code-verifier "code_verifier"
+           refresh-token "refresh_token"
+           scope "scope"
+           :as form}
           (case content-type
             "application/x-www-form-urlencoded"
             (some->
@@ -112,23 +118,29 @@
       (case grant-type
 
         "authorization_code"
-        {:grant-type "authorization_code"
-         :client-id (get form "client_id")
-         :code (get form "code")
-         :code-verifier (get form "code_verifier")
-         :jwt-claims {"iss" "https://auth.example.org"
-                      "jti" (juxt.site.util/make-nonce jti-length)}
-         :new-refresh-token (juxt.site.util/make-nonce 16)
-         :origin (get-in *ctx* [:ring.request/headers "origin"])}
+        (merge
+         {:grant-type "authorization_code"
+          :code code
+          :jwt-claims {"iss" "https://auth.example.org"
+                       "jti" (juxt.site.util/make-nonce jti-length)}
+          :new-refresh-token (juxt.site.util/make-nonce 16)
+          :origin (get-in *ctx* [:ring.request/headers "origin"])}
+         (when client-id
+           {:client-id client-id})
+         (when code-verifier
+           {:code-verifier code-verifier}))
 
         "refresh_token"
-        {:grant-type "refresh_token"
-         :refresh-token (get form "refresh_token")
-         :scope (get form "scope")
-         :jwt-claims {"iss" "https://auth.example.org"
-                      "jti" (juxt.site.util/make-nonce jti-length)}
-         :new-refresh-token (juxt.site.util/make-nonce 16)
-         :origin (get-in *ctx* [:ring.request/headers "origin"])}
+        (merge
+         {:grant-type "refresh_token"
+          :jwt-claims {"iss" "https://auth.example.org"
+                       "jti" (juxt.site.util/make-nonce jti-length)}
+          :new-refresh-token (juxt.site.util/make-nonce 16)
+          :origin (get-in *ctx* [:ring.request/headers "origin"])}
+         (when scope
+           {:scope scope})
+         (when refresh-token
+           {:refresh-token refresh-token}))
 
         "password"
         (let [scope (get form "scope")]
@@ -175,22 +187,34 @@
 
                 ;; If client-id is not specified, default to the one
                 ;; stored in the database.
-                client-id (or client-id (:juxt.site/client-id code-doc))
+                client-id (or client-id (:juxt.site/client-id code-doc))]
 
-                verification
-                (juxt.site/verify-authorization-code
-                 {:code-verifier code-verifier
-                  :code-challenge code-challenge
-                  :code-challenge-method code-challenge-method})]
+            ;; Client verification
+            (cond
+              code-verifier
+              (let [verification
+                    (juxt.site/verify-authorization-code
+                     {:code-verifier code-verifier
+                      :code-challenge code-challenge
+                      :code-challenge-method code-challenge-method})]
+                (when-not (:verified? verification)
+                  (throw
+                   (ex-info
+                    "Not verified"
+                    {:code-verifier code-verifier
+                     :code-challenge code-challenge
+                     :code-challenge-method code-challenge-method
+                     :verification verification}))))
 
-            (when-not (:verified? verification)
-              (throw
-               (ex-info
-                "Not verified"
-                {:code-verifier code-verifier
-                 :code-challenge code-challenge
-                 :code-challenge-method code-challenge-method
-                 :verification verification})))
+              *subject*
+              (let [client-uri (:juxt.site/application *subject*)
+                    client (xt/entity client-uri)]
+                (when-not (= (:juxt.site/client-id client) client-id)
+                  (error {"error" "invalid_request"
+                          "error_description" "Mismatch in client_id parameter and client authentication"})))
+              :else
+              (error {"error" "invalid_client"
+                      "error_description" "Client authentication failed"}))
 
             (let [[{:keys [juxt.site/resource-server]} & others]
                   (juxt.site/lookup-applications client-id)

@@ -744,6 +744,7 @@
   [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/applications/test/public-global-scope-app"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/applications/test/public-read-scope-app"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/applications/test/public-read-write-scope-app"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/applications/test/confidential-global-scope-app"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/applications/test/clientA"}]}
 
  ;; Just used in system-api-test - TODO: could definitely be merged with juxt/site/test-clients

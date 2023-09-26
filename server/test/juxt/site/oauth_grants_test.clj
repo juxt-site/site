@@ -12,7 +12,7 @@
    [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
    [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.login :as login :refer [login-with-form! with-session-token]]
-   [juxt.site.test-helpers.oauth :as oauth :refer [RESOURCE_SERVER]]
+   [juxt.site.test-helpers.oauth :as oauth :refer [RESOURCE_SERVER with-basic-authorization]]
    [juxt.site.test-helpers.xt :refer [*xt-node* system-xt-fixture]]
    [juxt.site.util :as util]
    [ring.util.codec :as codec]
@@ -310,12 +310,11 @@
       (let [{status :ring.response/status,
              headers :ring.response/headers,
              body :ring.response/body}
-            (with-session-token session-token
-              (*handler*
-               (oauth/make-token-request
-                "https://auth.example.test/oauth/token"
-                {"grant_type" "refresh_token"
-                 "refresh_token" refresh-token})))
+            (*handler*
+             (oauth/make-token-request
+              "https://auth.example.test/oauth/token"
+              {"grant_type" "refresh_token"
+               "refresh_token" refresh-token}))
             _ (is (= 200 status))
 
             {:strs [access-control-allow-origin]} headers
@@ -365,6 +364,51 @@
                                               [e :juxt.site/token token]]
                                       :in [token]} new-refresh-token)))
                "The new refresh-token should exist")]))))
+
+(deftest authorization-code-grant-with-client-secret-test
+  (let [session-token (login-with-form! "alice" "garden")
+        auth-code-response
+        (with-session-token session-token
+          (*handler*
+           (oauth/make-authorization-request
+            "https://auth.example.test/oauth/authorize"
+            {"response_type" "code"
+             "client_id" "test/confidential-global-scope-app"
+             "state" "123"})))
+        redirect (get-in auth-code-response [:ring.response/headers "location"])
+
+        {:strs [code state]}
+        (when redirect
+          (let [[_ qs]
+                (re-matches #"\Qhttps://confidential-global-scope-app.test.com/redirect.html?\E(.*)" redirect)]
+            (when qs (codec/form-decode qs))))
+        ;; Exchange code for token
+        {status :ring.response/status
+         body :ring.response/body}
+        (with-basic-authorization
+          "test/confidential-global-scope-app"
+          "secret"
+          (*handler*
+           (oauth/make-token-request
+            "https://auth.example.test/oauth/token"
+            {"grant_type" "authorization_code"
+             "code" code})))
+
+        token-response-payload-as-json (json/read-value body)
+        _ (is (map? token-response-payload-as-json))
+
+        {access-token "access_token"
+         refresh-token "refresh_token"
+         expires-in "expires_in"}
+        token-response-payload-as-json]
+
+    (is (= 200 status))
+
+    (is access-token)
+    (is refresh-token)
+    (is expires-in)
+    (is (= (* 15 60) expires-in))
+    ))
 
 ;; What if we try to fake the refresh token?
 (deftest fake-refresh-token-test
