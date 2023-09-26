@@ -796,6 +796,7 @@
             ["juxt/site/users-api" {}]
             ["juxt/site/endpoints-api" {}]
             ["juxt/site/openapis-api" {}]
+            ["juxt/site/bundles-api" {}]
 
             ["juxt/site/sessions" {}]
             ["juxt/site/roles" {}]
