@@ -219,9 +219,9 @@
                      :verification verification}))))
 
               client-secret
-              (when-not (= registered-client-secret client-id)
+              (when-not (= registered-client-secret client-secret)
                 (error {"error" "invalid_request"
-                        "error_description" "Mismatch in client_id parameter and client authentication"}))
+                        "error_description" "Mismatch in client_secret parameter"}))
 
               *subject*
               (let [client-uri (:juxt.site/application *subject*)
