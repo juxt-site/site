@@ -14,6 +14,7 @@
             :where [[e :juxt.site/type "https://data.example.org/types/bundle"]]})
          (map first)
          (sort-by :xt/id)
+         (map :xt/id)
          (vec))
     }
 

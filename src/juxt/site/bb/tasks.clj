@@ -683,6 +683,7 @@
 (defn- install-bundle [cfg bundle params {:keys [debug] :as opts}]
   (assert bundle)
   (let [title (get bundle :juxt.site/title)
+        description (get bundle :juxt.site/description)
         param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))
         installers-seq (installers-seq cfg bundle (into opts (for [[k v] params] [(name k) v])))]
     (if debug
@@ -692,7 +693,9 @@
          (if (str/blank? param-str)
            (format "Installing: %s" title)
            (format "Installing: %s with %s" title param-str)))
-        (install opts (ciu/bundle-map title installers-seq (get cfg "uri-map")))))))
+        (install opts (ciu/bundle-map {:title title
+                                       :description description
+                                       :installers installers-seq} (get cfg "uri-map") opts))))))
 
 (defn install-bundle-task [{bundle-names :bundle _ :debug :as opts}]
   (let [cfg (config opts)
@@ -705,6 +708,7 @@
       (install-bundle
        cfg bundle params
        (assoc opts
+              :on-find "take-new"
               :resources-uri resources-uri
               :access-token (retrieve-token cfg))))))
 
@@ -777,6 +781,7 @@
            opts
            :resources-uri
            (str admin-base-uri "/resources")
+           :on-find "take-new"
            :bundles
            [["juxt/site/bootstrap" {}]
             ["juxt/site/unprotected-resources" {}]
@@ -834,8 +839,9 @@
       (str data-base-uri "/_site/resources")
       :access-token
       (retrieve-token cfg)
+      :on-find "take-new"
       :bundles
-      [;; Install a new keypair to sign JWT bearer tokens
+      [ ;; Install a new keypair to sign JWT bearer tokens
        ["juxt/site/keypair" {"kid" (random-string 16)}]]))))
 
 ;; Create alice
@@ -1009,6 +1015,7 @@
     (install-bundles
      (assoc
       opts
+      :on-find "take-new"
       :resources-uri
       (str data-base-uri "/_site/resources")
       :access-token
@@ -1040,6 +1047,7 @@
      (assoc opts
             :resources-uri (str data-base-uri "/_site/resources")
             :access-token (retrieve-token cfg)
+            :on-find "take-new"
             :bundles
             [["juxt/site/openapis-api" {}]
              ["demo/petstore/operations" {}]
@@ -1069,6 +1077,7 @@
       opts
       :resources-uri
       (str admin-base-uri "/resources")
+      :on-find "take-new"
       :bundles
       [["juxt/site/system-api-openapi"]
        ["juxt/site/login-form"]

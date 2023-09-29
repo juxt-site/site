@@ -218,43 +218,46 @@
 
       :else node)))
 
-(defn bundle-map [title installers uri-map]
-  {:uri (str (get-in uri-map ["https://data.example.org"]) "/bundles/" (clojure.string/replace (clojure.string/lower-case title) " " "-"))
-   :title title
-   :installers installers
-   :juxt.site/protection-spaces #{(str (get-in uri-map ["https://auth.example.org"])
-                                       "/protection-spaces/bearer")}
-   :juxt.site/access-control-allow-origins
-   [[".*"
-     #:juxt.site{:access-control-allow-origin "*",
-                 :access-control-allow-methods [:get :delete :put],
-                 :access-control-allow-headers ["authorization"]}]]
-   :juxt.site/rules
-   '[[(allowed? subject operation resource permission)
-      [subject :juxt.site/user user]
-      [permission :juxt.site/role role]
-      [role :juxt.site/type "https://meta.juxt.site/types/role"]
-      [role-assignment
-       :juxt.site/type
-       "https://meta.juxt.site/types/role-assignment"]
-      [role-assignment :juxt.site/role role]
-      [role-assignment :juxt.site/user user]]
-     [(allowed? subject operation resource permission)
-      [subject :juxt.site/application app]
-      [permission :juxt.site/role role]
-      [role :juxt.site/type "https://meta.juxt.site/types/role"]
-      [role-assignment
-       :juxt.site/type
-       "https://meta.juxt.site/types/role-assignment"]
-      [role-assignment :juxt.site/role role]
-      [role-assignment :juxt.site/application app]]]
-   :juxt.site/type (str (get-in uri-map ["https://data.example.org"]) "/types/bundle")
-   :juxt.site/events-base-uri (str (get uri-map "https://auth.example.org") "/_site/events/")
-   :juxt.site/methods
-   {:get
-    {:juxt.site/operation (str (get-in uri-map ["https://auth.example.org"]) "/_site/operations/get-bundle-by-id")}
-    :delete
-    {:juxt.site/operation (str (get-in uri-map ["https://auth.example.org"]) "/_site/operations/delete-bundle-by-id")}}})
+(defn bundle-map [bundle uri-map opts]
+  (if (or (#{"keep-old" "take-new"} (:on-find opts)) (not (:on-find opts)))
+    (merge bundle {:uri (str (get-in uri-map ["https://data.example.org"]) "/bundles/" (clojure.string/replace (clojure.string/lower-case (:title bundle)) " " "-"))
+                   :on-find (or (:on-find opts) "keep-old")
+                   :juxt.site/protection-spaces #{(str (get-in uri-map ["https://auth.example.org"])
+                                                       "/protection-spaces/bearer")}
+                   :juxt.site/access-control-allow-origins
+                   [[".*"
+                     #:juxt.site{:access-control-allow-origin "*",
+                                 :access-control-allow-methods [:get :delete :put],
+                                 :access-control-allow-headers ["authorization"]}]]
+                   :juxt.site/rules
+                   '[[(allowed? subject operation resource permission)
+                      [subject :juxt.site/user user]
+                      [permission :juxt.site/role role]
+                      [role :juxt.site/type "https://meta.juxt.site/types/role"]
+                      [role-assignment
+                       :juxt.site/type
+                       "https://meta.juxt.site/types/role-assignment"]
+                      [role-assignment :juxt.site/role role]
+                      [role-assignment :juxt.site/user user]]
+                     [(allowed? subject operation resource permission)
+                      [subject :juxt.site/application app]
+                      [permission :juxt.site/role role]
+                      [role :juxt.site/type "https://meta.juxt.site/types/role"]
+                      [role-assignment
+                       :juxt.site/type
+                       "https://meta.juxt.site/types/role-assignment"]
+                      [role-assignment :juxt.site/role role]
+                      [role-assignment :juxt.site/application app]]]
+                   :juxt.site/type (str (get-in uri-map ["https://data.example.org"]) "/types/bundle")
+                   :juxt.site/events-base-uri (str (get uri-map "https://auth.example.org") "/_site/events/")
+                   :juxt.site/methods
+                   {:get
+                    {:juxt.site/operation (str (get-in uri-map ["https://auth.example.org"]) "/_site/operations/get-bundle-by-id")}
+                    :delete
+                    {:juxt.site/operation (str (get-in uri-map ["https://auth.example.org"]) "/_site/operations/delete-bundle-by-id")}}})
+    (throw (ex-info "Invalid on-find option, choices are take-new, keep-old"
+                    {:on-find (:on-find opts)
+                     :title (:title bundle)}))))
 
 (def ^:dynamic *working-dir* nil)
 

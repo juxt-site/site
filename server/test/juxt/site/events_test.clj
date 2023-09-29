@@ -31,7 +31,7 @@
         parameter-map {}
         installer-seq (ciu/installer-seq graph parameter-map resources)
         db (xt/db *xt-node*)
-        tx-ops (operations/bundle->tx-ops nil db (ciu/bundle-map "example-bundle-name" installer-seq uri-map))
+        tx-ops (operations/bundle->tx-ops nil db (ciu/bundle-map {:title "example-bundle-name" :installers installer-seq} uri-map {:on-find "take-new"}))
         new-db (operations/apply-ops! *xt-node* tx-ops)
         events (->> (xt/q
                      new-db

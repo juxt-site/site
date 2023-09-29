@@ -641,7 +641,12 @@
   "Given a sequence of installers, return a collection of XTDB
   transaction operations. The db argument is used to lookup the
   operation which is required when preparing the transaction."
-  [subject-uri db {:keys [installers title uri] :as bundle-map}]
+  [subject-uri db {:keys [installers title uri on-find] :as bundle-map}]
+  (when (and (= on-find "keep-old") (xt/entity db uri))
+    (throw (ex-info "Bundle already found"
+                    {:title title
+                     :uri uri})))
+  
   (let [{:keys [tx-ops errors]}
         (->> installers
 
@@ -710,9 +715,11 @@
     ;; Return the tx-ops
     (into tx-ops
           ;; Add the bundle
-          [[:xtdb.api/put (update (assoc bundle-map :xt/id uri)
-                                  :installers
-                                  #(mapv :juxt.site/uri %))]
+          [[:xtdb.api/put
+            (-> bundle-map
+                (assoc :xt/id uri)
+                (dissoc :on-find)
+                (update :installers #(mapv :juxt.site/uri %)))]
            [:xtdb.api/put {:xt/id (str uri ".json")
                            :juxt.http/content-type "application/json"
                            :juxt.site/variant-of uri
