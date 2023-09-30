@@ -29,8 +29,10 @@
        {"application/json"
         {"schema"
          {"type" "object"
-          "properties" {"id" {"type" "string"}}}}}}}
-     :juxt.site/acceptable {"accept" "application/edn,application/json"}}}
+          "properties" {"id" {"type" "string"}}}}
+        "application/edn"
+        {}}}}
+     :juxt.site/acceptable {"accept" "application/json,application/edn"}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 

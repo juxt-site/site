@@ -205,4 +205,6 @@
   install-petstore
   {:doc "Reload petstore"
    :task (juxt.site.bb.tasks/install-petstore
-          (juxt.site.bb.tasks/parse-opts))}}}
+          (juxt.site.bb.tasks/parse-opts))}
+
+  }}

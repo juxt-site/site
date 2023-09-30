@@ -15,13 +15,16 @@
                    :juxt.site/received-representation
                    :juxt.http/body)
 
-          openapi-doc (case content-type
-                        "application/json"
-                        (some->
-                         body
-                         (String.)
-                         jsonista.core/read-value))]
-
+          openapi-doc
+          (case content-type
+            "application/json" (some->
+                                body
+                                (String.)
+                                jsonista.core/read-value)
+            "application/edn" (some->
+                               body
+                               (String.)
+                               clojure.edn/read-string))]
       {:openapi openapi-doc})}
 
    :juxt.site/transact
@@ -108,7 +111,7 @@
            [[".*" {:juxt.site/access-control-allow-origin "*"
                    :juxt.site/access-control-allow-methods [:get]
                    :juxt.site/access-control-allow-headers ["content-type" "authorization"]}]]}])
-       
+
 
        [[:ring.response/headers
          {"content-type" "text/plain"

@@ -936,16 +936,19 @@
     (let [[_ suffix] (re-matches #".*\.([^\.]+)" (.getName openapi-file))
           content-type (get {"json" "application/json"
                              ;; Check this is the right mime-type
-                             "yaml" "application/yaml"} suffix)]
+                             "yaml" "application/yaml"
+                             "edn" "application/edn"} suffix)]
 
       (when-not content-type
         (throw (ex-info (format "Unrecognised format: %s" suffix) {:suffix suffix})))
 
-      (let [openapi (json/parse-string (slurp openapi-file))
+      (let [openapi
+            (cond-> (slurp openapi-file)
+              (= content-type "application/json") json/parse-string
+              (= content-type "application/edn") clojure.edn/read-string)
 
             _ (when-not (= (get openapi "openapi") "3.0.2")
-                (throw (ex-info "Must be 3.0.2" {}))
-                )
+                (throw (ex-info "Must be 3.0.2" {})))
 
             mapped-openapi
             (-> openapi
