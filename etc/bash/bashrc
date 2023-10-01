@@ -1,8 +1,10 @@
 _site_tasks() {
 case $3 in
-    install|bundle) COMPREPLY=( $(compgen -W "$(site bundles)" -- ${COMP_WORDS[COMP_CWORD]}) );
+    install) COMPREPLY=( $(compgen -W "$(site bundles)" -- ${COMP_WORDS[COMP_CWORD]}) );
 	     ;;
     find) COMPREPLY=( $(compgen -P \" -W "$(site list)" -- ${COMP_WORDS[COMP_CWORD]}) );
+	     ;;
+    install-openapi) COMPREPLY=( $(compgen -f -- ${COMP_WORDS[COMP_CWORD]}) );
 	     ;;
     *) COMPREPLY=( $(compgen -W "$(site tasks |tail -n +3 |cut -f1 -d ' ')" -- ${COMP_WORDS[COMP_CWORD]}) )
        ;;
