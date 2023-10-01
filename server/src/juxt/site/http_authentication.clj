@@ -97,7 +97,6 @@
       (when-let [candidate (first candidates)]
         (let [candidate-types (:juxt.site/type candidate)
               candidate-types (if (string? candidate-types) #{candidate-types} candidate-types)]
-          (log/infof "candidate-types: %s" (pr-str candidate-types))
           (assoc-basic-auth-subject
            req
            (cond-> {}
