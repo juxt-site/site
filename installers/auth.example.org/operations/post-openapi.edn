@@ -80,37 +80,39 @@
            [[".*" {:juxt.site/access-control-allow-origin "*"
                    :juxt.site/access-control-allow-methods [:get]
                    :juxt.site/access-control-allow-headers ["content-type" "authorization"]}]]}])
-       (for [[path path-obj] (get openapi "paths")
-             [method operation] path-obj
-             [variant-type _] (get-in operation ["responses" "200" "content"])]
-         [:xtdb.api/put
-          {:xt/id (str base-uri path (case variant-type
-                                       "application/json" ".json"
-                                       "application/xml" ".xml"
-                                       "text/html" ".html"))
-           :juxt.http/content-type variant-type
-           :juxt.site/variant-of (str base-uri path)
-           :juxt.site/methods
-           (into {}
-                 (for [[method operation] path-obj
-                       :let [request-body (get operation "requestBody")]]
-                   [(keyword method)
-                    (cond-> {:juxt.site/operation (get operation "operationId")}
-                      request-body
-                      (assoc :juxt.site/acceptable
-                             (clojure.string/join "," (keys (get request-body "content")))))]))
-           :juxt.site/respond
-           {:juxt.site.sci/program
-            #juxt.pprint
-            (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
-              (-> *ctx*
-                  (assoc :ring.response/body content)
-                  (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
-           :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
-           :juxt.site/access-control-allow-origins
-           [[".*" {:juxt.site/access-control-allow-origin "*"
-                   :juxt.site/access-control-allow-methods [:get]
-                   :juxt.site/access-control-allow-headers ["content-type" "authorization"]}]]}])
+       (let [suffix-map {"application/json" ".json"
+                         "application/xml" ".xml"
+                         "text/html" ".html"
+                         "application/ld+json" ".jsonld"}]
+         (for [[path path-obj] (get openapi "paths")
+               [method operation] path-obj
+               [variant-type _] (get-in operation ["responses" "200" "content"])
+               :when (suffix-map variant-type)]
+           [:xtdb.api/put
+            {:xt/id (str base-uri path (suffix-map variant-type))
+             :juxt.http/content-type variant-type
+             :juxt.site/variant-of (str base-uri path)
+             :juxt.site/methods
+             (into {}
+                   (for [[method operation] path-obj
+                         :let [request-body (get operation "requestBody")]]
+                     [(keyword method)
+                      (cond-> {:juxt.site/operation (get operation "operationId")}
+                        request-body
+                        (assoc :juxt.site/acceptable
+                               (clojure.string/join "," (keys (get request-body "content")))))]))
+             :juxt.site/respond
+             {:juxt.site.sci/program
+              #juxt.pprint
+              (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
+                (-> *ctx*
+                    (assoc :ring.response/body content)
+                    (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
+             :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+             :juxt.site/access-control-allow-origins
+             [[".*" {:juxt.site/access-control-allow-origin "*"
+                     :juxt.site/access-control-allow-methods [:get]
+                     :juxt.site/access-control-allow-headers ["content-type" "authorization"]}]]}]))
 
 
        [[:ring.response/headers
