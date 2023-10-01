@@ -1,0 +1,77 @@
+{"openapi" "3.0.2",
+ "info"
+ {"title" "Simple CRM API"
+  "version" "1.0.1"
+  "description" "An API for a basic CRM system."}
+ "servers" [{"url" "/folk"}]
+ "paths"
+ {"/contacts"
+  {"get"
+   {"summary" "List all contacts"
+    "responses"
+    {"200"
+     {"description" "A list of contacts."
+      "content"
+      {"application/json-seq"
+       {"schema"
+        {"type" "array"
+         "items" {"$ref" "#/components/schemas/Contact"}}}}}
+     "post"
+     {"summary" "Create a new contact"
+      "requestBody"
+      {"required" true
+       "content"
+       {"application/ld+json"
+        {"schema" {"$ref" "#/components/schemas/Contact"}}}}
+      "responses"
+      {"201" {"description" "Contact created successfully."}}}}}
+   "/contacts/{contactId}"
+   {"get"
+    {"summary" "Get details of a specific contact"
+     "parameters"
+     [{"name" "contactId"
+       "in" "path"
+       "required" true
+       "description" "ID of the contact to retrieve."
+       "schema" {"type" "integer"}}]
+     "responses"
+     {"200"
+      {"description" "Contact details."
+       "content"
+       {"application/ld+json"
+        {"schema" {"$ref" "#/components/schemas/Contact"}}}}}}
+    "put"
+    {"summary" "Update a contact"
+     "parameters"
+     [{"name" "contactId"
+       "in" "path"
+       "required" true
+       "schema" {"type" "integer"}}]
+     "requestBody"
+     {"required" true
+      "content"
+      {"application/ld+json"
+       {"schema" {"$ref" "#/components/schemas/Contact"}}}}
+     "responses"
+     {"200" {"description" "Contact updated successfully."}}}
+    "delete"
+    {"summary" "Delete a contact"
+     "parameters"
+     [{"name" "contactId"
+       "in" "path"
+       "required" true
+       "schema" {"type" "integer"}}]
+     "responses"
+     {"204" {"description" "Contact deleted successfully."}}}}}
+  "components"
+  {"schemas"
+   {"Contact"
+    {"type" "object"
+     "properties"
+     {"id" {"type" "integer" "readOnly" true}
+      "firstName" {"type" "string"}
+      "lastName" {"type" "string"}
+      "email" {"type" "string"}
+      "phoneNumber" {"type" "string"}
+      "address" {"type" "string"}
+      "notes" {"type" "string"}}}}}}}
