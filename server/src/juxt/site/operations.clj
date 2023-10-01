@@ -1012,23 +1012,23 @@
 
         result-fx)
 
-      (catch Exception e
+      (catch Throwable e
         (let [create-error-structure
               (fn create-error-structure [error]
                 (let [cause (.getCause error)]
                   (cond-> {:juxt.site/message (.getMessage error)
-                           :juxt.site/ex-data (ex-data error)}
+                           :juxt.site/ex-data
+                           (-> (ex-data error)
+                               ;; Otherwise we might get 'Unfreezable
+                               ;; type: class clojure.lang.Volatile'
+                               (dissoc :sci.impl/callstack))}
                     cause (assoc :juxt.site/cause (create-error-structure cause)))))]
-
-          (log/errorf e "Error when performing operation: %s" operation-uri)
-
           (throw
            (ex-info
             "Error during transaction"
             {:juxt.site/subject-uri subject-uri
              :juxt.site/operation-uri operation-uri
-             :juxt.site/error (create-error-structure e)
-             }
+             :juxt.site/error (create-error-structure e)}
             e)))))))
 
 (defn apply-response-fx [ctx fx]
