@@ -12,9 +12,7 @@
 (def CONFIG_FILE (str (System/getenv "SITE_HOME") "/site-cli.edn"))
 
 (try
-  (if *command-line-args*
-    (apply shell "bb" "--config" CONFIG_FILE *command-line-args*)
-    (shell "bb" "--config" CONFIG_FILE "tasks"))
+  (apply shell "bb" "--config" CONFIG_FILE (or *command-line-args* ["tasks"]))
   (catch Exception e
     (binding [*out* *err*]
       (let [message (.getMessage e)]
