@@ -66,7 +66,7 @@
     :juxt.site/description "Let SiteAdmin search for a bundle"
     :juxt.site/installer-path "/_site/permissions/SiteAdmin/get-bundle-by-id"}
 
-      {:juxt.site/base-uri "https://auth.example.org"
+   {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/_site/operations/delete-bundle-by-id"}
 
    {:juxt.site/base-uri "https://auth.example.org"
@@ -83,7 +83,9 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/bundles"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/bundles.txt"}]}
+    :juxt.site/installer-path "/_site/bundles.txt"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundles.jsonlines"}]}
 
  "juxt/site/unprotected-resources"
  {:juxt.site/title "Unprotected resources"
