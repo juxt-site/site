@@ -1074,7 +1074,9 @@
       (str admin-base-uri "/resources")
       :bundles
       [["juxt/site/system-api-openapi"]
+       ;; There's a dependency between /oauth/authorize and form-login-session, so we need login-form
        ["juxt/site/login-form"]
+       ;; TODO: Why not make this dynamic - the choices are filtered based on what session-scopes we have already installed
        ["juxt/site/oauth-authorization-endpoint" {"session-scope" "https://auth.example.org/session-scopes/form-login-session"}]
        ["juxt/site/system-client" {"client-id" "swagger-ui"}]]))
     (println "\n\n")
