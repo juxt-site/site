@@ -991,7 +991,8 @@
    ]}
 
  "juxt/site/password-based-user-identity"
- {:juxt.site/description "Password-based user identities"
+ {:juxt.site/title "Password Based User Identity"
+  :juxt.site/description "Password-based user identities"
   :juxt.site/installers
   [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/register-password-based-user-identity"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/register-password-based-user-identity"}

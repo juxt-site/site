@@ -65,6 +65,7 @@
               :juxt.site/client-type "confidential"
               :juxt.site/type "https://meta.juxt.site/types/application"
               :juxt.site/client-id "test-admin-client"
+              :juxt.site/installed-by "https://data.example.test/bundles/juxt/site/testing/test-admin-client"
               :juxt.site/client-secret "secret"}
              (first apps))))
 
@@ -92,6 +93,8 @@
              :juxt.site/client-id "test-admin-client"
              :juxt.site/client-type "confidential"
              :juxt.site/resource-server "https://data.example.test"
-             :juxt.site/authorization-server "https://auth.example.test"}]
+             :juxt.site/authorization-server "https://auth.example.test"
+             :juxt.site/installed-by "https://data.example.test/bundles/juxt/site/testing/test-admin-client"
+}]
 
            (->> (get-apps) (sort-by :xt/id) (map #(dissoc % :juxt.site/client-secret)))))))

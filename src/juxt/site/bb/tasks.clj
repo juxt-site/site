@@ -8,6 +8,7 @@
    [babashka.http-client :as http]
    [babashka.tasks :as tasks]
    [bblgum.core :as b]
+   [clojure.data.csv :as csv]
    [cheshire.core :as json]
    [clj-yaml.core :as yaml]
    [clojure.edn :as edn]
@@ -708,7 +709,6 @@
       (install-bundle
        cfg bundle params
        (assoc opts
-              :on-find "take-new"
               :resources-uri resources-uri
               :access-token (retrieve-token cfg))))))
 
@@ -923,9 +923,107 @@
         200 (print body)
         (print status body))))
 
+(defn source []
+  (let [{:keys [pattern] :as opts} (parse-opts)
+        _ (assert pattern)
+        cfg (config opts)
+        available-bundles-map (bundles cfg)
+        available (map
+                   (fn [bundle]
+                     (into (val bundle)
+                           {:title (first bundle)}))
+                   available-bundles-map)
+        pattern (re-pattern pattern)
+        possibles (filter
+                   #(seq (:candidates %))
+                   (map
+                    (fn [bundle]
+                      (assoc bundle :candidates
+                             (filterv
+                              (fn [{:juxt.site/keys [installer-path]}]
+                                (re-find pattern installer-path))
+                              (:juxt.site/installers bundle))))
+                    available))]
+    
+    (doall
+     (for [a possibles]
+       (clojure.pprint/pprint
+        {:bundle (:title a)
+         :resource (:candidates a)})))))
+
+(defn installed-bundles []
+  (let [opts (parse-opts)
+        cfg (config opts)
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        bundles-uri (str data-base-uri "/_site/bundles")
+        {:keys [body]}
+        (http/get bundles-uri
+                  {:headers {:accept "application/jsonlines"
+                             :authorization (authorization cfg)}})]
+    (map
+     #(str "juxt/site/" (clojure.string/join ""
+                                             (butlast
+                                              (last (clojure.string/split % #"/")))))
+     (clojure.string/split body #"\n"))))
+
 (defn bundles-task []
-  (doseq [[k _] (bundles (config (parse-opts)))]
-    (println k)))
+  (let [opts (parse-opts)
+        cfg (config opts)
+        installed (installed-bundles)
+        available-bundles-map (bundles cfg)
+        available (map
+                   (fn [bundle]
+                     (into (val bundle)
+                           {:title (first bundle)
+                            :status
+                            (if ((into #{} installed)
+                                 (first bundle))
+                              "Installed"
+                              "Available")}))
+                   available-bundles-map)
+        filters (comp
+                 (filter (fn [{status :status}]
+                           (if (:status opts)
+                             (= (clojure.string/lower-case (:status opts))
+                                (clojure.string/lower-case status))
+                             true))))
+        available (into [] filters available)
+        header "Bundle,Status"
+        rows
+        (map
+         (fn [{:keys [status title]}]
+           (str title
+                ","
+                status))
+         available)
+        {status :status result :result}
+        (b/gum {:cmd :table
+                :opts {:header.underline true
+                       :height 40
+                       :widths [40 40]}
+                :in (clojure.string/join "\n" (into [header] rows))})]
+    (when (zero? status)
+      (let [selected (first (filter
+                             (fn [bundle]
+                               (= (:title bundle) (first (clojure.string/split (first result) #","))))
+                             available))]
+        (println "\nTITLE || " (first (clojure.string/split (first result) #",")) "\n")
+        (println "DESCRIPTION || " (:juxt.site/description selected) "\n")
+        (println "STATUS || " (:status selected) "\n")
+        (println "__INSTALLERS__")
+        (clojure.pprint/pprint (:juxt.site/installers selected))
+
+        ;; TODO expand the utility to allow re/installation of bundles
+        ;; We need to prompt the user to add parameters etc
+        
+        ;; (let [{status :status result :result}
+        ;;       (b/gum {:cmd :choose
+        ;;               :opts {:header "Would you like to re/install this bundle?"}
+        ;;               :args ["Y" "N"]})]
+        ;;   (when (and (zero? status) (= "Y" (first result)))
+        ;;     ()))
+        ))
+    ))
 
 (defn install-openapi [opts]
   (let [cfg (config opts)

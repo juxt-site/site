@@ -566,6 +566,7 @@
                                     :juxt.site/operation-index
                                     :juxt.site/operation-uri
                                     :juxt.site/purpose
+                                    :meta.juxt/bundle
                                     :juxt.site/scope
                                     :juxt.site/prepare])
             prepare (assoc :juxt.site/prepare prepare)
@@ -667,7 +668,7 @@
                 (let [{operation-uri :juxt.site/operation-uri
                        input :juxt.site/input
                        :as init-data}
-                      init-data]
+                      (assoc-in init-data [:juxt.site/input :juxt.site/installed-by] (:uri bundle-map))]
 
                   (when-not input
                     (throw
@@ -691,7 +692,9 @@
                     (:xt/id input) (update :entities-by-id assoc (:xt/id input) input)
                     (not operation-uri) (update :tx-ops conj [:xtdb.api/put input])
 
-                    operation-uri (prepare-operation subject-uri init-data (xt/entity db operation-uri))
+                    operation-uri (prepare-operation subject-uri
+                                                     init-data
+                                                     (xt/entity db operation-uri))
 
                     ;; Increment operation-index
                     current-operation-index (update :current-operation-index inc))))
