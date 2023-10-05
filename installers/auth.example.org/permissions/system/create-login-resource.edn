@@ -4,5 +4,4 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/subject "https://auth.example.org/_site/subjects/system"
-   :juxt.site/operation "https://auth.example.org/operations/create-login-resource"
-   :juxt.site/purpose nil}}}
+   :juxt.site/operation "https://auth.example.org/operations/create-login-resource"}}}

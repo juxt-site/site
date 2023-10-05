@@ -37,7 +37,6 @@
        :juxt.site/input
        {:xt/id id
         :juxt.site/operation "https://example.org/operations/get-graphql-type"
-        :juxt.site/purpose nil
         :juxt.site/user (format "https://example.org/_site/users/%s" (get params "username"))}})}
 
    "https://example.org/operations/delete-graphql-type"
@@ -106,7 +105,6 @@
        :juxt.site/input
        {:xt/id id
         :juxt.site/operation "https://example.org/operations/delete-graphql-type"
-        :juxt.site/purpose nil
         :juxt.site/user (format "https://example.org/_site/users/%s" (get params "username"))}})}
 
    "https://example.org/operations/install-graphql-type"
@@ -180,7 +178,6 @@
        :juxt.site/input
        {:xt/id id
         :juxt.site/operation "https://example.org/operations/install-graphql-type"
-        :juxt.site/purpose nil
         :juxt.site/user (format "https://example.org/_site/users/%s" (get params "username"))}})}
 
    "https://example.org/graphql/schema/"
