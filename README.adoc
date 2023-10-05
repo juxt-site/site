@@ -73,6 +73,36 @@ In these cases, https://juxt.pro[JUXT] can provide expert guidance, consulting a
 development resources, if required. Contact info@juxt.pro to schedule
 an appointment.
 
+==  Site with Docker
+
+From a terminal, run the following:
+
+----
+docker run --net host ghcr.io/juxt-site/site-server
+----
+
+TIP: You can replace docker with podman
+
+From another terminal:
+
+----
+alias site='docker exec -it $(docker ps -qf ancestor=ghcr.io/juxt-site/site-server) site'
+----
+
+Now initialise Site and follow the instructions:
+
+----
+site init
+----
+
+Request a token
+
+----
+site request-token --client-secret (as instructed)
+----
+
+Continue with the https://github.com/juxt-site/book/blob/master/GettingStarted/ConfigurationWithCommandLine.adoc[Getting Started Guide].
+
 == Documentation
 
 The latest PDF documentation for Site can be found at https://github.com/juxt-site/book/releases/download/latest/Site.pdf.
