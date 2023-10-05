@@ -100,8 +100,7 @@
        (pprint
         (cond-> (default-config)
           auth-base-uri (assoc-in ["uri-map" "https://auth.example.org"] auth-base-uri)
-          data-base-uri (assoc-in ["uri-map" "https://data.example.org"] data-base-uri)
-          ))))))
+          data-base-uri (assoc-in ["uri-map" "https://data.example.org"] data-base-uri)))))))
 
 (defn profile [opts]
   (or
@@ -136,11 +135,15 @@
         cfg (config opts)
         base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         url (str base-uri "/_site/healthcheck")
-        {:keys [status body]} (try
-                                (http/get url {:throw false})
-                                (catch java.net.ConnectException _
-                                  {:status 0}))]
+
+        {:keys [status body]}
+        (try
+          (http/get url {:throw false})
+          (catch java.net.ConnectException _
+            {:status 0}))]
+
     (println "Checking" url)
+
     (cond
       (= status 0)
       (println "No response")
@@ -1106,8 +1109,6 @@
 ;; Issuer: https://juxt.eu.auth0.com/
 
 
-
-;;
 ;; site install juxt/site/openid-user-identity
 ;; Issuer: https://juxt.eu.auth0.com/
 ;; Nickname: the github username of the user
