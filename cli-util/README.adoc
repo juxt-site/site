@@ -1,0 +1,5 @@
+= CLI Utility
+
+It's great to provide good command-line experiences built around Babashka.
+
+This project provides useful utility functions, written in Babashka, that can be used for your CLI tools.

@@ -1,6 +1,6 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site.bb.user-input
+(ns juxt.site.cli-util.user-input
   (:require [bblgum.core :as b]))
 
 (def ^:dynamic *heading* "Input")

@@ -4,62 +4,94 @@
  :deps {io.github.lispyclouds/bblgum {:git/sha "7ebae0e2231899fe2a6ad44bc9ef5fca64099fcd"}
         org.babashka/cli {:mvn/version "0.4.39"}
         juxt.site/installer-graph {:local/root "installer-graph"}
-        aero/aero {:mvn/version "1.1.6"}}
+        juxt.site/cli-util {:local/root "cli-util"}}
 
  :tasks
- {:requires (juxt.site.bb.tasks
-             [clojure.core.async :as async]
-             [clojure.edn :as edn]
-             [clojure.java.io :as io])
+ {:requires
+  (juxt.site.site-cli.tasks
+   [clojure.core.async :as async]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
+   [juxt.site.cli-util.tasks :as common-tasks])
+
+  ;; Common tasks
+
+  ping
+  {:doc "Check server health"
+   :task (common-tasks/ping-task)}
+
+  config-file
+  {:doc "Show configuration-file"
+   :task (common-tasks/config-file-task)}
+
+  config
+  {:doc "Show configuration"
+   :opts {:require [:format]
+          :exec-args {:format "edn"}
+          :alias {:f :format}}
+   :task (common-tasks/config-task)}
+
+  profile
+  {:doc "Show profile"
+   :opts {}
+   :task (common-tasks/profile-task)}
+
+  request-token
+  {:doc "Acquire an access token"
+   :opts {:require [:client-id]
+          :exec-args {:client-id "site-cli"}}
+   :task (common-tasks/request-token-task)}
+
+  check-token
+  {:doc "Show current token. Use with --token or defaults to currently saved token."
+   :task (common-tasks/check-token-task)}
+
+  ;; site-cli tasks (requires admin-server)
+
+  ;; Override bb's help
+  help
+  {:doc "Show help"
+   :task (juxt.site.site-cli.tasks/help-task)
+   :override-builtin true}
 
   configure
   {:doc "Generate a site-cli.edn configuration file"
    :opts {:require [:auth-base-uri :data-base-uri]
           :coerce {:auth-base-uri :string
                    :data-base-uri :string}}
-   :task (juxt.site.bb.tasks/configure
-          (juxt.site.bb.tasks/parse-opts))}
-
-  ;; Override bb's help
-  help
-  {:doc "Show help"
-   :task (juxt.site.bb.tasks/help-task)
-   :override-builtin true}
-
-  post-init
-  {:doc "Show post-init options. Requires the server."
-   :task (juxt.site.bb.tasks/post-init-task)}
-
-  ping
-  {:doc "Check server health"
-   :task (juxt.site.bb.tasks/ping)}
+   :task (juxt.site.site-cli.tasks/configure-task)}
 
   ;; TODO: In the config, there must be a value that allows a
   ;; reset. By default, don't allow a reset on remote hosts, it's too
   ;; easy to mistakenly delete all the resources.
-  reset {:doc "Delete all resources. Only available via localhost."
-         :opts {:coerce {:no-confirm :boolean
-                         :no-countdown :boolean}}
-         :task (juxt.site.bb.tasks/reset)}
+  reset
+  {:doc "Delete all resources. Only available via localhost."
+   :opts {:coerce {:no-confirm :boolean
+                   :no-countdown :boolean}}
+   :task (juxt.site.site-cli.tasks/reset)}
 
-  init {:doc "Initialise a server with minimal resources. Only available via localhost."
-        :task (juxt.site.bb.tasks/init
-               (juxt.site.bb.tasks/parse-opts))}
+  init
+  {:doc "Initialise a server with minimal resources. Only available via localhost."
+   :task (juxt.site.site-cli.tasks/init-task)}
 
-  bootstrap {:doc "Bootstrap an instance with a default user & a demo API."
-             :task (juxt.site.bb.tasks/bootstrap
-                    (juxt.site.bb.tasks/parse-opts))}
+  post-init
+  {:doc "Show post-init options. Requires the server."
+   :task (juxt.site.site-cli.tasks/post-init-task)}
+
+  bootstrap
+  {:doc "Bootstrap an instance with a default user & a demo API."
+   :task (juxt.site.site-cli.tasks/bootstrap-task)}
 
   list
   {:doc "List resources. Only available via localhost."
    :opts {:args->opts [:pattern]}
-   :task (juxt.site.bb.tasks/list-task)}
+   :task (juxt.site.site-cli.tasks/list-task)}
 
   find
   {:doc "Find resources by pattern. Only available via localhost."
    :opts {:args->opts [:pattern]
           :coerce {:pattern :string}}
-   :task (juxt.site.bb.tasks/find)}
+   :task (juxt.site.site-cli.tasks/find)}
 
   client-secret
   {:doc "Retrieve a client_secret. Only available via localhost."
@@ -67,64 +99,25 @@
           :require [:client-id]
           :coerce {:save :boolean}
           :exec-args {:client-id "site-cli"}}
-   :task (juxt.site.bb.tasks/print-or-save-client-secret
-          (juxt.site.bb.tasks/parse-opts))}
+   :task (juxt.site.site-cli.tasks/print-or-save-client-secret-task)}
 
-  forget-client-secret
-  {:doc "Forget the client_secret for site-cli"
-   :opts {:args->opts [:client-id]
-          :require [:client-id]
-          :exec-args {:client-id "site-cli"}}
-   :task (juxt.site.bb.tasks/forget-client-secret)}
-
-  ;; Client
-
-  config-file
-  {:doc "Show configuration-file"
-   :task (juxt.site.bb.tasks/config-file-task)}
-
-  config
-  {:doc "Show configuration"
-   :opts {:require [:format]
-          :exec-args {:format "edn"}
-          :alias {:f :format}}
-   :task (juxt.site.bb.tasks/config-task)}
-
-  profile
-  {:doc "Show profile"
-   :opts {}
-   :task (juxt.site.bb.tasks/profile-task)}
-
-  request-token
-  {:doc "Acquire an access token"
-   :opts {:require [:client-id]
-          :exec-args {:client-id "site-cli"}}
-   :task (juxt.site.bb.tasks/request-token-task
-          (juxt.site.bb.tasks/parse-opts))}
-
-  check-token
-  {:doc "Show current token. Use with --token or defaults to currently saved token."
-   :task (juxt.site.bb.tasks/check-token-task
-          (juxt.site.bb.tasks/parse-opts))}
+  ;; site-cli remote-only tasks
 
   whoami
   {:doc "Introspect current user/application"
    :opts {:coerce {:verbose :boolean}
           :alias {:v :verbose}}
-   :task (juxt.site.bb.tasks/whoami
-          (juxt.site.bb.tasks/parse-opts))}
+   :task (juxt.site.site-cli.tasks/whoami-task)}
 
   register-user
   {:doc "Register a user"
    :opts {:require [:username]}
-   :task (juxt.site.bb.tasks/register-user
-          (juxt.site.bb.tasks/parse-opts))}
+   :task (juxt.site.site-cli.tasks/register-user-task)}
 
   assign-user-role
   {:doc "Assign a user a role"
    :opts {:require [:username :role]}
-   :task (juxt.site.bb.tasks/assign-user-role
-          (juxt.site.bb.tasks/parse-opts))}
+   :task (juxt.site.site-cli.tasks/assign-user-role-task)}
 
   register-application
   {:doc "Register an application"
@@ -132,42 +125,39 @@
                    :client-type :string
                    :redirect-uris [:string]
                    :scope [:string]}}
-   :task (juxt.site.bb.tasks/register-application
-          (juxt.site.bb.tasks/parse-opts))}
+   :task (juxt.site.site-cli.tasks/register-application)}
 
   users
   {:doc "Show current users"
    :opts {:args->opts [:pattern]}
-   :task (juxt.site.bb.tasks/users)}
+   :task (juxt.site.site-cli.tasks/users)}
 
   openapis
   {:doc "Show OpenAPI APIs"
    :opts {:args->opts [:pattern]}
-   :task (juxt.site.bb.tasks/openapis)}
+   :task (juxt.site.site-cli.tasks/openapis)}
 
   logs
   {:doc "Get logs"
-   :task (juxt.site.bb.tasks/logs)}
+   :task (juxt.site.site-cli.tasks/logs)}
 
   events
   {:doc "Introspect events"
-   :task (juxt.site.bb.tasks/events)}
+   :task (juxt.site.site-cli.tasks/events)}
 
   new-keypair
   {:doc "Create a new keypair"
-   :task (juxt.site.bb.tasks/new-keypair)}
+   :task (juxt.site.site-cli.tasks/new-keypair)}
 
   bundle
   {:doc "Stream a bundle to stdout"
    :opts {:args->opts [:bundle]
           :alias {:o :outfile}}
-
-   :task (juxt.site.bb.tasks/bundle
-          (juxt.site.bb.tasks/parse-opts))}
+   :task (juxt.site.site-cli.tasks/bundle-task)}
 
   bundles
   {:doc "List bundles"
-   :task (juxt.site.bb.tasks/bundles-task)}
+   :task (juxt.site.site-cli.tasks/bundles-task)}
 
   install
   {:doc "Install bundle"
@@ -175,36 +165,25 @@
           :alias {:n :debug}
           :coerce {:bundle []
                    :debug :boolean}}
-   :task (juxt.site.bb.tasks/install-bundle-task
-          (juxt.site.bb.tasks/parse-opts))}
+   :task (juxt.site.site-cli.tasks/install-bundle-task)}
 
   api-endpoints
   {:doc "List available API endpoints"
    :opts {:args->opts [:pattern]}
-   :task (juxt.site.bb.tasks/api-endpoints)}
+   :task (juxt.site.site-cli.tasks/api-endpoints)}
 
   install-openapi
   {:doc "Install an API by uploading an OpenAPI document"
    :opts {:require [:openapi]
           :args->opts [:openapi]}
-   :task (juxt.site.bb.tasks/install-openapi-task
-          (juxt.site.bb.tasks/parse-opts))}
+   :task (juxt.site.site-cli.tasks/install-openapi-task)}
 
   ;; These functions are temporary, and just a convenience for now.
 
-  register-admin-user
-  {:doc "Auto register admin user"
-   :task (juxt.site.bb.tasks/register-admin-user
-          (juxt.site.bb.tasks/parse-opts))}
-
   install-openapi-support
   {:doc "Auto configure"
-   :task (juxt.site.bb.tasks/install-openapi-support
-          (juxt.site.bb.tasks/parse-opts))}
+   :task (juxt.site.site-cli.tasks/install-openapi-support)}
 
   install-petstore
   {:doc "Reload petstore"
-   :task (juxt.site.bb.tasks/install-petstore
-          (juxt.site.bb.tasks/parse-opts))}
-
-  }}
+   :task (juxt.site.site-cli.tasks/install-petstore)}}}

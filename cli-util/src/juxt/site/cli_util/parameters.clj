@@ -1,7 +1,8 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site.bb.parameters
-  (:require [juxt.site.bb.user-input :as input]))
+(ns juxt.site.cli-util.parameters
+  (:require
+   [juxt.site.cli-util.user-input :as input]))
 
 (defn resolve-parameters [parameters args]
   (reduce

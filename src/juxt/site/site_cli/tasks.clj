@@ -1,96 +1,27 @@
 ;; Copyright © 2023, JUXT LTD.
 
-(ns juxt.site.bb.tasks
+(ns juxt.site.site-cli.tasks
   (:refer-clojure :exclude [find])
   (:require
-   [aero.core :as aero]
-   [babashka.cli :as cli]
    [babashka.http-client :as http]
-   [babashka.tasks :as tasks]
    [bblgum.core :as b]
    [cheshire.core :as json]
-   [clj-yaml.core :as yaml]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.pprint :refer [pprint]]
    [clojure.string :as str]
    [clojure.walk :refer [postwalk]]
-   [juxt.site.bb.parameters :refer [resolve-parameters]]
-   [juxt.site.bb.user-input :as input]
+   [juxt.site.cli-util.parameters :refer [resolve-parameters]]
+   [juxt.site.cli-util.user-input :as input]
+   [juxt.site.cli-util.cli-util :as util :refer [stderr]]
    [juxt.site.install.common-install-util :as ciu]))
-
-(defmacro stderr [& body]
-  `(binding [*out* *err*]
-     ~@body))
-
-(defn merge-global-opts [opts]
-  (-> opts
-      (update :alias assoc :p :profile)
-      (update :coerce assoc :profile :keyword)
-      (update :coerce assoc :edn :boolean :txt :boolean :txt :boolean)))
-
-(defn parse-opts
-  "Take the :opts of the current task and add in globals"
-  []
-  (cli/parse-opts
-   *command-line-args*
-   (merge-global-opts (:opts (tasks/current-task)))))
-
-(defn curl-config-file []
-  (or
-   (when (System/getenv "CURL_HOME")
-     (io/file (System/getenv "CURL_HOME") ".curlrc"))
-   (when (System/getenv "XDG_CONFIG_HOME")
-     (io/file (System/getenv "XDG_CONFIG_HOME") ".curlrc"))
-   (when (System/getenv "HOME")
-     (io/file (System/getenv "HOME") ".curlrc"))))
-
-(defn config-files []
-  (for [dir [(io/file (System/getenv "XDG_CONFIG_HOME"))
-             (io/file (System/getenv "HOME") ".config/site")]
-        :when (and dir (.exists dir) (.isDirectory dir))
-        file [(io/file dir "site-cli.edn")
-              (io/file dir "site-cli.json")
-              (io/file dir "site-cli.yaml")]]
-    (.getAbsolutePath file)))
-
-(defn config-file-task []
-  (let [files (keep #(let [f (io/file %)]
-                         (when (and (.exists f) (.isFile f))
-                           (.getAbsolutePath f)))
-                      (config-files))]
-    (doseq [f files]
-      (println f))))
-
-(defn config-file []
-  (let [candidates (config-files)
-        files (keep #(let [f (io/file %)]
-                         (when (and (.exists f) (.isFile f))
-                           (.getAbsolutePath f)))
-                      candidates)]
-    (cond
-      (empty? files) nil
-      (and files (= 1 (count files))) (first files)
-      :else (throw (ex-info (format "Too many (%d) possible configuration files" (count files))
-                            {:candidates files})))))
-
-(defn default-config
-  "Return a default config which is useful for getting started"
-  []
-  {"admin-base-uri" "http://localhost:4911"
-   "uri-map" {"https://auth.example.org" "http://localhost:4440"
-              "https://data.example.org" "http://localhost:4444"}
-   "installers-home" (str (System/getenv "SITE_HOME") "/installers")
-   "client-credentials" {"ask-for-client-secret" true
-                         "cache-client-secret" true}
-   "curl" {"save-access-token-to-default-config-file" true}})
 
 (defn configure
   "Create a static edn configuration file"
   [{:keys [auth-base-uri data-base-uri]}]
   (let [dir (some identity
-             [(io/file (System/getenv "XDG_CONFIG_HOME"))
-              (io/file (System/getenv "HOME") ".config/site")])
+                  [(io/file (System/getenv "XDG_CONFIG_HOME"))
+                   (io/file (System/getenv "HOME") ".config/site")])
         config-file (io/file dir "site-cli.edn")]
     (when (.exists config-file)
       (throw (ex-info "Config file already exists" {:file config-file})))
@@ -98,73 +29,22 @@
      config-file
      (with-out-str
        (pprint
-        (cond-> (default-config)
+        (cond-> (util/default-config)
           auth-base-uri (assoc-in ["uri-map" "https://auth.example.org"] auth-base-uri)
           data-base-uri (assoc-in ["uri-map" "https://data.example.org"] data-base-uri)))))))
 
-(defn profile [opts]
-  (or
-   (some-> (get opts :profile) name)
-   (System/getenv "SITE_PROFILE")
-   :default))
-
-(defn profile-task []
-  (println (name (profile (parse-opts)))))
-
-(defn config [opts]
-  (if-let [config-file (config-file)]
-    (condp re-matches config-file
-      #".*\.edn" (aero/read-config
-                  config-file
-                  {:profile (profile opts)})
-      #".*\.json" (json/parse-string (slurp config-file))
-      #".*\.yaml" (yaml/parse-string (slurp config-file) {:keywords false})
-      (throw (ex-info "Unrecognized config file" {:config-file config-file})))
-    (default-config)))
-
-(defn config-task []
-  (let [{:keys [format] :as opts} (parse-opts)
-        cfg (config opts)]
-    (case format
-      "edn" (pprint cfg)
-      "json" (println (json/generate-string cfg {:pretty true}))
-      "yaml" (println (yaml/generate-string cfg)))))
-
-(defn ping []
-  (let [opts (parse-opts)
-        cfg (config opts)
-        base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-        url (str base-uri "/_site/healthcheck")
-
-        {:keys [status body]}
-        (try
-          (http/get url {:throw false})
-          (catch java.net.ConnectException _
-            {:status 0}))]
-
-    (println "Checking" url)
-
-    (cond
-      (= status 0)
-      (println "No response")
-      (= status 200)
-      (do
-        (print "Response:" body)
-        (.flush *out*))
-      :else
-      (do
-        (println "Not OK")
-        (println body)
-        ;;(System/exit 1)
-        ))))
+(defn configure-task []
+  (let [opts (util/parse-opts)
+        cfg (util/config opts)]
+    (configure cfg)))
 
 (defn url-encode [s]
   (when s
     (java.net.URLEncoder/encode s)))
 
 (defn list-task []
-  (let [{:keys [pattern] :as opts} (parse-opts)
-        cfg (config opts)
+  (let [{:keys [pattern] :as opts} (util/parse-opts)
+        cfg (util/config (util/profile opts))
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
       (stderr (println "The admin-server is not reachable."))
@@ -177,8 +57,8 @@
         (println res)))))
 
 (defn find []
-  (let [{:keys [pattern] :as opts} (parse-opts)
-        cfg (config opts)
+  (let [{:keys [pattern] :as opts} (util/parse-opts)
+        cfg (util/config (util/profile opts))
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
       (stderr (println "The admin-server is not reachable."))
@@ -218,264 +98,16 @@
             (http/get
              (str admin-base-uri "/resource?uri=" (url-encode resource))))))))))
 
-(defn- save-access-token [access-token]
-  (let [opts (parse-opts)
-        cfg (config opts)
-        {access-token-file "access-token-file"
-         save-access-token-to-default-config-file "save-access-token-to-default-config-file"}
-        (get cfg "curl")]
-    (cond
-      save-access-token-to-default-config-file
-      (let [config-file (curl-config-file)
-            lines (if (.exists config-file)
-                    (with-open [rdr (io/reader config-file)]
-                      (into [] (line-seq rdr)))
-                    [])
-            new-lines
-            (mapv (fn [line]
-                    (if (re-matches #"oauth2-bearer\s+.+" line)
-                      (format "oauth2-bearer %s" access-token)
-                      line)) lines)]
-
-        (spit config-file
-              (clojure.string/join
-               (System/getProperty "line.separator")
-               (cond-> new-lines
-                 (= lines new-lines)
-                 (conj
-                  "# This was added by site request-token"
-                  (format "oauth2-bearer %s" access-token)))))
-        (println "Access token saved to"
-                 (str/replace
-                  (.getAbsolutePath config-file)
-                  (System/getenv "HOME") "$HOME")))
-
-      access-token-file (spit access-token-file access-token)
-      :else (println access-token))))
-
-(defn cache-dir [opts]
-  (let [parent-dir
-        (or
-         (when-let [dir (System/getenv "XDG_CACHE_HOME")] dir)
-         (when-let [dir (System/getenv "HOME")] (io/file dir ".cache"))
-         )
-        fl (io/file parent-dir (str "site/" (name (get opts :profile :default))))]
-    (.mkdirs (.getParentFile fl))
-    fl))
-
-(defn client-secret-file [opts client-id]
-  (let [save-dir (io/file (cache-dir opts) "client-secrets")]
-    (.mkdirs save-dir)
-    (io/file save-dir client-id)))
-
-(defn input-secret [client-id]
-  (input/input {:header (format "Input client secret for %s" client-id)})
-  #_(let [{status :status [secret] :result}
-        (b/gum {:cmd :input
-                :opts (cond-> {:header.foreground "#C72"
-                               :prompt.foreground "#444"
-                               :width 60
-                               :header (format "Input client secret for %s" client-id)})})]
-    ;; TODO: Check for status
-    (println status)
-    secret))
-
-;; Not used?
-(defn- client-secret
-  "Only use when there is an admin server. We don't want to store client secrets on remote machines."
-  [opts client-id]
-
-  (let [cfg (config opts)
-        _ (assert (not (get cfg "admin-base-uri")))
-
-        secret-file (client-secret-file opts client-id)
-
-        ask-for-client-secret? (get-in cfg ["client-credentials" "ask-for-client-secret"])
-        cache-client-secret? (get-in cfg ["client-credentials" "cache-client-secret"])
-
-        ;;_ (println "client-secret-file" client-secret-file " exists?" (.exists client-secret-file))
-        secret (when (.exists secret-file)
-                 (stderr
-                   (println "Reading client secret from"
-                            (str/replace
-                             (.getAbsolutePath secret-file)
-                             (System/getenv "HOME") "$HOME")))
-                 (str/trim (slurp secret-file)))
-
-        secret
-        (or secret
-            (when ask-for-client-secret?
-              (let [{status :status [secret] :result}
-                    (b/gum {:cmd :input
-                            :opts (cond-> {:header.foreground "#C72"
-                                           :prompt.foreground "#444"
-                                           :width 60
-                                           :header (format "Input client secret for %s" client-id)})})]
-                (when cache-client-secret?
-                  (stderr
-                    (println "Writing client_secret to"
-                             (str/replace
-                              (.getAbsolutePath secret-file)
-                              (System/getenv "HOME") "$HOME")))
-                  (spit secret-file secret))
-                secret)))]
-
-    secret))
-
-(defn forget-client-secret []
-  (let [{:keys [client-id] :as opts} (parse-opts)
-        secret-file (client-secret-file opts client-id)]
-    (if (.exists secret-file)
-      (do
-        (println "Deleting" (.getAbsolutePath secret-file))
-        (io/delete-file secret-file))
-      (println "No such file:" (.getAbsolutePath secret-file)))))
-
-(defn request-client-secret [admin-base-uri client-id]
-  (assert admin-base-uri)
-  (let [client-details
-        (json/parse-string
-         (:body
-          (http/get
-           (str admin-base-uri "/applications/" client-id)
-           {"accept" "application/json"})))]
-    (get client-details "juxt.site/client-secret")))
-
 ;; site request-token --client-secret $(site client-secret)
 ;; site request-token --username alice --password $(gum input --password)
-(defn request-token
-  "Acquire an access-token. Remote only."
-  [{:keys [client-id grant-type] :as opts}]
-  (let [cfg (config opts)
-        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-        token-endpoint (str auth-base-uri "/oauth/token")
-        grant-type (cond
-                     grant-type grant-type
-                     (or (:username opts) (:password opts)) "password"
-                     :else "client_credentials")]
-    (stderr
-     (println
-      (format "Requesting access-token from %s\n with grant-type %s" token-endpoint grant-type)))
-    (case grant-type
-      "password"
-      (let [{:keys [username password]} opts
-            password (or password (input/input {:header (format "Input password for %s" username)
-                                                :password true}))
-            {:keys [status body]}
-            (http/post
-             token-endpoint
-             {:headers {:content-type "application/x-www-form-urlencoded"}
-              :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
-                            "password" username password client-id)
-              :throw false})]
 
-        (when-not username
-          (throw (ex-info "username must be given" {})))
-
-        (when-not password
-          (throw (ex-info "password must be given" {})))
-
-        (case status
-          200 (get (json/parse-string body) "access_token")
-          (print status body)))
-
-      "client_credentials"
-      (let [secret (or
-                    (:client-secret opts)
-                    (input-secret client-id))
-            _ (when-not secret
-                (println "No client-secret found")
-                (System/exit 1))
-            {:keys [status body]}
-            (http/post
-             token-endpoint
-             {:basic-auth [client-id secret]
-              :form-params {"grant_type" "client_credentials"}
-              :throw false})]
-        (case status
-          200 (get (json/parse-string body) "access_token")
-          (print status body))))))
-
-(defn- retrieve-token
-  [cfg]
-  (let [{curl "curl" access-token-file "access-token"} cfg
-        {save-access-token-to-default-config-file "save-access-token-to-default-config-file"} curl
-        admin-base-uri (get cfg "admin-base-uri")
-        client-id "site-cli"
-        token (cond
-                (and access-token-file save-access-token-to-default-config-file)
-                (throw (ex-info "Ambiguous configuration" {}))
-
-                save-access-token-to-default-config-file
-                (let [curl-config-file (curl-config-file)]
-                  (when (and (.exists curl-config-file) (.isFile curl-config-file))
-                    (last (keep (comp second #(re-matches #"oauth2-bearer\s+(.+)" %)) (line-seq (io/reader curl-config-file))))))
-
-                access-token-file
-                (when (and (.exists access-token-file) (.isFile access-token-file))
-                  (slurp access-token-file)))]
-    (if token
-      token
-      (request-token
-       {:client-id client-id
-        :client-secret
-        (request-client-secret admin-base-uri client-id)}))))
-
-(defn request-token-task [opts]
-  (when-let [token (request-token opts)]
-    (save-access-token token)))
-
-(defn check-token [cfg token]
-  (if-not token
-    (stderr (println "Hint: Try requesting an access-token (site request-token)"))
-    (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-          introspection-uri (str auth-base-uri "/oauth/introspect")
-          {introspection-status :status introspection-body :body}
-          (http/post
-           introspection-uri
-           {:headers {:authorization (format "Bearer %s" token)}
-            :form-params {"token" token}
-            :throw false})
-
-          zone-id (java.time.ZoneId/systemDefault)
-
-          claim-time
-          (fn [seconds]
-            (.toString
-             (java.time.ZonedDateTime/ofInstant
-              (java.time.Instant/ofEpochSecond seconds)
-              zone-id)))
-
-          claims
-          (when (and (= introspection-status 200) introspection-body)
-            (json/parse-string introspection-body))
-
-          metadata
-          (when claims
-            (cond-> {}
-              (get claims "iat") (assoc "issued-at" (claim-time (get claims "iat")))
-              (get claims "exp") (assoc "expires-at" (claim-time (get claims "exp")))))]
-      (println
-       (json/generate-string
-        (cond-> {"access-token" token
-                 "introspection"
-                 (cond-> {"endpoint" introspection-uri
-                          "status "introspection-status}
-                   claims (assoc "claims" claims)
-                   metadata (assoc "metadata" metadata))})
-        {:pretty true})))))
-
-(defn check-token-task [opts]
-  (let [cfg (config opts)
-        token (or (:token opts) (retrieve-token cfg))]
-    (check-token cfg token)))
 
 (defn authorization [cfg]
-  (format "Bearer %s" (retrieve-token cfg)))
+  (format "Bearer %s" (util/retrieve-token cfg)))
 
 (defn api-request [path]
-  (let [opts (parse-opts)
-        cfg (config opts)
+  (let [opts (util/parse-opts)
+        cfg (util/config (util/profile opts))
         args (select-keys opts [:reqid :match :logger-name :before :after])
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         endpoint (str data-base-uri path)
@@ -505,7 +137,7 @@
 (defn whoami [{:keys [verbose] :as opts}]
   (let [path "/_site/whoami"]
     (if-not verbose
-      (let [cfg (config opts)
+      (let [cfg (util/config (util/profile opts))
             data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
             endpoint (str data-base-uri path)
             {:keys [status body]}
@@ -532,6 +164,9 @@
             (.flush *out*))))
       ;; Verbose
       (api-request path))))
+
+(defn whoami-task []
+  (whoami (util/parse-opts)))
 
 (defn api-endpoints []
   (api-request "/_site/api-endpoints"))
@@ -593,7 +228,7 @@
     (ciu/installer-seq installer-map parameters installers)))
 
 (defn bundle [{bundle-name :bundle :as opts}]
-  (let [cfg (config opts)
+  (let [cfg (util/config (util/profile opts))
         bundle (get (bundles cfg) bundle-name)]
     (if bundle
       (pprint
@@ -602,6 +237,9 @@
        ;; (map :juxt.site/init-data)
        )
       (stderr (println (format "Bundle not found: %s" bundle-name))))))
+
+(defn bundle-task []
+  (bundle (util/parse-opts)))
 
 (defn random-string [size]
   (apply str
@@ -622,17 +260,20 @@
   ;; restrict us to the right auth-server! Otherwise we'll be
   ;; potentially fishing out the first of a bundle of client-secrets!
 
-  (let [cfg (config opts)
+  (let [cfg (util/config (util/profile opts))
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
       (stderr (println "The admin-server is not reachable."))
-      (let [client-secret (request-client-secret admin-base-uri client-id)
-            secret-file (client-secret-file opts client-id)]
+      (let [client-secret (util/request-client-secret admin-base-uri client-id)
+            secret-file (util/client-secret-file opts client-id)]
         (binding [*out* (if save (io/writer secret-file) *out*)]
           (println client-secret))
         (when save
           (stderr
             (println "Written client secret to" (.getAbsolutePath secret-file))))))))
+
+(defn print-or-save-client-secret-task []
+  (print-or-save-client-secret (util/parse-opts)))
 
 (defn countdown [start]
   (println "(To abort: Control-C)")
@@ -649,8 +290,8 @@
 (defn reset
   "Delete ALL resources from a Site instance"
   []
-  (let [opts (parse-opts)
-        cfg (config opts)
+  (let [opts (util/parse-opts)
+        cfg (util/config (util/profile opts))
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
       (stderr (println "Cannot reset. The admin-server is not reachable."))
@@ -697,8 +338,9 @@
            (format "Installing: %s with %s" title param-str)))
         (install opts (ciu/bundle-map title installers-seq (get cfg "uri-map")))))))
 
-(defn install-bundle-task [{bundle-names :bundle _ :debug :as opts}]
-  (let [cfg (config opts)
+(defn install-bundle-task []
+  (let [{bundle-names :bundle _ :debug :as opts} (util/parse-opts)
+        cfg (util/config (util/profile opts))
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         resources-uri (str data-base-uri "/_site/resources")
         bundles (bundles cfg)]
@@ -709,10 +351,10 @@
        cfg bundle params
        (assoc opts
               :resources-uri resources-uri
-              :access-token (retrieve-token cfg))))))
+              :access-token (util/retrieve-token cfg))))))
 
 (defn- install-bundles [{bundle-specs :bundles :as opts}]
-  (let [cfg (config opts)
+  (let [cfg (util/config (util/profile opts))
         bundles (bundles cfg)]
     (doseq [[bundle-name params] bundle-specs
             :let [bundle (get bundles bundle-name)]]
@@ -727,8 +369,8 @@
        (stderr (println "Cannot init. The admin-server is not reachable."))
        (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
              data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-             insite-secret (request-client-secret admin-base-uri "insite")
-             site-cli-secret (request-client-secret admin-base-uri "site-cli")
+             insite-secret (util/request-client-secret admin-base-uri "insite")
+             site-cli-secret (util/request-client-secret admin-base-uri "site-cli")
              token-endpoint (str auth-base-uri "/oauth/token")
              site-api-root (str data-base-uri "/_site")]
          (when-not silent
@@ -750,11 +392,11 @@
                (println " or ")
                (println (format "B. Continue with this site tool, acquiring an access token with:"))
              ;; TODO: We could pipe this to '| xclip -selection clipboard'
-               (println (format "site request-token --client-secret %s" site-cli-secret))))))))))
+               (println (format "   site request-token --client-secret %s" site-cli-secret))))))))))
 
 (defn post-init-task []
-  (let [opts (parse-opts)
-        cfg (config opts)]
+  (let [opts (util/parse-opts)
+        cfg (util/config (util/profile opts))]
     (post-init cfg)))
 
 (defn help [cfg]
@@ -762,73 +404,74 @@
   (println))
 
 (defn help-task []
-  (let [opts (parse-opts)
-        cfg (config opts)]
+  (let [opts (util/parse-opts)
+        cfg (util/config (util/profile opts))]
     (help cfg)))
 
 (defn init
-  ([opts]
-   (init opts false))
-  ([opts silent]
-   (let [cfg (config opts)
-         admin-base-uri (get cfg "admin-base-uri")]
-     (if-not admin-base-uri
-       (stderr (println "Cannot init. The admin-server is not reachable."))
-       (do
-         (install-bundles
-          (assoc
-           opts
-           :resources-uri
-           (str admin-base-uri "/resources")
-           :bundles
-           [["juxt/site/bootstrap" {}]
-            ["juxt/site/unprotected-resources" {}]
-            ["juxt/site/protection-spaces" {}]
-            ;; Support the creation of JWT bearer tokens
-            ["juxt/site/oauth-token-endpoint" {}]
-            ;; Install a keypair to sign JWT bearer tokens
-            ["juxt/site/keypair" {"kid" (random-string 16)}]
-            ;; Install the required APIs
-            ["juxt/site/user-model" {}]
-            ["juxt/site/api-operations" {}]
-            ["juxt/site/protection-spaces" {}]
-            ["juxt/site/resources-api" {}]
-            ["juxt/site/events-api" {}]
-            ["juxt/site/logs-api" {}]
-            ["juxt/site/whoami-api" {}]
-            ["juxt/site/users-api" {}]
-            ["juxt/site/endpoints-api" {}]
-            ["juxt/site/openapis-api" {}]
-            ["juxt/site/bundles-api" {}]
+  [{:keys [silent] :as opts}]
+  (let [cfg (util/config (util/profile opts))
+        admin-base-uri (get cfg "admin-base-uri")]
+    (if-not admin-base-uri
+      (stderr (println "Cannot init. The admin-server is not reachable."))
+      (do
+        (install-bundles
+         (assoc
+          opts
+          :resources-uri
+          (str admin-base-uri "/resources")
+          :bundles
+          [["juxt/site/bootstrap" {}]
+           ["juxt/site/unprotected-resources" {}]
+           ["juxt/site/protection-spaces" {}]
+           ;; Support the creation of JWT bearer tokens
+           ["juxt/site/oauth-token-endpoint" {}]
+           ;; Install a keypair to sign JWT bearer tokens
+           ["juxt/site/keypair" {"kid" (random-string 16)}]
+           ;; Install the required APIs
+           ["juxt/site/user-model" {}]
+           ["juxt/site/api-operations" {}]
+           ["juxt/site/protection-spaces" {}]
+           ["juxt/site/resources-api" {}]
+           ["juxt/site/events-api" {}]
+           ["juxt/site/logs-api" {}]
+           ["juxt/site/whoami-api" {}]
+           ["juxt/site/users-api" {}]
+           ["juxt/site/endpoints-api" {}]
+           ["juxt/site/openapis-api" {}]
+           ["juxt/site/bundles-api" {}]
 
-            ["juxt/site/sessions" {}]
-            ["juxt/site/roles" {}]
+           ["juxt/site/sessions" {}]
+           ["juxt/site/roles" {}]
 
-            ;; RFC 7662 token introspection
-            ["juxt/site/oauth-introspection-endpoint" {}]
-            ;; Register the clients
-            ["juxt/site/system-client"
-             (let [site-cli-config {"client-id" "site-cli"}]
-               (if-let [site-cli-secret (:site-cli-secret opts)]
-                 (assoc site-cli-config "client-secret" site-cli-secret)
-                 site-cli-config))]
-            ["juxt/site/system-client"
-             (let [insite-config {"client-id" "insite"}]
-               (if-let [insite-secret (:insite-secret opts)]
-                 (assoc insite-config "client-secret" insite-secret)
-                 insite-config))]])
-          )
-         ;; Delete any stale client-secret files
-         (doseq [client-id ["site-cli" "insite"]
-                 :let [secret-file (client-secret-file opts client-id)]]
-           ;; TODO: Replace with babashka.fs
-           (.delete secret-file))
+           ;; RFC 7662 token introspection
+           ["juxt/site/oauth-introspection-endpoint" {}]
+           ;; Register the clients
+           ["juxt/site/system-client"
+            (let [site-cli-config {"client-id" "site-cli"}]
+              (if-let [site-cli-secret (:site-cli-secret opts)]
+                (assoc site-cli-config "client-secret" site-cli-secret)
+                site-cli-config))]
+           ["juxt/site/system-client"
+            (let [insite-config {"client-id" "insite"}]
+              (if-let [insite-secret (:insite-secret opts)]
+                (assoc insite-config "client-secret" insite-secret)
+                insite-config))]])
+         )
+        ;; Delete any stale client-secret files
+        (doseq [client-id ["site-cli" "insite"]
+                :let [secret-file (util/client-secret-file opts client-id)]]
+          ;; TODO: Replace with babashka.fs
+          (.delete secret-file))
 
-         (post-init cfg silent))))))
+        (post-init cfg silent)))))
+
+(defn init-task []
+  (init (util/parse-opts)))
 
 (defn new-keypair []
-  (let [opts (parse-opts)
-        cfg (config opts)
+  (let [opts (util/parse-opts)
+        cfg (util/config (util/profile opts))
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
     (install-bundles
      (assoc
@@ -836,9 +479,9 @@
       :resources-uri
       (str data-base-uri "/_site/resources")
       :access-token
-      (retrieve-token cfg)
+      (util/retrieve-token cfg)
       :bundles
-      [;; Install a new keypair to sign JWT bearer tokens
+      [ ;; Install a new keypair to sign JWT bearer tokens
        ["juxt/site/keypair" {"kid" (random-string 16)}]]))))
 
 ;; Create alice
@@ -846,7 +489,7 @@
 ;; equivalent to
 ;; jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
 (defn register-user [opts]
-  (let [cfg (config opts)
+  (let [cfg (util/config (util/profile opts))
         base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         {:keys [status body]}
         (http/post
@@ -860,11 +503,14 @@
       200 (print body)
       (print status body))))
 
+(defn register-user-task []
+  (register-user (util/parse-opts)))
+
 ;; Grant alice a role
 ;; jo -- -s juxt.site/user=http://localhost:4444/_site/users/alice juxt.site/role=http://localhost:4444/_site/roles/SiteAdmin | curl --json @- http://localhost:4440/operations/assign-role
 ;; site assign-user-role --username alice --role SiteAdmin
 (defn assign-user-role [opts]
-  (let [cfg (config opts)
+  (let [cfg (util/config (util/profile opts))
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         {:keys [status body]}
@@ -880,8 +526,11 @@
       200 (print body)
       (print status body))))
 
+(defn assign-user-role-task []
+  (assign-user-role (util/parse-opts)))
+
 (defn register-application [{:keys [client-id client-type redirect-uris scope] :as opts}]
-  (let [cfg (config opts)
+  (let [cfg (util/config (util/profile opts))
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
 
@@ -920,14 +569,17 @@
         200 (print body)
         (print status body))))
 
+(defn register-application-task []
+  (register-application (util/parse-opts)))
+
 (defn bundles-task []
-  (doseq [[k _] (bundles (config (parse-opts)))]
+  (doseq [[k _] (sort (bundles (util/config (util/profile (util/parse-opts)))))]
     (println k)))
 
 (defn install-openapi [opts]
-  (let [cfg (config opts)
+  (let [cfg (util/config (util/profile opts))
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-        access-token (retrieve-token cfg)
+        access-token (util/retrieve-token cfg)
         openapi-file (io/file (:openapi opts))]
 
     (when-not (.exists openapi-file)
@@ -980,37 +632,22 @@
             (.flush *out*)))))))
 
 ;; site install-openapi demo/petstore/openapi.json
-(defn install-openapi-task [opts]
-  (try
-    (install-openapi opts)
-    (catch Exception e
-      (if (:debug opts)
-        (throw e)
-        (binding [*err* *out*]
-          (println (.getMessage e)))))))
+(defn install-openapi-task []
+  (let [opts (util/parse-opts)]
+    (try
+      (install-openapi opts)
+      (catch Exception e
+        (if (:debug opts)
+          (throw e)
+          (binding [*err* *out*]
+            (println (.getMessage e))))))))
 
 ;; Temporary convenience for ongoing development
 
-;; TODO: Replace this with a bundle
-#_(defn register-admin-user [opts]
-  (let [password "foobar"]
-    (register-user
-     (merge {:username "mal"
-             :password password
-             :fullname "Malcolm Sparks"} opts))
-    (assign-user-role
-     (merge {:username "mal"
-             :role "SiteAdmin"} opts))
-    (if-let [token (request-token
-                    (merge {:username "mal"
-                            :password password
-                            :client-id "site-cli"} opts))]
-      (save-access-token token)
-      (throw (ex-info "Failed to get token" {})))))
-
 ;; Call this with a user or application in the SiteAdmin role
-(defn install-openapi-support [opts]
-  (let [cfg (config opts)
+(defn install-openapi-support []
+  (let [opts (util/parse-opts)
+        cfg (util/config (util/profile opts))
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
     (install-bundles
      (assoc
@@ -1018,7 +655,7 @@
       :resources-uri
       (str data-base-uri "/_site/resources")
       :access-token
-      (retrieve-token cfg)
+      (util/retrieve-token cfg)
       :bundles
       [
        ;; Assuming https://auth.example.org/session-scopes/form-login-session...
@@ -1038,14 +675,15 @@
       "Now browse to https://petstore.swagger.io/?url=%s/_site/openapi.json"
       data-base-uri))))
 
-(defn install-petstore [opts]
-  (let [cfg (config opts)
+(defn install-petstore []
+  (let [opts (util/parse-opts)
+        cfg (util/config (util/profile opts))
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
 
     (install-bundles
      (assoc opts
             :resources-uri (str data-base-uri "/_site/resources")
-            :access-token (retrieve-token cfg)
+            :access-token (util/retrieve-token cfg)
             :bundles
             [["juxt/site/openapis-api" {}]
              ["demo/petstore/operations" {}]
@@ -1059,17 +697,17 @@
       data-base-uri))))
 
 (defn bootstrap [opts]
-  (let [cfg (config opts)
+  (let [cfg (util/config (util/profile opts))
         admin-base-uri (get cfg "admin-base-uri")
         client-id "site-cli"
         token (atom nil)]
-    (init opts true)
+    (init (assoc opts :silent true))
     (reset! token
-            (request-token
+            (util/request-token
              {:client-id client-id
               :client-secret
-              (request-client-secret admin-base-uri client-id)}))
-    (save-access-token @token)
+              (util/request-client-secret admin-base-uri client-id)}))
+    (util/save-access-token @token)
     (install-bundles
      (assoc
       opts
@@ -1087,10 +725,13 @@
     (println "\tBrowse to https://petstore.swagger.io/?url=http://localhost:4444/_site/openapi.json")
     (println "\tClick on authorize, add swagger-ui as the client_id, select all scopes and authorize.")
     ;; TODO As more demos are added, adjust this to be a gum selector
-    (install-petstore opts)
+    (install-petstore)
 
     ;; Now all that is left to do is register a user.
     ))
+
+(defn bootstrap-task []
+  (bootstrap (util/parse-opts)))
 
 
 ;; To install an openid-user (rather than a password one), do the following:
