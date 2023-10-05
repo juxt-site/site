@@ -659,14 +659,13 @@
               (when (input/confirm "Factory reset and delete ALL resources?")
                 (when-not (:no-countdown opts)
                   (countdown 3))))]
-        (if abort?
+        (when abort?
           (println "Aborting reset")
-          (do
-            (println "Requesting removal of all resources")
-            (let [{:keys [status body]}
-                  (http/post (str admin-base-uri "/reset"))]
-              ;; print not println, as the body should be terminated in a CRLF
-              (print status body))))))))
+          (println "Requesting removal of all resources")
+          (let [{:keys [status body]}
+                (http/post (str admin-base-uri "/reset"))]
+            ;; print not println, as the body should be terminated in a CRLF
+            (print status body)))))))
 
 (defn- install [{:keys [resources-uri access-token]} bundle]
   (assert resources-uri)
