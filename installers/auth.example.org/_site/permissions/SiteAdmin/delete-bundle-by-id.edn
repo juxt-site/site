@@ -6,5 +6,4 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/operation "https://auth.example.org/_site/operations/delete-bundle-by-id"
-   :juxt.site/role "https://data.example.org/_site/roles/SiteAdmin"
-   :juxt.site/purpose nil}}}
+   :juxt.site/role "https://data.example.org/_site/roles/SiteAdmin"}}}

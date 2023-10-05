@@ -6,5 +6,4 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/operation "https://auth.example.org/operations/whoami"
-   :juxt.site/purpose nil
    :juxt.site/user "https://data.example.org/_site/users/{{username}}"}}}

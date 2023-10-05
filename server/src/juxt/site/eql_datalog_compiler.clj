@@ -64,7 +64,6 @@
        ~(cond-> `[[~'operation :xt/id ~operation-id]
                   ~'[permission :juxt.site/type "https://meta.juxt.site/types/permission"]
                   ~'[permission :juxt.site/operation operation]
-                  ~'[permission :juxt.site/purpose purpose]
                   ;; We must rename 'allowed?' here because we
                   ;; cannot allow rules from parent queries to
                   ;; affect rules from sub-queries. In other
