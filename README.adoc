@@ -76,6 +76,7 @@ an appointment.
 == Documentation
 
 The latest PDF documentation for Site can be found at https://github.com/juxt-site/book/releases/download/latest/Site.pdf.
+The source code to the documentation is in another repository: https://github.com/juxt-site/book.
 
 == Testing
 
