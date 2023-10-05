@@ -643,7 +643,7 @@
                 (let [{operation-uri :juxt.site/operation-uri
                        input :juxt.site/input
                        :as init-data}
-                      (assoc-in init-data [:juxt.site/input :juxt.site/installed-by] (:uri bundle-map))]
+                      (assoc-in init-data [:juxt.site/input :juxt.site/bundle] (:uri bundle-map))]
 
                   (when-not input
                     (throw
@@ -697,6 +697,7 @@
             (-> bundle-map
                 (assoc :xt/id uri)
                 (dissoc :on-find)
+                (dissoc :uri)
                 (update :installers #(mapv :juxt.site/uri %)))]
            [:xtdb.api/put {:xt/id (str uri ".json")
                            :juxt.http/content-type "application/json"
@@ -710,7 +711,7 @@
                            :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
                            :juxt.site/access-control-allow-origins
                            [[".*" {:juxt.site/access-control-allow-origin "*"
-                                   :juxt.site/access-control-allow-methods [:get]
+                                   :juxt.site/access-control-allow-methods [:get :delete :options]
                                    :juxt.site/access-control-allow-headers ["authorization"]}]]}]])))
 
 (defn transact-sci-opts

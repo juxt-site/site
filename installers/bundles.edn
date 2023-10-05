@@ -85,7 +85,25 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/bundles.txt"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/bundles.jsonlines"}]}
+    :juxt.site/installer-path "/_site/bundles.jsonlines"}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle.txt"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/_site/operations/get-bundle-modifications"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/description "Let SiteAdmin search for a bundle's modifications"
+    :juxt.site/installer-path "/_site/permissions/SiteAdmin/get-bundle-modifications"}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle-modifications"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle-modifications.jsonlines"}
+   ]}
 
  "juxt/site/unprotected-resources"
  {:juxt.site/title "Unprotected resources"

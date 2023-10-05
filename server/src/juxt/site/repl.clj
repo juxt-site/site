@@ -49,6 +49,8 @@
 (defn hist [id]
   (xt/entity-history (db) id :asc {:with-docs? true}))
 
+(defn e-tx [id] (xt/entity-tx (db) id))
+
 (defn valid-time [id] (:xtdb.api/valid-time (xt/entity-tx (db) id)))
 
 (defn grep [re coll]

@@ -949,7 +949,7 @@
      (for [a possibles]
        (clojure.pprint/pprint
         {:bundle (:title a)
-         :resource (:candidates a)})))))
+         :candidates (:candidates a)})))))
 
 (defn installed-bundles []
   (let [opts (parse-opts)
@@ -965,6 +965,15 @@
                                              (butlast
                                               (last (clojure.string/split % #"/")))))
      (clojure.string/split body #"\n"))))
+
+(defn find-bundle-by-id [id cfg]
+  (let [data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        bundle-uri (str data-base-uri "/bundles/" (last (clojure.string/split id #"\/")))
+        {:keys [body]}
+        (http/get bundle-uri
+                  {:headers {:accept "application/json"
+                             :authorization (authorization cfg)}})]
+    body))
 
 (defn bundles-task []
   (let [opts (parse-opts)
@@ -987,7 +996,7 @@
                              (= (clojure.string/lower-case (:status opts))
                                 (clojure.string/lower-case status))
                              true))))
-        available (into [] filters available)
+        available (sort-by :status (sort-by :title (into [] filters available)))
         header "Bundle,Status"
         rows
         (map
@@ -1010,8 +1019,11 @@
         (println "\nTITLE || " (first (clojure.string/split (first result) #",")) "\n")
         (println "DESCRIPTION || " (:juxt.site/description selected) "\n")
         (println "STATUS || " (:status selected) "\n")
-        (println "__INSTALLERS__")
-        (clojure.pprint/pprint (:juxt.site/installers selected))
+        ;; TODO tell us who installed this bundle
+        #_(when (= "Installed" (:status selected))
+            (let [bundle (find-bundle-by-id (:title selected) cfg)]
+              (println "INSTALLED BY || " (:installed-by bundle) "\n")))
+        (println "__INSTALLERS__") (clojure.pprint/pprint (:juxt.site/installers selected)) (clojure.pprint/pprint selected)
 
         ;; TODO expand the utility to allow re/installation of bundles
         ;; We need to prompt the user to add parameters etc
