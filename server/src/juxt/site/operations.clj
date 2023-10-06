@@ -729,7 +729,8 @@
      ;; Allowed to access the database
      'xt
      {'entity (fn [id] (xt/entity db id))
-      'q (fn [& args] (apply xt/q db args))}
+      'q (fn [& args] (apply xt/q db args))
+      'entity-history (fn [id] (xt/entity-history db id :asc {:with-docs? true}))}
 
      'juxt.site
      {'match-identity

@@ -1,5 +1,4 @@
-(reduce-kv #(if (not= "juxt.site" (namespace %2))
-                  (assoc %1 %2 %3)
-                  %1)
-               {}
-               *resource*)
+(let [query-params (:ring.request/query *ctx*)]
+  (when query-params
+    (let [bundle-id (-> query-params ring.util.codec/form-decode (get "bundle-id"))]
+      (xt/entity-history (str "https://data.example.org/bundles/" bundle-id)))))

@@ -7,14 +7,17 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
 
-   :openapi.v3/path "/bundle/modifications"
+   :openapi.v3/path "/bundle-modifications"
 
    :juxt.site/methods
    {:get
     {:juxt.site/operation "https://auth.example.org/_site/operations/get-bundle-modifications"
      :openapi.v3/metadata
      {"tags" ["Bundles"]
-      "summary" "Get a bundle's modification history TODO"}}}
+      "summary" "Get a bundle's modification history"
+      "parameters"  [{"name" "bundle-id"
+                      "in" "query"
+                      "schema" {"type" "string"}}]}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 

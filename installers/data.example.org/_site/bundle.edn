@@ -15,12 +15,15 @@
     {:juxt.site/operation "https://auth.example.org/_site/operations/get-bundle-by-id"
      :openapi.v3/metadata
      {"tags" ["Bundles"]
-      "summary" "Get a bundle TODO"}}
+      "summary" "Get a bundle"
+      "parameters"  [{"name" "bundle-id"
+                      "in" "query"
+                      "schema" {"type" "string"}}]}}
     :delete
     {:juxt.site/operation "https://auth.example.org/_site/operations/delete-bundle-by-id"
      :openapi.v3/metadata
      {"tags" ["Bundles"]
-      "summary" "Delete a bundle TODO"}}}
+      "summary" "Delete a bundle"}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 

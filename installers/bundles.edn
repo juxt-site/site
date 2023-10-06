@@ -102,6 +102,8 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/bundle-modifications"}
    {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle-modifications.txt"}
+   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/bundle-modifications.jsonlines"}
    ]}
 
