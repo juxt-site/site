@@ -83,7 +83,17 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/bundles"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/bundles.txt"}]}
+    :juxt.site/installer-path "/_site/bundles.txt"}
+
+   ;; Merging in what used to be the old resources-api
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/operations/install-bundle"}
+   ;; Permissions (mapping roles to operations)
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "install-bundle"}}
+
+   ]}
 
  "juxt/site/unprotected-resources"
  {:juxt.site/title "Unprotected resources"
@@ -120,17 +130,17 @@
   :juxt.site/installers
   [ ;; Resources
    {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/install-bundle"}
+    :juxt.site/installer-path "/operations/install-resource"}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/resources"}
 
    ;; Permissions (mapping roles to operations)
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteBootstrap" "operation" "install-bundle"}}
+    :juxt.site/parameters {"role" "SiteBootstrap" "operation" "install-resource"}}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteAdmin" "operation" "install-bundle"}}]}
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "install-resource"}}]}
 
  "juxt/site/logs-api"
  {:juxt.site/title "Logs API"

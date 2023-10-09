@@ -14,7 +14,19 @@
     {:juxt.site/operation "https://auth.example.org/_site/operations/all-bundles"
      :openapi.v3/metadata
      {"tags" ["Bundles"]
-      "summary" "Get bundles"}}}
+      "summary" "Get bundles"}}
+
+    :post
+    {:juxt.site/acceptable
+     {"accept" "application/edn,application/json"}
+     :juxt.site/operation "https://auth.example.org/operations/install-bundle"
+     :openapi.v3/metadata
+     {"tags" ["Bundles"]
+      "summary" "Install bundle"
+      "requestBody"
+      {"description" "Archive of operations to call"
+       "content"
+       {"application/zip" {}}}}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 

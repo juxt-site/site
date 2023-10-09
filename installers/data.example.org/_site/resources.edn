@@ -1,5 +1,6 @@
 {:deps
- ["https://auth.example.org/operations/install-bundle"
+ ["https://auth.example.org/operations/put-api-endpoint"
+  "https://auth.example.org/operations/install-resource"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
@@ -13,14 +14,15 @@
    {:post
     {:juxt.site/acceptable
      {"accept" "application/edn,application/json"}
-     :juxt.site/operation "https://auth.example.org/operations/install-bundle"
+     :juxt.site/operation "https://auth.example.org/operations/install-resource"
      :openapi.v3/metadata
      {"tags" ["Resources"]
-      "summary" "Install bundle"
+      "summary" "Install resource"
       "requestBody"
-      {"description" "Archive of operations to call"
+      {"description" "Resource to install"
        "content"
-       {"application/zip" {}}}}}}
+       {"application/json" {}
+        "application/edn" {}}}}}}
 
    :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
 

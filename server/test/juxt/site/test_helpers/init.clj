@@ -24,12 +24,12 @@
     ;; Install the required APIs
     "juxt/site/user-model"
     "juxt/site/api-operations"
-    "juxt/site/resources-api"
     "juxt/site/events-api"
     "juxt/site/whoami-api"
     "juxt/site/users-api"
     "juxt/site/endpoints-api"
     "juxt/site/openapis-api"
+    "juxt/site/bundles-api"
     "juxt/site/sessions"
     ;; RFC 7662 token introspection
     "juxt/site/oauth-introspection-endpoint"

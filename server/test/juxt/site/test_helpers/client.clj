@@ -128,7 +128,7 @@
 (defn install-bundle [installer-seq]
   (let [body (.getBytes (pr-str installer-seq))]
     (http-post
-     (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/resources")
+     (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/bundles")
      {:ring.request/headers
       {"content-length" (str (count body))
        "content-type" "application/edn"}

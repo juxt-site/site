@@ -430,7 +430,6 @@
            ["juxt/site/user-model" {}]
            ["juxt/site/api-operations" {}]
            ["juxt/site/protection-spaces" {}]
-           ["juxt/site/resources-api" {}]
            ["juxt/site/events-api" {}]
            ["juxt/site/logs-api" {}]
            ["juxt/site/whoami-api" {}]
@@ -475,7 +474,7 @@
      (assoc
       opts
       :resources-uri
-      (str data-base-uri "/_site/resources")
+      (str data-base-uri "/_site/bundles")
       :access-token
       (util/retrieve-token cfg)
       :bundles
@@ -651,7 +650,7 @@
      (assoc
       opts
       :resources-uri
-      (str data-base-uri "/_site/resources")
+      (str data-base-uri "/_site/bundles")
       :access-token
       (util/retrieve-token cfg)
       :bundles
@@ -680,7 +679,7 @@
 
     (install-bundles
      (assoc opts
-            :resources-uri (str data-base-uri "/_site/resources")
+            :resources-uri (str data-base-uri "/_site/bundles")
             :access-token (util/retrieve-token cfg)
             :bundles
             [["juxt/site/openapis-api" {}]
@@ -710,7 +709,7 @@
      (assoc
       opts
       :resources-uri
-      (str admin-base-uri "/resources")
+      (str admin-base-uri "/bundles")
       :bundles
       [["juxt/site/system-api-openapi"]
        ;; There's a dependency between /oauth/authorize and form-login-session, so we need login-form
