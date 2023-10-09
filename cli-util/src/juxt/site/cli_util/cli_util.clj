@@ -248,6 +248,9 @@
         :client-secret
         (request-client-secret admin-base-uri client-id)}))))
 
+(defn authorization [cfg]
+  (format "Bearer %s" (retrieve-token cfg)))
+
 (defn check-token [cfg token]
   (if-not token
     (stderr (println "Hint: Try requesting an access-token (site request-token)"))

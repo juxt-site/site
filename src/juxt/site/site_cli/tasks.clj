@@ -102,9 +102,6 @@
 ;; site request-token --username alice --password $(gum input --password)
 
 
-(defn authorization [cfg]
-  (format "Bearer %s" (util/retrieve-token cfg)))
-
 (defn api-request [path]
   (let [opts (util/parse-opts)
         cfg (util/config (util/profile opts))
@@ -117,7 +114,7 @@
                  (get opts :csv) "text/csv")
         headers (merge
                  {:content-type "application/json"
-                  :authorization (authorization cfg)}
+                  :authorization (util/authorization cfg)}
                  (when accept {:accept accept}))
         {:keys [status body]}
         (http/get
@@ -143,7 +140,7 @@
             {:keys [status body]}
             (http/get
              endpoint
-             {:headers {:authorization (authorization cfg)
+             {:headers {:authorization (util/authorization cfg)
                         :accept "application/edn"}
               :throw false})]
         (case status
@@ -496,7 +493,7 @@
          (str base-uri "/_site/users")
          {:headers {:content-type "application/json"
                     :accept "application/json"
-                    :authorization (authorization cfg)}
+                    :authorization (util/authorization cfg)}
           :body (json/generate-string opts {:pretty true})
           :throw false})]
     (case status
@@ -517,7 +514,7 @@
         (http/post
          (str auth-base-uri "/operations/assign-role")
          {:headers {"content-type" "application/edn"
-                    "authorization" (authorization cfg)}
+                    "authorization" (util/authorization cfg)}
           :body (pr-str
                  {:juxt.site/user (str data-base-uri "/_site/users/" (:username opts))
                   :juxt.site/role (str data-base-uri "/_site/roles/" (:role opts))})
@@ -551,7 +548,7 @@
            (str data-base-uri "/_site/applications")
            {:headers {"content-type" "application/json"
                       :accept "application/json"
-                      "authorization" (authorization cfg)}
+                      "authorization" (util/authorization cfg)}
             :body (json/generate-string opts {:pretty true})
             :throw false})]
 
