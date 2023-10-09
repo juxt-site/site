@@ -201,7 +201,8 @@
 
 (defmethod ig/init-key ::listener [_ {port :juxt.site/port, dynamic? :juxt.site/dynamic?, :as opts}]
   (log/infof "Starting HTTP listener (admin) on port %d" port)
-  (let [mb-container (MBeanContainer. (ManagementFactory/getPlatformMBeanServer))]
+  (let [mb-container (MBeanContainer. (ManagementFactory/getPlatformMBeanServer))
+        opts (assoc opts ::admin-server true)]
     (doto
         (run-jetty
          ;; Dynamic mode helps in development where performance is less critical than

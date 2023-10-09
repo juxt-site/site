@@ -1147,6 +1147,9 @@
 
         (= method :options) (h req)
 
+        (and (nil? operation) (not :juxt.site.admin-server/admin-server))
+        (throw (ex-info "No operation" (select-keys req [:juxt.site/uri])))
+
         subject
         (throw
          (ex-info
