@@ -294,9 +294,10 @@
       (stderr (println "Cannot reset. The admin-server is not reachable."))
       (let [abort?
             (when-not (:no-confirm opts)
-              (when (input/confirm "Factory reset and delete ALL resources?")
+              (if (input/confirm "Factory reset and delete ALL resources?")
                 (when-not (:no-countdown opts)
-                  (countdown 3))))]
+                  (countdown 3))
+                :abort))]
         (if abort?
           (println "Aborting reset")
           (do
