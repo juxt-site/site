@@ -18,15 +18,15 @@
                    :juxt.http/body
                    (String.))
 
-          installer-seq
+          bundle
           (case content-type
             "application/edn" (clojure.edn/read-string body)
             "application/json" (jsonista.core/read-value-with-keywords body))
 
-          tx-ops (juxt.site/bundle->tx-ops installer-seq)]
+          tx-ops (juxt.site/bundle->tx-ops bundle)]
 
       {:juxt.site/tx-ops tx-ops})}
-   
+
    :juxt.site/scope
    #{"https://auth.example.org/scopes/system/write"}
 
