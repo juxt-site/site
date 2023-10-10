@@ -340,7 +340,7 @@
   (let [{bundle-names :bundle _ :debug :as opts} (util/parse-opts)
         cfg (util/config (util/profile opts))
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
-        resources-uri (str data-base-uri "/_site/resources")
+        resources-uri (str data-base-uri "/_site/bundles")
         bundles (bundles cfg)]
     (doseq [bundle-name bundle-names
             :let [bundle (get bundles bundle-name)
