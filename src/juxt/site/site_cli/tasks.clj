@@ -430,6 +430,8 @@
            ["juxt/site/user-model" {}]
            ["juxt/site/api-operations" {}]
            ["juxt/site/protection-spaces" {}]
+
+           ["juxt/site/resources-api" {}]
            ["juxt/site/events-api" {}]
            ["juxt/site/logs-api" {}]
            ["juxt/site/whoami-api" {}]
@@ -638,6 +640,24 @@
           (throw e)
           (binding [*err* *out*]
             (println (.getMessage e))))))))
+
+(defn new-resource []
+  (let [{:keys [uri] :as opts} (util/parse-opts)
+        cfg (util/config opts)
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        placeholder (str data-base-uri "/")
+        new-resource-uri (or uri
+                             (input/input
+                              {:header "URI"
+                               :value placeholder}))]
+
+    ;; POST to /resources
+    (http/post
+     (str data-base-uri "/_site/resources")
+     {:headers {"content-type" "application/edn"
+                "authorization" (util/authorization cfg)}
+      :body (pr-str {:xt/id new-resource-uri})
+      :throw false})))
 
 ;; Temporary convenience for ongoing development
 

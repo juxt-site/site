@@ -25,6 +25,7 @@
     "juxt/site/user-model"
     "juxt/site/api-operations"
     "juxt/site/protection-spaces"
+    "juxt/site/resources-api"
     "juxt/site/roles"
     "juxt/site/whoami-api"
     "juxt/site/oauth-token-endpoint"

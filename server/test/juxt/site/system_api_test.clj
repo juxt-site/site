@@ -31,6 +31,7 @@
     "juxt/site/protection-spaces"
     "juxt/site/user-model"
     "juxt/site/api-operations"
+    "juxt/site/resources-api"
     "juxt/site/users-api"
     "juxt/site/openapis-api"
     "juxt/site/system-api-openapi"

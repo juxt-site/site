@@ -179,9 +179,11 @@
    :task (juxt.site.site-cli.tasks/install-openapi-task)}
 
   ;; 'New' functions
+  new-resource
+  {:doc "(Coming soon...)"
+   :task (juxt.site.site-cli.tasks/new-resource)} ; e.g. /contacts
 
-  new-resource {:doc "(Coming soon...)"} ; e.g. /contacts
-  new-method {:doc "(Coming soon...)"} ; e.g. POST
+  new-method {:doc "(Coming soon...)"}  ; e.g. POST
   new-openapi {:doc "(Coming soon...)"} ; e.g. /folk
   add-resource-to-openapi {:doc "(Coming soon...)"} ; e.g. add-resource-to-openapi --openapi /folk --resource /folk/contacts (must be relative to /folk)
   annotate-resource {:doc "(Coming soon...)"} ; Add OpenAPI metadata to resource

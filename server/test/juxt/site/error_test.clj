@@ -18,6 +18,7 @@
     "juxt/site/user-model"
     "juxt/site/protection-spaces"
     "juxt/site/api-operations"
+    "juxt/site/resources-api"
     "juxt/site/users-api"]
    RESOURCE_SERVER)
   (f))
