@@ -23,11 +23,11 @@
         (try
           (local/install-bundles!
            [["juxt/site/bootstrap" {}]
-            "juxt/site/endpoints-api"]
+            "juxt/site/resources-api"]
            (get CONFIG "uri-map"))
           (catch Exception e
             (ex-data e)))]
-    (is (= "https://auth.example.test/operations/put-api-endpoint"
+    (is (= "https://auth.example.test/scopes/system/write"
            (:dependency exception)))))
 
 (deftest put-bundle-test
@@ -52,12 +52,10 @@
     ;; Install the required APIs
     "juxt/site/user-model"
     "juxt/site/roles"
-    ["juxt/site/api-operations" {}]
     ["juxt/site/resources-api" {}]
     ["juxt/site/events-api" {}]
     ["juxt/site/whoami-api" {}]
     ["juxt/site/users-api" {}]
-    ["juxt/site/endpoints-api" {}]
     ["juxt/site/openapis-api" {}]
     ["juxt/site/bundles-api" {}]
 

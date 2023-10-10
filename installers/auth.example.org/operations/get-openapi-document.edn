@@ -22,17 +22,21 @@
           ;;
           ;; A Site instance may host multiple resource servers
           ;; Each resource server might host multiple OpenAPIs
-          (xt/q '{:find [(pull path [* {(:juxt.site/_variant-of {:as :variants}) [*]}])]
-                  :where [[path :juxt.site/type "https://meta.juxt.site/types/api-endpoint"]
-                          [(clojure.string/starts-with? path base)]
-                          ]
-                  :in [base]} base-uri)
+
+          (map first
+               (xt/q '{:find [(pull e [* {(:juxt.site/_variant-of {:as :variants}) [*]}])]
+                       :where [[e :xt/id]
+                               [(clojure.string/starts-with? e base)]]
+                       :in [base]} base-uri))
+
+          _ (log/info (format "openapi-paths: count %s" (count openapi-paths)))
+          _ (log/info (format "openapi-paths filtered: count %s" (count (filter :openapi.v3/path openapi-paths))))
 
           allowed-operations (set (map :xt/id (juxt.site/allowed-operations {})))
 
           paths
           (reduce
-           (fn [acc [path]]
+           (fn [acc path]
              (assoc
               acc
               (:openapi.v3/path path)
@@ -93,7 +97,9 @@
                         (:openapi.v3/metadata method-details))))))
                 {} (:juxt.site/methods path)))))
            {}
-           openapi-paths)]
+           ;; We need to be more selective, because openapi-paths
+           ;; currently returns everything under the path.
+           (filter :openapi.v3/path openapi-paths))]
 
       (-> (:openapi.v3/definition *resource*)
           (assoc "paths" paths)))}

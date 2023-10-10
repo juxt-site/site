@@ -23,7 +23,6 @@
     "juxt/site/user-model"
     "juxt/site/roles"
     "juxt/site/oauth-token-endpoint"
-    "juxt/site/api-operations"
     "juxt/site/resources-api"
     "juxt/site/applications-api"
     "juxt/site/testing/system-permissions"

@@ -64,7 +64,6 @@
          [:xtdb.api/put
           {:xt/id (str base-uri path)
            :openapi.v3/path path
-           :juxt.site/type "https://meta.juxt.site/types/api-endpoint"
            :juxt.site/methods
            (into {}
                  (for [[method operation] path-obj

@@ -66,7 +66,7 @@
     :juxt.site/description "Let SiteAdmin search for a bundle"
     :juxt.site/installer-path "/_site/permissions/SiteAdmin/get-bundle-by-id"}
 
-      {:juxt.site/base-uri "https://auth.example.org"
+   {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/_site/operations/delete-bundle-by-id"}
 
    {:juxt.site/base-uri "https://auth.example.org"
@@ -101,31 +101,14 @@
   [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/get-unprotected-resource"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/get-unprotected-resource"}]}
 
- "juxt/site/api-operations"
- {:juxt.site/title "API endpoints"
-  :juxt.site/description "API endpoints"
-  :juxt.site/installers
-  [{:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/put-api-endpoint"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/system/put-api-endpoint"}
-
-
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteAdmin"
-                           "operation" "put-api-endpoint"}}
-
-   ]}
-
  "juxt/site/resources-api"
  {:juxt.site/title "Resources API"
   :juxt.site/description "Resources API"
   :juxt.site/installers
   [ ;; Resources
    #_{:juxt.site/base-uri "https://auth.example.org"
-    ;; TODO: Remove "/operations/install-resource"
-    :juxt.site/installer-path "/operations/put-resource"}
+      ;; TODO: Remove "/operations/install-resource"
+      :juxt.site/installer-path "/operations/put-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/put-resource"}
    {:juxt.site/base-uri "https://auth.example.org"
@@ -141,11 +124,11 @@
 
    ;; Permissions (mapping roles to operations)
    #_{:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteBootstrap" "operation" "install-resource"}}
+      :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+      :juxt.site/parameters {"role" "SiteBootstrap" "operation" "install-resource"}}
    #_{:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteAdmin" "operation" "install-resource"}}]}
+      :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+      :juxt.site/parameters {"role" "SiteAdmin" "operation" "install-resource"}}]}
 
  "juxt/site/logs-api"
  {:juxt.site/title "Logs API"
@@ -192,35 +175,6 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-events"}}]}
-
- "juxt/site/endpoints-api"
- {:juxt.site/title "API introspection"
-  :juxt.site/description "API introspection"
-  :juxt.site/installers
-  [{:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-api-endpoints"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/api-endpoints"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/api-endpoints.json"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/api-endpoints.edn"}
-   {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/api-endpoints.csv"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteAdmin"
-                           "operation" "get-api-endpoints"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteSystemQuery"
-                           "operation" "get-api-endpoints"}}
-
-   ;; Not sure where this belongs!
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteAdmin"
-                           "operation" "oauth/register-scope"}}]}
 
  "juxt/site/openapis-api"
  {:juxt.site/title "OpenAPIs API"
@@ -347,15 +301,14 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/applications.json"}
 
-   ;; SiteSystemQuery
-   ;; TODO
-
    ;; SiteAdmin
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "oauth/get-applications"}}
-   ]
-  }
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "oauth/register-scope"}}]}
 
  "juxt/site/whoami-api"
  {:juxt.site/title "Whoami API"

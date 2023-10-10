@@ -165,9 +165,6 @@
 (defn whoami-task []
   (whoami (util/parse-opts)))
 
-(defn api-endpoints []
-  (api-request "/_site/api-endpoints"))
-
 (defn users []
   (api-request "/_site/users"))
 
@@ -428,7 +425,6 @@
            ["juxt/site/keypair" {"kid" (random-string 16)}]
            ;; Install the required APIs
            ["juxt/site/user-model" {}]
-           ["juxt/site/api-operations" {}]
            ["juxt/site/protection-spaces" {}]
 
            ["juxt/site/resources-api" {}]
@@ -436,7 +432,6 @@
            ["juxt/site/logs-api" {}]
            ["juxt/site/whoami-api" {}]
            ["juxt/site/users-api" {}]
-           ["juxt/site/endpoints-api" {}]
            ["juxt/site/openapis-api" {}]
            ["juxt/site/bundles-api" {}]
 

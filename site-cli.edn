@@ -167,11 +167,6 @@
                    :debug :boolean}}
    :task (juxt.site.site-cli.tasks/install-bundle-task)}
 
-  api-endpoints
-  {:doc "List available API endpoints"
-   :opts {:args->opts [:pattern]}
-   :task (juxt.site.site-cli.tasks/api-endpoints)}
-
   install-openapi
   {:doc "Install an API by uploading an OpenAPI document"
    :opts {:require [:openapi]

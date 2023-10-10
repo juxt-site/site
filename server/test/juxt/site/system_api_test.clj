@@ -30,7 +30,6 @@
     "juxt/site/unprotected-resources"
     "juxt/site/protection-spaces"
     "juxt/site/user-model"
-    "juxt/site/api-operations"
     "juxt/site/resources-api"
     "juxt/site/users-api"
     "juxt/site/openapis-api"
@@ -64,7 +63,6 @@
   ;; Perhaps optimise by only creating the installer graph once and
   ;; passing it in as a parameter.
   )
-
 
 (defn bootstrap-fixture [f]
   (bootstrap)
