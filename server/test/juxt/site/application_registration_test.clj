@@ -20,6 +20,7 @@
    ["juxt/site/bootstrap"
     "juxt/site/unprotected-resources"
     "juxt/site/protection-spaces"
+    "juxt/site/selmer-templating"
     "juxt/site/user-model"
     "juxt/site/roles"
     "juxt/site/oauth-token-endpoint"
@@ -35,7 +36,7 @@
   (bootstrap)
   (f))
 
-(use-fixtures :once system-xt-fixture handler-fixture #'bootstrap-fixture)
+(use-fixtures :once system-xt-fixture handler-fixture bootstrap-fixture)
 
 (defn get-apps []
   (let [request {:juxt.site/uri "https://data.example.test/_site/applications"

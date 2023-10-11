@@ -937,8 +937,7 @@
                                                              db
                                                              '{:find [content]
                                                                :where [[e :xt/id id]
-                                                                       ;; TODO: Shouldn't we have a 'template' type?
-                                                                       [e :juxt.site/type "https://meta.juxt.site/types/resource"]
+                                                                       [e :juxt.site/type "https://meta.juxt.site/types/template"]
                                                                        [e :juxt.http/content content]]
                                                                :in [id]} id)))]
                                                content

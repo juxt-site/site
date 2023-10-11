@@ -29,6 +29,7 @@
    ["juxt/site/bootstrap"
     "juxt/site/unprotected-resources"
     "juxt/site/protection-spaces"
+    "juxt/site/selmer-templating"
     "juxt/site/user-model"
     "juxt/site/resources-api"
     "juxt/site/users-api"

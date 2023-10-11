@@ -211,12 +211,25 @@
     :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "get-openapis"}}]}
 
+ "juxt/site/selmer-templating"
+ {:juxt.site/title "Selmer templating"
+  :juxt.site/description "Provides operations to add templates to the database"
+  :juxt.site/installers
+  [
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/operations/put-template"}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/system/put-template"}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "put-template"}}]}
+
  "juxt/site/users-api"
  {:juxt.site/title "Users API"
   :juxt.site/description "Users API"
   :juxt.site/installers
   [
-
    ;; HTML
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/templates/document-base.html"}

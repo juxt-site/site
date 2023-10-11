@@ -46,6 +46,7 @@
     ;; Support the creation of JWT bearer tokens
     "juxt/site/protection-spaces"
     "juxt/site/unprotected-resources"
+    "juxt/site/selmer-templating"
     ["juxt/site/oauth-token-endpoint" {}]
     ;; Install a keypair to sign JWT bearer tokens
     ["juxt/site/keypair" {"kid" "test-kid"}]

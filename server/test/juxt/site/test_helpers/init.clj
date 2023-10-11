@@ -17,6 +17,7 @@
    ["juxt/site/bootstrap"
     "juxt/site/unprotected-resources"
     "juxt/site/protection-spaces"
+    "juxt/site/selmer-templating"
     ;; Support the creation of JWT bearer tokens
     "juxt/site/oauth-token-endpoint"
     ;; Install a keypair to sign JWT bearer tokens

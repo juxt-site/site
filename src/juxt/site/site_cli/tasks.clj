@@ -426,6 +426,7 @@
            ;; Install the required APIs
            ["juxt/site/user-model" {}]
            ["juxt/site/protection-spaces" {}]
+           ["juxt/site/selmer-templating" {}]
 
            ["juxt/site/resources-api" {}]
            ["juxt/site/events-api" {}]

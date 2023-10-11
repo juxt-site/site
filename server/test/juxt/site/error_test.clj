@@ -15,6 +15,7 @@
   (install-bundles!
    ["juxt/site/bootstrap"
     "juxt/site/unprotected-resources"
+    "juxt/site/selmer-templating"
     "juxt/site/user-model"
     "juxt/site/protection-spaces"
     "juxt/site/resources-api"
