@@ -22,15 +22,11 @@
           ;;
           ;; A Site instance may host multiple resource servers
           ;; Each resource server might host multiple OpenAPIs
-
           (map first
                (xt/q '{:find [(pull e [* {(:juxt.site/_variant-of {:as :variants}) [*]}])]
                        :where [[e :xt/id]
                                [(clojure.string/starts-with? e base)]]
                        :in [base]} base-uri))
-
-          _ (log/info (format "openapi-paths: count %s" (count openapi-paths)))
-          _ (log/info (format "openapi-paths filtered: count %s" (count (filter :openapi.v3/path openapi-paths))))
 
           allowed-operations (set (map :xt/id (juxt.site/allowed-operations {})))
 
