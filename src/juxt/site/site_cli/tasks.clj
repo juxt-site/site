@@ -641,10 +641,11 @@
         cfg (util/config opts)
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
         placeholder (str data-base-uri "/")
-        new-resource-uri (or uri
-                             (input/input
-                              {:header "URI"
-                               :value placeholder}))]
+        new-resource-uri
+        (or uri
+            (input/input
+             {:header "URI"
+              :value placeholder}))]
 
     ;; POST to /resources
     (http/post
