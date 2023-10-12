@@ -308,9 +308,7 @@
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "oauth/get-applications"}}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
-    :juxt.site/parameters {"role" "SiteAdmin" "operation" "oauth/register-scope"}}]}
+   ]}
 
  "juxt/site/whoami-api"
  {:juxt.site/title "Whoami API"
@@ -415,21 +413,28 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/protection-spaces/client-credentials"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/token"}
 
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin"
+                           "operation" "oauth/install-token-endpoint"}}
+
    ;; Necessary to allow bootstrap registration of clients
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/register-application"}
-
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/system/register-application"}
-
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin"
                            "operation" "oauth/register-application"}}
 
+   ;; Registering scopes probably needs to go in another bundle
+   ;; (There probably does need to be a 'base' bundle containing mandatory OAuth resources.)
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/register-scope"}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/oauth/register-scope"}
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin"
-                           "operation" "oauth/install-token-endpoint"}}]}
+                           "operation" "oauth/register-scope"}}]}
 
  "juxt/site/keypair"
  {:juxt.site/title "Keypair"
@@ -644,6 +649,12 @@
    ]
   }
 
+ "demo/petstore/petstore-app"
+ {:juxt.site/title "Petstore app"
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/applications/petstore"}]}
+
  "juxt/site/sessions"
  {:juxt.site/title "Sessions"
   :juxt.site/description "Sessions"
@@ -662,8 +673,7 @@
   :juxt.site/description
   "Operations to establish users upon a common model"
   :juxt.site/installers
-  [{:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/register-scope"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/oauth/register-scope"}
+  [
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/scopes/system/read"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/scopes/system/write"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/get-users"}
