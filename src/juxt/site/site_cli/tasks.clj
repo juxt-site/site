@@ -702,7 +702,7 @@
             :bundles
             [["juxt/site/openapis-api" {}]
              ["demo/petstore/operations" {}]
-             ["juxt/site/system-client" {"client-id" "petstore"}]]))
+             ["demo/petstore/petstore-app" {}]]))
 
     (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/petstore/openapi.json")))
 
