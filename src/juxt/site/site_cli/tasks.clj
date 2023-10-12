@@ -433,6 +433,7 @@
            ["juxt/site/logs-api" {}]
            ["juxt/site/whoami-api" {}]
            ["juxt/site/users-api" {}]
+           ["juxt/site/applications-api" {}]
            ["juxt/site/openapis-api" {}]
            ["juxt/site/bundles-api" {}]
 
