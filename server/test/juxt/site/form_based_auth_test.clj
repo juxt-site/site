@@ -17,9 +17,11 @@
 (defn bootstrap-fixture [f]
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/oauth-scope"
     "juxt/site/unprotected-resources"
     "juxt/site/protection-spaces"
     "juxt/site/sessions"
+    "juxt/site/oauth-token-endpoint"
     "juxt/site/login-form"
     "juxt/site/logout"
     "juxt/site/user-model"
@@ -28,7 +30,7 @@
      {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
       "authorization-code-length" 12
       "jti-length" 12}]
-    "juxt/site/oauth-token-endpoint"
+
     "juxt/site/example-users"]
    RESOURCE_SERVER)
   (f))

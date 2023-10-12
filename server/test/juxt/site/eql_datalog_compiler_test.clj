@@ -55,6 +55,7 @@
 (defn install-hospital! []
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/oauth-scope"
     "juxt/site/unprotected-resources"
     "juxt/site/protection-spaces"
     ["juxt/site/keypair" {"kid" "test-kid"}]

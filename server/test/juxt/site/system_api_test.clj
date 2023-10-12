@@ -27,6 +27,7 @@
 (defn bootstrap []
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/oauth-scope"
     "juxt/site/unprotected-resources"
     "juxt/site/protection-spaces"
     "juxt/site/selmer-templating"

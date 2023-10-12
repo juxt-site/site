@@ -43,6 +43,7 @@
 (deftest get-bundle-test
   (local/install-bundles!
    [["juxt/site/bootstrap" {}]
+    ["juxt/site/oauth-scope" {}]
     ;; Support the creation of JWT bearer tokens
     "juxt/site/protection-spaces"
     "juxt/site/unprotected-resources"

@@ -15,6 +15,7 @@
 (defn bootstrap []
   (install-bundles!
    ["juxt/site/bootstrap"
+    "juxt/site/oauth-scope"
     "juxt/site/user-model"
     "juxt/site/protection-spaces"
     "juxt/site/oauth-token-endpoint"

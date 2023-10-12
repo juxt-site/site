@@ -417,6 +417,7 @@
           (str admin-base-uri "/resources")
           :bundles
           [["juxt/site/bootstrap" {}]
+           ["juxt/site/oauth-scope" {}]
            ["juxt/site/unprotected-resources" {}]
            ["juxt/site/protection-spaces" {}]
            ;; Support the creation of JWT bearer tokens
