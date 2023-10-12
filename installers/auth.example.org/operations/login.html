@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link href="https://juxt.pro/images/favicon.png" rel="shortcut icon" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://jenil.github.io/bulmaswatch/darkly/bulmaswatch.min.css"
+        media='(prefers-color-scheme: dark)'>
+    <link rel="stylesheet" href="https://jenil.github.io/bulmaswatch/lux/bulmaswatch.min.css"
+        media='(prefers-color-scheme: light)'>
+</head>
+
+<style>
+    svg.is-small {
+        height: 24px;
+    }
+
+    /* Used to prevent loading blips */
+    [x-cloak] {
+        display: none !important;
+    }
+</style>
+
+<body>
+    <section class="hero has-background-dark is-fullheight">
+        <div class="hero-body">
+            <div class="container">
+                <div class="columns is-centered">
+                    <div class="column is-5-tablet is-4-desktop is-3-widescreen">
+                        <form method="POST" class="box has-background-light">
+                            <h1 class="title has-text-dark">Login</h1>
+                            <div class="field">
+                                <div class="control has-icons-left">
+                                    <input type="text" placeholder="Username" name="username" class="input" required>
+                                    <span class="icon is-small is-left">
+                                        <svg class="is-small has-text-primary" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 256 256">
+                                            <path fill="currentColor"
+                                                d="M230.93,220a8,8,0,0,1-6.93,4H32a8,8,0,0,1-6.92-12c15.23-26.33,38.7-45.21,66.09-54.16a72,72,0,1,1,73.66,0c27.39,8.95,50.86,27.83,66.09,54.16A8,8,0,0,1,230.93,220Z" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="field has-addons" x-data="{ showPassword: false }">
+                                <div class="control has-icons-left">
+                                    <input type="password" x-bind:type="showPassword ? 'text' : 'password'"
+                                        name="password" placeholder="*******" class="input" required>
+                                    <span class="icon is-small is-left">
+                                        <svg class="is-small has-text-primary" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 256 256">
+                                            <path fill="currentColor"
+                                                d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-80,84a12,12,0,1,1,12-12A12,12,0,0,1,128,164Zm32-84H96V56a32,32,0,0,1,64,0Z" />
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="control">
+                                    <a class="button has-background-warnings" @click="showPassword = !showPassword">
+                                        <svg x-cloak class="is-small has-text-info" x-show="showPassword"
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+                                            <rect width="256" height="256" fill="none" />
+                                            <path fill="currentColor"
+                                                d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z" />
+                                        </svg>
+                                        <svg class="is-small has-text-info" x-show="!showPassword"
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+                                            <rect width="256" height="256" fill="none" />
+                                            <path fill="currentColor"
+                                                d="M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm89,121.69a32,32,0,0,1-41.67-45.85Zm104.39-25.05c-.42.94-10.55,23.37-33.36,43.8a8,8,0,0,1-11.26-.57L101.4,63.07A8,8,0,0,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z" />
+                                        </svg>
+                                    </a>
+                                </div>
+
+                            </div>
+                            <div class="field">
+                                <button class="button is-success">
+                                    Login
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="//unpkg.com/alpinejs" defer></script>
+</body>
+
+</html>
