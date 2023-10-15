@@ -28,7 +28,10 @@
        ;; against the path parameter to later (potentially yielding a 400).
        (format "(?<%s>[^/#\\?]+)" group))))))
 
-(defn match-uri-templated-uris [db uri]
+(defn match-uri-templated-uris
+  "Match on a uri-template, as described in RFC 6570. See
+  https://www.rfc-editor.org/rfc/rfc6570."
+  [db uri]
   (when-let [{:keys [resource groups]}
              (first
               (xt/q
@@ -59,12 +62,25 @@
   (assert uri)
   (assert db)
   (or
+   ;; When the URI ends in '.meta', we interpret this as a request
+   ;; targetting the resource's metadata. For now, the
+   ;; /_site/meta-resource determines how a resource's metadata can be
+   ;; created, updated and deleted, while the scope of this
+   ;; determination is the entire virtual-host's URI space. However,
+   ;; it is expected that in future, other such 'meta resources' can
+   ;; be installed, and matched to the request based on some criteria,
+   ;; such as the request's URI, authorization or protection-domain.
+   (when-let [[_ virtual-uri] (re-matches #"(.*)\.meta" uri)]
+     (some->
+      (xt/entity db (str (.resolve (java.net.URI. uri) "/_site/meta-resource")))
+      (assoc :xt/id virtual-uri)))
+
    ;; Is it in XTDB?
    (when-let [e (xt/entity db uri)]
      (when-not (:juxt.site/uri-template e)
        (assoc e :juxt.site/resource-provider ::db)))
 
-   ;; Is it found by any resource locators registered in the database?
+   ;; Is it matched by any uri-templates (RFC 6570)?
    (some->
     (match-uri-templated-uris db uri)
     (assoc :juxt.site/resource-provider ::db))

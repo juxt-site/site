@@ -416,7 +416,8 @@
             "Validation failed"
             {:error :validation-failed
              :input input
-             :schema schema})))
+             :schema schema
+             :ring.response/status 400})))
         input))}
 
    'log

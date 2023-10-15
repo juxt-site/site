@@ -418,6 +418,7 @@
           :bundles
           [["juxt/site/bootstrap" {}]
            ["juxt/site/oauth-scope" {}]
+           ["juxt/site/full-dynamic-remote" {}]
            ["juxt/site/unprotected-resources" {}]
            ["juxt/site/protection-spaces" {}]
            ;; Support the creation of JWT bearer tokens
@@ -639,6 +640,8 @@
           (binding [*err* *out*]
             (println (.getMessage e))))))))
 
+;; Dynamic builders
+
 (defn new-resource []
   (let [{:keys [uri] :as opts} (util/parse-opts)
         cfg (util/config opts)
@@ -649,14 +652,42 @@
             (input/input
              {:header "URI"
               :value placeholder}))]
-
-    ;; POST to /resources
-    (http/post
-     (str data-base-uri "/_site/resources")
+    (http/put
+     (str new-resource-uri ".meta")
      {:headers {"content-type" "application/edn"
                 "authorization" (util/authorization cfg)}
-      :body (pr-str {:xt/id new-resource-uri})
-      :throw false})))
+      :body (pr-str {})
+     })))
+
+(defn attach-method []
+  (let [{:keys [uri method operation] :as opts} (util/parse-opts)
+        cfg (util/config opts)
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        placeholder (str data-base-uri "/")
+        uri
+        (or uri
+            (input/input
+             {:header "URI"
+              :value placeholder}))
+        method (or method
+                   (input/choose
+                    ["GET" "POST" "PUT" "DELETE"]
+                    {:header "Method"}))
+        operation (or operation
+                      ;; TODO: We could retrieve all the available
+                      ;; operations here, once we have a way of
+                      ;; creating operations.
+                      (input/input
+                       {:header "Operation"
+                        :value (str placeholder "operations/")}))]
+    (http/patch
+     (str uri ".meta")
+     {:headers {"content-type" "application/edn"
+                "authorization" (util/authorization cfg)}
+      :body (pr-str
+             {:add-method
+              {:method method
+               :operation operation}})})))
 
 ;; Temporary convenience for ongoing development
 

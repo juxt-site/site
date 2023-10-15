@@ -173,17 +173,21 @@
           :args->opts [:openapi]}
    :task (juxt.site.site-cli.tasks/install-openapi-task)}
 
-  ;; 'New' functions
+  ;; Dynamic builders
+
   new-resource
   {:doc "Create a new web resource"
-   :task (juxt.site.site-cli.tasks/new-resource)} ; e.g. /contacts
+   :task (juxt.site.site-cli.tasks/new-resource)}
 
-  add-method {:doc "(Coming soon...)"}  ; e.g. POST
+  attach-method
+  {:doc "Attach a method to a resource"
+   :task (juxt.site.site-cli.tasks/attach-method)}
+
   new-openapi {:doc "(Coming soon...)"} ; e.g. /folk
   add-resource-to-openapi {:doc "(Coming soon...)"} ; e.g. add-resource-to-openapi --openapi /folk --resource /folk/contacts (must be relative to /folk)
   annotate-resource {:doc "(Coming soon...)"} ; Add OpenAPI metadata to resource
 
-  ;; These functions are temporary, and just a convenience for now.
+  ;; Temporary convenience functions
 
   install-openapi-support
   {:doc "Auto configure"

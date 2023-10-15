@@ -52,6 +52,9 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/description "Let SiteAdmin grant permission to operations"
     :juxt.site/installer-path "/_site/permissions/SiteAdmin/grant-permission"}
+
+   ;; Dynamic
+
    ]}
 
  "juxt/site/oauth-scope"
@@ -63,6 +66,38 @@
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "oauth/register-scope"}}]}
+
+ "juxt/site/full-dynamic-remote"
+ {:juxt.site/title "Full dynamic remote"
+  :juxt.site/description "Remote construction of resources. This creates a special resource at /_site/meta-resource. See juxt/site/locator for more details."
+  :juxt.site/installers
+  [{:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/operations/install-meta-resource"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/permissions/system/install-meta-resource"}
+   {:juxt.site/base-uri "https://data.example.org" :juxt.site/installer-path "/_site/meta-resource"}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations/get-resource-metadata"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-resource-metadata"}}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations/post-new-resource"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "post-new-resource"}}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations/put-resource"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "put-resource"}}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations/patch-resource"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
+    :juxt.site/parameters {"role" "SiteAdmin" "operation" "patch-resource"}}]}
 
  "juxt/site/bundles-api"
  {:juxt.site/title "Bundles API"

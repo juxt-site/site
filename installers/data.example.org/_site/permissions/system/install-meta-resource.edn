@@ -1,0 +1,11 @@
+{:deps
+ ["https://auth.example.org/_site/do-operation"
+  "https://auth.example.org/_site/operations/grant-permission"]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/grant-permission"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/subject "https://auth.example.org/_site/subjects/system"
+   :juxt.site/operation "https://data.example.org/_site/operations/install-meta-resource"
+   :juxt.site/purpose nil}}}

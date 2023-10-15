@@ -1,0 +1,35 @@
+{:deps
+ ["https://auth.example.org/_site/do-operation"
+  "https://data.example.org/_site/operations/install-meta-resource"
+  "https://data.example.org/_site/permissions/system/install-meta-resource"]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://data.example.org/_site/operations/install-meta-resource"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+
+   :juxt.site/methods
+   {:get
+    {:juxt.site/operation "https://data.example.org/_site/operations/get-resource-metadata"}
+    :post
+    {:juxt.site/operation "https://data.example.org/_site/operations/post-new-resource"}
+    :put
+    {:juxt.site/operation "https://data.example.org/_site/operations/put-resource"}
+    :patch
+    {:juxt.site/operation "https://data.example.org/_site/operations/patch-resource"}}
+
+   :juxt.http/content-type "application/json"
+
+   :juxt.site/respond
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content (str (jsonista.core/write-value-as-string *state*) "\r\n")]
+      (-> *ctx*
+          (assoc :ring.response/body content)
+          (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
+
+   :juxt.site/access-control-allow-origins
+   [[".*" {:juxt.site/access-control-allow-origin "*"
+           :juxt.site/access-control-allow-methods [:get]
+           :juxt.site/access-control-allow-headers ["authorization"]}]]}}}
