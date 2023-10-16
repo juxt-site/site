@@ -231,18 +231,6 @@
         operation (:juxt.site/operation req)]
 
     (cond
-
-      ;; It's rare but sometimes a GET will involve a transaction. For example,
-      ;; the Authorization Request (RFC 6749 Section 4.2.1).
-      (and operation (:juxt.site/transact operation))
-      (operations/perform-ops!
-       req
-       [(cond-> req
-          ;; A java.io.BufferedInputStream in the request can cause this error:
-          ;; "invalid tx-op: Unfreezable type: class
-          ;; java.io.BufferedInputStream".
-          (:ring.request/body req) (dissoc :ring.request/body))])
-
       (-> resource :juxt.site/respond :juxt.site.sci/program)
       (let [state
             (when-let [program (-> operation :juxt.site/state :juxt.site.sci/program)]
