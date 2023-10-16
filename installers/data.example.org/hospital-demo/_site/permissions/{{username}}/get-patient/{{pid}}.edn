@@ -5,5 +5,4 @@
   {:xt/id "{{$id}}"
    :juxt.site/operation "https://data.example.org/hospital-demo/_site/operations/get-patient"
    :juxt.site/user "https://data.example.org/_site/users/{{username}}"
-   :patient "https://data.example.org/hospital-demo/patients/{{pid}}"
-   :juxt.site/purpose nil}}}
+   :patient "https://data.example.org/hospital-demo/patients/{{pid}}"}}}

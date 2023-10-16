@@ -17,7 +17,7 @@
     [:xt/id [:re "https?://.*?/permissions/.+"]]
     ;; TODO: Should allow sets of operations too!
     ;;[:juxt.site/operation [:re "https?://.*?/operations/.+"]]
-    [:juxt.site/purpose [:maybe :string]]]
+    ]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
