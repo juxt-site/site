@@ -355,6 +355,27 @@
 
    ]}
 
+ "juxt/site/operations-api"
+ {:juxt.site/title "Operations API"
+  :juxt.site/description "Operations API"
+  :juxt.site/installers
+  [
+   ;; Operations
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/operations/get-operations"}
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/permissions/get-operations"}
+
+   ;; Endpoints
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations.json"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations.edn"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions"}]}
+
  "juxt/site/whoami-api"
  {:juxt.site/title "Whoami API"
   :juxt.site/description "Whoami API"
@@ -384,17 +405,7 @@
  #_"juxt/site/system-api"
  #_{:juxt.site/description "Site System API"
     :juxt.site/installers
-    [ ;; Operations
-     {:juxt.site/base-uri "https://auth.example.org"
-      :juxt.site/installer-path "/operations/get-operations"}
-     {:juxt.site/base-uri "https://auth.example.org"
-      :juxt.site/installer-path "/permissions/get-operations"}
-     {:juxt.site/base-uri "https://data.example.org"
-      :juxt.site/installer-path "/_site/operations"}
-     {:juxt.site/base-uri "https://data.example.org"
-      :juxt.site/installer-path "/_site/operations.json"}
-     {:juxt.site/base-uri "https://data.example.org"
-      :juxt.site/installer-path "/_site/operations.edn"}
+    [
 
      ;; Roles (deprecated, replaced with SiteBootstrap and SiteSystemQuery)
      {:juxt.site/base-uri "https://data.example.org"
