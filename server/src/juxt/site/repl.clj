@@ -311,9 +311,6 @@
 (defn requests-cache []
   cache/requests-cache)
 
-#_(defn check-permissions [operations options]
-  (operations/check-permissions (db) operations options))
-
 (defn factory-reset! []
   (apply evict! (->> (q '{:find [(pull e [:xt/id :juxt.site/type])]
                           :where [[e :xt/id]]})

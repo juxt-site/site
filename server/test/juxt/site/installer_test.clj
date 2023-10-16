@@ -8,11 +8,9 @@
    [juxt.site.test-helpers.init :as init]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.oauth :refer [with-bearer-token] :as oauth]
-   [juxt.site.test-helpers.local-files-util :as local]
    [juxt.site.test-helpers.handler :refer [handler-fixture]]
    [xtdb.api :as xt]
    [juxt.site.repl :as repl]
-   [juxt.site.operations :refer [check-permissions]]
    [clojure.pprint :refer [pprint]]
    [clojure.set :as set]))
 

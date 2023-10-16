@@ -379,7 +379,7 @@
 (defn DELETE [req]
   (perform-unsafe-method req))
 
-(defn OPTIONS [{allowed-methods :juxt.site/allowed-methods, :as req}]
+(defn OPTIONS [{allowed-methods :juxt.site/allowed-methods :as req}]
   (-> req
       (assoc :ring.response/status 200)
       (update :ring.response/headers
