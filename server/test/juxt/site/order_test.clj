@@ -11,7 +11,8 @@
    [juxt.site.test-helpers.init :refer [init-fixture]]
    [juxt.site.test-helpers.oauth :refer [with-bearer-token] :as oauth]
    [juxt.site.test-helpers.petstore :refer [install-openapi! install-petstore!]]
-   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]))
+   [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
+   [clojure.edn :as edn]))
 
 (def dogs [{:id 10 :name "doggie" :status "available"}
            {:id 11 :name "cattie" :status "pending"}])
@@ -93,4 +94,4 @@
        (place-order id)))
     (is (= {"placed" 1
             "delivered" 1}
-           (:ring.response/body (get-inventory))))))
+           (json/read-value (:ring.response/body (get-inventory)))))))
