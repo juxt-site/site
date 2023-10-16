@@ -331,6 +331,7 @@
 (defn- install-bundle [cfg bundle params {:keys [debug] :as opts}]
   (assert bundle)
   (let [title (get bundle :juxt.site/title)
+        description (get bundle :juxt.site/description)
         param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))
         installers-seq (installers-seq cfg bundle (into opts (for [[k v] params] [(name k) v])))]
     (if debug
@@ -339,9 +340,11 @@
         (stderr
          (println
           (if (str/blank? param-str)
-            (format "info: Installing: %s" title)
-            (format "info: Installing: %s with %s" title param-str))))
-        (install opts (ciu/bundle-map title installers-seq (get cfg "uri-map")))))))
+            (format "Installing: %s" title)
+            (format "Installing: %s with %s" title param-str))))
+        (install opts (ciu/bundle-map {:title title
+                                       :description description
+                                       :installers installers-seq} (get cfg "uri-map") opts))))))
 
 (defn install-bundle-task []
   (let [{bundle-names :bundle _ :debug :as opts} (util/parse-opts)

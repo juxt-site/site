@@ -29,7 +29,11 @@
                           (get bundle-name)
                           :juxt.site/installers
                           (install/map-uris uri-map))]
-    (ciu/bundle-map bundle-name (ciu/installer-seq graph params resources) uri-map)))
+    (ciu/bundle-map {:title bundle-name
+                     :description (:juxt.site/description bundle)
+                     :installers (ciu/installer-seq graph params resources)}
+                    uri-map
+                    {})))
 
 (defn graph [dir uri-map]
   (ciu/unified-installer-map dir uri-map))
