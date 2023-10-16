@@ -31,8 +31,7 @@
          juxt.site.malli/validate-input
          (assoc
           :juxt.site/methods
-          {:get {:juxt.site/operation "https://auth.example.org/operations/logout"}}
-          :juxt.http/content-type "application/json"))))}
+          {:post {:juxt.site/operation "https://auth.example.org/operations/logout"}}))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

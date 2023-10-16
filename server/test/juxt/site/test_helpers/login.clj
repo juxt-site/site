@@ -32,7 +32,8 @@
 
 (defn logout! []
   (let [req {:juxt.site/uri "https://auth.example.test/logout"
-             :ring.request/method :get}]
+             :ring.request/method :post
+             :ring.request/headers {"content-length" (str 0)}}]
     (*handler* req)))
 
 (defn lookup-session-details [session-token]
