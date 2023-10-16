@@ -86,7 +86,7 @@
           {:ring.response/status 413
            :juxt.site/request-context req}))))
 
-    (when-not (:ring.request/body req)
+    (when (and (pos? content-length) (nil? (:ring.request/body req)))
       (throw
        (ex-info
         "No body in request"
@@ -190,29 +190,32 @@
           {:ring.response/status 400
            :juxt.site/request-context req})))
 
-      (with-open [in (:ring.request/body req)]
-        (let [body (.readNBytes in content-length)
-              content-type (:juxt.reap.alpha.rfc7231/content-type decoded-representation)]
+      (if (pos? content-length)
+        (with-open [in (:ring.request/body req)]
+          (let [body (.readNBytes in content-length)
+                content-type (:juxt.reap.alpha.rfc7231/content-type decoded-representation)]
 
-          (assoc
-           req
-           :juxt.site/received-representation
-           (merge
-            decoded-representation
-            {:juxt.http/content-length content-length
-             :juxt.http/last-modified start-date}
+            (assoc
+             req
+             :juxt.site/received-representation
+             (merge
+              decoded-representation
+              {:juxt.http/content-length content-length
+               :juxt.http/last-modified start-date}
 
-            (if (and
-                 (= (:juxt.reap.alpha.rfc7231/type content-type) "text")
-                 (nil? (get decoded-representation :juxt.http/content-encoding)))
-              (let [charset
-                    (get-in decoded-representation
-                            [:juxt.reap.alpha.rfc7231/content-type :juxt.reap.alpha.rfc7231/parameter-map "charset"])]
-                (merge
-                 {:juxt.http/content (new String body (or charset "utf-8"))}
-                 (when charset {:juxt.http/charset charset})))
+              (if (and
+                   (= (:juxt.reap.alpha.rfc7231/type content-type) "text")
+                   (nil? (get decoded-representation :juxt.http/content-encoding)))
+                (let [charset
+                      (get-in decoded-representation
+                              [:juxt.reap.alpha.rfc7231/content-type :juxt.reap.alpha.rfc7231/parameter-map "charset"])]
+                  (merge
+                   {:juxt.http/content (new String body (or charset "utf-8"))}
+                   (when charset {:juxt.http/charset charset})))
 
-              {:juxt.http/body body}))))))))
+                {:juxt.http/body body})))))
+        ;; Zero content-length, return request
+        req))))
 
 (defn GET [{resource :juxt.site/resource,
             variant :juxt.site/variant,
