@@ -34,11 +34,11 @@
   (local/install-bundles!
    [["juxt/site/bootstrap" {}]]
    (get CONFIG "uri-map"))
-  (let [db (xt/db *xt-node*)]
+  (let [db (xt/db *xt-node*)
+        resource (first (map first (xt/q db '{:find [(pull e [*])]
+                                       :where [[e :xt/id "https://data.example.test/bundles/juxt/site/bootstrap"]]})))]
     (is (= "https://data.example.test/bundles/juxt/site/bootstrap"
-         (:xt/id
-          (first (map first (xt/q db '{:find [(pull e [*])]
-                                       :where [[e :xt/id "https://data.example.test/bundles/juxt/site/bootstrap"]]}))))))))
+           (:xt/id resource)))))
 
 (deftest get-bundle-test
   (local/install-bundles!

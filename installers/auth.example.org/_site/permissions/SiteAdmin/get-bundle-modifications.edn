@@ -1,0 +1,9 @@
+{:deps
+ ["https://auth.example.org/_site/operations/get-bundle-by-id"]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/grant-permission"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/operation "https://auth.example.org/_site/operations/get-bundle-modifications"
+   :juxt.site/role "https://data.example.org/_site/roles/SiteAdmin"}}}
