@@ -3,5 +3,4 @@
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/operation #{"https://auth.example.org/operations/oauth/authorize"}
-   :juxt.site/purpose nil}}}
+   :juxt.site/operation #{"https://auth.example.org/operations/oauth/authorize"}}}}

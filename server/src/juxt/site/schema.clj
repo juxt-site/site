@@ -18,7 +18,6 @@
    :juxt.site/input [:map [:xt/id {:optional true} [:string {:min 1}]]]
    :juxt.site/methods [:map [:get :any]]
    :juxt.site/method [:enum :get :post :put]
-   :juxt.site/purpose [:string {:min 1}]
    :xt/id [:string {:min 5}]
    :juxt.site/scope [:set [:and [:string {:min 1}] [:fn string-uri?]]]
    :juxt.site/rules [:vector :any]

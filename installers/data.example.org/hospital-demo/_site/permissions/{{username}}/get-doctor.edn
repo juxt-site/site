@@ -4,5 +4,4 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/operation "https://data.example.org/hospital-demo/_site/operations/get-doctor"
-   :juxt.site/user "https://data.example.org/_site/users/{{username}}"
-   :juxt.site/purpose nil}}}
+   :juxt.site/user "https://data.example.org/_site/users/{{username}}"}}}

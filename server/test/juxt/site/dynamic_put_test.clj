@@ -78,7 +78,6 @@
        ;; revoke.
        {:xt/id "https://data.example.test/permissions/add-contact"
         :juxt.site/operation "https://data.example.test/operations/add-contact"
-        :juxt.site/purpose nil
         :juxt.site/user "alice"})
       (*handler*
        {:juxt.site/uri "https://data.example.test/_site/permissions"

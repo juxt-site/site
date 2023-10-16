@@ -50,8 +50,7 @@
     subject-uri :juxt.site/subject-uri
     operation-uri :juxt.site/operation-uri
     resource-uri :juxt.site/resource-uri
-    scope :juxt.site/scope
-    purpose :juxt.site/purpose}]
+    scope :juxt.site/scope}]
 
   (assert (or (nil? subject-uri) (string? subject-uri)))
   (assert (or (nil? resource-uri) (string? resource-uri)))
@@ -67,8 +66,7 @@
         {:subject subject-uri
          :operation operation-uri
          :resource resource-uri
-         :scope scope
-         :purpose purpose})))
+         :scope scope})))
 
     (let [query (if scope
                   {:find '[(pull permission [*]) ]
@@ -81,8 +79,6 @@
                      [permission :juxt.site/operation operation]
                      (allowed? subject operation resource permission)
 
-                     ;; Only permissions that match our purpose
-                     [permission :juxt.site/purpose purpose]
 
                      ;; When scope limits operations, restrict operations that have the scope
                      [operation :juxt.site/scope s]
@@ -90,7 +86,7 @@
 
                    :rules rules
 
-                   :in '[subject operation resource scope purpose]}
+                   :in '[subject operation resource scope]}
 
                   {:find '[(pull permission [*]) ]
                    :where
@@ -100,20 +96,17 @@
                      ;; Only consider a permitted operation
                      [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
                      [permission :juxt.site/operation operation]
-                     (allowed? subject operation resource permission)
-
-                     ;; Only permissions that match our purpose
-                     [permission :juxt.site/purpose purpose]]
+                     (allowed? subject operation resource permission)]
 
                    :rules rules
 
-                   :in '[subject operation resource purpose]})
+                   :in '[subject operation resource]})
 
           permissions (try
                         (map first
                              (if scope
-                               (xt/q db query subject-uri operation-uri resource-uri scope purpose)
-                               (xt/q db query subject-uri operation-uri resource-uri purpose)))
+                               (xt/q db query subject-uri operation-uri resource-uri scope)
+                               (xt/q db query subject-uri operation-uri resource-uri)))
                         (catch Exception e
                           (throw (ex-info "Failed to query permissions" {:query query} e))))]
 
@@ -140,7 +133,7 @@
 (defn allowed-resources
   "Given a set of possible operations, and possibly a subject and purpose, which
   resources are allowed?"
-  [db operation {subject :juxt.site/subject purpose :juxt.site/purpose}]
+  [db operation {subject :juxt.site/subject}]
   (let [rules (operation->rules db operation)
         query {:find '[resource]
                :where
@@ -153,14 +146,14 @@
                  (allowed? subject operation resource permission)
 
                  ;; Only permissions that match our purpose
-                 [permission :juxt.site/purpose purpose]]
+                 [permission]]
 
                :rules rules
 
-               :in '[subject operation purpose]}]
+               :in '[subject operation]}]
 
     (try
-      (xt/q db query (:xt/id subject) operation purpose)
+      (xt/q db query (:xt/id subject) operation)
       (catch Exception cause
         (throw
          (ex-info
@@ -169,8 +162,7 @@
            :rules rules
            :subject subject
            :operation operation
-           :operation-entity (xt/entity db operation)
-           :purpose purpose}
+           :operation-entity (xt/entity db operation)}
           cause))))))
 
 (malli/=>
@@ -179,8 +171,7 @@
        :any
        :string
        [:map
-        [:juxt.site/subject {:optional true}]
-        [:juxt.site/purpose {:optional true}]]]
+        [:juxt.site/subject {:optional true}]]]
   :any])
 
 ;; TODO: How is this call protected from unauthorized use? Must call this with
@@ -202,16 +193,14 @@
              [permission :juxt.site/operation operation]
              (allowed? subject operation resource permission)
 
-             ;; Only permissions that match our purpose
-             [permission :juxt.site/purpose purpose]
 
              #_[access-token :juxt.site/subject subject]]
 
            :rules rules
 
-           :in '[resource operation purpose]}
+           :in '[resource operation]}
 
-          resource operation purpose))))
+          resource operation))))
 
 #_(defn pull-allowed-resource
   "Given a subject, an operation and a resource, pull the allowed
@@ -236,8 +225,7 @@
        :string
        :juxt.site/resource
        [:map
-        [:juxt.site/subject {:optional true}]
-        [:juxt.site/purpose {:optional true}]]]
+        [:juxt.site/subject {:optional true}]]]
   :any])
 
 (defn pull-allowed-resources
@@ -245,7 +233,6 @@
   get me the documents. If resources-in-scope is given, only consider
   resources in that set."
   [db operation {subject :juxt.site/subject
-                 purpose :juxt.site/purpose
                  include-rules :juxt.site/include-rules
                  resources-in-scope :juxt.site/resources-in-scope}]
   (assert (string? operation))
@@ -255,8 +242,8 @@
         results
         (xt/q
          db
-         {:find '[resource (pull operation [:xt/id :juxt.site/pull]) purpose permission]
-          :keys '[resource operation purpose permission]
+         {:find '[resource (pull operation [:xt/id :juxt.site/pull]) permission]
+          :keys '[resource operation permission]
           :where
           (cond-> '[
                     ;; Only consider given operations
@@ -266,9 +253,7 @@
                     [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
                     [permission :juxt.site/operation operation]
                     (allowed? subject operation resource permission)
-
-                    ;; Only permissions that match our purpose
-                    [permission :juxt.site/purpose purpose]]
+]
 
             include-rules
             (conj '(include? subject operation resource))
@@ -278,9 +263,9 @@
 
           :rules (vec (concat rules include-rules))
 
-          :in '[subject operation purpose resources-in-scope]}
+          :in '[subject operation resources-in-scope]}
 
-         (:xt/id subject) operation purpose (or resources-in-scope #{}))]
+         (:xt/id subject) operation (or resources-in-scope #{}))]
 
     ;; TODO: Too complex, extract this and unit test. The purpose here it to
     ;; apply the pull of each relevant operation to each result, and merge the
@@ -300,8 +285,7 @@
         :any
         :string
         [:map
-         [:juxt.site/subject {:optional true}]
-         [:juxt.site/purpose {:optional true}]]]
+         [:juxt.site/subject {:optional true}]]]
    :any])
 
 (defn join-with-pull-allowed-resources
@@ -317,7 +301,7 @@
 (defn allowed-operations
   "Return all the operations that a subject is allowed to perform, along
   with the permissions that permit them."
-  [db {subject :juxt.site/subject purpose :juxt.site/purpose}]
+  [db {subject :juxt.site/subject}]
   (let [
         ;; Start with a list of all operations
         operations
@@ -345,18 +329,15 @@
          [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
          [permission :juxt.site/operation operation]
          (allowed? subject operation resource permission)
-
-         ;; Only permissions that match our purpose
-         [permission :juxt.site/purpose purpose]]
+]
 
        :rules rules
 
-       :in '[subject operations resource purpose]}
+       :in '[subject operations resource]}
 
       (:xt/id subject)
       operations
-      nil
-      purpose)
+      nil)
 
      ;; We want to list unique operations but associated with the
      ;; permissions that let the subject have access.
@@ -566,7 +547,6 @@
                                     :juxt.site/subject
                                     :juxt.site/operation-index
                                     :juxt.site/operation-uri
-                                    :juxt.site/purpose
                                     :juxt.site/scope
                                     :juxt.site/prepare])
             prepare (assoc :juxt.site/prepare prepare)
@@ -898,7 +878,6 @@
     operation-index :juxt.site/operation-index
     operation-uri :juxt.site/operation-uri
     resource-uri :juxt.site/resource-uri
-    purpose :juxt.site/purpose
     scope :juxt.site/scope
     prepare :juxt.site/prepare}]
   (let [db (xt/db xt-ctx)
@@ -919,8 +898,7 @@
           :juxt.site/subject-uri subject-uri
           :juxt.site/operation-uri operation-uri
           :juxt.site/resource-uri resource-uri
-          :juxt.site/scope scope
-          :juxt.site/purpose purpose})]
+          :juxt.site/scope scope})]
 
     (try
       (assert (or (nil? subject-uri) (string? subject-uri)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
@@ -986,7 +964,6 @@
                         :xtdb.api/tx-id (:xtdb.api/tx-id tx)
                         :juxt.site/subject-uri subject-uri
                         :juxt.site/operation-uri operation-uri
-                        :juxt.site/purpose purpose
                         :juxt.site/puts
                         (vec
                          (keep
