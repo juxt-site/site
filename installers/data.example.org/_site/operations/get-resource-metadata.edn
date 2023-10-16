@@ -10,7 +10,7 @@
    :juxt.site/state
    {:juxt.site.sci/program
     #juxt.pprint
-    *resource*}
+    (xt/entity (:xt/id *resource*))}
 
    :juxt.site/rules
    [
