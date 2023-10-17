@@ -703,7 +703,7 @@
                                        (-> *ctx*
                                            (assoc :ring.response/body content)
                                            (update :ring.response/headers assoc "content-length" (str (count (.getBytes content)))))))}
-                           :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+                           :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
                            :juxt.site/access-control-allow-origins
                            [[".*" {:juxt.site/access-control-allow-origin "*"
                                    :juxt.site/access-control-allow-methods [:get]
@@ -1142,8 +1142,8 @@
 
         ;; We are in a protection space, so this is HTTP Authentication (401
         ;; + WWW-Authenticate header)
-        (:juxt.site/protection-spaces resource)
-        (let [protection-spaces (:juxt.site/protection-spaces resource)]
+        (:juxt.site/protection-space-uris resource)
+        (let [protection-spaces (:juxt.site/protection-space-uris resource)]
           (throw
            (ex-info
             (format "No anonymous permission for operation (try authenticating!): %s" (pr-str operation))

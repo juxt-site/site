@@ -160,7 +160,7 @@
 
   ;; TODO: This might be where we also add the 'on-behalf-of' info
 
-  (let [protection-spaces (keep #(xt/entity db %) (:juxt.site/protection-spaces resource []))
+  (let [protection-spaces (keep #(xt/entity db %) (:juxt.site/protection-space-uris resource []))
         ;;req (cond-> req protection-spaces (assoc :juxt.site/protection-spaces protection-spaces))
         authorization-header (get-in req [:ring.request/headers "authorization"])]
 

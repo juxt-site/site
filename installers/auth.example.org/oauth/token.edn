@@ -13,7 +13,7 @@
 
    ;; The token endpoint is inside a special protection space since
    ;; client_credentials can use HTTP Basic Authentication
-   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/client-credentials"}
+   :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/client-credentials"}
 
    :juxt.site/access-control-allow-origins
    [["https://petstore.swagger.io"

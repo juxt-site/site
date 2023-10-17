@@ -16,7 +16,7 @@
      :openapi.v3/metadata {"tags" ["Introspection"]
                            "summary" "Find out information about the requestor"}}}
 
-   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+   :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
 
    :juxt.site/access-control-allow-origins
    [[".*" {:juxt.site/access-control-allow-origin "*"

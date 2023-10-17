@@ -29,7 +29,7 @@
                juxt.site.malli/validate-input
                (assoc
                 :juxt.site/type "https://data.example.org/types/doctor"
-                :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+                :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
                 :juxt.site/methods
                 {:get {:juxt.site/operation "https://data.example.org/hospital-demo/_site/operations/get-doctor"}
                  :options {}}))]

@@ -29,7 +29,7 @@
       {:juxt.http/content-type "application/edn"}
       {:juxt.http/content-type "text/html;charset=utf-8"}]}}
 
-   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+   :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
 
    :juxt.site/access-control-allow-origins
    [[".*" {:juxt.site/access-control-allow-origin "*"

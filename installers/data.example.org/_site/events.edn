@@ -16,7 +16,7 @@
      {"tags" ["Events"]
       "summary" "Get events"}}}
 
-   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+   :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
 
    :juxt.site/access-control-allow-origins
    [[".*" {:juxt.site/access-control-allow-origin "*"
