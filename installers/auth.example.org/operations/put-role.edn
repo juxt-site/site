@@ -29,7 +29,7 @@
          (assoc
           :juxt.site/type "https://meta.juxt.site/types/role"
           :juxt.site/methods
-          {:get {:juxt.site/operation "https://auth.example.org/operations/get-role"}}))))}
+          {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-role"}}))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

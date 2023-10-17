@@ -23,7 +23,7 @@
     {:openapi.v3/metadata
      {"tags" ["Users"]
       "summary" "Get the details for an individual user."}
-     :juxt.site/operation "https://auth.example.org/operations/get-user"
+     :juxt.site/operation-uri "https://auth.example.org/operations/get-user"
      :juxt.site/variants
      [{:juxt.http/content-type "application/json"}
       {:juxt.http/content-type "application/edn"}

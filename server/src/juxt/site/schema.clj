@@ -28,7 +28,6 @@
    :juxt.site/client-type [:enum "confidential" "public"]
    :juxt.site/redirect-uris [:sequential [:and [:string {:min 1}] [:fn string-uri?]]]
    :juxt.site/subject-uri [:and [:string {:min 1}] [:fn string-uri?]]
-   :juxt.site/operationg [:and [:string {:min 1}] [:fn string-uri?]]
    :juxt.site/operation-uri [:and [:string {:min 1}] [:fn string-uri?]]
    :juxt.site/do-operation-tx-fn [:and [:string {:min 1}] [:fn string-uri?]]
    :juxt.site/events-base-uri [:and [:string {:min 1}] [:fn string-uri?]]

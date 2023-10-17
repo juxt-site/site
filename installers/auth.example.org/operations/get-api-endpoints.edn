@@ -22,10 +22,10 @@
                 '{:find [(pull e [*])]
                   :where [[e :juxt.site/type "https://meta.juxt.site/types/api-endpoint"]]})
                (map first))
-          [method {operation :juxt.site/operation}] (:juxt.site/methods endpoint)]
+          [method {operation-uri :juxt.site/operation-uri}] (:juxt.site/methods endpoint)]
       {:uri (:xt/id endpoint)
        :method (clojure.string/upper-case (name method))
-       :operation-uri operation})}
+       :operation-uri operation-uri})}
 
    :juxt.site/scope
    #{"https://auth.example.org/scopes/system/read"}

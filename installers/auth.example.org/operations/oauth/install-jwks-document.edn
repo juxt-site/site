@@ -26,7 +26,7 @@
          juxt.site.malli/validate-input
          (assoc
           :juxt.site/methods
-          {:get {:juxt.site/operation "https://auth.example.org/operations/oauth/get-jwks-document"}}
+          {:get {:juxt.site/operation-uri "https://auth.example.org/operations/oauth/get-jwks-document"}}
           :juxt.http/content-type "application/json"
           :juxt.site/respond
           {:juxt.site.sci/program

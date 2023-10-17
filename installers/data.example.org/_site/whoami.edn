@@ -12,7 +12,7 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation "https://auth.example.org/operations/whoami"
+    {:juxt.site/operation-uri "https://auth.example.org/operations/whoami"
      :openapi.v3/metadata {"tags" ["Introspection"]
                            "summary" "Find out information about the requestor"}}}
 

@@ -7,7 +7,7 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/operation "https://auth.example.org/operations/get-openapis"}}
+   {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-openapis"}}
    :juxt.site/variant-of "https://data.example.org/_site/openapis"
    :juxt.http/content-type "application/json"
 

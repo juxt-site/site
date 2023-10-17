@@ -36,7 +36,7 @@
        :juxt.site/operation-uri "https://example.org/_site/operations/grant-permission"
        :juxt.site/input
        {:xt/id id
-        :juxt.site/operation "https://example.org/operations/get-graphql-type"
+        :juxt.site/operation-uri "https://example.org/operations/get-graphql-type"
         :juxt.site/user (format "https://example.org/_site/users/%s" (get params "username"))}})}
 
    "https://example.org/operations/delete-graphql-type"
@@ -104,7 +104,7 @@
        :juxt.site/operation-uri "https://example.org/_site/operations/grant-permission"
        :juxt.site/input
        {:xt/id id
-        :juxt.site/operation "https://example.org/operations/delete-graphql-type"
+        :juxt.site/operation-uri "https://example.org/operations/delete-graphql-type"
         :juxt.site/user (format "https://example.org/_site/users/%s" (get params "username"))}})}
 
    "https://example.org/operations/install-graphql-type"
@@ -126,8 +126,8 @@
                      {:xt/id (str (:xt/id *resource*) "types/" type-name)
                       :juxt.site/type "https://meta.juxt.site/types/graphql-type"
                       :juxt.site/methods
-                      {:get {:juxt.site/operation "https://example.org/operations/get-graphql-type"}
-                       :delete {:juxt.site/operation "https://example.org/operations/delete-graphql-type"}}
+                      {:get {:juxt.site/operation-uri "https://example.org/operations/get-graphql-type"}
+                       :delete {:juxt.site/operation-uri "https://example.org/operations/delete-graphql-type"}}
                       :juxt.site/graphql-schema (:xt/id *resource*)
                       :juxt.grab/type-definition typedef
                       ;; Inherit the protection space of the resource
@@ -177,7 +177,7 @@
        :juxt.site/operation-uri "https://example.org/_site/operations/grant-permission"
        :juxt.site/input
        {:xt/id id
-        :juxt.site/operation "https://example.org/operations/install-graphql-type"
+        :juxt.site/operation-uri "https://example.org/operations/install-graphql-type"
         :juxt.site/user (format "https://example.org/_site/users/%s" (get params "username"))}})}
 
    "https://example.org/graphql/schema/"
@@ -189,7 +189,7 @@
         :juxt.site/uri-template true
         :juxt.site/methods
         {:post
-         {:juxt.site/operation "https://example.org/operations/install-graphql-type"
+         {:juxt.site/operation-uri "https://example.org/operations/install-graphql-type"
           :juxt.site/acceptable {"accept" "text/plain"}}}
         :juxt.site/protection-spaces #{"https://example.org/protection-spaces/bearer"}}})}
 
@@ -203,7 +203,7 @@
         :juxt.site/graphql-schema "https://example.org/graphql/schema/"
         :juxt.site/methods
         {:post
-         {:juxt.site/operation "https://example.org/operations/compile-graphql-schema"}}
+         {:juxt.site/operation-uri "https://example.org/operations/compile-graphql-schema"}}
         :juxt.site/protection-spaces #{"https://example.org/protection-spaces/bearer"}}))}
 
 
@@ -216,7 +216,7 @@
                 (init/put! ;; install-graphql-endpoint
                  {:xt/id id
                   :juxt.site/methods
-                  {:get {:juxt.site/operation "https://example.org/operations/whoami"}}
+                  {:get {:juxt.site/operation-uri "https://example.org/operations/whoami"}}
                   :juxt.site/protection-spaces #{"https://example.org/protection-spaces/bearer"}}))}
 
    })

@@ -252,9 +252,9 @@
    :juxt.site/events-base-uri (str (get uri-map "https://auth.example.org") "/_site/events/")
    :juxt.site/methods
    {:get
-    {:juxt.site/operation (str (get-in uri-map ["https://auth.example.org"]) "/_site/operations/get-bundle-by-id")}
+    {:juxt.site/operation-uri (str (get-in uri-map ["https://auth.example.org"]) "/_site/operations/get-bundle-by-id")}
     :delete
-    {:juxt.site/operation (str (get-in uri-map ["https://auth.example.org"]) "/_site/operations/delete-bundle-by-id")}}})
+    {:juxt.site/operation-uri (str (get-in uri-map ["https://auth.example.org"]) "/_site/operations/delete-bundle-by-id")}}})
 
 (def ^:dynamic *working-dir* nil)
 

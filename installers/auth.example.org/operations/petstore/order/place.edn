@@ -35,10 +35,10 @@
              :juxt.site/type "https://data.example.org/types/order"
              :juxt.site/methods
              {:get
-              {:juxt.site/operation
+              {:juxt.site/operation-uri
                "https://auth.example.org/operations/petstore/order/get-by-id"}
               :delete
-              {:juxt.site/operation
+              {:juxt.site/operation-uri
                "https://auth.example.org/operations/petstore/order/delete-by-id"}}
              :juxt.site/protection-spaces
              #{"https://auth.example.org/protection-spaces/bearer"}

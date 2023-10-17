@@ -3,7 +3,7 @@
   ;; tag::install-system-permissions![]
   {:xt/id "{{$id}}"
    :juxt.site/type "https://meta.juxt.site/types/permission"
-   :juxt.site/operation #{"https://auth.example.org/_site/operations/create-operation"
+   :juxt.site/operation-uri #{"https://auth.example.org/_site/operations/create-operation"
                           "https://auth.example.org/_site/operations/grant-permission"}
    :juxt.site/subject "https://auth.example.org/_site/subjects/system"
    }

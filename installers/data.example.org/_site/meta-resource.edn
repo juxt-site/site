@@ -11,13 +11,13 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation "https://data.example.org/_site/operations/get-resource-metadata"}
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/get-resource-metadata"}
     :post
-    {:juxt.site/operation "https://data.example.org/_site/operations/post-new-resource"}
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/post-new-resource"}
     :put
-    {:juxt.site/operation "https://data.example.org/_site/operations/put-resource"}
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/put-resource"}
     :patch
-    {:juxt.site/operation "https://data.example.org/_site/operations/patch-resource"}}
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/patch-resource"}}
 
    :juxt.http/content-type "application/json"
 
