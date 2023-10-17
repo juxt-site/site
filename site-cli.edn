@@ -132,6 +132,12 @@
    :opts {:args->opts [:pattern]}
    :task (juxt.site.site-cli.tasks/users)}
 
+  applications
+  {:doc "Show registered applications"
+   :opts {:coerce {:verbose :boolean}
+          :alias {:v :verbose}}
+   :task (juxt.site.site-cli.tasks/applications)}
+
   openapis
   {:doc "Show OpenAPI APIs"
    :opts {:args->opts [:pattern]}

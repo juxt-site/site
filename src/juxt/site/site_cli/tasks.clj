@@ -168,6 +168,35 @@
 (defn users []
   (api-request "/_site/users"))
 
+(defn applications []
+  (let [{:keys [verbose] :as opts} (util/parse-opts)
+        path "/_site/applications"]
+    (if-not verbose
+      (let [cfg (util/config (util/profile opts))
+            data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+            endpoint (str data-base-uri path)
+            {:keys [status body]}
+            (http/get
+             endpoint
+             {:headers {:authorization (util/authorization cfg)
+                        :accept "application/json"}
+              :throw false})]
+        (case status
+          200 (let [json (json/parse-string body)]
+                (if json
+                  (doseq [app json]
+                    (println (get app "juxt.site/client-id")))
+                  (println "No body")
+                  ))
+          401 (do
+                (print status body)
+                (println "Hint: Try requesting an access-token (site request-token)"))
+          (do
+            (print status body)
+            (.flush *out*))))
+      ;; Verbose
+      (api-request path))))
+
 (defn openapis []
   (api-request "/_site/openapis"))
 
