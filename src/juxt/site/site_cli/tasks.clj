@@ -761,8 +761,7 @@
             :resources-uri (str data-base-uri "/_site/bundles")
             :access-token (util/retrieve-token cfg)
             :bundles
-            [["juxt/site/openapis-api" {}]
-             ["demo/petstore/operations" {}]
+            [["demo/petstore/operations" {}]
              ["demo/petstore/petstore-app" {}]]))
 
     (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/petstore/openapi.json")))
