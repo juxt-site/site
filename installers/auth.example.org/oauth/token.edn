@@ -8,7 +8,7 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.http/content-type "text/html;charset=utf-8"
-   :juxt.http/content "<p>Welcome to the Site token endpoint server.</p>"
+   :juxt.http/content "<p>Welcome to the Site token endpoint server.</p>\n"
    :juxt.site/keypair "https://auth.example.org/keypairs/current-signing-key"
 
    ;; The token endpoint is inside a special protection space since

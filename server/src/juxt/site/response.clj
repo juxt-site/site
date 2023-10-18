@@ -25,17 +25,6 @@
       body (assoc req :ring.response/body body)
       :else req)))
 
-(defn add-error-payload
-  [{resource :juxt.site/resource, method :ring.request/method, :as req}]
-  ;; Should not be called if method is HEAD
-  (assert (not= method :head))
-
-  (let [{body :juxt.http/body, content :juxt.http/content} resource]
-    (cond
-      content (assoc req :ring.response/body content)
-      body (assoc req :ring.response/body body)
-      :else req)))
-
 (defn redirect [req status location]
   (-> req
       (assoc :ring.response/status status)

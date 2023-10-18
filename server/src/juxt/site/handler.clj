@@ -749,88 +749,6 @@
         :ring.response/body default-body}
        }))))
 
-#_(defn error-response
-  "Respond with the given error"
-  [{status :ring.response/status,
-    method :ring.request/method,
-    request-id :juxt.site/request-id,
-    :as ctx} e]
-
-  (assert (:juxt.site/start-date ctx))
-
-  (let [
-        #_representation
-        #_(or
-           ;; If we have already set a body, then we assume the request
-           ;; contains the response representation
-           (when (:ring.response/body req) req)
-
-           ;; Some default representations for errors
-           (some->
-            (conneg/negotiate-error-representation
-             req
-             [(let [content
-                    ;; We don't want to provide much information here, we don't
-                    ;; know much about the recipient, only that they're probably
-                    ;; using a web browser. We provide a link to the error
-                    ;; resource, because that will be subject to authorization
-                    ;; checks. So authorized users get to see extensive error
-                    ;; information, unauthorized users don't.
-                    (cond-> (str (status-message status) "\r\n")
-                      request-id (str (format "<a href=\"%s\" target=\"_site_error\">%s</a>\r\n" request-id "Error")))]
-                {:juxt.http/content-type "text/html;charset=utf-8"
-                 :juxt.http/content-length (count content)
-                 :juxt.http/content content})
-              (let [content (str (status-message status) "\r\n")]
-                {:juxt.http/content-type "text/plain;charset=utf-8"
-                 :juxt.http/content-length (count content)
-                 :juxt.http/content content
-                 })])
-
-            ;; This is an error, it won't be cached, it isn't negotiable 'content'
-            ;; so the Vary header isn't deemed applicable. Let's not set it.
-            (dissoc :juxt.http/vary))
-
-           ;; A last ditch error in plain-text, even though plain-text is not acceptable, we override this
-           (let [content (.getBytes (str (status-message status) "\r\n") "US-ASCII")]
-             {:juxt.http/content-type "text/plain;charset=us-ascii"
-              :juxt.http/content-length (count content)
-              :juxt.http/content content
-              :juxt.site/access-control-allow-origins
-              [[".*" {:juxt.site/access-control-allow-origin "*"
-                      :juxt.site/access-control-allow-methods [:get :put :post :delete]
-                      :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]]}))
-
-        #_#_original-resource (:juxt.site/resource req)
-
-        #_#_error-resource (merge
-                            {:ring.response/status 500
-                             :juxt.site/errors (errors-with-causes e)}
-                            (dissoc req :juxt.site/request-context)
-
-                            ;; Add CORS
-                            #_{:juxt.site/access-control-allow-origins
-                               [[".*" {:juxt.site/access-control-allow-origin "*"
-                                       :juxt.site/access-control-allow-methods [:get :put :post :delete]
-                                       :juxt.site/access-control-allow-headers ["authorization" "content-type"]}]]}
-
-                            ;; For the error itself
-                            (cond-> {:juxt.site/resource representation}
-                              original-resource (assoc :juxt.site/original-resource original-resource)))
-
-        #_#_error-resource (assoc
-                            error-resource
-                            :juxt.site/status-message (status-message (:ring.response/status error-resource)))
-
-        ctx (try
-              (cond-> ctx
-                (not= method :head) response/add-error-payload)
-              (catch Exception e
-                (respond-internal-error ctx e)))]
-
-    (respond ctx)))
-
-
 (defn wrap-error-handling
   "Return a handler that constructs proper Ring responses, logs and error
   handling where appropriate."
@@ -866,8 +784,6 @@
 
               method (:ring.request/method ctx)
 
-
-
               ctx
               (cond-> ctx
 
@@ -877,7 +793,7 @@
                 (:ring.response/body ex-data)
                 (assoc :ring.response/body (:ring.response/body ex-data))
 
-                (not= method :head) response/add-error-payload)
+                )
 
               resource (:juxt.site/resource ctx)]
 
