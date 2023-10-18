@@ -5,5 +5,5 @@
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/operation "https://auth.example.org/_site/operations/all-bundles"
+   :juxt.site/operation-uri "https://auth.example.org/_site/operations/all-bundles"
    :juxt.site/role "https://data.example.org/_site/roles/SiteAdmin"}}}

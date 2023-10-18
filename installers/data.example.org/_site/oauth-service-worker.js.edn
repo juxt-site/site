@@ -6,7 +6,7 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/operation "https://auth.example.org/operations/get-unprotected-resource"}}
+   {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-unprotected-resource"}}
 
    :juxt.http/content-type "text/javascript"
    :juxt.http/content #juxt.include "oauth-service-worker.js"

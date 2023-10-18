@@ -24,7 +24,7 @@
                 :key :doctors
                 :params
                 {:search "jack"
-                 :juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-doctor"}
+                 :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/get-doctor"}
                 :children [{:type :prop
                             :dispatch-key :xt/id
                             :key :xt/id}]}]}
@@ -44,7 +44,7 @@
                 :key :doctors
                 :params
                 {:search "jack"
-                 :juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-doctor"}
+                 :juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/get-doctor"}
                 :children
                 [{:type :prop :dispatch-key :xt/id :key :xt/id}
                  {:type :prop :dispatch-key :name :key :name}
@@ -52,7 +52,7 @@
                   :dispatch-key :patients
                   :key :patients
                   :params
-                  {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-patient"}
+                  {:juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/get-patient"}
                   :children
                   [{:type :prop :dispatch-key :xt/id :key :xt/id}
                    {:type :prop :dispatch-key :name :key :name}]}]}]}

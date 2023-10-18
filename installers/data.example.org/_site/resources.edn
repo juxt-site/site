@@ -13,7 +13,7 @@
    {:post
     {:juxt.site/acceptable
      {"accept" "application/edn,application/json"}
-     :juxt.site/operation "https://auth.example.org/operations/put-resource"
+     :juxt.site/operation-uri "https://auth.example.org/operations/put-resource"
      :openapi.v3/metadata
      {"tags" ["Resources"]
       "summary" "Install resource"

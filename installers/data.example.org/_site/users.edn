@@ -15,7 +15,7 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation "https://auth.example.org/operations/get-users"
+    {:juxt.site/operation-uri "https://auth.example.org/operations/get-users"
      :openapi.v3/metadata
      {"tags" ["Users"]
       "summary" "Get users"}
@@ -36,7 +36,7 @@
                (update :ring.response/headers assoc "content-type" "text/html")))}}}}}
 
     :post
-    {:juxt.site/operation
+    {:juxt.site/operation-uri
      ;; TODO: Rename to register-users
      "https://auth.example.org/operations/put-user"
      :openapi.v3/metadata

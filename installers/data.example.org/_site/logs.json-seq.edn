@@ -8,7 +8,7 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/operation "https://auth.example.org/operations/get-logs"}}
+   {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-logs"}}
    :juxt.site/variant-of "https://data.example.org/_site/logs"
    ;; See RFC 7464: https://datatracker.ietf.org/doc/html/rfc7464
    :juxt.http/content-type "application/jsonline-seq"

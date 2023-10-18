@@ -77,7 +77,7 @@
        ;; with the permission, to ensure that only the granter can
        ;; revoke.
        {:xt/id "https://data.example.test/permissions/add-contact"
-        :juxt.site/operation "https://data.example.test/operations/add-contact"
+        :juxt.site/operation-uri "https://data.example.test/operations/add-contact"
         :juxt.site/user "alice"})
       (*handler*
        {:juxt.site/uri "https://data.example.test/_site/permissions"
@@ -89,7 +89,7 @@
       (pr-str
        [[:add-method
          {:method "POST"
-          :operation "https://data.example.test/operations/add-contact"}]])
+          :operation-uri "https://data.example.test/operations/add-contact"}]])
       (*handler*
        {:juxt.site/uri "https://data.example.test/contacts.meta"
         :ring.request/method :patch

@@ -49,7 +49,7 @@
                :xt/id (format "https://data.example.org/_site/role-assignments/%s-%s" (or username client-id) rolename)
                :juxt.site/type "https://meta.juxt.site/types/role-assignment"
                :juxt.site/methods
-               {:get {:juxt.site/operation "https://auth.example.org/operations/get-role-assignment"}})))}
+               {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-role-assignment"}})))}
 
    :juxt.site/transact
    {:juxt.site.sci/program
@@ -61,7 +61,7 @@
 
    ;; This operation can be performed via its URI
    :juxt.site/methods
-   {:post {:juxt.site/operation "{{$id}}"
+   {:post {:juxt.site/operation-uri "{{$id}}"
            :juxt.site/acceptable {"accept" "application/json,application/edn"}}}
 
    :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}

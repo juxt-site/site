@@ -45,7 +45,7 @@
          {:xt/id (str base-uri "/openapi.json")
           :juxt.site/type "https://meta.juxt.site/types/openapi-document"
           :juxt.http/content-type "application/json"
-          :juxt.site/methods {:get {:juxt.site/operation "https://auth.example.org/operations/get-openapi-document"}}
+          :juxt.site/methods {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-openapi-document"}}
           :openapi.v3/definition openapi
 
           :juxt.site/access-control-allow-origins
@@ -69,7 +69,7 @@
                  (for [[method operation] path-obj
                        :let [request-body (get operation "requestBody")]]
                    [(keyword method)
-                    (cond-> {:juxt.site/operation (get operation "operationId")
+                    (cond-> {:juxt.site/operation-uri (get operation "operationId")
                              :openapi.v3/metadata operation}
                       request-body
                       (assoc :juxt.site/acceptable
@@ -96,7 +96,7 @@
                    (for [[method operation] path-obj
                          :let [request-body (get operation "requestBody")]]
                      [(keyword method)
-                      (cond-> {:juxt.site/operation (get operation "operationId")}
+                      (cond-> {:juxt.site/operation-uri (get operation "operationId")}
                         request-body
                         (assoc :juxt.site/acceptable
                                (clojure.string/join "," (keys (get request-body "content")))))]))

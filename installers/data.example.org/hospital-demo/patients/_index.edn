@@ -4,7 +4,7 @@
   {:xt/id "{{$id}}"
    :juxt.site/methods
    {:get
-    {:juxt.site/operation "https://data.example.org/hospital-demo/_site/operations/list-patients"}}
+    {:juxt.site/operation-uri "https://data.example.org/hospital-demo/_site/operations/list-patients"}}
    :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
    :juxt.http/content-type "application/json"
    :juxt.site/respond

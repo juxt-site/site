@@ -59,7 +59,7 @@
                (update doc
                        :juxt.site/methods (fnil assoc {})
                        (keyword (clojure.string/lower-case method))
-                       {:juxt.site/operation operation})])))
+                       {:juxt.site/operation-uri operation})])))
         (throw (ex-info "Cannot patch a missing document" {:xt/id id}))))}
 
    :juxt.site/rules

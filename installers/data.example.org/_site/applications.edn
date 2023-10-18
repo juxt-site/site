@@ -13,13 +13,13 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation "https://auth.example.org/operations/oauth/get-applications"
+    {:juxt.site/operation-uri "https://auth.example.org/operations/oauth/get-applications"
      :openapi.v3/metadata
      {"tags" ["Applications"]
       "summary" "Get applications"}}
 
     :post
-    {:juxt.site/operation
+    {:juxt.site/operation-uri
      "https://auth.example.org/operations/oauth/register-application"
      :openapi.v3/metadata
      {"tags" ["Applications"]

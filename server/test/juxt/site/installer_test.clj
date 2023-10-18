@@ -59,7 +59,8 @@
           (map first
                (xt/q db
                      '{:find [(pull ev [*])]
-                       :where [[ev :juxt.site/operation-uri "https://auth.example.test/operations/put-openapi-document"]]}))
+                       :where [[ev :juxt.site/operation-uri "https://auth.example.test/operations/put-openapi-document"]
+                               [ev :juxt.site/type "https://meta.juxt.site/types/event"]]}))
 
           ev (first events)]
 

@@ -36,7 +36,7 @@
                       ['operation :juxt.site/type "https://meta.juxt.site/types/operation"]
                       ['operation :xt/id operations-ids-as-single-or-set]
                       ['permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                      ['permission :juxt.site/operation operations-ids-as-single-or-set]
+                      ['permission :juxt.site/operation-uri operations-ids-as-single-or-set]
                       '(allowed? permission subject operation e)
                       '(include? operation e)]]
     (cond-> where-clause

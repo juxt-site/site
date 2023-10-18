@@ -11,7 +11,7 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation "https://auth.example.org/operations/get-events"
+    {:juxt.site/operation-uri "https://auth.example.org/operations/get-events"
      :openapi.v3/metadata
      {"tags" ["Events"]
       "summary" "Get events"}}}

@@ -11,7 +11,7 @@
   (assert (map? ctx))
   (assert (number? (:depth ctx)))
   (let [depth (:depth ctx)
-        operation-id (-> ast :params :juxt.site/operation)
+        operation-id (-> ast :params :juxt.site/operation-uri)
         _ (assert operation-id "Operation must be specified on metadata")
         operation (when operation-id (xt/entity db operation-id))
         _ (when operation-id (assert operation (format "Operation not found: %s" operation-id)))
@@ -63,7 +63,7 @@
        :where
        ~(cond-> `[[~'operation :xt/id ~operation-id]
                   ~'[permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                  ~'[permission :juxt.site/operation operation]
+                  ~'[permission :juxt.site/operation-uri operation]
                   ;; We must rename 'allowed?' here because we
                   ;; cannot allow rules from parent queries to
                   ;; affect rules from sub-queries. In other

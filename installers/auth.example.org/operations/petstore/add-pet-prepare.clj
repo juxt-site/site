@@ -25,13 +25,13 @@
               :juxt.site/type "https://data.example.org/types/pet"
               :juxt.site/methods
               {:get
-               {:juxt.site/operation
+               {:juxt.site/operation-uri
                 "https://auth.example.org/operations/petstore/get-pet-by-id"}
                :delete
-               {:juxt.site/operation
+               {:juxt.site/operation-uri
                 "https://auth.example.org/operations/petstore/delete-pet-by-id"}
                :post
-               {:juxt.site/operation
+               {:juxt.site/operation-uri
                 "https://auth.example.org/operations/petstore/update-pet-by-id"}}
               :juxt.site/protection-space-uris
               #{"https://auth.example.org/protection-spaces/bearer"}
