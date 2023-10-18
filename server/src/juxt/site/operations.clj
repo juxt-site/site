@@ -76,7 +76,7 @@
 
                      ;; Only consider a permitted operation
                      [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                     [permission :juxt.site/operation operation]
+                     [permission :juxt.site/operation-uri operation]
                      (allowed? subject operation resource permission)
 
 
@@ -95,7 +95,7 @@
 
                      ;; Only consider a permitted operation
                      [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                     [permission :juxt.site/operation operation]
+                     [permission :juxt.site/operation-uri operation]
                      (allowed? subject operation resource permission)]
 
                    :rules rules
@@ -142,7 +142,7 @@
 
                  ;; Only consider a permitted operation
                  [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                 [permission :juxt.site/operation operation]
+                 [permission :juxt.site/operation-uri operation]
                  (allowed? subject operation resource permission)
 
                  ;; Only permissions that match our purpose
@@ -190,7 +190,7 @@
 
              ;; Only consider a permitted operation
              [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-             [permission :juxt.site/operation operation]
+             [permission :juxt.site/operation-uri operation]
              (allowed? subject operation resource permission)
 
 
@@ -251,7 +251,7 @@
 
                     ;; Only consider allowed permssions
                     [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                    [permission :juxt.site/operation operation]
+                    [permission :juxt.site/operation-uri operation]
                     (allowed? subject operation resource permission)
 ]
 
@@ -316,7 +316,7 @@
      (xt/q
       db
       {:find '[(pull operation [*]) permission]
-       :keys '[juxt.site/operation juxt.site/permission]
+       :keys '[juxt.site/operation-uri juxt.site/permission]
        :where
        '[
          [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
@@ -327,7 +327,7 @@
 
          ;; Only consider a permitted operation
          [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-         [permission :juxt.site/operation operation]
+         [permission :juxt.site/operation-uri operation]
          (allowed? subject operation resource permission)
 ]
 
@@ -341,10 +341,10 @@
 
      ;; We want to list unique operations but associated with the
      ;; permissions that let the subject have access.
-     (group-by :juxt.site/operation)
+     (group-by :juxt.site/operation-uri)
      (reduce-kv
       (fn [acc operation permissions]
-        (conj acc {:juxt.site/operation operation
+        (conj acc {:juxt.site/operation-uri operation
                    :juxt.site/permitted-by (mapv :juxt.site/permission permissions)}))
       []))))
 
@@ -1079,7 +1079,7 @@
                (xt/with-tx [[:xtdb.api/put subject]]))
 
           method (if (= method :head) :get method)
-          operation-uri (get-in resource [:juxt.site/methods method :juxt.site/operation])
+          operation-uri (get-in resource [:juxt.site/methods method :juxt.site/operation-uri])
 
           operation (when operation-uri
                       (xt/entity db operation-uri))

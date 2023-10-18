@@ -31,7 +31,7 @@
                 :juxt.site/type "https://data.example.org/types/patient"
                 :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
                 :juxt.site/methods
-                {:get {:juxt.site/operation "https://data.example.org/hospital-demo/_site/operations/get-patient"}
+                {:get {:juxt.site/operation-uri "https://data.example.org/hospital-demo/_site/operations/get-patient"}
                  :options {}}))]
           (assoc input
                  :juxt.http/content-type "application/json"

@@ -4,4 +4,4 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/subject "https://auth.example.org/_site/subjects/system"
-   :juxt.site/operation "https://data.example.org/hospital-demo/_site/operations/register-patient-measurement"}}}
+   :juxt.site/operation-uri "https://data.example.org/hospital-demo/_site/operations/register-patient-measurement"}}}

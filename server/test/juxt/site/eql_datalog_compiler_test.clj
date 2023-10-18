@@ -288,11 +288,11 @@
                    db
                    (eql/query->ast
                     '[
-                      {(:patients {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-patient"})
+                      {(:patients {:juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/get-patient"})
                        [:xt/id
                         :name
                         :juxt.site/type
-                        {(:measurements {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/read-any-measurement"})
+                        {(:measurements {:juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/read-any-measurement"})
                          [:reading]}]}])))]
 
           (testing "Alice's view"
@@ -403,15 +403,15 @@
                   (eqlc/compile-ast
                    db
                    (eql/query->ast
-                    '[{(:doctors {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-doctor"})
+                    '[{(:doctors {:juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/get-doctor"})
                        [:xt/id
                         :name
                         :juxt.site/type
-                        {(:patients {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-patient"})
+                        {(:patients {:juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/get-patient"})
                          [:xt/id
                           :name
                           :juxt.site/type
-                          {(:readings {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/read-any-measurement"})
+                          {(:readings {:juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/read-any-measurement"})
                            [:reading]}]}]}])))]
 
           (testing "Alice's view"
@@ -504,16 +504,16 @@
                   (eqlc/compile-ast
                    db
                    (eql/query->ast
-                    '[{(:doctor {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-doctor"
+                    '[{(:doctor {:juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/get-doctor"
                                  :search "jack"})
                        [:xt/id
                         :name
                         :juxt.site/type
-                        {(:patients {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/get-patient"})
+                        {(:patients {:juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/get-patient"})
                          [:xt/id
                           :name
                           :juxt.site/type
-                          {(:readings {:juxt.site/operation "https://hospital.com/hospital-demo/_site/operations/read-any-measurement"})
+                          {(:readings {:juxt.site/operation-uri "https://hospital.com/hospital-demo/_site/operations/read-any-measurement"})
                            [:reading]}]}]}])))]
 
           (testing "Alice's view"

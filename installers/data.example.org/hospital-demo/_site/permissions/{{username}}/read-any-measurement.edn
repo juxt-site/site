@@ -3,5 +3,5 @@
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/operation "https://data.example.org/hospital-demo/_site/operations/read-any-measurement"
+   :juxt.site/operation-uri "https://data.example.org/hospital-demo/_site/operations/read-any-measurement"
    :juxt.site/user "https://data.example.org/_site/users/{{username}}"}}}

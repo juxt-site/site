@@ -9,7 +9,7 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/operation "https://auth.example.org/operations/get-logs"}}
+   {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-logs"}}
    :juxt.site/variant-of "https://data.example.org/_site/logs"
    ;; See https://docs.aws.amazon.com/sagemaker/latest/dg/cdf-inference.html#cm-batch
    :juxt.http/content-type "application/jsonlines"

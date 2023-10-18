@@ -11,7 +11,7 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation "https://auth.example.org/operations/get-access-token"
+    {:juxt.site/operation-uri "https://auth.example.org/operations/get-access-token"
      :openapi.v3/metadata {"tags" ["Introspection"]
                            "summary" "Show the access token as text so it can be saved"}}}
 

@@ -35,7 +35,7 @@
          (assoc
           :juxt.site/methods
           {:get
-           {:juxt.site/operation "https://auth.example.org/operations/login-with-openid"}}
+           {:juxt.site/operation-uri "https://auth.example.org/operations/login-with-openid"}}
           :juxt.http/content-type "text/html;charset=utf-8"
           :juxt.http/content "<p>This should redirect</p>"))))}
 

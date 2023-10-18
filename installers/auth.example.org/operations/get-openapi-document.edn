@@ -54,7 +54,7 @@
                             allowed-operations))
                     (assoc
                      (name method)
-                     (let [operation (xt/entity (:juxt.site/operation method-details))
+                     (let [operation (xt/entity (:juxt.site/operation-uri method-details))
                            scope (:juxt.site/scope operation)]
                        (merge
                         {"operationId" (:xt/id operation)}

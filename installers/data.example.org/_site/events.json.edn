@@ -15,7 +15,7 @@
           ;; operations?  Do operations only exist to 'normalise'
           ;; endpoints? i.e. so REST unsafe methods and GraphQL
           ;; mutations can share the same logic?
-          :juxt.site/operation "https://auth.example.org/operations/get-events"}}
+          :juxt.site/operation-uri "https://auth.example.org/operations/get-events"}}
    :juxt.site/variant-of "https://data.example.org/_site/events"
    :juxt.http/content-type "application/json"
 
