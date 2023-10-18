@@ -13,7 +13,7 @@
    :juxt.site.malli/input-schema
    [:map
     [:xt/id [:re "https://auth.example.org/.*"]]
-    [:juxt.site/protection-spaces [:set [:re "https://auth.example.org/protection-spaces/.*"]]]
+    [:juxt.site/protection-space-uris [:set [:re "https://auth.example.org/protection-spaces/.*"]]]
     [:juxt.http/content-type [:re "text/html;?.*"]]
     [:juxt.http/content :string]]
 

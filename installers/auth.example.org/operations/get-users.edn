@@ -15,7 +15,7 @@
             :where [[e :juxt.site/type "https://meta.juxt.site/types/user"]]})
          (map first)
          (map (fn [user] (dissoc user
-                                 :juxt.site/access-control-allow-origins :juxt.site/protection-spaces :juxt.site/methods :juxt.site/type)))
+                                 :juxt.site/access-control-allow-origins :juxt.site/protection-space-uris :juxt.site/methods :juxt.site/type)))
          (sort-by :xt/id)
          (vec))}
 

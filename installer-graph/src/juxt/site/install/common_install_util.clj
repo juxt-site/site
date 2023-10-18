@@ -222,7 +222,7 @@
   {:uri (str (get-in uri-map ["https://data.example.org"]) "/bundles/" (clojure.string/replace (clojure.string/lower-case title) " " "-"))
    :title title
    :installers installers
-   :juxt.site/protection-spaces #{(str (get-in uri-map ["https://auth.example.org"])
+   :juxt.site/protection-space-uris #{(str (get-in uri-map ["https://auth.example.org"])
                                        "/protection-spaces/bearer")}
    :juxt.site/access-control-allow-origins
    [[".*"

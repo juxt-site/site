@@ -33,7 +33,7 @@
                :post
                {:juxt.site/operation-uri
                 "https://auth.example.org/operations/petstore/update-pet-by-id"}}
-              :juxt.site/protection-spaces
+              :juxt.site/protection-space-uris
               #{"https://auth.example.org/protection-spaces/bearer"}
               :juxt.site/access-control-allow-origins
               [[".*" {:juxt.site/access-control-allow-origin "*"
@@ -58,7 +58,7 @@
             {:xt/id (format "https://data.example.org/petstore/pet/%s.json" (or id "UNKNOWN"))
              :juxt.http/content-type "application/json"
              :juxt.site/variant-of (format "https://data.example.org/petstore/pet/%s" (or id "UNKNOWN"))
-             :juxt.site/protection-spaces
+             :juxt.site/protection-space-uris
              #{"https://auth.example.org/protection-spaces/bearer"}
              :juxt.site/respond
              {:juxt.site.sci/program

@@ -7,7 +7,7 @@
   :juxt.site/operation-uri "https://auth.example.org/operations/put-resource"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/basic"}
+   :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/basic"}
    :juxt.site/methods
    {:get
     {:juxt.site/operation-uri "https://auth.example.org/operations/testing/basic-auth-protected-resource-operation"}}

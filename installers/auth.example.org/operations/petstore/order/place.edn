@@ -40,7 +40,7 @@
               :delete
               {:juxt.site/operation-uri
                "https://auth.example.org/operations/petstore/order/delete-by-id"}}
-             :juxt.site/protection-spaces
+             :juxt.site/protection-space-uris
              #{"https://auth.example.org/protection-spaces/bearer"}
              :juxt.site/access-control-allow-origins
              [[".*" {:juxt.site/access-control-allow-origin "*"
@@ -65,7 +65,7 @@
            {:xt/id (format "https://data.example.org/petstore/store/order/%s.json" (:id order))
             :juxt.http/content-type "application/json"
             :juxt.site/variant-of (format "https://data.example.org/petstore/store/order/%s" (:id order))
-            :juxt.site/protection-spaces
+            :juxt.site/protection-space-uris
             #{"https://auth.example.org/protection-spaces/bearer"}
             :juxt.site/respond
             {:juxt.site.sci/program

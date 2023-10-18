@@ -64,7 +64,7 @@
    {:post {:juxt.site/operation-uri "{{$id}}"
            :juxt.site/acceptable {"accept" "application/json,application/edn"}}}
 
-   :juxt.site/protection-spaces #{"https://auth.example.org/protection-spaces/bearer"}
+   :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
 
    :juxt.site/rules
    [

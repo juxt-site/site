@@ -131,7 +131,7 @@
                       :juxt.site/graphql-schema (:xt/id *resource*)
                       :juxt.grab/type-definition typedef
                       ;; Inherit the protection space of the resource
-                      :juxt.site/protection-spaces (:juxt.site/protection-spaces *resource*)
+                      :juxt.site/protection-space-uris (:juxt.site/protection-space-uris *resource*)
                       })))))}
 
         :juxt.site/transact
@@ -191,7 +191,7 @@
         {:post
          {:juxt.site/operation-uri "https://example.org/operations/install-graphql-type"
           :juxt.site/acceptable {"accept" "text/plain"}}}
-        :juxt.site/protection-spaces #{"https://example.org/protection-spaces/bearer"}}})}
+        :juxt.site/protection-space-uris #{"https://example.org/protection-spaces/bearer"}}})}
 
    #_#_"https://example.org/graphql/schema-compilation"
    {:deps #{:juxt.site.init/system
