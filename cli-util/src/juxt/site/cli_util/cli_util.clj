@@ -83,13 +83,26 @@
   [{:keys [profile grant-type client-id client-secret username password]}]
   (let [cfg (config profile)
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-        token-endpoint (str auth-base-uri "/oauth/token")]
+        token-endpoint (str auth-base-uri "/oauth/token")
+        process-response
+        (fn [{:keys [status headers body]}]
+          (let [content-type (get headers "content-type")]
+            (cond
+              (and (= status 200) (= content-type "application/json"))
+              (get (json/parse-string body) "access_token")
+
+              :else
+              (stderr
+               (println status
+                        (case content-type
+                          "text/plain" body
+                          "application/json" (str "\n" body)))))))]
     (stderr
      (println
-      (format "Requesting access-token from %s\n with grant-type %s" token-endpoint grant-type)))
+      (format "Requesting access-token from %s with grant-type %s" token-endpoint grant-type)))
     (case grant-type
       "password"
-      (let [{:keys [status body]}
+      (let [response
             (http/post
              token-endpoint
              {:headers {:content-type "application/x-www-form-urlencoded"}
@@ -103,24 +116,20 @@
         (when-not password
           (throw (ex-info "password must be given" {})))
 
-        (case status
-          200 (get (json/parse-string body) "access_token")
-          (print status body)))
+        (process-response response))
 
       "client_credentials"
       (let [secret client-secret
             _ (when-not secret
                 (println "No client-secret found")
                 (System/exit 1))
-            {:keys [status body]}
+            response
             (http/post
              token-endpoint
              {:basic-auth [client-id secret]
               :form-params {"grant_type" "client_credentials"}
               :throw false})]
-        (case status
-          200 (get (json/parse-string body) "access_token")
-          (print status body))))))
+        (process-response response)))))
 
 (defn request-client-secret [admin-base-uri client-id]
   (assert admin-base-uri)
