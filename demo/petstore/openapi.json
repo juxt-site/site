@@ -52,7 +52,7 @@
                 ],
                 "summary": "Finds All Pets in DB",
                 "description": "Finds All Pets in DB",
-                "operationId": "https://auth.example.org/operations/petstore/all-pets",
+                "operationId": "https://data.example.org/petstore/operations/all-pets",
                 "responses": {
                     "200": {
                         "description": "successful operation",
@@ -158,7 +158,7 @@
         ],
         "summary": "Add a new pet to the store",
         "description": "Add a new pet to the store",
-        "operationId": "https://auth.example.org/operations/petstore/add-pet",
+        "operationId": "https://data.example.org/petstore/operations/add-pet",
         "requestBody": {
           "description": "Create a new pet in the store",
           "content": {
@@ -217,7 +217,7 @@
         ],
         "summary": "Finds Pets by status",
         "description": "Multiple status values can be provided with comma separated strings",
-        "operationId": "https://auth.example.org/operations/petstore/find-by-status",
+        "operationId": "https://data.example.org/petstore/operations/find-by-status",
         "parameters": [
           {
             "name": "status",
@@ -279,7 +279,7 @@
         ],
         "summary": "Finds Pets by tags",
         "description": "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.",
-        "operationId": "https://auth.example.org/operations/petstore/find-by-tags",
+        "operationId": "https://data.example.org/petstore/operations/find-by-tags",
         "parameters": [
           {
             "name": "tags",
@@ -338,7 +338,7 @@
         ],
         "summary": "Find pet by ID",
         "description": "Returns a single pet",
-        "operationId": "https://auth.example.org/operations/petstore/get-pet-by-id",
+        "operationId": "https://data.example.org/petstore/operations/get-pet-by-id",
         "parameters": [
           {
             "name": "petId",
@@ -391,7 +391,7 @@
         ],
         "summary": "Updates a pet in the store with form data",
         "description": "",
-        "operationId": "https://auth.example.org/operations/petstore/update-pet-by-id",
+        "operationId": "https://data.example.org/petstore/operations/update-pet-by-id",
         "parameters": [
           {
             "name": "petId",
@@ -439,7 +439,7 @@
         ],
         "summary": "Deletes a pet",
         "description": "",
-        "operationId": "https://auth.example.org/operations/petstore/delete-pet-by-id",
+        "operationId": "https://data.example.org/petstore/operations/delete-pet-by-id",
         "parameters": [
           {
             "name": "petId",
@@ -533,7 +533,7 @@
         ],
         "summary": "Returns pet inventories by status",
         "description": "Returns a map of status codes to quantities",
-        "operationId": "https://auth.example.org/operations/petstore/order/inventory",
+        "operationId": "https://data.example.org/petstore/operations/order/inventory",
         "responses": {
           "200": {
             "description": "successful operation",
@@ -563,7 +563,7 @@
         ],
         "summary": "Place an order for a pet",
         "description": "Place a new order in the store",
-        "operationId": "https://auth.example.org/operations/petstore/order/place",
+        "operationId": "https://data.example.org/petstore/operations/order/place",
         "requestBody": {
           "content": {
             "application/json": {
@@ -607,7 +607,7 @@
         ],
         "summary": "Find purchase order by ID",
         "description": "For valid response try integer IDs with value <= 5 or > 10. Other values will generate exceptions.",
-        "operationId": "https://auth.example.org/operations/petstore/order/get-by-id",
+        "operationId": "https://data.example.org/petstore/operations/order/get-by-id",
         "parameters": [
           {
             "name": "orderId",
@@ -650,7 +650,7 @@
         ],
         "summary": "Delete purchase order by ID",
         "description": "For valid response try integer IDs with value < 1000. Anything above 1000 or nonintegers will generate API errors",
-        "operationId": "https://auth.example.org/operations/petstore/order/delete-by-id",
+        "operationId": "https://data.example.org/petstore/operations/order/delete-by-id",
         "parameters": [
           {
             "name": "orderId",

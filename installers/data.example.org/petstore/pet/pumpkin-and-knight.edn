@@ -1,8 +1,8 @@
 {:deps
- ["https://auth.example.org/operations/petstore/add-pet"]
+ ["https://data.example.org/petstore/operations/add-pet"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
-  :juxt.site/operation-uri "https://auth.example.org/operations/petstore/add-pet"
+  :juxt.site/operation-uri "https://data.example.org/petstore/operations/add-pet"
   :juxt.site/input
   {:id "pumpkin-and-knight"
    :name "Pumpkin and Knight"
