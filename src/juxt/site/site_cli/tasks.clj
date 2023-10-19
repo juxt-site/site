@@ -605,28 +605,25 @@
         _ (assert pattern)
         cfg (util/config opts)
         available-bundles-map (bundles cfg)
-        available (map
-                   (fn [bundle]
-                     (into (val bundle)
-                           {:title (first bundle)}))
-                   available-bundles-map)
-        pattern (re-pattern pattern)
-        possibles (filter
-                   #(seq (:candidates %))
-                   (map
-                    (fn [bundle]
-                      (assoc bundle :candidates
-                             (filterv
-                              (fn [{:juxt.site/keys [installer-path]}]
-                                (re-find pattern installer-path))
-                              (:juxt.site/installers bundle))))
-                    available))]
+        available (ciu/bundles-map->seq available-bundles-map)
+        possibles (ciu/find-resource pattern available)]
 
     (doall
      (for [a possibles]
        (clojure.pprint/pprint
         {:bundle (:title a)
          :candidates (:candidates a)})))))
+
+(defn bundle-deps []
+  (let [{:keys [bundle] :as opts} (util/parse-opts)
+        _ (assert bundle)
+        cfg (util/config opts)
+        available-bundles-map (bundles cfg)
+        bundle (get available-bundles-map bundle)
+        _ (assert bundle)
+        install-seq (installers-seq (util/static-config) bundle opts)]
+    (clojure.pprint/pprint
+     (:bundles (ciu/bundle-dependencies-map install-seq available-bundles-map cfg opts)))))
 
 (defn installed-bundles []
   (let [opts (util/parse-opts)
@@ -700,7 +697,9 @@
         #_(when (= "Installed" (:status selected))
             (let [bundle (find-bundle-by-id (:title selected) cfg)]
               (println "INSTALLED BY || " (:installed-by bundle) "\n")))
-        (println "__INSTALLERS__") (clojure.pprint/pprint (:juxt.site/installers selected)) (clojure.pprint/pprint selected)
+        (println "__INSTALLERS__")
+        (clojure.pprint/pprint (:juxt.site/installers selected))
+        (clojure.pprint/pprint selected)
 
         ;; TODO expand the utility to allow re/installation of bundles
         ;; We need to prompt the user to add parameters etc

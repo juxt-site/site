@@ -104,7 +104,13 @@
   {:doc "Find what bundle installs this resource"
    :opts {:args->opts [:pattern]
           :coerce {:pattern :string}}
-   :task (juxt.site.bb.tasks/source)}
+   :task (juxt.site.site-cli.tasks/source)}
+
+  bundle-deps
+  {:doc "Find the immediate dependencies of this bundle"
+   :opts {:args->opts [:bundle]
+          :coerce {:bundle :string}}
+   :task (juxt.site.site-cli.tasks/bundle-deps)}
 
   client-secret
   {:doc "Retrieve a client_secret. Only available via localhost."

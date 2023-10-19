@@ -303,3 +303,94 @@
 
       [url content]))
    (into {})))
+
+(defn find-resource
+  ([pattern bundles]
+   (filter
+    #(seq (:candidates %))
+    (map
+     (fn [bundle]
+       (assoc bundle :candidates
+              (filterv
+               (fn [{:juxt.site/keys [installer-path]}]
+                 (re-find (re-pattern pattern) installer-path))
+               (:juxt.site/installers bundle))))
+     bundles)))
+  ([pattern bundles base]
+   (filter
+    #(seq (:candidates %))
+    (map
+     (fn [bundle]
+       (assoc bundle :candidates
+              (filterv
+               (fn [{:juxt.site/keys [installer-path base-uri]}]
+                 (and (re-find (re-pattern pattern) installer-path)
+                      (= base-uri base)))
+               (:juxt.site/installers bundle))))
+     bundles))))
+
+(defn bundles-map->seq [bundles-map]
+  (map (fn [bundle]
+         (into (val bundle)
+               {:title (first bundle)}))
+       bundles-map))
+
+(defn resource-uri-suffix [resource-uri]
+  (clojure.string/join "/" (nthrest (clojure.string/split resource-uri #"/") 3)))
+
+(defn resource-uri-base [resource-uri]
+  (clojure.string/replace resource-uri (str "/" (resource-uri-suffix resource-uri) ) ""))
+
+
+(defn bundle-dependencies-map
+  "Expects a static installer-seq, seq of available bundles"
+  ([installer-seq available-bundles-map cfg opts]
+   (bundle-dependencies-map
+    {:bundles []
+     :covered-resources #{}}
+    installer-seq
+    available-bundles-map
+    cfg
+    opts))
+  ([acc installer-seq available-bundles-map cfg opts]
+   (let [available-bundles (bundles-map->seq available-bundles-map)]
+     (reduce
+      (fn [acc {:juxt.site/keys [dependencies uri]}]
+        (if (seq dependencies)
+          (update (reduce
+                   (fn [acc2 dependency-uri]
+                     (if (not ((:covered-resources acc2) dependency-uri))
+                       (let [dependency-pattern
+                             (resource-uri-suffix dependency-uri)
+                             candidate-bundles (find-resource dependency-pattern available-bundles (resource-uri-base dependency-uri))]
+                         (cond
+                           (not (seq candidate-bundles))
+                           (throw (ex-info "Couldn't find resource dependency"
+                                           {:dependency-pattern dependency-pattern
+                                            :dependency-uri dependency-uri}))
+                           
+                           (= 1 (count candidate-bundles))
+                           (let [candidate-name (:title (first candidate-bundles))]
+                             (if (seq (filter
+                                       (fn [bundle-name]
+                                         (= candidate-name bundle-name))
+                                       (:bundles acc2)))
+                               acc2
+                               (-> acc2
+                                   (update :covered-resources #(conj % dependency-uri))
+                                   (update :bundles #(conj % candidate-name)))))
+
+                           :else
+                           (throw (ex-info
+                                   "uncovered dependency found to have multiple candidate bundles"
+                                   {:dep-uri dependency-uri
+                                    :dep-pattern dependency-pattern
+                                    :candidates candidate-bundles}))))
+                       acc2))
+                   acc
+                   dependencies)
+                  :covered-resources
+                  #(conj % uri))
+          (update acc :covered-resources #(conj % uri))))
+      acc
+      installer-seq))))
