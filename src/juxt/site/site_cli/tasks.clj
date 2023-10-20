@@ -13,7 +13,7 @@
    [clojure.walk :refer [postwalk]]
    [juxt.site.cli-util.parameters :refer [resolve-parameters]]
    [juxt.site.cli-util.user-input :as input]
-   [juxt.site.cli-util.cli-util :as util :refer [stderr]]
+   [juxt.site.cli-util.cli-util :as util :refer [stderr print-response-status]]
    [juxt.site.install.common-install-util :as ciu]))
 
 (defn configure
@@ -328,10 +328,10 @@
           (println "Aborting reset")
           (do
             (println "Requesting removal of all resources")
-            (let [{:keys [status body]}
+            (let [response
                   (http/post (str admin-base-uri "/reset"))]
               ;; print not println, as the body should be terminated in a CRLF
-              (print status body))))))))
+              (print-response-status response))))))))
 
 (defn- install [{:keys [resources-uri access-token]} bundle]
   (assert resources-uri)

@@ -51,9 +51,7 @@
 (defn print-response-status [{:keys [status headers body]}]
   (stderr
    (print ;; We assume the body is properly terminated with a CRLF
-    (apply str (status-font status) status " " (status-message status) ansi/reset-font)
-    "\n"
-    body)))
+    (apply str (status-font status) status " " (status-message status) ansi/reset-font "\n" body))))
 
 (defn merge-global-opts [opts]
   (-> opts
