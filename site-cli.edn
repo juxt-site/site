@@ -4,7 +4,8 @@
  :deps {io.github.lispyclouds/bblgum {:git/sha "7ebae0e2231899fe2a6ad44bc9ef5fca64099fcd"}
         org.babashka/cli {:mvn/version "0.4.39"}
         juxt.site/installer-graph {:local/root "installer-graph"}
-        juxt.site/cli-util {:local/root "cli-util"}}
+        juxt.site/cli-util {:local/root "cli-util"}
+        io.aviso/pretty {:mvn/version "1.1"}}
 
  :tasks
  {:requires

@@ -10,11 +10,50 @@
    [clj-yaml.core :as yaml]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [juxt.site.cli-util.user-input :as input]))
+   [juxt.site.cli-util.user-input :as input]
+   [io.aviso.ansi :as ansi]))
 
 (defmacro stderr [& body]
   `(binding [*out* *err*]
-     ~@body))
+     ~@body
+     (.flush *err*)))
+
+(def STATUS-MESSAGE
+  {200 "OK"
+   201 "Created"
+   202 "Accepted"
+   204 "No Content"
+   302 "Found"
+   307 "Temporary Redirect"
+   304 "Not Modified"
+   400 "Bad Request"
+   401 "Unauthorized"
+   403 "Forbidden"
+   404 "Not Found"
+   405 "Method Not Allowed"
+   409 "Conflict"
+   411 "Length Required"
+   412 "Precondition Failed"
+   413 "Payload Too Large"
+   415 "Unsupported Media Type"
+   500 "Internal Server Error"
+   501 "Not Implemented"
+   503 "Service Unavailable"})
+
+(defn status-message [status]
+  (get STATUS-MESSAGE status "Error"))
+
+(defn status-font [status]
+  (cond
+    (< status 400) ansi/green-font
+    :else ansi/red-font))
+
+(defn print-response-status [{:keys [status headers body]}]
+  (stderr
+   (print ;; We assume the body is properly terminated with a CRLF
+    (apply str (status-font status) status " " (status-message status) ansi/reset-font)
+    "\n"
+    body)))
 
 (defn merge-global-opts [opts]
   (-> opts
@@ -85,18 +124,15 @@
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
         token-endpoint (str auth-base-uri "/oauth/token")
         process-response
-        (fn [{:keys [status headers body]}]
+        (fn [{:keys [status headers body] :as response}]
           (let [content-type (get headers "content-type")]
             (cond
               (and (= status 200) (= content-type "application/json"))
               (get (json/parse-string body) "access_token")
 
               :else
-              (stderr
-               (println status
-                        (case content-type
-                          "text/plain" body
-                          "application/json" (str "\n" body)))))))]
+              (print-response-status response)
+              )))]
     (stderr
      (println
       (format "Requesting access-token from %s with grant-type %s" token-endpoint grant-type)))

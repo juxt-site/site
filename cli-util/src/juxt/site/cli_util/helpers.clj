@@ -5,8 +5,6 @@
    [juxt.site.cli-util.cli-util :as util]
    [babashka.http-client :as http]))
 
-;; Convenience functions
-
 (defn resource-server-post [{:keys [content-type body path]}]
   (let [opts (util/parse-opts)
         cfg (util/config (util/profile opts))
@@ -20,5 +18,4 @@
           :throw false})]
     (case status
       200 (print body)
-      (print status body)))
-  )
+      (print status body))))
