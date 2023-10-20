@@ -24,13 +24,14 @@
    202 "Accepted"
    204 "No Content"
    302 "Found"
-   307 "Temporary Redirect"
    304 "Not Modified"
+   307 "Temporary Redirect"
    400 "Bad Request"
    401 "Unauthorized"
    403 "Forbidden"
    404 "Not Found"
    405 "Method Not Allowed"
+   406 "Not Acceptable"
    409 "Conflict"
    411 "Length Required"
    412 "Precondition Failed"
@@ -316,8 +317,6 @@
   [cfg]
   (let [{curl "curl" access-token-file "access-token"} cfg
         {save-access-token-to-default-config-file "save-access-token-to-default-config-file"} curl
-        admin-base-uri (get cfg "admin-base-uri")
-        client-id "site-cli"
         token (cond
                 (and access-token-file save-access-token-to-default-config-file)
                 (throw (ex-info "Ambiguous configuration" {}))
@@ -330,15 +329,11 @@
                 access-token-file
                 (when (and (.exists access-token-file) (.isFile access-token-file))
                   (slurp access-token-file)))]
-    (if token
-      token
-      (request-token
-       {:client-id client-id
-        :client-secret
-        (request-client-secret admin-base-uri client-id)}))))
+    token))
 
 (defn authorization [cfg]
-  (format "Bearer %s" (retrieve-token cfg)))
+  (when-let [token (retrieve-token cfg)]
+    (format "Bearer %s" token)))
 
 (defn check-token [cfg token]
   (if-not token

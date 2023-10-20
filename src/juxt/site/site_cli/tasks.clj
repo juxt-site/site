@@ -13,7 +13,7 @@
    [clojure.walk :refer [postwalk]]
    [juxt.site.cli-util.parameters :refer [resolve-parameters]]
    [juxt.site.cli-util.user-input :as input]
-   [juxt.site.cli-util.cli-util :as util :refer [stderr console-recv curl]]
+   [juxt.site.cli-util.cli-util :as util :refer [stderr console-recv console-info curl]]
    [juxt.site.install.common-install-util :as ciu]))
 
 (defn configure
@@ -112,10 +112,10 @@
                  (get opts :edn) "application/edn"
                  (get opts :txt) "text/plain"
                  (get opts :csv) "text/csv")
-        headers (merge
-                 {:content-type "application/json"
-                  :authorization (util/authorization cfg)}
-                 (when accept {:accept accept}))]
+        authorization (util/authorization cfg)
+        headers (cond-> {:content-type "application/json"}
+                  authorization (assoc :authorization authorization)
+                  accept (assoc :accept accept))]
 
     (if (:curl opts)
       (curl (assoc opts :uri endpoint))
@@ -140,11 +140,14 @@
       (let [cfg (util/config (util/profile opts))
             data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
             endpoint (str data-base-uri path)
+            authorization (util/authorization cfg)
+
             {:keys [status body]}
             (http/get
              endpoint
-             {:headers {:authorization (util/authorization cfg)
-                        :accept "application/edn"}
+             {:headers
+              (cond-> {:accept "application/edn"}
+                authorization (assoc :authorization authorization))
               :throw false})]
         (case status
           200 (let [edn (clojure.edn/read-string body)
@@ -178,11 +181,12 @@
       (let [cfg (util/config (util/profile opts))
             data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
             endpoint (str data-base-uri path)
+            authorization (util/authorization cfg)
             {:keys [status body]}
             (http/get
              endpoint
-             {:headers {:authorization (util/authorization cfg)
-                        :accept "application/json"}
+             {:headers (cond-> {:accept "application/json"}
+                         authorization (assoc :authorization authorization))
               :throw false})]
         (case status
           200 (let [json (json/parse-string body)]
@@ -519,12 +523,14 @@
 (defn register-user [opts]
   (let [cfg (util/config (util/profile opts))
         base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        authorization (util/authorization cfg)
         {:keys [status body]}
         (http/post
          (str base-uri "/_site/users")
-         {:headers {:content-type "application/json"
-                    :accept "application/json"
-                    :authorization (util/authorization cfg)}
+         {:headers (cond->
+                       {:content-type "application/json"
+                        :accept "application/json"}
+                     (assoc :authorization authorization))
           :body (json/generate-string opts {:pretty true})
           :throw false})]
     (case status
@@ -541,11 +547,12 @@
   (let [cfg (util/config (util/profile opts))
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
         data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        authorization (util/authorization cfg)
         {:keys [status body]}
         (http/post
          (str auth-base-uri "/operations/assign-role")
-         {:headers {"content-type" "application/edn"
-                    "authorization" (util/authorization cfg)}
+         {:headers (cond-> {:content-type "application/edn"}
+                     (assoc :authorization (util/authorization cfg)))
           :body (pr-str
                  {:juxt.site/user (str data-base-uri "/_site/users/" (:username opts))
                   :juxt.site/role (str data-base-uri "/_site/roles/" (:role opts))})
@@ -681,11 +688,12 @@
         (or uri
             (input/input
              {:header "URI"
-              :value placeholder}))]
+              :value placeholder}))
+        authorization (util/authorization cfg)]
     (http/put
      (str new-resource-uri ".meta")
-     {:headers {"content-type" "application/edn"
-                "authorization" (util/authorization cfg)}
+     {:headers (cond-> {:content-type "application/edn"}
+                 authorization (assoc :authorization authorization))
       :body (pr-str {})
      })))
 
@@ -709,11 +717,12 @@
                       ;; creating operations.
                       (input/input
                        {:header "Operation"
-                        :value (str placeholder "operations/")}))]
+                        :value (str placeholder "operations/")}))
+        authorization (util/authorization cfg)]
     (http/patch
      (str uri ".meta")
-     {:headers {"content-type" "application/edn"
-                "authorization" (util/authorization cfg)}
+     {:headers (cond-> {:content-type "application/edn"}
+                 authorization (assoc :authorization authorization))
       :body (pr-str
              {:add-method
               {:method method
@@ -747,7 +756,7 @@
        ;; error that results!
        ["juxt/site/system-client" {"client-id" "swagger-ui"}]]))
 
-    (println
+    (console-info
      (format
       "Now browse to https://petstore.swagger.io/?url=%s/_site/openapi.json"
       data-base-uri))))
@@ -767,7 +776,7 @@
 
     (install-openapi (assoc opts :openapi (str (System/getenv "SITE_HOME") "/demo/petstore/openapi.json")))
 
-    (println
+    (console-info
      (format
       "Now browse to https://petstore.swagger.io/?url=%s/petstore/openapi.json"
       data-base-uri))))
