@@ -48,10 +48,24 @@
     (< status 400) ansi/green-font
     :else ansi/red-font))
 
-(defn print-response-status [{:keys [status headers body]}]
+(defn print-response-status
+  [{:keys [status headers body]}
+   & [{:keys [hide-body from]}]]
   (stderr
-   (print ;; We assume the body is properly terminated with a CRLF
-    (apply str (status-font status) status " " (status-message status) ansi/reset-font "\n" body))))
+   (print
+    (str
+     "recv"
+     (when from (str " [" from "]")) ;; ⮕ ⬅
+     ": "
+     (status-font status)
+     status
+     " "
+     (status-message status)
+     ansi/reset-font
+     "\n"))
+   (when-not hide-body
+     ;; We assume the body is properly terminated with a CRLF
+     (print body))))
 
 (defn merge-global-opts [opts]
   (-> opts
@@ -123,45 +137,55 @@
         token-endpoint (str auth-base-uri "/oauth/token")
         process-response
         (fn [{:keys [status headers body] :as response}]
+          (print-response-status
+           response
+           ;; Don't reveal access token on command line
+           {:hide-body (= status 200)
+            :from token-endpoint})
           (let [content-type (get headers "content-type")]
-            (cond
-              (and (= status 200) (= content-type "application/json"))
-              (get (json/parse-string body) "access_token")
+            (when
+                (and (= status 200) (= content-type "application/json"))
+                (get (json/parse-string body) "access_token"))))]
 
-              :else
-              (print-response-status response)
-              )))]
-    (stderr
-     (println
-      (format "Requesting access-token from %s with grant-type %s" token-endpoint grant-type)))
     (case grant-type
       "password"
-      (let [response
-            (http/post
-             token-endpoint
-             {:headers {:content-type "application/x-www-form-urlencoded"}
-              :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
-                            "password" username password client-id)
-              :throw false})]
-
+      (do
+        (stderr
+         (println
+          (format
+           "send [%s]: %s grant_type=%s username=%s client-id=%s"
+           token-endpoint "POST" grant-type username client-id)))
         (when-not username
           (throw (ex-info "username must be given" {})))
 
         (when-not password
           (throw (ex-info "password must be given" {})))
 
-        (process-response response))
+        (let [response
+              (http/post
+               token-endpoint
+               {:headers {:content-type "application/x-www-form-urlencoded"}
+                :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
+                              "password" username password client-id)
+                :throw false})]
+
+          (process-response response)))
 
       "client_credentials"
       (let [secret client-secret
             _ (when-not secret
                 (println "No client-secret found")
                 (System/exit 1))
+            _ (stderr
+               (println
+                (format
+                 "send [%s]: %s grant_type=%s client-id=%s"
+                 token-endpoint "POST" grant-type client-id)))
             response
             (http/post
              token-endpoint
              {:basic-auth [client-id secret]
-              :form-params {"grant_type" "client_credentials"}
+              :form-params {"grant_type" grant-type}
               :throw false})]
         (process-response response)))))
 
@@ -211,10 +235,12 @@
                  (conj
                   "# This was added by site request-token"
                   (format "oauth2-bearer %s" access-token)))))
-        (println "Access token saved to"
-                 (str/replace
-                  (.getAbsolutePath config-file)
-                  (System/getenv "HOME") "$HOME")))
+        (stderr
+         (println
+          "info: Access token saved to"
+          (str/replace
+           (.getAbsolutePath config-file)
+           (System/getenv "HOME") "$HOME"))))
 
       access-token-file (spit access-token-file access-token)
       :else (println access-token))))
