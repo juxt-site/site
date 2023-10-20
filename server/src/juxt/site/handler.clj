@@ -746,8 +746,23 @@
        :juxt.site/resource
        {:juxt.http/content-type "text/html;charset=utf-8"
         :juxt.http/content-length (count default-body)
-        :ring.response/body default-body}
-       }))))
+        :ring.response/body default-body}}))))
+
+(defn add-error-payload [ctx status ex-data]
+  (if-let [body (:ring.response/body ex-data)]
+    (let [headers (-> (or (:ring.response/headers ex-data) {})
+                      (assoc "content-length" (str (count body))))]
+      (-> ctx
+          (update :ring.response/headers (fnil into {}) headers)
+          (assoc :ring.response/body body)))
+
+    (let [body (.getBytes (str (status-message status) "\r\n") "UTF-8")
+          headers (-> (or (:ring.response/headers ex-data) {})
+                      (assoc "content-type" "text/plain;charset=utf-8"
+                             "content-length" (str (count body))))]
+      (-> ctx
+          (update :ring.response/headers (fnil into {}) headers)
+          (assoc :ring.response/body body)))))
 
 (defn wrap-error-handling
   "Return a handler that constructs proper Ring responses, logs and error
@@ -784,16 +799,7 @@
 
               method (:ring.request/method ctx)
 
-              ctx
-              (cond-> ctx
-
-                (:ring.response/headers ex-data)
-                (assoc :ring.response/headers (:ring.response/headers ex-data))
-
-                (:ring.response/body ex-data)
-                (assoc :ring.response/body (:ring.response/body ex-data))
-
-                )
+              ctx (add-error-payload ctx status ex-data)
 
               resource (:juxt.site/resource ctx)]
 
