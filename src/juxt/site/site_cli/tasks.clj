@@ -335,18 +335,14 @@
 
 (defn- install [{:keys [resources-uri access-token]} bundle]
   (assert resources-uri)
-  (let [{:keys [status body]}
+  (let [{:keys [status body] :as response}
         (http/post
          resources-uri
          {:headers (cond-> {:content-type "application/edn"}
                      access-token (assoc :authorization (format "Bearer %s" access-token)))
           :body (pr-str bundle)
           :throw false})]
-    (case status
-      200 (print body)
-      (if (str/blank? body)
-        (println status)
-        (print status body)))))
+    (print-response-status response)))
 
 (defn- install-bundle [cfg bundle params {:keys [debug] :as opts}]
   (assert bundle)
