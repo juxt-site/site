@@ -31,8 +31,7 @@
    [hiccup2.core :as hiccup]
    hiccup.util
    [juxt.site.sci-api :as api]
-   [xtdb.api :as xt]
-   [juxt.site.repl :as repl])
+   [xtdb.api :as xt])
   (:import (java.net URI)))
 
 (defn join-keywords
@@ -704,6 +703,7 @@
     403 "Forbidden"
     404 "Not Found"
     405 "Method Not Allowed"
+    406 "Not Acceptable"
     409 "Conflict"
     411 "Length Required"
     412 "Precondition Failed"
