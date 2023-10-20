@@ -48,7 +48,19 @@
     (< status 400) ansi/green-font
     :else ansi/red-font))
 
-(defn print-response-status
+(defn console-info [message]
+  (println
+   (str ansi/yellow-font "info: " message ansi/reset-font)))
+
+(defn console-send
+  [{:keys [method uri params]} & [{:keys [curl] :or {curl false}}]]
+  (stderr
+   (println
+    (format
+     "send [%s]: %s %s"
+     uri method (str/join " " (for [[k v] params] (format "%s=%s" k v)))))))
+
+(defn console-recv
   [{:keys [status headers body]}
    & [{:keys [hide-body from]}]]
   (stderr
@@ -67,11 +79,23 @@
      ;; We assume the body is properly terminated with a CRLF
      (print body))))
 
+(defn curl [{:keys [method uri] :as opts}]
+  (->>
+   ["curl"
+    (case method "POST" "-X POST" nil)
+    (when (:json opts) "-H accept:application/json")
+    (when (:edn opts) "-H accept:application/edn")
+    (when (:csv opts) "-H accept:text/csv")
+    uri]
+   (keep identity)
+   (str/join " ")
+   (println)))
+
 (defn merge-global-opts [opts]
   (-> opts
       (update :alias assoc :p :profile)
       (update :coerce assoc :profile :keyword)
-      (update :coerce assoc :edn :boolean :txt :boolean :txt :boolean)))
+      (update :coerce assoc :edn :boolean :txt :boolean :txt :boolean :curl :boolean)))
 
 (defn parse-opts
   "Take the :opts of the current task and add in globals"
@@ -135,59 +159,56 @@
   (let [cfg (config profile)
         auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
         token-endpoint (str auth-base-uri "/oauth/token")
-        process-response
-        (fn [{:keys [status headers body] :as response}]
-          (print-response-status
-           response
-           ;; Don't reveal access token on command line
-           {:hide-body (= status 200)
-            :from token-endpoint})
-          (let [content-type (get headers "content-type")]
-            (when
-                (and (= status 200) (= content-type "application/json"))
-                (get (json/parse-string body) "access_token"))))]
 
-    (case grant-type
-      "password"
-      (do
-        (stderr
-         (println
-          (format
-           "send [%s]: %s grant_type=%s username=%s client-id=%s"
-           token-endpoint "POST" grant-type username client-id)))
-        (when-not username
-          (throw (ex-info "username must be given" {})))
+        {:keys [status headers body] :as response}
+        (case grant-type
+          "password"
+          (do
+            (console-send
+             {:method "POST"
+              :uri token-endpoint
+              :params {"grant_type" grant-type
+                       "username" username
+                       "client-id" client-id}})
 
-        (when-not password
-          (throw (ex-info "password must be given" {})))
+            (when-not username
+              (throw (ex-info "username must be given" {})))
 
-        (let [response
-              (http/post
-               token-endpoint
-               {:headers {:content-type "application/x-www-form-urlencoded"}
-                :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
-                              "password" username password client-id)
-                :throw false})]
+            (when-not password
+              (throw (ex-info "password must be given" {})))
 
-          (process-response response)))
+            (http/post
+             token-endpoint
+             {:headers {:content-type "application/x-www-form-urlencoded"}
+              :body (format "grant_type=%s&username=%s&password=%s&client_id=%s"
+                            "password" username password client-id)
+              :throw false}))
 
-      "client_credentials"
-      (let [secret client-secret
-            _ (when-not secret
-                (println "No client-secret found")
-                (System/exit 1))
-            _ (stderr
-               (println
-                (format
-                 "send [%s]: %s grant_type=%s client-id=%s"
-                 token-endpoint "POST" grant-type client-id)))
-            response
+          "client_credentials"
+          (let [secret client-secret
+                _ (when-not secret
+                    (println "No client-secret found")
+                    (System/exit 1))
+                _ (console-send
+                   {:method "POST"
+                    :uri token-endpoint
+                    :params {"grant_type" grant-type
+                             "client-id" client-id}})]
             (http/post
              token-endpoint
              {:basic-auth [client-id secret]
               :form-params {"grant_type" grant-type}
-              :throw false})]
-        (process-response response)))))
+              :throw false})))]
+
+    (console-recv
+     response
+     ;; Don't reveal access token on command line
+     {:hide-body (= status 200)
+      :from token-endpoint})
+    (let [content-type (get headers "content-type")]
+      (when
+          (and (= status 200) (= content-type "application/json"))
+          (get (json/parse-string body) "access_token")))))
 
 (defn request-client-secret [admin-base-uri client-id]
   (assert admin-base-uri)
@@ -235,12 +256,11 @@
                  (conj
                   "# This was added by site request-token"
                   (format "oauth2-bearer %s" access-token)))))
-        (stderr
-         (println
-          "info: Access token saved to"
-          (str/replace
-           (.getAbsolutePath config-file)
-           (System/getenv "HOME") "$HOME"))))
+        (console-info
+         (format "Access token saved to %s"
+                 (str/replace
+                  (.getAbsolutePath config-file)
+                  (System/getenv "HOME") "$HOME"))))
 
       access-token-file (spit access-token-file access-token)
       :else (println access-token))))

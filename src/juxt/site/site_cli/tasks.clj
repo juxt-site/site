@@ -13,7 +13,7 @@
    [clojure.walk :refer [postwalk]]
    [juxt.site.cli-util.parameters :refer [resolve-parameters]]
    [juxt.site.cli-util.user-input :as input]
-   [juxt.site.cli-util.cli-util :as util :refer [stderr print-response-status]]
+   [juxt.site.cli-util.cli-util :as util :refer [stderr console-recv curl]]
    [juxt.site.install.common-install-util :as ciu]))
 
 (defn configure
@@ -115,21 +115,24 @@
         headers (merge
                  {:content-type "application/json"
                   :authorization (util/authorization cfg)}
-                 (when accept {:accept accept}))
-        {:keys [status body]}
-        (http/get
-         endpoint
-         {:headers headers
-          :query-params args
-          :throw false})]
-    (case status
-      200 (print body)
-      401 (stderr
+                 (when accept {:accept accept}))]
+
+    (if (:curl opts)
+      (curl (assoc opts :uri endpoint))
+      (let [{:keys [status body]}
+            (http/get
+             endpoint
+             {:headers headers
+              :query-params args
+              :throw false})]
+        (case status
+          200 (print body)
+          401 (stderr
+               (print status body)
+               (println "Hint: Try requesting an access-token (site request-token)"))
+          (stderr
            (print status body)
-           (println "Hint: Try requesting an access-token (site request-token)"))
-      (stderr
-       (print status body)
-       (.flush *out*)))))
+           (.flush *out*)))))))
 
 (defn whoami [{:keys [verbose] :as opts}]
   (let [path "/_site/whoami"]
@@ -331,7 +334,7 @@
             (let [response
                   (http/post (str admin-base-uri "/reset"))]
               ;; print not println, as the body should be terminated in a CRLF
-              (print-response-status response))))))))
+              (console-recv response))))))))
 
 (defn- install [{:keys [resources-uri access-token]} bundle]
   (assert resources-uri)
@@ -342,7 +345,7 @@
                      access-token (assoc :authorization (format "Bearer %s" access-token)))
           :body (pr-str bundle)
           :throw false})]
-    (print-response-status response)))
+    (console-recv response)))
 
 (defn- install-bundle [cfg bundle params {:keys [debug] :as opts}]
   (assert bundle)
