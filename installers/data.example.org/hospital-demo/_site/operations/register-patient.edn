@@ -31,8 +31,7 @@
                 :juxt.site/type "https://data.example.org/types/patient"
                 :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
                 :juxt.site/methods
-                {:get {:juxt.site/operation-uri "https://data.example.org/hospital-demo/_site/operations/get-patient"}
-                 :options {}}))]
+                {:get {:juxt.site/operation-uri "https://data.example.org/hospital-demo/_site/operations/get-patient"}}))]
           (assoc input
                  :juxt.http/content-type "application/json"
                  :juxt.http/content (jsonista.core/write-value-as-string {"name" (:name input)})))))}

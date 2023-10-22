@@ -59,76 +59,45 @@
   (let [rules (operation->rules db operation-uri)]
 
     (when-not (seq rules)
-      ;; No rules
-      (throw
-       (ex-info
-        "Operation denied, no rules"
-        {:subject subject-uri
-         :operation operation-uri
-         :resource resource-uri
-         :scope scope})))
+      (log/warnf "No rules found for operation: %s" operation-uri))
 
-    (let [query (if scope
-                  {:find '[(pull permission [*]) ]
-                   :where
-                   '[
-                     [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
+    (let [query
+          (when (seq rules)
+            {:find '[(pull permission [*]) ]
+             :where
+             (cond-> '[
+                       [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
 
-                     ;; Only consider a permitted operation
-                     [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                     [permission :juxt.site/operation-uri operation]
-                     (allowed? subject operation resource permission)
+                       ;; Only consider a permitted operation
+                       [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
+                       [permission :juxt.site/operation-uri operation]
+                       (allowed? subject operation resource permission)]
+               ;; When scope limits operations, restrict operations that have the scope
+               scope (conj
+                      '[operation :juxt.site/scope s]
+                      '[(contains? scope s)]))
 
+             :rules rules
 
-                     ;; When scope limits operations, restrict operations that have the scope
-                     [operation :juxt.site/scope s]
-                     [(contains? scope s)]]
+             :in (cond-> '[subject operation resource]
+                   scope (conj 'scope))})
 
-                   :rules rules
+          permissions
+          (when query
+            (try
+              (map first
+                   (if scope
+                     (xt/q db query subject-uri operation-uri resource-uri scope)
+                     (xt/q db query subject-uri operation-uri resource-uri)))
+              (catch Exception e
+                (throw (ex-info "Failed to query permissions" {:query query} e)))))]
 
-                   :in '[subject operation resource scope]}
-
-                  {:find '[(pull permission [*]) ]
-                   :where
-                   '[
-                     [operation :juxt.site/type "https://meta.juxt.site/types/operation"]
-
-                     ;; Only consider a permitted operation
-                     [permission :juxt.site/type "https://meta.juxt.site/types/permission"]
-                     [permission :juxt.site/operation-uri operation]
-                     (allowed? subject operation resource permission)]
-
-                   :rules rules
-
-                   :in '[subject operation resource]})
-
-          permissions (try
-                        (map first
-                             (if scope
-                               (xt/q db query subject-uri operation-uri resource-uri scope)
-                               (xt/q db query subject-uri operation-uri resource-uri)))
-                        (catch Exception e
-                          (throw (ex-info "Failed to query permissions" {:query query} e))))]
-
-      (if (seq permissions)
-        permissions
-        (throw
-         (ex-info
-          (format "Operation denied, no permission (subject: %s, operation: %s)" subject-uri operation-uri)
-          {::type :no-permission
-           :juxt.site/subject-uri subject-uri
-           :juxt.site/operation-uri operation-uri
-           :juxt.site/resource-uri resource-uri
-           :juxt.site/query query
-           :juxt.site/scope scope
-           :juxt.site/error
-           {:juxt.site/ex-data
-            (if-not subject-uri
-              {:ring.response/status 401
-               :ring.response/body "<!DOCTYPE html><h1>Unauthorized</h1>"}
-
-              {:ring.response/status 403
-               :ring.response/body "<!DOCTYPE html><h1>Forbidden</h1>"})}}))))))
+      {:juxt.site/permissions (or permissions [])
+       :juxt.site/subject-uri subject-uri
+       :juxt.site/operation-uri operation-uri
+       :juxt.site/resource-uri resource-uri
+       :juxt.site/query query
+       :juxt.site/scope scope})))
 
 (defn allowed-resources
   "Given a set of possible operations, and possibly a subject and purpose, which
@@ -201,32 +170,6 @@
            :in '[resource operation]}
 
           resource operation))))
-
-#_(defn pull-allowed-resource
-  "Given a subject, an operation and a resource, pull the allowed
-  attributes."
-  [db operation resource ctx]
-  (let [check-result
-        (check-permissions
-         db
-         operation
-         (assoc ctx :juxt.site/resource resource))
-
-        pull-expr (vec (mapcat
-                        (fn [{operation :juxt.site/operation}]
-                          (:juxt.site/pull operation))
-                        check-result))]
-    (xt/pull db pull-expr (:xt/id resource))))
-
-#_(malli/=>
- pull-allowed-resource
- [:=> [:cat
-       :any
-       :string
-       :juxt.site/resource
-       [:map
-        [:juxt.site/subject {:optional true}]]]
-  :any])
 
 (defn pull-allowed-resources
   "Given a subject and an operation, which resources are allowed, and
@@ -892,13 +835,30 @@
               (format "Operation '%s' not found in db" operation-uri)
               {:operation-uri operation-uri})))
 
-        permissions
+        permissions-result
         (check-permissions
          {:juxt.site/db db
           :juxt.site/subject-uri subject-uri
           :juxt.site/operation-uri operation-uri
           :juxt.site/resource-uri resource-uri
-          :juxt.site/scope scope})]
+          :juxt.site/scope scope})
+
+        permissions (:juxt.site/permissions permissions-result)
+
+        _ (when-not (seq permissions)
+            (throw
+             (ex-info
+              (format "Operation denied, no permission (subject: %s, operation: %s)" subject-uri operation-uri)
+              (assoc
+               permissions-result
+               :juxt.site/error
+               {:juxt.site/ex-data
+                (if-not subject-uri
+                  {:ring.response/status 401
+                   :ring.response/body "<!DOCTYPE html><h1>Unauthorized</h1>"}
+
+                  {:ring.response/status 403
+                   :ring.response/body "<!DOCTYPE html><h1>Forbidden</h1>"})}))))]
 
     (try
       (assert (or (nil? subject-uri) (string? subject-uri)) "Subject to do-operation-in-tx-fn expected to be a string, or null")
@@ -1048,6 +1008,28 @@
       ;; Just for info
       result (assoc :juxt.site/operation-result result))))
 
+(defn allowed-methods [req]
+  (let [{db :juxt.site/db
+         resource :juxt.site/resource
+         subject-uri :juxt.site/subject-uri
+         scope :juxt.site/scope} req
+        resource-uri (:xt/id resource)]
+
+    (reduce
+     (fn [acc [method {operation-uri :juxt.site/operation-uri}]]
+       (let [permissions
+             (when operation-uri
+               (:juxt.site/permissions
+                (check-permissions
+                 (cond-> {:juxt.site/db db
+                          :juxt.site/operation-uri operation-uri}
+                   subject-uri (assoc :juxt.site/subject-uri subject-uri)
+                   resource-uri (assoc :juxt.site/resource-uri resource-uri)
+                   scope (assoc :juxt.site/scope scope)))))]
+         (cond-> acc (seq permissions) (conj method))))
+     ;; We always allow GET, which can return a 401 or 404
+     #{:get}
+     (:juxt.site/methods resource))))
 
 ;; TODO: Since it is possible that a permission is in the queue which might
 ;; grant or revoke an operation, it is necessary to run this check 'head-of-line'
@@ -1095,26 +1077,16 @@
 
           permissions
           (when operation-uri
-            (try
-              (check-permissions
-               (cond-> {:juxt.site/db db
-                        :juxt.site/operation-uri operation-uri}
-                 ;; When the resource is in the database, we can add it to the
-                 ;; permission checking in case there's a specific permission for
-                 ;; this resource.
-                 subject (assoc :juxt.site/subject-uri (:xt/id subject))
-                 resource (assoc :juxt.site/resource-uri (:xt/id resource))
-                 scope (assoc :juxt.site/scope scope)))
-              (catch clojure.lang.ExceptionInfo e
-                (if (= :no-permission (::type (ex-data e)))
-                  ;; This isn't a great solution. We ideally want
-                  ;; to be able to call check-permissions without
-                  ;; it throwing an exception. But in many cases,
-                  ;; the caller wants the exception to log the
-                  ;; permissions query.
-                  []
-                  ;; Else rethrow
-                  (throw e)))))]
+            (:juxt.site/permissions
+             (check-permissions
+              (cond-> {:juxt.site/db db
+                       :juxt.site/operation-uri operation-uri}
+                ;; When the resource is in the database, we can add it to the
+                ;; permission checking in case there's a specific permission for
+                ;; this resource.
+                subject (assoc :juxt.site/subject-uri (:xt/id subject))
+                resource (assoc :juxt.site/resource-uri (:xt/id resource))
+                scope (assoc :juxt.site/scope scope)))))]
 
       (cond
         (seq permissions)

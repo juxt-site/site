@@ -456,10 +456,11 @@
     (h (http-authn/authenticate req))))
 
 (defn wrap-method-not-allowed? [h]
-  (fn [{resource :juxt.site/resource, method :ring.request/method, :as req}]
-
+  (fn [{resource :juxt.site/resource
+        method :ring.request/method
+        :as req}]
     (if resource
-      (let [allowed-methods (set (keys (:juxt.site/methods resource)))
+      (let [allowed-methods (operations/allowed-methods req)
             ;; allowed-methods will be an empty set if
             ;; no :juxt.site/methods on the resource.
             allowed-methods (cond-> allowed-methods
@@ -1139,11 +1140,11 @@
 
    wrap-http-authenticate
 
-   ;; 405
-   wrap-method-not-allowed?
-
    ;; We authorize the resource, prior to finding representations.
    operations/wrap-authorize-with-operation
+
+   ;; 405
+   wrap-method-not-allowed?
 
    ;; Find representations and possibly do content negotiation
    wrap-find-current-representations

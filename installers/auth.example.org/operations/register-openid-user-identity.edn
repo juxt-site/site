@@ -39,8 +39,7 @@
          (assoc :juxt.site/type #{"https://meta.juxt.site/types/user-identity"
                                   "https://meta.juxt.site/types/openid-user-identity"}
                 :juxt.site/methods
-                {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-user-identity"}
-                 :options {}}))))}
+                {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-user-identity"}}))))}
 
    :juxt.site/transact
    {:juxt.site.sci/program

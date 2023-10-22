@@ -8,7 +8,7 @@
    [juxt.site.test-helpers.init :refer [init-fixture]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.oauth :refer [with-bearer-token] :as oauth]
-   [juxt.site.test-helpers.handler :refer [handler-fixture]]
+   [juxt.site.test-helpers.handler :refer [handler-fixture *handler*]]
    [xtdb.api :as xt]))
 
 (use-fixtures :each system-xt-fixture handler-fixture init-fixture)
@@ -59,3 +59,29 @@
 
         _ (is (= "https://data.example.test/_site/users/alice"
                  (:juxt.site/user (xt/entity db (:juxt.site/subject-uri last-event)))))]))
+
+;; TODO: This test probably doesn't belong here, but in a dedicated
+;; test for the allow response header.
+(deftest allow-header-test
+  (let [db (xt/db *xt-node*)
+        client-secret (client-secret db)]
+    (let [response
+          (let [response
+                (*handler*
+                 {:juxt.site/uri "https://data.example.test/_site/users"
+                  :ring.request/method :options})]
+            (select-keys response [:ring.response/status
+                                   :ring.response/headers]))]
+      (is (= (get-in response [:ring.response/headers "allow"]) "GET, HEAD, OPTIONS")))
+
+    (with-bearer-token
+      (request-token
+       {"client-secret" client-secret})
+      (let [response
+            (let [response
+                  (*handler*
+                   {:juxt.site/uri "https://data.example.test/_site/users"
+                    :ring.request/method :options})]
+              (select-keys response [:ring.response/status
+                                     :ring.response/headers]))]
+        (is (= (get-in response [:ring.response/headers "allow"]) "GET, HEAD, POST, OPTIONS"))))))

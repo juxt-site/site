@@ -72,7 +72,7 @@
         (*handler*
          {:juxt.site/uri "https://data.example.test/petstore/openapi.json"
           :ring.request/method :get})]
-    
+
     (is (= status 200))
     (is (= "Swagger Petstore - OpenAPI 3.0"
            (-> body
@@ -191,7 +191,7 @@
                                "accept" "application/json"}
                               :ring.request/body (io/input-stream payload)}
                      _ (*handler* request)])))
-        
+
       (let [request {:juxt.site/uri "https://data.example.test/petstore/pet/findByStatus"
                      :ring.request/method :get
                      :ring.request/headers
@@ -225,7 +225,7 @@
                                "accept" "application/json"}
                               :ring.request/body (io/input-stream payload)}
                      _ (*handler* request)])))
-        
+
       (let [request {:juxt.site/uri (str "https://data.example.test/petstore/pet/" (-> dogs first :id))
                      :ring.request/method :delete
                      :ring.request/headers
@@ -334,7 +334,7 @@
                                  "accept" "application/json"}
                                 :ring.request/body (io/input-stream payload)}
                        _ (*handler* request)])))
-        
+
         (let [request {:juxt.site/uri "https://data.example.test/petstore/pet/findByTags"
                        :ring.request/method :get
                        :ring.request/headers
@@ -371,7 +371,7 @@
                         "accept" "application/json"}
                        :ring.request/body (io/input-stream payload)}
               _ (*handler* request)])
-        
+
         (let [payload (json/write-value-as-bytes (update dog :status (fn [s] "pending")) json/keyword-keys-object-mapper)
               request {:juxt.site/uri "https://data.example.test/petstore/pet"
                        :ring.request/method :put
