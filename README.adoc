@@ -1,6 +1,9 @@
-= Site (2.0)
+= Site (2.0) 
+
+image::https://github.com/juxt-site/site/actions/workflows/ci.yml/badge.svg[float="right"]
 
 With Site, you can build complete API services 100x quicker than by using traditional web frameworks.
+
 
 Here's how you use Site:
 
