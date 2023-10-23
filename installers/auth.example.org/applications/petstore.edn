@@ -6,11 +6,9 @@
   :juxt.site/operation-uri "https://auth.example.org/operations/oauth/register-application"
   :juxt.site/input
   {:juxt.site/client-id "petstore"
-   ;; This can be confidential because we can provide a client_secret
-   ;; as an input in its Authorize dialog, rather than embedding the
-   ;; client_secret in the swagger-ui application code or
-   ;; configuration.
-   :juxt.site/client-type "confidential"
+   :juxt.site/title "Petstore"
+   :juxt.site/description "Petstore demo"
+   :juxt.site/client-type "public"
    :juxt.site/authorization-server "https://auth.example.org"
    :juxt.site/resource-server "https://data.example.org"
    :juxt.site/redirect-uris ["https://petstore.swagger.io/oauth2-redirect.html"
