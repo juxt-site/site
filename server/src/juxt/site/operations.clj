@@ -1016,17 +1016,20 @@
         resource-uri (:xt/id resource)]
 
     (reduce
-     (fn [acc [method {operation-uri :juxt.site/operation-uri}]]
-       (let [permissions
-             (when operation-uri
-               (:juxt.site/permissions
-                (check-permissions
-                 (cond-> {:juxt.site/db db
-                          :juxt.site/operation-uri operation-uri}
-                   subject-uri (assoc :juxt.site/subject-uri subject-uri)
-                   resource-uri (assoc :juxt.site/resource-uri resource-uri)
-                   scope (assoc :juxt.site/scope scope)))))]
-         (cond-> acc (seq permissions) (conj method))))
+     (fn [acc [method {operation-uri :juxt.site/operation-uri
+                       admin-server? :juxt.site.admin-server/invoke}]]
+       (cond
+         admin-server? (conj acc method)
+         :else (let [permissions
+                     (when operation-uri
+                       (:juxt.site/permissions
+                        (check-permissions
+                         (cond-> {:juxt.site/db db
+                                  :juxt.site/operation-uri operation-uri}
+                           subject-uri (assoc :juxt.site/subject-uri subject-uri)
+                           resource-uri (assoc :juxt.site/resource-uri resource-uri)
+                           scope (assoc :juxt.site/scope scope)))))]
+                 (cond-> acc (seq permissions) (conj method)))))
      ;; We always allow GET, which can return a 401 or 404
      #{:get}
      (:juxt.site/methods resource))))
