@@ -1,6 +1,6 @@
 {:deps
- ["https://auth.example.org/operations/get-openapis"
-  "https://auth.example.org/operations/post-openapi"
+ ["https://data.example.org/_site/operations/get-openapis"
+  "https://data.example.org/_site/operations/post-openapi"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
@@ -12,14 +12,14 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation-uri "https://auth.example.org/operations/get-openapis"
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/get-openapis"
      :openapi.v3/metadata {"tags" ["OpenAPIs"]
                            "summary" "Get OpenAPIs"}}
 
     :post
     {:juxt.site/operation-uri
      ;; TODO: Rename to register-users
-     "https://auth.example.org/operations/post-openapi"
+     "https://data.example.org/_site/operations/post-openapi"
      :openapi.v3/metadata
      {"tags" ["OpenAPIs"]
       "summary" "Install an OpenAPI"

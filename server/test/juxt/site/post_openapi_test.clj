@@ -64,7 +64,7 @@
                     (update-in ["servers" 0 "url"] #(str data-base-uri %)))
         resource (edn/read-string
                   {:readers {'juxt.pprint (fn [x] (with-out-str (pprint x)))}}
-                  (slurp (io/file "../installers/auth.example.org/operations/post-openapi.edn")))
+                  (slurp (io/file "../installers/data.example.org/_site/operations/post-openapi.edn")))
         program (get-in resource [:install :juxt.site/input :juxt.site/transact :juxt.site.sci/program])]
 
     (sci/eval-string
