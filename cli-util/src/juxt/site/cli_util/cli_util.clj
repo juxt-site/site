@@ -51,15 +51,17 @@
 
 (defn console-info [message]
   (println
-   (str ansi/yellow-font "info: " message ansi/reset-font)))
+   (str "info: " ansi/yellow-font message ansi/reset-font)))
 
 (defn console-send
   [{:keys [method uri params]} & [{:keys [curl] :or {curl false}}]]
   (stderr
    (println
     (format
-     "send [%s]: %s %s"
-     uri method (str/join " " (for [[k v] params] (format "%s=%s" k v)))))))
+     "send: [%s] %s %s"
+     uri
+     method
+     (str/join " " (for [[k v] params] (format "%s=%s" k v)))))))
 
 (defn console-recv
   [{:keys [status headers body]}
@@ -67,14 +69,14 @@
   (stderr
    (print
     (str
-     "recv"
-     (when from (str " [" from "]")) ;; ⮕ ⬅
-     ": "
+     "recv: "
+     (when from (str "[" from "] ")) ;; ⮕ ⬅
      (status-font status)
      status
      " "
      (status-message status)
      ansi/reset-font
+
      "\n"))
    (when-not hide-body
      ;; We assume the body is properly terminated with a CRLF
