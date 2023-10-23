@@ -530,7 +530,7 @@
          {:headers (cond->
                        {:content-type "application/json"
                         :accept "application/json"}
-                     (assoc :authorization authorization))
+                     authorization (assoc :authorization authorization))
           :body (json/generate-string opts {:pretty true})
           :throw false})]
     (case status
@@ -552,7 +552,7 @@
         (http/post
          (str auth-base-uri "/operations/assign-role")
          {:headers (cond-> {:content-type "application/edn"}
-                     (assoc :authorization (util/authorization cfg)))
+                     authorization (assoc :authorization authorization))
           :body (pr-str
                  {:juxt.site/user (str data-base-uri "/_site/users/" (:username opts))
                   :juxt.site/role (str data-base-uri "/_site/roles/" (:role opts))})
