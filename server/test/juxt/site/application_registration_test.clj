@@ -27,6 +27,7 @@
     "juxt/site/oauth-token-endpoint"
     "juxt/site/resources-api"
     "juxt/site/applications-api"
+    "juxt/site/applications-endpoint"
     "juxt/site/testing/system-permissions"
     "juxt/site/testing/test-admin-client"
     "juxt/site/oauth-token-endpoint"
