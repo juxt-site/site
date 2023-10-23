@@ -1238,8 +1238,8 @@
           "implicit": {
             "authorizationUrl": "https://auth.example.org/oauth/authorize",
             "scopes": {
-              "https://auth.example.org/scopes/petstore/write": "modify pets in your account",
-              "https://auth.example.org/scopes/petstore/read": "read your pets"
+              "https://data.example.org/petstore/scopes/write": "modify pets in your account",
+              "https://data.example.org/petstore/scopes/read": "read your pets"
             }
           }
         }
