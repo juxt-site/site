@@ -37,8 +37,8 @@
     [[:xtdb.api/put (:doc *prepare*)]]}
 
    :juxt.site/scope
-   #{"https://auth.example.org/scopes/petstore/read"
-     "https://auth.example.org/scopes/petstore/write"}
+   #{"https://data.example.org/petstore/scopes/read"
+     "https://data.example.org/petstore/scopes/write"}
    
    :juxt.site/rules
    [

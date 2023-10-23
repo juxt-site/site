@@ -10,7 +10,7 @@
     #juxt.include "get-pet-by-id-state.clj"}
 
    :juxt.site/scope
-   #{"https://auth.example.org/scopes/petstore/read"}
+   #{"https://data.example.org/petstore/scopes/read"}
 
    :juxt.site/rules
    [

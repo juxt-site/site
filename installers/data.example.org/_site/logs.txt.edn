@@ -1,7 +1,7 @@
 ;; See https://jsonlines.org/
 {:deps
  ["https://data.example.org/_site/logs"
-  "https://auth.example.org/operations/get-logs"
+  "https://data.example.org/_site/operations/get-logs"
   "https://auth.example.org/operations/put-resource"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
@@ -9,7 +9,7 @@
   :juxt.site/input
   {:xt/id "{{$id}}"
    :juxt.site/methods
-   {:get {:juxt.site/operation-uri "https://auth.example.org/operations/get-logs"}}
+   {:get {:juxt.site/operation-uri "https://data.example.org/_site/operations/get-logs"}}
    :juxt.site/variant-of "https://data.example.org/_site/logs"
    :juxt.http/content-type "text/plain;charset=utf-8"
    :juxt.pick/quality-of-source 0.9 ; downgrade in content-negotiation

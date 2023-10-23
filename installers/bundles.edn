@@ -165,8 +165,8 @@
   :juxt.site/description "Logs API"
   :juxt.site/installers
   [ ;; Endpoints
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-logs"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations/get-logs"}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/logs"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -177,11 +177,11 @@
     :juxt.site/installer-path "/_site/logs.json-seq"}
 
    ;; Permissions (mapping roles to operations)
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteBootstrap" "operation" "get-logs"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-logs"}}]}
 
  "juxt/site/events-api"
@@ -189,8 +189,8 @@
   :juxt.site/description "Events API"
   :juxt.site/installers
   [ ;; Endpoints
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-events"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations/get-events"}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/events"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -199,11 +199,11 @@
     :juxt.site/installer-path "/_site/events.edn"}
 
    ;; Permissions (mapping roles to operations)
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteBootstrap" "operation" "get-events"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-events"}}]}
 
  "juxt/site/openapis-api"
@@ -627,11 +627,11 @@
     :juxt.site/parameters {"role" "PetstoreOwner"}
     :juxt.site/description "This role is for owners of petstores"}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/scopes/petstore/read"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/scopes/read"}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/scopes/petstore/write"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/scopes/write"}
 
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
