@@ -7,14 +7,20 @@
 
    :juxt.site/state
    {:juxt.site.sci/program
-    #juxt.include "get-pet-by-id-state.clj"}
+    #juxt.pprint
+     (apply
+      dissoc
+      *resource*
+      (filter
+       (fn [key]
+         (= "juxt.site" (namespace key)))
+       (keys *resource*)))}
 
    :juxt.site/scope
-   #{"https://auth.example.org/scopes/petstore/read"}
+   #{"https://data.example.org/petstore/scopes/read"}
 
    :juxt.site/rules
-   [
-    [(allowed? subject operation resource permission)
+   [[(allowed? subject operation resource permission)
      [subject :juxt.site/user user]
      [permission :juxt.site/role role]
      [role :juxt.site/type "https://meta.juxt.site/types/role"]

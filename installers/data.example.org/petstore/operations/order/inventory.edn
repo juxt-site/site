@@ -20,7 +20,7 @@
       {}))}
 
    :juxt.site/scope
-   #{"https://auth.example.org/scopes/petstore/read"}
+   #{"https://data.example.org/petstore/scopes/read"}
 
    :juxt.site/rules
    [[(allowed? subject operation resource permission)

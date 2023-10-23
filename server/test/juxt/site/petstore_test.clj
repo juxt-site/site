@@ -303,10 +303,10 @@
           :client (str "https://auth.example.test/applications/global-scope-app")
           :username "alice"
           :password "garden"
-          :scope #{"https://auth.example.test/scopes/petstore/write"
-                   "https://auth.example.test/scopes/petstore/read"}})]
-    (is (= #{"https://auth.example.test/scopes/petstore/write"
-             "https://auth.example.test/scopes/petstore/read"}
+          :scope #{"https://data.example.test/petstore/scopes/write"
+                   "https://data.example.test/petstore/scopes/read"}})]
+    (is (= #{"https://data.example.test/petstore/scopes/write"
+             "https://data.example.test/petstore/scopes/read"}
            (set (str/split scope #" "))))))
 
 #_(deftest find-by-tags-test

@@ -100,21 +100,21 @@
   :juxt.site/description "Bundle API"
   :juxt.site/installers
   [
-   {:juxt.site/base-uri "https://auth.example.org"
+   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/operations/get-bundle-by-id"}
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/description "Let SiteAdmin search for a bundle"
     :juxt.site/installer-path "/_site/permissions/SiteAdmin/get-bundle-by-id"}
 
-   {:juxt.site/base-uri "https://auth.example.org"
+   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/operations/delete-bundle-by-id"}
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/description "Let SiteAdmin search for a bundle"
     :juxt.site/installer-path "/_site/permissions/SiteAdmin/delete-bundle-by-id"}
 
-   {:juxt.site/base-uri "https://auth.example.org"
+   {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/operations/all-bundles"}
 
    {:juxt.site/base-uri "https://auth.example.org"
@@ -165,8 +165,8 @@
   :juxt.site/description "Logs API"
   :juxt.site/installers
   [ ;; Endpoints
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-logs"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations/get-logs"}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/logs"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -177,11 +177,11 @@
     :juxt.site/installer-path "/_site/logs.json-seq"}
 
    ;; Permissions (mapping roles to operations)
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteBootstrap" "operation" "get-logs"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-logs"}}]}
 
  "juxt/site/events-api"
@@ -189,8 +189,8 @@
   :juxt.site/description "Events API"
   :juxt.site/installers
   [ ;; Endpoints
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/get-events"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/operations/get-events"}
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/events"}
    {:juxt.site/base-uri "https://data.example.org"
@@ -199,11 +199,11 @@
     :juxt.site/installer-path "/_site/events.edn"}
 
    ;; Permissions (mapping roles to operations)
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteBootstrap" "operation" "get-events"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "SiteAdmin" "operation" "get-events"}}]}
 
  "juxt/site/openapis-api"
@@ -596,28 +596,28 @@
  {:juxt.site/title "Petstore Demo"
   :juxt.site/dependencies ["juxt/site/openapi"]
   :juxt.site/installers
-  [{:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/add-pet"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/get-pet-by-id"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/delete-pet-by-id"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/update-pet-by-id"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/find-by-status"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/all-pets"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/find-by-tags"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/order/place"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/order/inventory"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/order/get-by-id"}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/operations/petstore/order/delete-by-id"}
+  [{:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/add-pet"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/get-pet-by-id"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/delete-pet-by-id"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/update-pet-by-id"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/find-by-status"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/all-pets"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/find-by-tags"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/order/place"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/order/inventory"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/order/get-by-id"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/operations/order/delete-by-id"}
 
    ;; TODO: Not sure that roles need to be declared in the resource
    ;; server rather than the auth server. They are becoming more
@@ -627,62 +627,62 @@
     :juxt.site/parameters {"role" "PetstoreOwner"}
     :juxt.site/description "This role is for owners of petstores"}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/scopes/petstore/read"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/scopes/read"}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/scopes/petstore/write"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/scopes/write"}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/add-pet"}}
+                           "operation" "add-pet"}}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
 
-                           "operation" "petstore/get-pet-by-id"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+                           "operation" "get-pet-by-id"}}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/find-by-status"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+                           "operation" "find-by-status"}}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/all-pets"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+                           "operation" "all-pets"}}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/find-by-tags"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+                           "operation" "find-by-tags"}}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/delete-pet-by-id"}}
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+                           "operation" "delete-pet-by-id"}}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/update-pet-by-id"}}
+                           "operation" "update-pet-by-id"}}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/order/place"}}
+                           "operation" "order/place"}}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/order/delete-by-id"}}
+                           "operation" "order/delete-by-id"}}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/order/inventory"}}
+                           "operation" "order/inventory"}}
 
-   {:juxt.site/base-uri "https://auth.example.org"
-    :juxt.site/installer-path "/permissions/by-role/{{role}}/{{operation}}"
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/petstore/permissions/by-role/{{role}}/{{operation}}"
     :juxt.site/parameters {"role" "PetstoreOwner"
-                           "operation" "petstore/order/get-by-id"}}]}
+                           "operation" "order/get-by-id"}}]}
 
  "demo/petstore/pets"
  {:juxt.site/title "Some pets!"
