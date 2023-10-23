@@ -34,6 +34,7 @@
     "juxt/site/user-model"
     "juxt/site/resources-api"
     "juxt/site/users-api"
+    "juxt/site/users-api-permissions"
     "juxt/site/openapis-api"
     "juxt/site/system-api-openapi"
     ["juxt/site/sessions" {}]

@@ -20,7 +20,8 @@
     "juxt/site/user-model"
     "juxt/site/protection-spaces"
     "juxt/site/resources-api"
-    "juxt/site/users-api"]
+    "juxt/site/users-api"
+    "juxt/site/users-api-permissions"]
    RESOURCE_SERVER)
   (f))
 
