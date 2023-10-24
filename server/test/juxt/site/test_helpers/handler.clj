@@ -23,14 +23,24 @@
 (defn handler-fixture [f]
   (with-handler (f)))
 
+(defprotocol ByteStreams
+  (as-bytes [body]))
+
+(extend-protocol ByteStreams
+  (Class/forName "[B")
+  (as-bytes [body] body)
+
+  java.lang.String
+  (as-bytes [body] (.getBytes body)))
+
 (defn assoc-request-body
   "Updates the request with the body, with a Content-Length header to
   avoid a 411 response."
   [req content]
-  (let [bytes (.getBytes content)]
+  (let [bytes (as-bytes content)]
     (-> req
-     (assoc :ring.request/body (io/input-stream bytes))
-     (assoc-in [:ring.request/headers "content-length"] (str (count bytes))))))
+        (assoc :ring.request/body (io/input-stream bytes))
+        (assoc-in [:ring.request/headers "content-length"] (str (count bytes))))))
 
 (defmacro with-request-body
   [content & body]

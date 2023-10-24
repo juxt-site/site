@@ -12,7 +12,7 @@
    [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.oauth :refer [with-bearer-token] :as oauth]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
-   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture]]
+   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture assoc-request-body]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.init :refer [init-fixture CONFIG]]
    [juxt.site.test-helpers.client :refer [admin-token-fixture *admin-token*] :as client]
@@ -65,7 +65,7 @@
   (install-petstore!)
   (f))
 
-(use-fixtures :each system-xt-fixture handler-fixture init-fixture admin-token-fixture install-openapi-fixture)
+(use-fixtures :once system-xt-fixture handler-fixture init-fixture admin-token-fixture install-openapi-fixture)
 
 (deftest get-petstore-test
   (let [{:ring.response/keys [status body]}
@@ -83,9 +83,8 @@
                json/read-value
                (get-in ["servers" 0 "url"]))))))
 
-(deftest add-pet-test
-  (let [dog {:id 10 :name "doggie"}
-        session-token (login/login-with-form! "alice" "garden")
+(defn get-access-token []
+  (let [session-token (login/login-with-form! "alice" "garden")
         {access-token "access_token"}
         (oauth/acquire-access-token!
          {:grant-type "password"
@@ -95,173 +94,124 @@
           :client (str "https://auth.example.test/applications/global-scope-app")
           :username "alice"
           :password "garden"})]
-    (with-bearer-token access-token
-      (let [payload (json/write-value-as-bytes dog json/keyword-keys-object-mapper)
-            request {:juxt.site/uri "https://data.example.test/petstore/pet"
-                     :ring.request/method :post
-                     :ring.request/headers
-                     {"content-type" "application/json"
-                      "content-length" (str (count payload))
-                      "accept" "application/json"}
-                     :ring.request/body (io/input-stream payload)}
-            response (*handler* request)]
-        (is (= 200 (:ring.response/status response)))))))
+    access-token))
 
 (deftest get-pet-test
-  (let [dog {:id "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0" :name "doggie" :status "available"}
-        session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
-        (oauth/acquire-access-token!
-         {:grant-type "password"
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :token-uri "https://auth.example.test/oauth/token"
-          :session-token session-token
-          :client (str "https://auth.example.test/applications/global-scope-app")
-          :username "alice"
-          :password "garden"})]
-    (with-bearer-token access-token
-      (let [payload (json/write-value-as-bytes dog json/keyword-keys-object-mapper)
-            request {:juxt.site/uri "https://data.example.test/petstore/pet"
-                     :ring.request/method :post
-                     :ring.request/headers
-                     {"content-type" "application/json"
-                      "content-length" (str (count payload))
-                      "accept" "application/json"}
-                     :ring.request/body (io/input-stream payload)}
+  (let [dog {:id "get-pet-test-1" :name "Rowan" :status "available"}]
+    (with-bearer-token (get-access-token)
+      (let [request
+            (->
+             {:juxt.site/uri "https://data.example.test/petstore/pet"
+              :ring.request/method :post
+              :ring.request/headers
+              {"content-type" "application/json"
+               "accept" "application/json"}}
+             (assoc-request-body (json/write-value-as-bytes dog json/keyword-keys-object-mapper)))
             _ (*handler* request)
-            request {:juxt.site/uri "https://data.example.test/petstore/pet/f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0"
+            request {:juxt.site/uri "https://data.example.test/petstore/pet/get-pet-test-1"
                      :ring.request/method :get}
             {:ring.response/keys [status body]} (*handler* request)]
         (is (= 200 status))
-        (is (= dog (dissoc (json/read-value body json/keyword-keys-object-mapper) :xt/id)))
-        ))))
+        (is (= dog (dissoc (json/read-value body json/keyword-keys-object-mapper) :xt/id))))
 
-(deftest get-pets-test
-  (let [dog {:id "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0" :name "doggie" :status "available"}
-        session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
-        (oauth/acquire-access-token!
-         {:grant-type "password"
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :token-uri "https://auth.example.test/oauth/token"
-          :session-token session-token
-          :client (str "https://auth.example.test/applications/global-scope-app")
-          :username "alice"
-          :password "garden"})]
-    (with-bearer-token access-token
-      (let [payload (json/write-value-as-bytes dog json/keyword-keys-object-mapper)
-            request {:juxt.site/uri "https://data.example.test/petstore/pet"
-                     :ring.request/method :post
-                     :ring.request/headers
-                     {"content-type" "application/json"
-                      "content-length" (str (count payload))
-                      "accept" "application/json"}
-                     :ring.request/body (io/input-stream payload)}
+      (let [request
+            (->
+             {:juxt.site/uri "https://data.example.test/petstore/pet"
+              :ring.request/method :post
+              :ring.request/headers
+              {"content-type" "application/json"
+               "accept" "application/json"}}
+             (assoc-request-body
+              (json/write-value-as-bytes dog json/keyword-keys-object-mapper)))
             _ (*handler* request)
             request {:juxt.site/uri "https://data.example.test/petstore/pets"
                      :ring.request/method :get}
             {:ring.response/keys [status body]} (*handler* request)]
         (is (= 200 status))
-        (is (= [dog] (map #(dissoc % :xt/id) (json/read-value body json/keyword-keys-object-mapper))))
-        ))))
-
+        (is (= [{:name "Rowan",
+                :status "available",
+                :id "get-pet-test-1",
+                :xt/id "https://data.example.test/petstore/pet/get-pet-test-1"}]
+               (->> (json/read-value body json/keyword-keys-object-mapper)
+                    (filter #(= (:id %) "get-pet-test-1")))))))))
 
 (deftest find-by-status-test
-  (let [dogs [{:id "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0" :name "doggie" :status "available"}
-              {:id "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc1" :name "doggie2" :status "pending"}
-              {:id "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc2" :name "doggie3" :status "available"}]
-        session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
-        (oauth/acquire-access-token!
-         {:grant-type "password"
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :token-uri "https://auth.example.test/oauth/token"
-          :session-token session-token
-          :client (str "https://auth.example.test/applications/global-scope-app")
-          :username "alice"
-          :password "garden"})]
-    (with-bearer-token access-token
-      (doall (for [dog dogs]
-               (let [payload (json/write-value-as-bytes dog json/keyword-keys-object-mapper)
-                     request {:juxt.site/uri "https://data.example.test/petstore/pet"
-                              :ring.request/method :post
-                              :ring.request/headers
-                              {"content-type" "application/json"
-                               "content-length" (str (count payload))
-                               "accept" "application/json"}
-                              :ring.request/body (io/input-stream payload)}
-                     _ (*handler* request)])))
+  (with-bearer-token (get-access-token)
+    (doseq [pet [{:id "find-by-status-test-1" :name "Rowan" :status "available"}
+                 {:id "find-by-status-test-2" :name "Kaia" :status "pending"}
+                 {:id "find-by-status-test-3" :name "Arya" :status "available"}]]
+      (->
+       {:juxt.site/uri "https://data.example.test/petstore/pet"
+        :ring.request/method :post
+        :ring.request/headers
+        {"content-type" "application/json"
+         "accept" "application/json"}}
+       (assoc-request-body (json/write-value-as-bytes pet json/keyword-keys-object-mapper))
+       *handler*))
 
-      (let [request {:juxt.site/uri "https://data.example.test/petstore/pet/findByStatus"
-                     :ring.request/method :get
-                     :ring.request/headers
-                     {"accept" "application/json"}}
-            {:ring.response/keys [status body]} (*handler* request)]
-        (is (= 200 status))
-        (is (= [(first dogs) (nth dogs 2)]
-               (map #(dissoc % :xt/id) (json/read-value body json/keyword-keys-object-mapper))))
-        ))))
+    (let [{:ring.response/keys [status body]}
+          (*handler*
+           {:juxt.site/uri "https://data.example.test/petstore/pet/findByStatus"
+            :ring.request/method :get
+            :ring.request/headers
+            {"accept" "application/json"}})]
+      (is (= 200 status))
+      (is (= [{:name "Rowan",
+               :status "available",
+               :id "find-by-status-test-1",
+               :xt/id
+               "https://data.example.test/petstore/pet/find-by-status-test-1"}
+              {:name "Arya",
+               :status "available",
+               :id "find-by-status-test-3",
+               :xt/id
+               "https://data.example.test/petstore/pet/find-by-status-test-3"}]
+             (->>
+              (json/read-value body json/keyword-keys-object-mapper)
+              (filter #(= (.startsWith (:id %) "find-by-status-test")))))))))
 
 (deftest delete-pet-test
-  (let [dogs [{:id "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0" :name "doggie" :status "available"}]
-        session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
-        (oauth/acquire-access-token!
-         {:grant-type "password"
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :token-uri "https://auth.example.test/oauth/token"
-          :session-token session-token
-          :client (str "https://auth.example.test/applications/global-scope-app")
-          :username "alice"
-          :password "garden"})]
-    (with-bearer-token access-token
-      (doall (for [dog dogs]
-               (let [payload (json/write-value-as-bytes dog json/keyword-keys-object-mapper)
-                     request {:juxt.site/uri "https://data.example.test/petstore/pet"
-                              :ring.request/method :post
-                              :ring.request/headers
-                              {"content-type" "application/json"
-                               "content-length" (str (count payload))
-                               "accept" "application/json"}
-                              :ring.request/body (io/input-stream payload)}
-                     _ (*handler* request)])))
+  (let [pets [{:id "delete-pet-test-1" :name "Rowan" :status "available"}]]
+    (with-bearer-token (get-access-token)
+      (doseq [pet pets]
+        (let [payload (json/write-value-as-bytes pet json/keyword-keys-object-mapper)
+              request {:juxt.site/uri "https://data.example.test/petstore/pet"
+                       :ring.request/method :post
+                       :ring.request/headers
+                       {"content-type" "application/json"
+                        "content-length" (str (count payload))
+                        "accept" "application/json"}
+                       :ring.request/body (io/input-stream payload)}
+              _ (*handler* request)]))
 
-      (let [request {:juxt.site/uri (str "https://data.example.test/petstore/pet/" (-> dogs first :id))
-                     :ring.request/method :delete
-                     :ring.request/headers
-                     {"accept" "application/json"}}
-            {:ring.response/keys [status body]} (*handler* request)]
+      (let [{:ring.response/keys [status]}
+            (*handler*
+             {:juxt.site/uri (str "https://data.example.test/petstore/pet/delete-pet-test-1")
+              :ring.request/method :delete
+              :ring.request/headers
+              {"accept" "application/json"}})]
         (is (= 200 status)))
 
-      (let [request {:juxt.site/uri (str "https://data.example.test/petstore/pet/" (-> dogs first :id))
-                     :ring.request/method :get}
-            {:ring.response/keys [status]} (*handler* request)]
+      (let [{:ring.response/keys [status]}
+            (*handler*
+             {:juxt.site/uri (str "https://data.example.test/petstore/pet/delete-pet-test-1")
+              :ring.request/method :get})]
         (is (= 404 status))))))
 
 (deftest update-pet-by-id-test
-  (let [dog {:id "f3a2ddbc-1170-4d4d-9621-dd070d0e0cc0" :name "doggie" :status "available"}
-        session-token (login/login-with-form! "alice" "garden")
-        {access-token "access_token"}
-        (oauth/acquire-access-token!
-         {:grant-type "password"
-          :authorization-uri "https://auth.example.test/oauth/authorize"
-          :token-uri "https://auth.example.test/oauth/token"
-          :session-token session-token
-          :client (str "https://auth.example.test/applications/global-scope-app")
-          :username "alice"
-          :password "garden"})]
-    (with-bearer-token access-token
-      (let [payload (json/write-value-as-bytes dog json/keyword-keys-object-mapper)
-            request {:juxt.site/uri "https://data.example.test/petstore/pet"
-                     :ring.request/method :post
-                     :ring.request/headers
-                     {"content-type" "application/json"
-                      "content-length" (str (count payload))
-                      "accept" "application/json"}
-                     :ring.request/body (io/input-stream payload)}
-            _ (*handler* request)]
+  (let [pet {:id "update-pet-by-id-test-1" :name "Rowan" :status "available"}]
+    (with-bearer-token (get-access-token)
+      (let [request
+            (->
+             {:juxt.site/uri "https://data.example.test/petstore/pet"
+              :ring.request/method :post
+              :ring.request/headers
+              {"content-type" "application/json"
+               "accept" "application/json"}}
+             (assoc-request-body (json/write-value-as-bytes pet json/keyword-keys-object-mapper))
+             *handler*)]
         (let [payload (json/write-value-as-bytes {:name "updated" :status "updated"} json/keyword-keys-object-mapper)
-              request {:juxt.site/uri (str "https://data.example.test/petstore/pet/" (:id dog))
+              request {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
                        :ring.request/method :post
                        :ring.request/headers
                        {"accept" "application/json"
@@ -271,26 +221,27 @@
               {:ring.response/keys [status body]} (*handler* request)]
           (is (= 200 status)))
 
-        (let [request {:juxt.site/uri (str "https://data.example.test/petstore/pet/" (:id dog))
+        (let [request {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
                        :ring.request/method :get}
               {:ring.response/keys [status body]} (*handler* request)]
           (is (= 200 status))
           (is (= "updated" (:name (json/read-value body json/keyword-keys-object-mapper)))))
-        (let [payload (.getBytes "name=doggie&status=available" "UTF-8")
-              request {:juxt.site/uri (str "https://data.example.test/petstore/pet/" (:id dog))
-                       :ring.request/method :post
-                       :ring.request/headers
-                       {"accept" "application/json"
-                        "content-type" "application/x-www-form-urlencoded"
-                        "content-length" (str (count payload))}
-                       :ring.request/body (io/input-stream payload)}
-              {:ring.response/keys [status body]} (*handler* request)]
+        (let [{:ring.response/keys [status body]}
+              (->
+               {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
+                :ring.request/method :post
+                :ring.request/headers
+                {"accept" "application/json"
+                 "content-type" "application/x-www-form-urlencoded"}}
+               (assoc-request-body (.getBytes "name=doggie&status=available" "UTF-8"))
+               *handler*)]
           (is (= 200 status))
-          (let [request {:juxt.site/uri (str "https://data.example.test/petstore/pet/" (:id dog))
-                       :ring.request/method :get}
-              {:ring.response/keys [status body]} (*handler* request)]
-          (is (= 200 status))
-          (is (= "doggie" (:name (json/read-value body json/keyword-keys-object-mapper))))))))))
+          (let [request
+                {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
+                 :ring.request/method :get}
+                {:ring.response/keys [status body]} (*handler* request)]
+            (is (= 200 status))
+            (is (= "doggie" (:name (json/read-value body json/keyword-keys-object-mapper))))))))))
 
 (deftest petstore-scope-test
   (let [session-token (login/login-with-form! "alice" "garden")
