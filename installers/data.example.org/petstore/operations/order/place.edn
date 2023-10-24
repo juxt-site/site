@@ -97,7 +97,7 @@
           :ring.response/body (format "No pet with ID %s found" (->> docs first :petId))}))}
 
    :juxt.site/scope
-   #{"https://auth.example.org/scopes/petstore/write"}
+   #{"https://data.example.org/scopes/petstore/write"}
 
    :juxt.site/rules
    [[(allowed? subject operation resource permission)
