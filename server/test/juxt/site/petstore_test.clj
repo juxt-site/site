@@ -165,7 +165,15 @@
                :status "available",
                :id "find-by-status-test-3",
                :xt/id
-               "https://data.example.test/petstore/pet/find-by-status-test-3"}]
+               "https://data.example.test/petstore/pet/find-by-status-test-3"}
+              {:id "get-pet-test-1",
+               :name "Rowan",
+               :status "available",
+               :xt/id "https://data.example.test/petstore/pet/get-pet-test-1"}
+              {:id "update-pet-by-id-test-1",
+                :name "doggie",
+                :status "available",
+                :xt/id "https://data.example.test/petstore/pet/update-pet-by-id-test-1"}]
              (->>
               (json/read-value body json/keyword-keys-object-mapper)
               (filter #(= (.startsWith (:id %) "find-by-status-test")))))))))
