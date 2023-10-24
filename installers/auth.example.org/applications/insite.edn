@@ -13,4 +13,4 @@
    :juxt.site/resource-server "https://data.example.org"
    :juxt.site/redirect-uris ["https://surveyor.apps.com/oauth-redirect.html"]
    :juxt.site/scope #{"https://auth.example.org/scopes/system/read"
-                      "https://auth.example.org/scopes/system/self-identification"}}}}
+                      "https://data.example.org/_site/scopes/system/self-identification"}}}}

@@ -41,14 +41,14 @@ Some useful links:
         {"authorizationUrl" "https://auth.example.org/oauth/authorize"
          "scopes"
          {"https://auth.example.org/scopes/system/read" "Read system info"
-          "https://auth.example.org/scopes/system/self-identification" "Self identification"
+          "https://data.example.org/_site/scopes/system/self-identification" "Self identification"
           "https://auth.example.org/scopes/system/write" "Administer system"}
          "tokenUrl" "https://auth.example.org/oauth/token"}
 
         "clientCredentials"
         {"scopes"
          {"https://auth.example.org/scopes/system/read" "Read system info"
-          "https://auth.example.org/scopes/system/self-identification" "Self identification"
+          "https://data.example.org/_site/scopes/system/self-identification" "Self identification"
           "https://auth.example.org/scopes/system/write" "Administer system"}
          "tokenUrl" "https://auth.example.org/oauth/token"}
 
@@ -56,12 +56,12 @@ Some useful links:
         {"authorizationUrl" "https://auth.example.org/oauth/authorize"
          "scopes"
          {"https://auth.example.org/scopes/system/read" "Read system info"
-          "https://auth.example.org/scopes/system/self-identification" "Self identification"
+          "https://data.example.org/_site/scopes/system/self-identification" "Self identification"
           "https://auth.example.org/scopes/system/write" "Administer system"}}
 
         "password"
         {"scopes"
          {"https://auth.example.org/scopes/system/read" "Read system info"
-          "https://auth.example.org/scopes/system/self-identification" "Self identification"
+          "https://data.example.org/_site/scopes/system/self-identification" "Self identification"
           "https://auth.example.org/scopes/system/write" "Administer system"}
          "tokenUrl" "https://auth.example.org/oauth/token"}}}}}}}}}

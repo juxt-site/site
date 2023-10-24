@@ -1,5 +1,5 @@
 {:deps
- ["https://auth.example.org/operations/get-access-token"
+ ["https://data.example.org/_site/operations/get-access-token"
   "https://auth.example.org/protection-spaces/bearer"]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
@@ -11,7 +11,7 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation-uri "https://auth.example.org/operations/get-access-token"
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/get-access-token"
      :openapi.v3/metadata {"tags" ["Introspection"]
                            "summary" "Show the access token as text so it can be saved"}}}
 
