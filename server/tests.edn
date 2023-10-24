@@ -18,7 +18,7 @@
            "juxt.site.oauth-grants-test"
            "juxt.site.openid-test"
            "juxt.site.system-api-test"
-           "juxt.site.whoami-test"
+           "juxt.site.1whoami-test"
            "juxt.site.schema-test"
            "juxt.site.basic-auth-test"
            "juxt.site.create-users-test"
