@@ -1,8 +1,6 @@
-{:deps
- ["https://auth.example.org/operations/whoami"]
- :install
+{:install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/grant-permission"
   :juxt.site/input
   {:xt/id "{{$id}}"
-   :juxt.site/operation-uri "https://auth.example.org/operations/get-access-token"}}}
+   :juxt.site/operation-uri "https://data.example.org/_site/testing/operations/basic-auth-protected-resource-operation"}}}

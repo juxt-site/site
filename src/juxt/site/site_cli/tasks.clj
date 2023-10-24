@@ -469,7 +469,9 @@
            ["juxt/site/logs-api" {}]
            ["juxt/site/whoami-api" {}]
            ["juxt/site/users-api" {}]
+           ["juxt/site/users-api-permissions" {}]
            ["juxt/site/applications-api" {}]
+           ["juxt/site/applications-endpoint" {}]
            ["juxt/site/openapis-api" {}]
            ["juxt/site/bundles-api" {}]
 

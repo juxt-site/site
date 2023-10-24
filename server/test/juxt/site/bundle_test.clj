@@ -58,6 +58,7 @@
     ["juxt/site/events-api" {}]
     ["juxt/site/whoami-api" {}]
     ["juxt/site/users-api" {}]
+    ["juxt/site/users-api-permissions" {}]
     ["juxt/site/openapis-api" {}]
     ["juxt/site/bundles-api" {}]
 

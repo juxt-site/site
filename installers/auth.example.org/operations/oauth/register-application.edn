@@ -48,7 +48,7 @@
      {:optional true}
      [:maybe
       [:set
-       [:re "https://auth.example.org/scopes/.+?(,https://auth.example.org/scopes/.+?)*"]]]]]
+       [:re "(https://auth.example.org/scopes/.+?(,https://auth.example.org/scopes/.+?)*|https://data.example.org/_site/scopes/.+?(,https://data.example.org/_site/scopes/.+?)*)"]]]]]
 
    ;; TODO: Check that scope actually exists
 

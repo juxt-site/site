@@ -34,6 +34,7 @@
     "juxt/site/user-model"
     "juxt/site/resources-api"
     "juxt/site/users-api"
+    "juxt/site/users-api-permissions"
     "juxt/site/openapis-api"
     "juxt/site/system-api-openapi"
     ["juxt/site/sessions" {}]
@@ -85,7 +86,7 @@
               "flows"
               {"implicit"
                {"scopes"
-                {"https://auth.example.test/scopes/system/self-identification"
+                {"https://data.example.test/_site/scopes/system/self-identification"
                  "Self identification",
                  "https://auth.example.test/scopes/system/read"
                  "Read system info",
@@ -95,7 +96,7 @@
                "authorizationCode"
                {"tokenUrl" "https://auth.example.test/oauth/token",
                 "scopes"
-                {"https://auth.example.test/scopes/system/self-identification"
+                {"https://data.example.test/_site/scopes/system/self-identification"
                  "Self identification",
                  "https://auth.example.test/scopes/system/read"
                  "Read system info",
@@ -105,7 +106,7 @@
                "password"
                {"tokenUrl" "https://auth.example.test/oauth/token",
                 "scopes"
-                {"https://auth.example.test/scopes/system/self-identification"
+                {"https://data.example.test/_site/scopes/system/self-identification"
                  "Self identification",
                  "https://auth.example.test/scopes/system/read"
                  "Read system info",
@@ -114,7 +115,7 @@
                "clientCredentials"
                {"tokenUrl" "https://auth.example.test/oauth/token",
                 "scopes"
-                {"https://auth.example.test/scopes/system/self-identification"
+                {"https://data.example.test/_site/scopes/system/self-identification"
                  "Self identification",
                  "https://auth.example.test/scopes/system/read"
                  "Read system info",
