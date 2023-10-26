@@ -168,7 +168,7 @@
                "https://data.example.test/petstore/pet/find-by-status-test-3"}]
              (->>
               (json/read-value body json/keyword-keys-object-mapper)
-              (filter #(= (.startsWith (:id %) "find-by-status-test")))))))))
+              (filter #(.startsWith (:id %) "find-by-status-test"))))))))
 
 (deftest delete-pet-test
   (let [pets [{:id "delete-pet-test-1" :name "Rowan" :status "available"}]]
