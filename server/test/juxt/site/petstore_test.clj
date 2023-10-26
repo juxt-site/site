@@ -201,47 +201,46 @@
 (deftest update-pet-by-id-test
   (let [pet {:id "update-pet-by-id-test-1" :name "Rowan" :status "available"}]
     (with-bearer-token (get-access-token)
-      (let [request
+      (*handler*
+       (assoc-request-body
+        {:juxt.site/uri "https://data.example.test/petstore/pet"
+         :ring.request/method :post
+         :ring.request/headers
+         {"content-type" "application/json"
+          "accept" "application/json"}}
+        (json/write-value-as-bytes pet json/keyword-keys-object-mapper)))
+      (let [payload (json/write-value-as-bytes {:name "updated" :status "updated"} json/keyword-keys-object-mapper)
+            request {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
+                     :ring.request/method :post
+                     :ring.request/headers
+                     {"accept" "application/json"
+                      "content-type" "application/json"
+                      "content-length" (str (count payload))}
+                     :ring.request/body (io/input-stream payload)}
+            {:ring.response/keys [status body]} (*handler* request)]
+        (is (= 200 status)))
+
+      (let [request {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
+                     :ring.request/method :get}
+            {:ring.response/keys [status body]} (*handler* request)]
+        (is (= 200 status))
+        (is (= "updated" (:name (json/read-value body json/keyword-keys-object-mapper)))))
+      (let [{:ring.response/keys [status body]}
             (->
-             {:juxt.site/uri "https://data.example.test/petstore/pet"
+             {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
               :ring.request/method :post
               :ring.request/headers
-              {"content-type" "application/json"
-               "accept" "application/json"}}
-             (assoc-request-body (json/write-value-as-bytes pet json/keyword-keys-object-mapper))
+              {"accept" "application/json"
+               "content-type" "application/x-www-form-urlencoded"}}
+             (assoc-request-body (.getBytes "name=doggie&status=available" "UTF-8"))
              *handler*)]
-        (let [payload (json/write-value-as-bytes {:name "updated" :status "updated"} json/keyword-keys-object-mapper)
-              request {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
-                       :ring.request/method :post
-                       :ring.request/headers
-                       {"accept" "application/json"
-                        "content-type" "application/json"
-                        "content-length" (str (count payload))}
-                       :ring.request/body (io/input-stream payload)}
-              {:ring.response/keys [status body]} (*handler* request)]
-          (is (= 200 status)))
-
-        (let [request {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
-                       :ring.request/method :get}
+        (is (= 200 status))
+        (let [request
+              {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
+               :ring.request/method :get}
               {:ring.response/keys [status body]} (*handler* request)]
           (is (= 200 status))
-          (is (= "updated" (:name (json/read-value body json/keyword-keys-object-mapper)))))
-        (let [{:ring.response/keys [status body]}
-              (->
-               {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
-                :ring.request/method :post
-                :ring.request/headers
-                {"accept" "application/json"
-                 "content-type" "application/x-www-form-urlencoded"}}
-               (assoc-request-body (.getBytes "name=doggie&status=available" "UTF-8"))
-               *handler*)]
-          (is (= 200 status))
-          (let [request
-                {:juxt.site/uri (str "https://data.example.test/petstore/pet/update-pet-by-id-test-1")
-                 :ring.request/method :get}
-                {:ring.response/keys [status body]} (*handler* request)]
-            (is (= 200 status))
-            (is (= "doggie" (:name (json/read-value body json/keyword-keys-object-mapper))))))))))
+          (is (= "doggie" (:name (json/read-value body json/keyword-keys-object-mapper)))))))))
 
 (deftest petstore-scope-test
   (let [session-token (login/login-with-form! "alice" "garden")
