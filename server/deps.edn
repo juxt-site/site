@@ -115,6 +115,11 @@
     juxt.site/installer-graph {:local/root "../installer-graph"}}
    :jvm-opts ["--add-opens" "java.base/java.util.concurrent=ALL-UNNAMED"]}
 
+  :nextjournal/clerk
+  {:extra-paths ["test"]
+   :extra-deps
+   {io.github.nextjournal/clerk {:mvn/version "0.14.919"}}}
+
   :coverage
   {:extra-paths ["test"]
    :extra-deps
