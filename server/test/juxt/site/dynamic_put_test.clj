@@ -113,9 +113,6 @@
 
   ;; What is the Allow response header from an OPTIONS request?
 
-  ;; TODO: Filter out unallowed methods from OPTIONS and the Allow
-  ;; response header.
-
   (let [response
         (*handler*
          {:juxt.site/uri "https://data.example.test/contacts.meta"
