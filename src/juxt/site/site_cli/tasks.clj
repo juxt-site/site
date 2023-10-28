@@ -414,6 +414,31 @@
         cfg (util/config (util/profile opts))]
     (help cfg)))
 
+(defn register-system-clients [{:keys [silent] :as opts}]
+  (let [cfg (util/config (util/profile opts))
+        admin-base-uri (get cfg "admin-base-uri")]
+    (install-bundles
+     (assoc
+      opts
+      :resources-uri
+      (str admin-base-uri "/resources")
+      :bundles
+      [
+       ["juxt/site/system-client"
+        (let [site-cli-config {"client-id" "site-cli"}]
+          (if-let [site-cli-secret (:site-cli-secret opts)]
+            (assoc site-cli-config "client-secret" site-cli-secret)
+            site-cli-config))]
+       ["juxt/site/system-client"
+        (let [insite-config {"client-id" "insite"}]
+          (if-let [insite-secret (:insite-secret opts)]
+            (assoc insite-config "client-secret" insite-secret)
+            insite-config))]]))
+    (post-init cfg silent)))
+
+(defn register-system-clients-task []
+  (register-system-clients (util/parse-opts)))
+
 (defn init
   [{:keys [silent no-clients] :as opts}]
   (let [cfg (util/config (util/profile opts))
@@ -460,20 +485,23 @@
             ;; RFC 7662 token introspection
             ["juxt/site/oauth-introspection-endpoint" {}]
             ;; Register the clients
-            (when-not no-clients
+            #_(when-not no-clients
               ["juxt/site/system-client"
                (let [site-cli-config {"client-id" "site-cli"}]
                  (if-let [site-cli-secret (:site-cli-secret opts)]
                    (assoc site-cli-config "client-secret" site-cli-secret)
                    site-cli-config))])
-            (when-not no-clients
+            #_(when-not no-clients
               ["juxt/site/system-client"
                (let [insite-config {"client-id" "insite"}]
                  (if-let [insite-secret (:insite-secret opts)]
                    (assoc insite-config "client-secret" insite-secret)
                    insite-config))])])))
 
-        (post-init cfg silent)))))
+        (when-not no-clients
+          (register-system-clients opts))
+
+        ))))
 
 (defn init-task []
   (init (util/parse-opts)))
