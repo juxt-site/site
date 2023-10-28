@@ -282,29 +282,6 @@
                               (range (int \a) (inc (int \z)))
                               (range (int \0) (inc (int \9))))))))))
 
-
-
-(defn print-or-save-client-secret [{:keys [client-id save] :as opts}]
-
-  ;; TODO: The repl (client-secret) must also have a where clause to
-  ;; restrict us to the right auth-server! Otherwise we'll be
-  ;; potentially fishing out the first of a bundle of client-secrets!
-
-  (let [cfg (util/config (util/profile opts))
-        admin-base-uri (get cfg "admin-base-uri")]
-    (if-not admin-base-uri
-      (stderr (println "The admin-server is not reachable."))
-      (let [client-secret (util/request-client-secret admin-base-uri client-id)
-            secret-file (util/client-secret-file opts client-id)]
-        (binding [*out* (if save (io/writer secret-file) *out*)]
-          (println client-secret))
-        (when save
-          (stderr
-            (println "Written client secret to" (.getAbsolutePath secret-file))))))))
-
-(defn print-or-save-client-secret-task []
-  (print-or-save-client-secret (util/parse-opts)))
-
 (defn countdown [start]
   (println "(To abort: Control-C)")
   (print "Deleting resources in ")
@@ -406,7 +383,7 @@
             (if-not (and insite-secret site-cli-secret)
               (do
                 (println "Register the site-cli app to proceed")
-                (println "One way to do this is to run 'site init'"))
+                (println "One way to do this is to run 'site install juxt/site/system-client --client-id site-cli'"))
               (do
                 (println "Next steps: you should continue to configure your Site instance,")
                 (println "using one of the following methods:")
@@ -438,7 +415,7 @@
     (help cfg)))
 
 (defn init
-  [{:keys [silent] :as opts}]
+  [{:keys [silent no-clients] :as opts}]
   (let [cfg (util/config (util/profile opts))
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
@@ -450,53 +427,51 @@
           :resources-uri
           (str admin-base-uri "/resources")
           :bundles
-          [["juxt/site/bootstrap" {}]
-           ["juxt/site/oauth-scope" {}]
-           ["juxt/site/full-dynamic-remote" {}]
-           ["juxt/site/unprotected-resources" {}]
-           ["juxt/site/protection-spaces" {}]
-           ;; Support the creation of JWT bearer tokens
-           ["juxt/site/oauth-token-endpoint" {}]
-           ;; Install a keypair to sign JWT bearer tokens
-           ["juxt/site/keypair" {"kid" (random-string 16)}]
-           ;; Install the required APIs
-           ["juxt/site/user-model" {}]
-           ["juxt/site/protection-spaces" {}]
-           ["juxt/site/selmer-templating" {}]
+          (keep
+           identity
+           [["juxt/site/bootstrap" {}]
+            ["juxt/site/oauth-scope" {}]
+            ["juxt/site/full-dynamic-remote" {}]
+            ["juxt/site/unprotected-resources" {}]
+            ["juxt/site/protection-spaces" {}]
+            ;; Support the creation of JWT bearer tokens
+            ["juxt/site/oauth-token-endpoint" {}]
+            ;; Install a keypair to sign JWT bearer tokens
+            ["juxt/site/keypair" {"kid" (random-string 16)}]
+            ;; Install the required APIs
+            ["juxt/site/user-model" {}]
+            ["juxt/site/protection-spaces" {}]
+            ["juxt/site/selmer-templating" {}]
 
-           ["juxt/site/resources-api" {}]
-           ["juxt/site/events-api" {}]
-           ["juxt/site/logs-api" {}]
-           ["juxt/site/whoami-api" {}]
-           ["juxt/site/users-api" {}]
-           ["juxt/site/users-api-permissions" {}]
-           ["juxt/site/applications-api" {}]
-           ["juxt/site/applications-endpoint" {}]
-           ["juxt/site/openapis-api" {}]
-           ["juxt/site/bundles-api" {}]
+            ["juxt/site/resources-api" {}]
+            ["juxt/site/events-api" {}]
+            ["juxt/site/logs-api" {}]
+            ["juxt/site/whoami-api" {}]
+            ["juxt/site/users-api" {}]
+            ["juxt/site/users-api-permissions" {}]
+            ["juxt/site/applications-api" {}]
+            ["juxt/site/applications-endpoint" {}]
+            ["juxt/site/openapis-api" {}]
+            ["juxt/site/bundles-api" {}]
 
-           ["juxt/site/sessions" {}]
-           ["juxt/site/roles" {}]
+            ["juxt/site/sessions" {}]
+            ["juxt/site/roles" {}]
 
-           ;; RFC 7662 token introspection
-           ["juxt/site/oauth-introspection-endpoint" {}]
-           ;; Register the clients
-           ["juxt/site/system-client"
-            (let [site-cli-config {"client-id" "site-cli"}]
-              (if-let [site-cli-secret (:site-cli-secret opts)]
-                (assoc site-cli-config "client-secret" site-cli-secret)
-                site-cli-config))]
-           ["juxt/site/system-client"
-            (let [insite-config {"client-id" "insite"}]
-              (if-let [insite-secret (:insite-secret opts)]
-                (assoc insite-config "client-secret" insite-secret)
-                insite-config))]])
-         )
-        ;; Delete any stale client-secret files
-        (doseq [client-id ["site-cli" "insite"]
-                :let [secret-file (util/client-secret-file opts client-id)]]
-          ;; TODO: Replace with babashka.fs
-          (.delete secret-file))
+            ;; RFC 7662 token introspection
+            ["juxt/site/oauth-introspection-endpoint" {}]
+            ;; Register the clients
+            (when-not no-clients
+              ["juxt/site/system-client"
+               (let [site-cli-config {"client-id" "site-cli"}]
+                 (if-let [site-cli-secret (:site-cli-secret opts)]
+                   (assoc site-cli-config "client-secret" site-cli-secret)
+                   site-cli-config))])
+            (when-not no-clients
+              ["juxt/site/system-client"
+               (let [insite-config {"client-id" "insite"}]
+                 (if-let [insite-secret (:insite-secret opts)]
+                   (assoc insite-config "client-secret" insite-secret)
+                   insite-config))])])))
 
         (post-init cfg silent)))))
 

@@ -281,11 +281,6 @@
     (.mkdirs (.getParentFile fl))
     fl))
 
-(defn client-secret-file [opts client-id]
-  (let [save-dir (io/file (cache-dir opts) "client-secrets")]
-    (.mkdirs save-dir)
-    (io/file save-dir client-id)))
-
 (defn request-token
   "Acquire an access-token. Remote only."
   [{:keys [client-id grant-type client-secret] :as opts}]

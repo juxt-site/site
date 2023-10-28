@@ -73,6 +73,7 @@
 
   init
   {:doc "Initialise a server with minimal resources. Only available via localhost."
+   :opts {:coerce {:no-clients :boolean}}
    :task (juxt.site.site-cli.tasks/init-task)}
 
   post-init
