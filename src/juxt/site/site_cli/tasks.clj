@@ -440,7 +440,7 @@
   (register-system-clients (util/parse-opts)))
 
 (defn init
-  [{:keys [silent no-clients] :as opts}]
+  [{:keys [no-clients] :as opts}]
   (let [cfg (util/config (util/profile opts))
         admin-base-uri (get cfg "admin-base-uri")]
     (if-not admin-base-uri
@@ -483,25 +483,10 @@
             ["juxt/site/roles" {}]
 
             ;; RFC 7662 token introspection
-            ["juxt/site/oauth-introspection-endpoint" {}]
-            ;; Register the clients
-            #_(when-not no-clients
-              ["juxt/site/system-client"
-               (let [site-cli-config {"client-id" "site-cli"}]
-                 (if-let [site-cli-secret (:site-cli-secret opts)]
-                   (assoc site-cli-config "client-secret" site-cli-secret)
-                   site-cli-config))])
-            #_(when-not no-clients
-              ["juxt/site/system-client"
-               (let [insite-config {"client-id" "insite"}]
-                 (if-let [insite-secret (:insite-secret opts)]
-                   (assoc insite-config "client-secret" insite-secret)
-                   insite-config))])])))
+            ["juxt/site/oauth-introspection-endpoint" {}]])))
 
         (when-not no-clients
-          (register-system-clients opts))
-
-        ))))
+          (register-system-clients opts))))))
 
 (defn init-task []
   (init (util/parse-opts)))
