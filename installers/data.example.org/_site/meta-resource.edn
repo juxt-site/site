@@ -1,7 +1,8 @@
 {:deps
- ["https://auth.example.org/_site/do-operation"
-  "https://data.example.org/_site/operations/install-meta-resource"
-  "https://data.example.org/_site/permissions/system/install-meta-resource"]
+ [{:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/_site/do-operation"}
+ {:juxt.site/base-uri "https://data.example.org", :juxt.site/installer-path "/_site/operations/install-meta-resource"}
+ {:juxt.site/base-uri "https://data.example.org", :juxt.site/installer-path "/_site/permissions/system/install-meta-resource"}
+]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://data.example.org/_site/operations/install-meta-resource"

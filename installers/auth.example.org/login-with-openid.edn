@@ -5,8 +5,10 @@
   ;; should uncomment out this dependency.
   #_"https://auth.example.org/openid/clients/{{iss|urlescape}}/{{client-id}}"
 
-  "https://auth.example.org/openid/callback"
-  "https://auth.example.org/operations/install-openid-login-endpoint"]
+  {:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/openid/callback"}
+  {:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/operations/install-openid-login-endpoint"}]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/operations/install-openid-login-endpoint"

@@ -30,7 +30,8 @@
     "juxt/site/whoami-api"
     "juxt/site/oauth-token-endpoint"
     ["juxt/site/oauth-authorization-endpoint"
-     {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+     {"session-scope" "/session-scopes/form-login-session"
+      "session-scope-authority" "https://auth.example.test"
       "authorization-code-length" 12
       "jti-length" 12}]]
    RESOURCE_SERVER)

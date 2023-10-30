@@ -90,7 +90,7 @@
    (xt/entity db (str (.resolve (java.net.URI. uri) "/_site/not-found")))
 
    (throw
-    (let [uri (str (.resolve (java.net.URI. uri) "/_site/not-found"))]
+    (let [not-found-uri (str (.resolve (java.net.URI. uri) "/_site/not-found"))]
       (ex-info
-       (format "The not-found resource has not been installed: %s" uri)
-       {:uri uri})))))
+       (format "The not-found resource has not been installed: %s" not-found-uri)
+       {:uri not-found-uri})))))

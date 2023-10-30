@@ -1,5 +1,6 @@
 {:deps
- ["https://auth.example.org/operations/oauth/install-token-endpoint"]
+ [{:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/operations/oauth/install-token-endpoint"}
+]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/grant-permission"

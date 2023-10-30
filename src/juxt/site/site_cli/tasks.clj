@@ -485,8 +485,31 @@
             ["juxt/site/sessions" {}]
             ["juxt/site/roles" {}]
 
+<<<<<<< HEAD
             ;; RFC 7662 token introspection
             ["juxt/site/oauth-introspection-endpoint" {}]])))
+=======
+           ;; RFC 7662 token introspection
+           ["juxt/site/oauth-introspection-endpoint" {}]
+           ;; Register the clients
+           ["juxt/site/system-client"
+            (let [site-cli-config {"client-id" "site-cli"}]
+              (if-let [site-cli-secret (:site-cli-secret opts)]
+                (assoc site-cli-config "client-secret" site-cli-secret)
+                site-cli-config))]
+           ["juxt/site/system-client"
+            (let [insite-config {"client-id" "insite"}]
+              (if-let [insite-secret (:insite-secret opts)]
+                (assoc insite-config "client-secret" insite-secret)
+                insite-config))]
+           ])
+         )
+        ;; Delete any stale client-secret files
+        (doseq [client-id ["site-cli" "insite"]
+                :let [secret-file (util/client-secret-file opts client-id)]]
+          ;; TODO: Replace with babashka.fs
+          (.delete secret-file))
+>>>>>>> 2f17382f (Update dependencies to use specs instead of strings)
 
         (when-not no-clients
           (register-system-clients opts))))))
@@ -606,8 +629,7 @@
         cfg (util/config opts)
         available-bundles-map (bundles cfg)
         available (ciu/bundles-map->seq available-bundles-map)
-        possibles (ciu/find-resource pattern available)]
-
+        possibles (ciu/lookup-installer-pattern-installer-tree pattern available)]
     (doall
      (for [a possibles]
        (clojure.pprint/pprint
@@ -623,7 +645,7 @@
         _ (assert bundle)
         install-seq (installers-seq (util/static-config) bundle opts)]
     (clojure.pprint/pprint
-     (:bundles (ciu/bundle-dependencies-map install-seq available-bundles-map cfg opts)))))
+     (:bundles (ciu/bundle-dependencies-map install-seq available-bundles-map)))))
 
 (defn installed-bundles []
   (let [opts (util/parse-opts)
@@ -852,7 +874,8 @@
        ;; This is public and you may not want to expose this
        ["juxt/site/system-api-openapi" {}]
        ["juxt/site/oauth-authorization-endpoint"
-        {"session-scope" "https://auth.example.org/session-scopes/form-login-session"}]
+        {"session-scope" "/session-scopes/form-login-session"
+         "session-scope-authority" "https://auth.example.org"}]
 
        ;; Register swagger-ui
        ;; TODO: Try not registering this one and see the awful Jetty
@@ -906,7 +929,8 @@
        ;; There's a dependency between /oauth/authorize and form-login-session, so we need login-form
        ["juxt/site/login-form"]
        ;; TODO: Why not make this dynamic - the choices are filtered based on what session-scopes we have already installed
-       ["juxt/site/oauth-authorization-endpoint" {"session-scope" "https://auth.example.org/session-scopes/form-login-session"}]
+       ["juxt/site/oauth-authorization-endpoint" {"session-scope" "/session-scopes/form-login-session"
+                                                  "session-scope-authority" "https://auth.example.org"}]
        ["juxt/site/system-client" {"client-id" "swagger-ui"}]]))
     (println "\n\n")
     (println "Next steps: ")

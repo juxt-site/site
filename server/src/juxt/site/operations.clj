@@ -584,7 +584,11 @@
                    dependencies :juxt.site/dependencies
                    uri :juxt.site/uri
                    :as installer}]
-                (let [{operation-uri :juxt.site/operation-uri
+                (let [                  ; This is probably not the right place to do this
+                      dependencies (mapv (fn [{:juxt.site/keys [base-uri installer-path]}]
+                                           (str base-uri installer-path))
+                                         dependencies)
+                      {operation-uri :juxt.site/operation-uri
                        input :juxt.site/input
                        :as init-data}
                       (assoc-in init-data [:juxt.site/input :juxt.site/bundle] (:uri bundle-map))]

@@ -51,7 +51,8 @@
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/description "Let SiteAdmin grant permission to operations"
-    :juxt.site/installer-path "/_site/permissions/SiteAdmin/grant-permission"}]}
+    :juxt.site/installer-path "/_site/permissions/SiteAdmin/grant-permission"}
+   ]}
 
  "juxt/site/oauth-scope"
  {:juxt.site/title "OAuth scope"
@@ -422,7 +423,8 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/access-token.txt"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/permissions/whoami"}]}
+    :juxt.site/installer-path "/permissions/whoami"}
+   ]}
 
  ;; TODO: Shouldn't SystemAPI be broken up into individual endpoints?
  #_"juxt/site/system-api"
@@ -528,9 +530,15 @@
   [["session-scope"
     {:choices
      [{:label "Password-based form"
-       :value "https://auth.example.org/session-scopes/form-login-session"}
+       :value "/session-scopes/form-login-session"}
       {:label "OpenID Connect"
-       :value "https://auth.example.org/session-scopes/openid-login-session"}]}]
+       :value "/session-scopes/openid-login-session"}]}]
+   ["session-scope-authority"
+    {:choices
+     [{:label "auth"
+       :value "https://auth.example.org"}
+      {:label "data"
+       :value "https://data.example.org"}]}]
    ["authorization-code-length" {:default 20}]
    ["jti-length" {:default 20}]]
   :juxt.site/installers

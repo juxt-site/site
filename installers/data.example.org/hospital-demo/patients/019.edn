@@ -1,6 +1,8 @@
 {:deps
- ["https://data.example.org/hospital-demo/_site/operations/register-patient"
-  "https://data.example.org/hospital-demo/_site/permissions/system/register-patient"]
+ [{:juxt.site/base-uri "https://data.example.org"
+   :juxt.site/installer-path "/hospital-demo/_site/operations/register-patient"}
+  {:juxt.site/base-uri "https://data.example.org"
+   :juxt.site/installer-path "/hospital-demo/_site/permissions/system/register-patient"}]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://data.example.org/hospital-demo/_site/operations/register-patient"

@@ -1,6 +1,7 @@
 {:deps
- ["https://auth.example.org/operations/put-user"
-  "https://auth.example.org/permissions/system/put-user"]
+ [{:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/operations/put-user"}
+ {:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/permissions/system/put-user"}
+]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/operations/put-user"

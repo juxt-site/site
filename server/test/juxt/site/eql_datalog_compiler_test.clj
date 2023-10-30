@@ -64,7 +64,8 @@
     "juxt/site/sessions"
     "juxt/site/login-form"
     ["juxt/site/oauth-authorization-endpoint"
-     {"session-scope" "https://auth.hospital.com/session-scopes/form-login-session"
+     {"session-scope" "/session-scopes/form-login-session"
+      "session-scope-authority" "https://auth.hospital.com"
       "authorization-code-length" 12
       "jti-length" 12}]
     "juxt/site/oauth-token-endpoint"]
