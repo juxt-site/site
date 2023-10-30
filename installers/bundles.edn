@@ -423,7 +423,7 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/access-token.txt"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/permissions/whoami"}
+    :juxt.site/installer-path "/_site/permissions/whoami"}
    ]}
 
  ;; TODO: Shouldn't SystemAPI be broken up into individual endpoints?
@@ -572,7 +572,8 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/oauth/introspect-token"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/install-token-introspection-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/install-token-introspection-endpoint"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/introspect"}]}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/introspect"}
+   ]}
 
  "juxt/site/oauth-metadata-endpoints"
  {:juxt.site/description "OAuth2 RFC 8414 metadata endpoints"

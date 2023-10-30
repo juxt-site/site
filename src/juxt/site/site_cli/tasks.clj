@@ -485,31 +485,9 @@
             ["juxt/site/sessions" {}]
             ["juxt/site/roles" {}]
 
-<<<<<<< HEAD
-            ;; RFC 7662 token introspection
-            ["juxt/site/oauth-introspection-endpoint" {}]])))
-=======
            ;; RFC 7662 token introspection
-           ["juxt/site/oauth-introspection-endpoint" {}]
-           ;; Register the clients
-           ["juxt/site/system-client"
-            (let [site-cli-config {"client-id" "site-cli"}]
-              (if-let [site-cli-secret (:site-cli-secret opts)]
-                (assoc site-cli-config "client-secret" site-cli-secret)
-                site-cli-config))]
-           ["juxt/site/system-client"
-            (let [insite-config {"client-id" "insite"}]
-              (if-let [insite-secret (:insite-secret opts)]
-                (assoc insite-config "client-secret" insite-secret)
-                insite-config))]
-           ])
-         )
+            ["juxt/site/oauth-introspection-endpoint" {}]])))
         ;; Delete any stale client-secret files
-        (doseq [client-id ["site-cli" "insite"]
-                :let [secret-file (util/client-secret-file opts client-id)]]
-          ;; TODO: Replace with babashka.fs
-          (.delete secret-file))
->>>>>>> 2f17382f (Update dependencies to use specs instead of strings)
 
         (when-not no-clients
           (register-system-clients opts))))))
