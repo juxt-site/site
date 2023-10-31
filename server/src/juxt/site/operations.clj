@@ -91,7 +91,7 @@
                      (xt/q db query subject-uri operation-uri resource-uri)))
               (catch Exception e
                 (throw (ex-info "Failed to query permissions" {:query query} e)))))]
-
+      
       {:juxt.site/permissions (or permissions [])
        :juxt.site/subject-uri subject-uri
        :juxt.site/operation-uri operation-uri
