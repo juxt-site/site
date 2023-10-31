@@ -66,6 +66,7 @@
               :juxt.site/resource-server "https://data.example.test"
               :juxt.site/authorization-server "https://auth.example.test"
               :juxt.site/client-type "confidential"
+              :juxt.site/bundle "https://data.example.test/bundles/juxt/site/testing/test-admin-client"
               :juxt.site/type "https://meta.juxt.site/types/application"
               :juxt.site/client-id "test-admin-client"
               :juxt.site/client-secret "secret"}
@@ -93,6 +94,7 @@
             {:xt/id "https://auth.example.test/applications/test-admin-client"
              :juxt.site/type "https://meta.juxt.site/types/application"
              :juxt.site/client-id "test-admin-client"
+             :juxt.site/bundle "https://data.example.test/bundles/juxt/site/testing/test-admin-client"
              :juxt.site/client-type "confidential"
              :juxt.site/resource-server "https://data.example.test"
              :juxt.site/authorization-server "https://auth.example.test"}]

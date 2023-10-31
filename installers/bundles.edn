@@ -51,7 +51,8 @@
 
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/description "Let SiteAdmin grant permission to operations"
-    :juxt.site/installer-path "/_site/permissions/SiteAdmin/grant-permission"}]}
+    :juxt.site/installer-path "/_site/permissions/SiteAdmin/grant-permission"}
+   ]}
 
  "juxt/site/oauth-scope"
  {:juxt.site/title "OAuth scope"
@@ -126,6 +127,28 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/bundles.txt"}
 
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundles.jsonlines"}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle.txt"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/installer-path "/_site/operations/get-bundle-modifications"}
+
+   {:juxt.site/base-uri "https://auth.example.org"
+    :juxt.site/description "Let SiteAdmin search for a bundle's modifications"
+    :juxt.site/installer-path "/_site/permissions/SiteAdmin/get-bundle-modifications"}
+
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle-modifications"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle-modifications.txt"}
+   {:juxt.site/base-uri "https://data.example.org"
+    :juxt.site/installer-path "/_site/bundle-modifications.jsonlines"}
+   
    ;; Merging in what used to be the old resources-api
    {:juxt.site/base-uri "https://auth.example.org"
     :juxt.site/installer-path "/operations/install-bundle"}
@@ -400,7 +423,8 @@
    {:juxt.site/base-uri "https://data.example.org"
     :juxt.site/installer-path "/_site/access-token.txt"}
    {:juxt.site/base-uri "https://data.example.org"
-    :juxt.site/installer-path "/_site/permissions/whoami"}]}
+    :juxt.site/installer-path "/_site/permissions/whoami"}
+   ]}
 
  ;; TODO: Shouldn't SystemAPI be broken up into individual endpoints?
  #_"juxt/site/system-api"
@@ -506,9 +530,15 @@
   [["session-scope"
     {:choices
      [{:label "Password-based form"
-       :value "https://auth.example.org/session-scopes/form-login-session"}
+       :value "/session-scopes/form-login-session"}
       {:label "OpenID Connect"
-       :value "https://auth.example.org/session-scopes/openid-login-session"}]}]
+       :value "/session-scopes/openid-login-session"}]}]
+   ["session-scope-authority"
+    {:choices
+     [{:label "auth"
+       :value "https://auth.example.org"}
+      {:label "data"
+       :value "https://data.example.org"}]}]
    ["authorization-code-length" {:default 20}]
    ["jti-length" {:default 20}]]
   :juxt.site/installers
@@ -542,7 +572,8 @@
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/oauth/introspect-token"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/operations/oauth/install-token-introspection-endpoint"}
    {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/permissions/system/install-token-introspection-endpoint"}
-   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/introspect"}]}
+   {:juxt.site/base-uri "https://auth.example.org" :juxt.site/installer-path "/oauth/introspect"}
+   ]}
 
  "juxt/site/oauth-metadata-endpoints"
  {:juxt.site/description "OAuth2 RFC 8414 metadata endpoints"

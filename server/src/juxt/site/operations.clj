@@ -91,7 +91,7 @@
                      (xt/q db query subject-uri operation-uri resource-uri)))
               (catch Exception e
                 (throw (ex-info "Failed to query permissions" {:query query} e)))))]
-
+      
       {:juxt.site/permissions (or permissions [])
        :juxt.site/subject-uri subject-uri
        :juxt.site/operation-uri operation-uri
@@ -491,6 +491,7 @@
                                     :juxt.site/operation-index
                                     :juxt.site/operation-uri
                                     :juxt.site/scope
+                                    :meta.juxt/bundle
                                     :juxt.site/prepare])
             prepare (assoc :juxt.site/prepare prepare)
             resource (assoc :juxt.site/resource-uri (:xt/id resource)))]]))))
@@ -583,10 +584,14 @@
                    dependencies :juxt.site/dependencies
                    uri :juxt.site/uri
                    :as installer}]
-                (let [{operation-uri :juxt.site/operation-uri
+                (let [                  ; This is probably not the right place to do this
+                      dependencies (mapv (fn [{:juxt.site/keys [base-uri installer-path]}]
+                                           (str base-uri installer-path))
+                                         dependencies)
+                      {operation-uri :juxt.site/operation-uri
                        input :juxt.site/input
                        :as init-data}
-                      init-data]
+                      (assoc-in init-data [:juxt.site/input :juxt.site/bundle] (:uri bundle-map))]
 
                   (when-not input
                     (throw
@@ -634,9 +639,11 @@
     ;; Return the tx-ops
     (into tx-ops
           ;; Add the bundle
-          [[:xtdb.api/put (update (assoc bundle-map :xt/id uri)
-                                  :installers
-                                  #(mapv :juxt.site/uri %))]
+          [[:xtdb.api/put (-> bundle-map
+                              (assoc :xt/id uri)
+                              (dissoc :on-find)
+                              (dissoc :uri)
+                              (update :installers #(mapv :juxt.site/uri %)))]
            [:xtdb.api/put {:xt/id (str uri ".json")
                            :juxt.http/content-type "application/json"
                            :juxt.site/variant-of uri
@@ -649,7 +656,7 @@
                            :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
                            :juxt.site/access-control-allow-origins
                            [[".*" {:juxt.site/access-control-allow-origin "*"
-                                   :juxt.site/access-control-allow-methods [:get]
+                                   :juxt.site/access-control-allow-methods [:get :delete :options]
                                    :juxt.site/access-control-allow-headers ["authorization"]}]]}]])))
 
 (defn transact-sci-opts
@@ -667,7 +674,8 @@
      ;; Allowed to access the database
      'xt
      {'entity (fn [id] (xt/entity db id))
-      'q (fn [& args] (apply xt/q db args))}
+      'q (fn [& args] (apply xt/q db args))
+      'entity-history (fn [id] (xt/entity-history db id :asc {:with-docs? true}))}
 
      'juxt.site
      {'match-identity
@@ -1100,7 +1108,7 @@
 
         (= method :options) (h req)
 
-        (and (nil? operation) (not :juxt.site.admin-server/admin-server))
+        (and (nil? operation) (not (:juxt.site.admin-server/admin-server req)))
         (throw (ex-info "No operation" (select-keys req [:juxt.site/uri])))
 
         subject

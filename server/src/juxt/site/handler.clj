@@ -260,7 +260,10 @@
                        (xt/pull (:juxt.site/db req) query eid))
                      'q
                      (fn [query & args]
-                       (apply xt/q (:juxt.site/db req) query args))}
+                       (apply xt/q (:juxt.site/db req) query args))
+
+                     'entity-history
+                     (fn [id] (xt/entity-history (:juxt.site/db req) id :asc {:with-docs? true}))}
 
                     'juxt.site.util
                     {'base64-urlencode util/base64-urlencode}

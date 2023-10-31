@@ -1,5 +1,6 @@
 {:deps
- ["https://auth.example.org/scopes/system/read"]
+ [{:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/scopes/system/read"}]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
@@ -14,6 +15,7 @@
             :where [[e :juxt.site/type "https://data.example.org/types/bundle"]]})
          (map first)
          (sort-by :xt/id)
+         (map :xt/id)
          (vec))
     }
 

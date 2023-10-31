@@ -1,6 +1,8 @@
 {:deps
- ["https://auth.example.org/operations/create-logout-resource"
-  "https://auth.example.org/permissions/system/create-logout-resource"]
+ [{:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/operations/create-logout-resource"}
+  {:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/permissions/system/create-logout-resource"}]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/operations/create-logout-resource"

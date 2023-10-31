@@ -331,6 +331,7 @@
 (defn- install-bundle [cfg bundle params {:keys [debug] :as opts}]
   (assert bundle)
   (let [title (get bundle :juxt.site/title)
+        description (get bundle :juxt.site/description)
         param-str (str/join ", " (for [[k v] params] (str (name k) "=" v)))
         installers-seq (installers-seq cfg bundle (into opts (for [[k v] params] [(name k) v])))]
     (if debug
@@ -339,9 +340,11 @@
         (stderr
          (println
           (if (str/blank? param-str)
-            (format "info: Installing: %s" title)
-            (format "info: Installing: %s with %s" title param-str))))
-        (install opts (ciu/bundle-map title installers-seq (get cfg "uri-map")))))))
+            (format "Installing: %s" title)
+            (format "Installing: %s with %s" title param-str))))
+        (install opts (ciu/bundle-map {:title title
+                                       :description description
+                                       :installers installers-seq} (get cfg "uri-map") opts))))))
 
 (defn install-bundle-task []
   (let [{bundle-names :bundle _ :debug :as opts} (util/parse-opts)
@@ -482,8 +485,9 @@
             ["juxt/site/sessions" {}]
             ["juxt/site/roles" {}]
 
-            ;; RFC 7662 token introspection
+           ;; RFC 7662 token introspection
             ["juxt/site/oauth-introspection-endpoint" {}]])))
+        ;; Delete any stale client-secret files
 
         (when-not no-clients
           (register-system-clients opts))))))
@@ -597,9 +601,118 @@
 (defn register-application-task []
   (register-application (util/parse-opts)))
 
+(defn source []
+  (let [{:keys [pattern] :as opts} (util/parse-opts)
+        _ (assert pattern)
+        cfg (util/config opts)
+        available-bundles-map (bundles cfg)
+        available (ciu/bundles-map->seq available-bundles-map)
+        possibles (ciu/lookup-installer-pattern-installer-tree pattern available)]
+    (doall
+     (for [a possibles]
+       (clojure.pprint/pprint
+        {:bundle (:title a)
+         :candidates (:candidates a)})))))
+
+(defn bundle-deps []
+  (let [{:keys [bundle] :as opts} (util/parse-opts)
+        _ (assert bundle)
+        cfg (util/config opts)
+        available-bundles-map (bundles cfg)
+        bundle (get available-bundles-map bundle)
+        _ (assert bundle)
+        install-seq (installers-seq (util/static-config) bundle opts)]
+    (clojure.pprint/pprint
+     (:bundles (ciu/bundle-dependencies-map install-seq available-bundles-map)))))
+
+(defn installed-bundles []
+  (let [opts (util/parse-opts)
+        cfg (util/config opts)
+        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        bundles-uri (str data-base-uri "/_site/bundles")
+        {:keys [body]}
+        (http/get bundles-uri
+                  {:headers {:accept "application/jsonlines"
+                             :authorization (util/authorization cfg)}})]
+    (map
+     #(str "juxt/site/" (clojure.string/join ""
+                                             (butlast
+                                              (last (clojure.string/split % #"/")))))
+     (clojure.string/split body #"\n"))))
+
+(defn find-bundle-by-id [id cfg]
+  (let [data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        bundle-uri (str data-base-uri "/bundles/" (last (clojure.string/split id #"\/")))
+        {:keys [body]}
+        (http/get bundle-uri
+                  {:headers {:accept "application/json"
+                             :authorization (util/authorization cfg)}})]
+    body))
+
 (defn bundles-task []
-  (doseq [[k _] (sort (bundles (util/config (util/profile (util/parse-opts)))))]
-    (println k)))
+  (let [opts (util/parse-opts)
+        cfg (util/config opts)
+        installed (installed-bundles)
+        available-bundles-map (bundles cfg)
+        available (map
+                   (fn [bundle]
+                     (into (val bundle)
+                           {:title (first bundle)
+                            :status
+                            (if ((into #{} installed)
+                                 (first bundle))
+                              "Installed"
+                              "Available")}))
+                   available-bundles-map)
+        filters (comp
+                 (filter (fn [{status :status}]
+                           (if (:status opts)
+                             (= (clojure.string/lower-case (:status opts))
+                                (clojure.string/lower-case status))
+                             true))))
+        available (sort-by :status (sort-by :title (into [] filters available)))
+        header "Bundle,Status"
+        rows
+        (map
+         (fn [{:keys [status title]}]
+           (str title
+                ","
+                status))
+         available)
+        {status :status result :result}
+        (b/gum {:cmd :table
+                :opts {:header.underline true
+                       :height 40
+                       :widths [40 40]}
+                :in (clojure.string/join "\n" (into [header] rows))})]
+    (when (zero? status)
+      (let [selected (first (filter
+                             (fn [bundle]
+                               (= (:title bundle) (first (clojure.string/split (first result) #","))))
+                             available))]
+        (println "\nTITLE || " (first (clojure.string/split (first result) #",")) "\n")
+        (println "DESCRIPTION || " (:juxt.site/description selected) "\n")
+        (println "STATUS || " (:status selected) "\n")
+        ;; TODO tell us who installed this bundle
+        #_(when (= "Installed" (:status selected))
+            (let [bundle (find-bundle-by-id (:title selected) cfg)]
+              (println "INSTALLED BY || " (:installed-by bundle) "\n")))
+        (println "__INSTALLERS__")
+        (clojure.pprint/pprint (:juxt.site/installers selected))
+        (clojure.pprint/pprint selected)
+
+        ;; TODO expand the utility to allow re/installation of bundles
+        ;; We need to prompt the user to add parameters etc
+
+        ;; (let [{status :status result :result}
+        ;;       (b/gum {:cmd :choose
+        ;;               :opts {:header "Would you like to re/install this bundle?"}
+        ;;               :args ["Y" "N"]})]
+        ;;   (when (and (zero? status) (= "Y" (first result)))
+        ;;     ()))
+        ))
+    ))
+
 
 (defn install-openapi [opts]
   (let [cfg (util/config (util/profile opts))
@@ -739,7 +852,8 @@
        ;; This is public and you may not want to expose this
        ["juxt/site/system-api-openapi" {}]
        ["juxt/site/oauth-authorization-endpoint"
-        {"session-scope" "https://auth.example.org/session-scopes/form-login-session"}]
+        {"session-scope" "/session-scopes/form-login-session"
+         "session-scope-authority" "https://auth.example.org"}]
 
        ;; Register swagger-ui
        ;; TODO: Try not registering this one and see the awful Jetty
@@ -793,7 +907,8 @@
        ;; There's a dependency between /oauth/authorize and form-login-session, so we need login-form
        ["juxt/site/login-form"]
        ;; TODO: Why not make this dynamic - the choices are filtered based on what session-scopes we have already installed
-       ["juxt/site/oauth-authorization-endpoint" {"session-scope" "https://auth.example.org/session-scopes/form-login-session"}]
+       ["juxt/site/oauth-authorization-endpoint" {"session-scope" "/session-scopes/form-login-session"
+                                                  "session-scope-authority" "https://auth.example.org"}]
        ["juxt/site/system-client" {"client-id" "swagger-ui"}]]))
     (println "\n\n")
     (println "Next steps: ")

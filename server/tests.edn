@@ -7,11 +7,12 @@
           :test-paths ["test"]
           :ns-patterns
           ["juxt.site.cors-test"
+           "juxt.site.return-test"
            "juxt.site.tx-test"
            "juxt.site.events-test"
            "juxt.site.graphql-compiler-test"
            "juxt.site.form-based-auth-test"
-           "juxt.site.bundles-test"
+           "juxt.site.bundle-test"
            "juxt.site.eql-datalog-compiler-test"
            "juxt.site.oauth-test"
            "juxt.site.oauth-grants-test"
@@ -28,7 +29,6 @@
            "juxt.site.order-test"
            "juxt.site.application-registration-test"
            "juxt.site.install.common-install-util-test"
-           "juxt.site.bundle-test"
            "juxt.site.bundles-integrity-test"
            "juxt.site.log-api-test"
            ]}]

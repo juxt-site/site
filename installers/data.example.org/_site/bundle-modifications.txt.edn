@@ -1,0 +1,32 @@
+;; See https://jsonlines.org/
+{:deps
+ [{:juxt.site/base-uri "https://data.example.org"
+   :juxt.site/installer-path "/_site/bundle-modifications"}
+  {:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/_site/operations/get-bundle-modifications"}
+  {:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/operations/put-resource"}]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/put-resource"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/methods
+   {:get {:juxt.site/operation "https://auth.example.org/_site/operations/get-bundle-modifications"}}
+    :juxt.site/variant-of "https://data.example.org/_site/bundle-modifications"
+    :juxt.http/content-type "text/plain;charset=utf-8"
+    :juxt.pick/quality-of-source 0.9 ; downgrade in content-negotiation
+
+    :juxt.site/respond
+    {:juxt.site.sci/program
+     #juxt.pprint
+     (let [content (apply str *state*)]
+       (-> *ctx*
+           (assoc :ring.response/body content)
+           (update :ring.response/headers assoc "content-length" (str (count (.getBytes content))))))}
+
+    :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
+    :juxt.site/access-control-allow-origins
+    [[".*" {:juxt.site/access-control-allow-origin "*"
+            :juxt.site/access-control-allow-methods [:get]
+            :juxt.site/access-control-allow-headers ["authorization"]}]]}}}

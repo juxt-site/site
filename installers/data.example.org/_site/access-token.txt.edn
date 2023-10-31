@@ -1,6 +1,7 @@
 {:deps
- ["https://data.example.org/_site/access-token"
-  "https://data.example.org/_site/operations/get-access-token"]
+ [{:juxt.site/base-uri "https://data.example.org", :juxt.site/installer-path "/_site/access-token"}
+ {:juxt.site/base-uri "https://data.example.org", :juxt.site/installer-path "/_site/operations/get-access-token"}
+]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/operations/put-resource"

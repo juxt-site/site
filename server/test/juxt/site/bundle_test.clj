@@ -34,16 +34,17 @@
   (local/install-bundles!
    [["juxt/site/bootstrap" {}]]
    (get CONFIG "uri-map"))
-  (let [db (xt/db *xt-node*)]
+  (let [db (xt/db *xt-node*)
+        resource (first (map first (xt/q db '{:find [(pull e [*])]
+                                       :where [[e :xt/id "https://data.example.test/bundles/juxt/site/bootstrap"]]})))]
     (is (= "https://data.example.test/bundles/juxt/site/bootstrap"
-         (:xt/id
-          (first (map first (xt/q db '{:find [(pull e [*])]
-                                       :where [[e :xt/id "https://data.example.test/bundles/juxt/site/bootstrap"]]}))))))))
+           (:xt/id resource)))))
 
 (deftest get-bundle-test
   (local/install-bundles!
    [["juxt/site/bootstrap" {}]
     ["juxt/site/oauth-scope" {}]
+    ["juxt/site/full-dynamic-remote" {}]
     ;; Support the creation of JWT bearer tokens
     "juxt/site/protection-spaces"
     "juxt/site/unprotected-resources"
@@ -56,9 +57,12 @@
     "juxt/site/roles"
     ["juxt/site/resources-api" {}]
     ["juxt/site/events-api" {}]
+    ["juxt/site/logs-api" {}]
     ["juxt/site/whoami-api" {}]
     ["juxt/site/users-api" {}]
     ["juxt/site/users-api-permissions" {}]
+    ["juxt/site/applications-api" {}]
+    ["juxt/site/applications-endpoint" {}]
     ["juxt/site/openapis-api" {}]
     ["juxt/site/bundles-api" {}]
 
@@ -73,7 +77,8 @@
     "juxt/site/password-based-user-identity"
     "juxt/site/example-users"
     ["juxt/site/oauth-authorization-endpoint"
-     {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+     {"session-scope" "/session-scopes/form-login-session"
+      "session-scope-authority" "https://auth.example.test"
       "authorization-code-length" 12
       "jti-length" 12}]
     ["juxt/site/user-role-assignment"
@@ -92,7 +97,8 @@
     "juxt/site/password-based-user-identity"
     "juxt/site/example-users"
     ["juxt/site/oauth-authorization-endpoint"
-     {"session-scope" "https://auth.example.test/session-scopes/form-login-session"
+     {"session-scope" "/session-scopes/form-login-session"
+      "session-scope-authority" "https://auth.example.test"
       "authorization-code-length" 12
       "jti-length" 12}]
     ["juxt/site/user-role-assignment"

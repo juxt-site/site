@@ -1,0 +1,36 @@
+{:deps
+ [{:juxt.site/base-uri "https://data.example.org"
+   :juxt.site/installer-path "/_site/operations/get-bundle-by-id"}
+  {:juxt.site/base-uri "https://data.example.org"
+   :juxt.site/installer-path "/_site/operations/delete-bundle-by-id"}
+  {:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/protection-spaces/bearer"}]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/put-resource"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+
+   :openapi.v3/path "/bundle"
+
+   :juxt.site/methods
+   {:get
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/get-bundle-by-id"
+     :openapi.v3/metadata
+     {"tags" ["Bundles"]
+      "summary" "Get a bundle"
+      "parameters"  [{"name" "bundle-id"
+                      "in" "query"
+                      "schema" {"type" "string"}}]}}
+    :delete
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/delete-bundle-by-id"
+     :openapi.v3/metadata
+     {"tags" ["Bundles"]
+      "summary" "Delete a bundle"}}}
+
+   :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/bearer"}
+
+   :juxt.site/access-control-allow-origins
+   [[".*" {:juxt.site/access-control-allow-origin "*"
+           :juxt.site/access-control-allow-methods [:get]
+           :juxt.site/access-control-allow-headers ["authorization"]}]]}}}

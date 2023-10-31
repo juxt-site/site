@@ -145,6 +145,17 @@
                          "cache-client-secret" true}
    "curl" {"save-access-token-to-default-config-file" true}})
 
+(defn static-config
+  "Useful for static analysis of files"
+  []
+  {"admin-base-uri" "http://localhost:4911"
+   "uri-map" {"https://auth.example.org" "https://auth.example.org"
+              "https://data.example.org" "https://data.example.org"}
+   "installers-home" (str (System/getenv "SITE_HOME") "/installers")
+   "client-credentials" {"ask-for-client-secret" true
+                         "cache-client-secret" true}
+   "curl" {"save-access-token-to-default-config-file" true}})
+
 (defn config [profile]
   (assert profile)
   (if-let [config-file (config-file)]

@@ -4,7 +4,9 @@
   (:require
    [rewrite-clj.node :as n]
    [rewrite-clj.zip :as z]
-   [clojure.java.io :as io]))
+   [clojure.java.io :as io]
+   [clojure.string :as str]
+   [clojure.edn :as edn]))
 
 (set! *print-namespace-maps* false)
 
@@ -179,10 +181,48 @@ Algorithm works as follows:
        []
        zloc)))
 
-(analyze-file "src/juxt/site/operations.clj")
+;; (analyze-file "../installers/data.example.org/_site/bundles.edn")
 
 ;; Todoc debug this
 ;; (analyze-juxt-site-keywords "src/juxt/site/handler.clj")
+
+(defn dep-string->specs [dep-string]
+  (let [[_ _ base & suffix] (str/split dep-string #"/")
+        suffix (str "/" (str/join "/" suffix))]
+    {:juxt.site/base-uri (case base
+                           "data.example.org" "https://data.example.org"
+                           "auth.example.org" "https://auth.example.org"
+                           (throw (ex-info "Invalid Base Uri"
+                                           {:base base})))
+     :juxt.site/installer-path suffix}))
+
+(def custom-readers {'juxt.pprint #(str "#juxt.pprint " (pr-str %))
+                     'juxt.include #(str "#juxt.include " (pr-str %))
+                     'juxt.template #(str "#juxt.template " (pr-str %))})
+
+(defn resource-dep-strings-to-specs [file]
+  (let [fs (slurp file)
+        edn-struct (edn/read-string {:readers custom-readers} fs)
+        deps (:deps edn-struct)
+        new-deps (vec (for [dep deps]
+                        (dep-string->specs dep)))
+        old-deps-str (clojure.pprint/cl-format nil "[~{\"~a~^\"\n  ~}" deps)]
+    (spit file (str/replace fs (str old-deps-str "\"]") (str/replace (pr-str new-deps) "}" "}\n")))))
+
+#_(resource-dep-strings-to-specs "../installers/auth.example.org/applications/petstore.edn")
+
+(defn get-bundle [bundle-name]
+  (get (edn/read-string (slurp "../installers/bundles.edn")) bundle-name))
+
+(defn remove-http-base-uri [base-uri]
+  (str/replace base-uri "https://" ""))
+
+(defn bundle-update-installers-deps-strings-to-specs [bundle-name]
+  (doall (for [{:juxt.site/keys [base-uri installer-path] :as installer}
+               (:juxt.site/installers (get-bundle bundle-name))]
+           (resource-dep-strings-to-specs (str "../installers/" (remove-http-base-uri base-uri) installer-path ".edn")))))
+
+#_(bundle-update-installers-deps-strings-to-specs "demo/petstore/operations")
 
 (comment
   (alter-dependency "https://core.example.org/_site/packages/juxt/site/bootstrap"))

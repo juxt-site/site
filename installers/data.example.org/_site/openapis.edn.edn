@@ -1,6 +1,6 @@
 {:deps
- ["https://data.example.org/_site/openapis"
-  "https://data.example.org/_site/operations/get-openapis"]
+ [{:juxt.site/base-uri "https://data.example.org", :juxt.site/installer-path "/_site/openapis"}
+  {:juxt.site/base-uri "https://data.example.org", :juxt.site/installer-path "/_site/operations/get-openapis"}]
  :install
  {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
   :juxt.site/operation-uri "https://auth.example.org/operations/put-resource"
