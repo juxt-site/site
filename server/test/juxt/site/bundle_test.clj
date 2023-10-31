@@ -44,6 +44,7 @@
   (local/install-bundles!
    [["juxt/site/bootstrap" {}]
     ["juxt/site/oauth-scope" {}]
+    ["juxt/site/full-dynamic-remote" {}]
     ;; Support the creation of JWT bearer tokens
     "juxt/site/protection-spaces"
     "juxt/site/unprotected-resources"
@@ -56,9 +57,12 @@
     "juxt/site/roles"
     ["juxt/site/resources-api" {}]
     ["juxt/site/events-api" {}]
+    ["juxt/site/logs-api" {}]
     ["juxt/site/whoami-api" {}]
     ["juxt/site/users-api" {}]
     ["juxt/site/users-api-permissions" {}]
+    ["juxt/site/applications-api" {}]
+    ["juxt/site/applications-endpoint" {}]
     ["juxt/site/openapis-api" {}]
     ["juxt/site/bundles-api" {}]
 

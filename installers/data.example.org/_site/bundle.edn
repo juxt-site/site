@@ -15,7 +15,7 @@
 
    :juxt.site/methods
    {:get
-    {:juxt.site/operation "https://data.example.org/_site/operations/get-bundle-by-id"
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/get-bundle-by-id"
      :openapi.v3/metadata
      {"tags" ["Bundles"]
       "summary" "Get a bundle"
@@ -23,7 +23,7 @@
                       "in" "query"
                       "schema" {"type" "string"}}]}}
     :delete
-    {:juxt.site/operation "https://auth.example.org/_site/operations/delete-bundle-by-id"
+    {:juxt.site/operation-uri "https://data.example.org/_site/operations/delete-bundle-by-id"
      :openapi.v3/metadata
      {"tags" ["Bundles"]
       "summary" "Delete a bundle"}}}
