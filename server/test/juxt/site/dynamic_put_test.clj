@@ -14,7 +14,8 @@
    [juxt.site.repl :as repl]
    [clojure.java.io :as io]
    [clojure.edn :as edn]
-   [jsonista.core :as json]))
+   [jsonista.core :as json]
+   [clojure.string :as str]))
 
 (defn dynamic-remote-bundles []
   (install-bundles!
@@ -33,16 +34,11 @@
   admin-token-fixture
   dynamic-remote-bundles-fixture)
 
-(with-fixtures
-  (repl/ls)
-  (repl/e "https://data.example.test/_site/meta-resource")
-
-  (repl/ls)
+(deftest contacts-test
 
   (with-bearer-token *admin-token*
-
     ;; Create resource
-    (with-request-body (pr-str {:message "Hi"})
+    (with-request-body (pr-str {})
       (*handler*
        {:juxt.site/uri "https://data.example.test/contacts.meta"
         :ring.request/method :put
@@ -84,7 +80,7 @@
         :ring.request/method :post
         :ring.request/headers {"content-type" "application/edn"}}))
 
-    ;; Attach PUT method
+    ;; Attach POST method
     (with-request-body
       (pr-str
        [[:add-method
@@ -94,11 +90,6 @@
        {:juxt.site/uri "https://data.example.test/contacts.meta"
         :ring.request/method :patch
         :ring.request/headers {"content-type" "application/edn"}})))
-
-  (repl/e "https://data.example.test/contacts")
-  (repl/e "https://data.example.test/operations/add-contact")
-
-  #_(repl/ls)
 
   ;; Test it
   (with-request-body
@@ -111,14 +102,85 @@
 
   (repl/e "https://data.example.test/contacts/fred")
 
-  ;; What is the Allow response header from an OPTIONS request?
+  (with-bearer-token *admin-token*
+    ;; Create operation
+    ;; https://data.example.test/operations/add-contact
+    (with-request-body
+      (pr-str
+       {:xt/id "https://data.example.test/operations/get-contacts"
+        :juxt.site/state
+        {:juxt.site.sci/program
+         (pr-str
+          `(do
+             [{:contact-name "Bill"}
+              {:contact-name "Ben"}]))}
+        :juxt.site/rules
+        '[[(allowed? subject operation resource permission)
+           [permission :juxt.site/user "alice"]]]})
+      (*handler*
+       {:juxt.site/uri "https://data.example.test/_site/operations"
+        :ring.request/method :post
+        :ring.request/headers {"content-type" "application/edn"}}))
 
-  (let [response
-        (*handler*
-         {:juxt.site/uri "https://data.example.test/contacts.meta"
-          :ring.request/method :options})]
-    (select-keys
-     response
-     [:ring.response/status
-      :ring.response/headers
-      :ring.response/body])))
+    ;; Create permission to call operation
+    (with-request-body
+      (pr-str
+       {:xt/id "https://data.example.test/permissions/get-contacts"
+        :juxt.site/operation-uri "https://data.example.test/operations/get-contacts"
+        :juxt.site/user "alice"})
+      (*handler*
+       {:juxt.site/uri "https://data.example.test/_site/permissions"
+        :ring.request/method :post
+        :ring.request/headers {"content-type" "application/edn"}}))
+
+    ;; Attach GET method
+    (with-request-body
+      (pr-str
+       [[:add-method
+         {:method "GET"
+          :operation-uri "https://data.example.test/operations/get-contacts"}]])
+      (*handler*
+       {:juxt.site/uri "https://data.example.test/contacts.meta"
+        :ring.request/method :patch
+        :ring.request/headers {"content-type" "application/edn"}}))
+
+    (with-request-body
+      (pr-str
+       [[:set-representation-metadata
+         {:content-type "application/json"}]])
+      (*handler*
+       {:juxt.site/uri "https://data.example.test/contacts.meta"
+        :ring.request/method :patch
+        ;; TODO: Change application/edn to application/json
+        :ring.request/headers {"content-type" "application/edn"}}))
+
+    (with-request-body
+      (pr-str
+       [[:set-respond-program
+         {:program
+          (pr-str
+           `(assoc ~'*ctx* :ring.response/body
+                   (jsonista.core/write-value-as-string ~'*state*)))}]])
+      (*handler*
+       {:juxt.site/uri "https://data.example.test/contacts.meta"
+        :ring.request/method :patch
+        ;; TODO: Change application/edn to application/json
+        :ring.request/headers {"content-type" "application/edn"}})))
+
+  (with-bearer-token *admin-token*
+    (json/read-value
+     (:ring.response/body
+      (*handler*
+       {:juxt.site/uri "https://data.example.test/contacts.meta"
+        :ring.request/method :get}))))
+
+  (let [{:keys [ring.response/status
+                ring.response/headers
+                ring.response/body]}
+        (->
+         (*handler*
+          {:juxt.site/uri "https://data.example.test/contacts"
+           :ring.request/method :get}))]
+    (is (= 200 status))
+    (is (= "application/json" (get headers "content-type")))
+    (is (= [{"contact-name" "Bill"} {"contact-name" "Ben"}] (json/read-value body)))))

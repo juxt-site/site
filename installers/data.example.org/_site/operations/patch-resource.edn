@@ -13,8 +13,16 @@
      [:tuple
       [:enum :add-method]
       [:map
-       [:method [:enum "GET" "PUT" "POST"]]
-       [:operation [:re "https://data.example.org/.*"]]]]]]
+       [:method [:enum "GET" "PUT" "POST" "DELETE"]]
+       [:operation-uri [:re "https://data.example.org/.*"]]]]
+     [:tuple
+      [:enum :set-representation-metadata]
+      [:map
+       [:content-type :string]]]
+     [:tuple
+      [:enum :set-respond-program]
+      [:map
+       [:program :string]]]]]
 
    :juxt.site/prepare
    {:juxt.site.sci/program
@@ -54,12 +62,23 @@
         (for [[command opts] commands]
           (case command
             :add-method
-            (let [{:keys [method operation]} opts]
+            (let [{:keys [method operation-uri]} opts]
               [:xtdb.api/put
                (update doc
                        :juxt.site/methods (fnil assoc {})
                        (keyword (clojure.string/lower-case method))
-                       {:juxt.site/operation-uri operation})])))
+                       {:juxt.site/operation-uri operation-uri})])
+
+            :set-representation-metadata
+            (let [{:keys [content-type]} opts]
+              [:xtdb.api/put
+               (assoc doc :juxt.http/content-type content-type)])
+
+            :set-respond-program
+            (let [{:keys [program]} opts]
+              [:xtdb.api/put
+               (assoc-in doc [:juxt.site/respond :juxt.site.sci/program] program)])))
+
         (throw (ex-info "Cannot patch a missing document" {:xt/id id}))))}
 
    :juxt.site/rules
