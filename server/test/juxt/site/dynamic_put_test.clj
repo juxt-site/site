@@ -76,32 +76,26 @@
          :body (pr-str {})
          :token *alice-token*}))
 
-  (with-bearer-token *alice-token*
-    ;; Create operation
-    ;; https://data.example.test/operations/add-contact
-    (with-request-body
-      (pr-str
-       {:xt/id "https://data.example.test/operations/add-contact"
-        :juxt.site/prepare
-        {:juxt.site.sci/program {}}
-        :juxt.site/transact
-        {:juxt.site.sci/program
-         (pr-str
-          [[:xtdb.api/put {:xt/id "https://data.example.test/contacts/fred"}]])}
-        :juxt.site/rules
-        '[[(allowed? subject operation resource permission)
-           [permission :juxt.site/user "alice"]]]})
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/_site/operations"
-        :ring.request/method :post
-        :ring.request/headers {"content-type" "application/edn"}}))
+  (*handler*
+   (POST "https://data.example.test/_site/operations"
+         {:headers {"content-type" "application/edn"}
+          :body (pr-str
+                 {:xt/id "https://data.example.test/operations/add-contact"
+                  :juxt.site/prepare
+                  {:juxt.site.sci/program {}}
+                  :juxt.site/transact
+                  {:juxt.site.sci/program
+                   (pr-str
+                    [[:xtdb.api/put {:xt/id "https://data.example.test/contacts/fred"}]])}
+                  :juxt.site/rules
+                  '[[(allowed? subject operation resource permission)
+                     [permission :juxt.site/user "alice"]]]})
+          :token *alice-token*}))
 
-    ;; Create permission to call operation
-    )
-
-  (with-bearer-token *alice-token*
-    (with-request-body
-      (pr-str
+  (*handler*
+   (POST "https://data.example.test/_site/permissions"
+    {:headers {"content-type" "application/edn"}
+     :body (pr-str
        ;; TODO: We should be careful not to allow existing permissions
        ;; to be overwritten. Perhaps they must first be revoked with
        ;; requesting a DELETE method on a permission. But who can do
@@ -111,10 +105,7 @@
        {:xt/id "https://data.example.test/permissions/add-contact"
         :juxt.site/operation-uri "https://data.example.test/operations/add-contact"
         :juxt.site/user "alice"})
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/_site/permissions"
-        :ring.request/method :post
-        :ring.request/headers {"content-type" "application/edn"}})))
+     :token *alice-token*}))
 
   ;; Attach POST method
   (with-bearer-token *alice-token*
