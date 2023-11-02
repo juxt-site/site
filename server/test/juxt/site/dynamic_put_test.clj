@@ -59,6 +59,11 @@
     (:body opts) (assoc-request-body (:body opts))
     (:token opts) (assoc-bearer-token (:token opts))))
 
+(defn GET
+  ([uri] (GET uri {}))
+  ([uri opts]
+   (request uri :get opts)))
+
 (defn PUT [uri opts]
   (request uri :put opts))
 
@@ -107,104 +112,89 @@
                   :juxt.site/user "alice"})
           :token *alice-token*}))
 
-  ;; Attach POST method
+  (testing "POST /contacts"
+    ;; Attach POST method
+    (*handler*
+     (PATCH "https://data.example.test/contacts.meta"
+            {:headers {"content-type" "application/edn"}
+             :body (pr-str
+                    [[:add-method
+                      {:method "POST"
+                       :operation-uri "https://data.example.test/operations/add-contact"}]])
+             :token *alice-token*}))
+    (*handler*
+     (POST "https://data.example.test/contacts"
+           {:headers {"content-type" "application/edn"}
+            :body (pr-str {})}))
+
+    (is (repl/e "https://data.example.test/contacts/fred")))
+
+  ;; Create operation
+  ;; https://data.example.test/operations/add-contact
+  (*handler*
+   (POST "https://data.example.test/_site/operations"
+         {:headers {"content-type" "application/edn"}
+          :body (pr-str
+                 {:xt/id "https://data.example.test/operations/get-contacts"
+                  :juxt.site/state
+                  {:juxt.site.sci/program
+                   (pr-str
+                    `(do
+                       [{:contact-name "Bill"}
+                        {:contact-name "Ben"}]))}
+                  :juxt.site/rules
+                  '[[(allowed? subject operation resource permission)
+                     [permission :juxt.site/user "alice"]]]})
+          :token *alice-token*}))
+
+  ;; Create permission to call operation
+  (*handler*
+   (POST "https://data.example.test/_site/permissions"
+         {:headers {"content-type" "application/edn"}
+          :body (pr-str
+                 {:xt/id "https://data.example.test/permissions/get-contacts"
+                  :juxt.site/operation-uri "https://data.example.test/operations/get-contacts"
+                  :juxt.site/user "alice"})
+          :token *alice-token*}
+         ))
+
+
+  ;; Attach GET method
   (*handler*
    (PATCH "https://data.example.test/contacts.meta"
           {:headers {"content-type" "application/edn"}
            :body (pr-str
                   [[:add-method
-                    {:method "POST"
-                     :operation-uri "https://data.example.test/operations/add-contact"}]])
+                    {:method "GET"
+                     :operation-uri "https://data.example.test/operations/get-contacts"}]])
            :token *alice-token*}))
 
-  ;; POST contacts
   (*handler*
-   (POST "https://data.example.test/contacts"
-         {:headers {"content-type" "application/edn"}
-          :body (pr-str {})}))
+   (PATCH "https://data.example.test/contacts.meta"
+          {:headers {"content-type" "application/edn"}
+           :body (pr-str
+                  [[:set-representation-metadata
+                    {:content-type "application/json"}]])
+           :token *alice-token*}))
 
-  (is (repl/e "https://data.example.test/contacts/fred"))
-
-
-  (with-bearer-token *alice-token*
-    ;; Create operation
-    ;; https://data.example.test/operations/add-contact
-    (*handler*
-     (POST "https://data.example.test/_site/operations"
-           {:headers {"content-type" "application/edn"}
-            :body (pr-str
-                   {:xt/id "https://data.example.test/operations/get-contacts"
-                    :juxt.site/state
-                    {:juxt.site.sci/program
+  (*handler*
+   (PATCH "https://data.example.test/contacts.meta"
+          {:headers
+           ;; TODO: Change application/edn to application/json
+           {"content-type" "application/edn"}
+           :body (pr-str
+                  [[:set-respond-program
+                    {:program
                      (pr-str
-                      `(do
-                         [{:contact-name "Bill"}
-                          {:contact-name "Ben"}]))}
-                    :juxt.site/rules
-                    '[[(allowed? subject operation resource permission)
-                       [permission :juxt.site/user "alice"]]]})
-            :token *alice-token*}))
+                      `(assoc ~'*ctx* :ring.response/body
+                              (jsonista.core/write-value-as-string ~'*state*)))}]])
+           :token *alice-token*}))
 
-    ;; Create permission to call operation
-    (*handler*
-     (POST "https://data.example.test/_site/permissions"
-           {:headers {"content-type" "application/edn"}
-            :body (pr-str
-                   {:xt/id "https://data.example.test/permissions/get-contacts"
-                    :juxt.site/operation-uri "https://data.example.test/operations/get-contacts"
-                    :juxt.site/user "alice"})
-            :token *alice-token*}
-           ))
+  (*handler*
+   (GET "https://data.example.test/contacts.meta" {:token *alice-token*}))
 
-
-    ;; Attach GET method
-    (*handler*
-     (PATCH "https://data.example.test/contacts.meta"
-            {:headers {"content-type" "application/edn"}
-             :body (pr-str
-       [[:add-method
-         {:method "GET"
-          :operation-uri "https://data.example.test/operations/get-contacts"}]])
-             :token *alice-token*}))
-
-
-    (with-request-body
-      (pr-str
-       [[:set-representation-metadata
-         {:content-type "application/json"}]])
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/contacts.meta"
-        :ring.request/method :patch
-        ;; TODO: Change application/edn to application/json
-        :ring.request/headers {"content-type" "application/edn"}}))
-
-    (with-request-body
-      (pr-str
-       [[:set-respond-program
-         {:program
-          (pr-str
-           `(assoc ~'*ctx* :ring.response/body
-                   (jsonista.core/write-value-as-string ~'*state*)))}]])
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/contacts.meta"
-        :ring.request/method :patch
-        ;; TODO: Change application/edn to application/json
-        :ring.request/headers {"content-type" "application/edn"}})))
-
-  (with-bearer-token *alice-token*
-    (json/read-value
-     (:ring.response/body
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/contacts.meta"
-        :ring.request/method :get}))))
-
-  (let [{:keys [ring.response/status
-                ring.response/headers
-                ring.response/body]}
-        (->
-         (*handler*
-          {:juxt.site/uri "https://data.example.test/contacts"
-           :ring.request/method :get}))]
+  (let [{:ring.response/keys [status headers body]}
+        (*handler* (GET "https://data.example.test/contacts"))]
     (is (= 200 status))
     (is (= "application/json" (get headers "content-type")))
     (is (= [{"contact-name" "Bill"} {"contact-name" "Ben"}] (json/read-value body)))))
