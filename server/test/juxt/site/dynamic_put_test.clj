@@ -158,15 +158,15 @@
 
 
     ;; Attach GET method
-    (with-request-body
-      (pr-str
+    (*handler*
+     (PATCH "https://data.example.test/contacts.meta"
+            {:headers {"content-type" "application/edn"}
+             :body (pr-str
        [[:add-method
          {:method "GET"
           :operation-uri "https://data.example.test/operations/get-contacts"}]])
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/contacts.meta"
-        :ring.request/method :patch
-        :ring.request/headers {"content-type" "application/edn"}}))
+             :token *alice-token*}))
+
 
     (with-request-body
       (pr-str
