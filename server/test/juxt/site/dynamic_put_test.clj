@@ -146,15 +146,16 @@
             :token *alice-token*}))
 
     ;; Create permission to call operation
-    (with-request-body
-      (pr-str
-       {:xt/id "https://data.example.test/permissions/get-contacts"
-        :juxt.site/operation-uri "https://data.example.test/operations/get-contacts"
-        :juxt.site/user "alice"})
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/_site/permissions"
-        :ring.request/method :post
-        :ring.request/headers {"content-type" "application/edn"}}))
+    (*handler*
+     (POST "https://data.example.test/_site/permissions"
+           {:headers {"content-type" "application/edn"}
+            :body (pr-str
+                   {:xt/id "https://data.example.test/permissions/get-contacts"
+                    :juxt.site/operation-uri "https://data.example.test/operations/get-contacts"
+                    :juxt.site/user "alice"})
+            :token *alice-token*}
+           ))
+
 
     ;; Attach GET method
     (with-request-body
