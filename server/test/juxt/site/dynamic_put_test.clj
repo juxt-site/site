@@ -94,41 +94,36 @@
 
   (*handler*
    (POST "https://data.example.test/_site/permissions"
-    {:headers {"content-type" "application/edn"}
-     :body (pr-str
-       ;; TODO: We should be careful not to allow existing permissions
-       ;; to be overwritten. Perhaps they must first be revoked with
-       ;; requesting a DELETE method on a permission. But who can do
-       ;; this? Perhaps the granter of a permission must be recorded
-       ;; with the permission, to ensure that only the granter can
-       ;; revoke.
-       {:xt/id "https://data.example.test/permissions/add-contact"
-        :juxt.site/operation-uri "https://data.example.test/operations/add-contact"
-        :juxt.site/user "alice"})
-     :token *alice-token*}))
+         {:headers {"content-type" "application/edn"}
+          :body (pr-str
+                 ;; TODO: We should be careful not to allow existing permissions
+                 ;; to be overwritten. Perhaps they must first be revoked with
+                 ;; requesting a DELETE method on a permission. But who can do
+                 ;; this? Perhaps the granter of a permission must be recorded
+                 ;; with the permission, to ensure that only the granter can
+                 ;; revoke.
+                 {:xt/id "https://data.example.test/permissions/add-contact"
+                  :juxt.site/operation-uri "https://data.example.test/operations/add-contact"
+                  :juxt.site/user "alice"})
+          :token *alice-token*}))
 
   ;; Attach POST method
-  (with-bearer-token *alice-token*
-    (with-request-body
-      (pr-str
-       [[:add-method
-         {:method "POST"
-          :operation-uri "https://data.example.test/operations/add-contact"}]])
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/contacts.meta"
-        :ring.request/method :patch
-        :ring.request/headers {"content-type" "application/edn"}})))
+  (*handler*
+   (PATCH "https://data.example.test/contacts.meta"
+          {:headers {"content-type" "application/edn"}
+           :body (pr-str
+                  [[:add-method
+                    {:method "POST"
+                     :operation-uri "https://data.example.test/operations/add-contact"}]])
+           :token *alice-token*}))
 
-  ;; Test it
-  (with-request-body
-    (pr-str
-     {})
-    (*handler*
-     {:juxt.site/uri "https://data.example.test/contacts"
-      :ring.request/method :post
-      :ring.request/headers {"content-type" "application/edn"}}))
+  ;; POST contacts
+  (*handler*
+   (POST "https://data.example.test/contacts"
+         {:headers {"content-type" "application/edn"}
+          :body (pr-str {})}))
 
-  (repl/e "https://data.example.test/contacts/fred")
+  (is (repl/e "https://data.example.test/contacts/fred"))
 
   (with-bearer-token *alice-token*
     ;; Create operation
