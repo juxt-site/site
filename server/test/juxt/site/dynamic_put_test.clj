@@ -51,29 +51,30 @@
   alice-fixture
   dynamic-remote-bundles-fixture)
 
-(defn PUT [uri headers]
-  {:juxt.site/uri uri
-   :ring.request/method :put
-   :ring.request/headers headers})
+(defn request [uri method opts]
+  (cond->
+      {:juxt.site/uri uri
+       :ring.request/method method}
+    (:headers opts) (assoc :ring.request/headers (:headers opts))
+    (:body opts) (assoc-request-body (:body opts))
+    (:token opts) (assoc-bearer-token (:token opts))))
 
-(defn POST [uri headers]
-  {:juxt.site/uri uri
-   :ring.request/method :post
-   :ring.request/headers headers})
+(defn PUT [uri opts]
+  (request uri :put opts))
 
-(defn PATCH [uri headers]
-  {:juxt.site/uri uri
-   :ring.request/method :patch
-   :ring.request/headers headers})
+(defn POST [uri opts]
+  (request uri :post opts))
+
+(defn PATCH [uri opts]
+  (request uri :patch opts))
 
 (deftest contacts-test
   ;; Create resource
-  (->
+  (*handler*
    (PUT "https://data.example.test/contacts.meta"
-        {"content-type" "application/edn"})
-   (assoc-request-body (pr-str {}))
-   (assoc-bearer-token *alice-token*)
-   *handler*)
+        {:headers {"content-type" "application/edn"}
+         :body (pr-str {})
+         :token *alice-token*}))
 
   (with-bearer-token *alice-token*
     ;; Create operation
