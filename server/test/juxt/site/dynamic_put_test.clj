@@ -97,6 +97,9 @@
         :ring.request/headers {"content-type" "application/edn"}}))
 
     ;; Create permission to call operation
+    )
+
+  (with-bearer-token *alice-token*
     (with-request-body
       (pr-str
        ;; TODO: We should be careful not to allow existing permissions
@@ -111,9 +114,10 @@
       (*handler*
        {:juxt.site/uri "https://data.example.test/_site/permissions"
         :ring.request/method :post
-        :ring.request/headers {"content-type" "application/edn"}}))
+        :ring.request/headers {"content-type" "application/edn"}})))
 
-    ;; Attach POST method
+  ;; Attach POST method
+  (with-bearer-token *alice-token*
     (with-request-body
       (pr-str
        [[:add-method
