@@ -125,25 +125,25 @@
 
   (is (repl/e "https://data.example.test/contacts/fred"))
 
+
   (with-bearer-token *alice-token*
     ;; Create operation
     ;; https://data.example.test/operations/add-contact
-    (with-request-body
-      (pr-str
-       {:xt/id "https://data.example.test/operations/get-contacts"
-        :juxt.site/state
-        {:juxt.site.sci/program
-         (pr-str
-          `(do
-             [{:contact-name "Bill"}
-              {:contact-name "Ben"}]))}
-        :juxt.site/rules
-        '[[(allowed? subject operation resource permission)
-           [permission :juxt.site/user "alice"]]]})
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/_site/operations"
-        :ring.request/method :post
-        :ring.request/headers {"content-type" "application/edn"}}))
+    (*handler*
+     (POST "https://data.example.test/_site/operations"
+           {:headers {"content-type" "application/edn"}
+            :body (pr-str
+                   {:xt/id "https://data.example.test/operations/get-contacts"
+                    :juxt.site/state
+                    {:juxt.site.sci/program
+                     (pr-str
+                      `(do
+                         [{:contact-name "Bill"}
+                          {:contact-name "Ben"}]))}
+                    :juxt.site/rules
+                    '[[(allowed? subject operation resource permission)
+                       [permission :juxt.site/user "alice"]]]})
+            :token *alice-token*}))
 
     ;; Create permission to call operation
     (with-request-body
