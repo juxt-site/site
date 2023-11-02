@@ -68,7 +68,7 @@
    (assoc-bearer-token *alice-token*)
    *handler*)
 
-  (with-bearer-token
+  (with-bearer-token *alice-token*
     ;; Create operation
     ;; https://data.example.test/operations/add-contact
     (with-request-body
