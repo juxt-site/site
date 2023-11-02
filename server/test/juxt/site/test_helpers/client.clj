@@ -12,8 +12,9 @@
    [jsonista.core :as json]
    [clojure.java.io :as io]))
 
-(defn client-secret [db]
-  (let [site-cli-client (xt/entity db (format "https://auth.example.test/applications/site-cli"))]
+(defn client-secret []
+  (let [db (xt/db *xt-node*)
+        site-cli-client (xt/entity db (format "https://auth.example.test/applications/site-cli"))]
     (:juxt.site/client-secret site-cli-client)))
 
 (defn http-request [uri m]
@@ -99,19 +100,19 @@
     (str (get-in CONFIG ["uri-map" "https://data.example.org"]) "/_site/events")
     {:ring.request/headers {"accept" "application/edn"}})))
 
+(defmacro with-admin-client-credentials [& body]
+  `(with-bearer-token (request-token {"client-secret" (client-secret)})
+     ~@body))
+
 (defn create-admin-user []
-  (let [db (xt/db *xt-node*)
-        client-secret (client-secret db)
-        cc-token (request-token
-                  {"client-secret" client-secret})
-        _ (with-bearer-token cc-token
-            (register-user
-             {"username" "alice"
-              "password" "foobar"
-              "fullname" "Alice"})
-            (assign-user-role
-             {"username" "alice"
-              "role" "SiteAdmin"}))]))
+  (with-admin-client-credentials
+    (register-user
+     {"username" "alice"
+      "password" "foobar"
+      "fullname" "Alice"})
+    (assign-user-role
+     {"username" "alice"
+      "role" "SiteAdmin"})))
 
 (defn admin-user-fixture [f] (create-admin-user) (f))
 

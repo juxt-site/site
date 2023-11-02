@@ -17,26 +17,11 @@
 (use-fixtures :each system-xt-fixture handler-fixture init/init-fixture)
 
 (deftest install-bundle-test
-  (let [db (xt/db *xt-node*)
-        client-secret (client-secret db)
-        cc-token (request-token
-                  {"client-secret" client-secret})
+  (with-bearer-token (request-token {"client-secret" (client-secret)})
+    (register-user {"username" "alice" "password" "foobar" "fullname" "Alice"})
+    (assign-user-role {"username" "alice" "role" "SiteAdmin"}))
 
-        _ (with-bearer-token cc-token
-            ;; Install something
-
-            (register-user
-             {"username" "alice"
-              "password" "foobar"
-              "fullname" "Alice"})
-
-            (assign-user-role
-             {"username" "alice"
-              "role" "SiteAdmin"}))
-
-        alice-token (request-token
-                     {"username" "alice"
-                      "password" "foobar"})]
+  (let [alice-token (request-token {"username" "alice" "password" "foobar"})]
 
     (with-bearer-token alice-token
       (install-bundle
@@ -69,6 +54,4 @@
       (is (= (:juxt.site/subject-uri ev)
              (:xt/id alice-subject)))
 
-      (is (= ["https://data.example.test/_site/openapi.json"] (:juxt.site/puts ev))))
-
-))
+      (is (= ["https://data.example.test/_site/openapi.json"] (:juxt.site/puts ev))))))

@@ -15,7 +15,8 @@
    [clojure.java.io :as io]
    [clojure.edn :as edn]
    [jsonista.core :as json]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [juxt.site.test-helpers.client :as client]))
 
 (defn dynamic-remote-bundles []
   (install-bundles!
@@ -38,6 +39,9 @@
   {:juxt.site/uri uri
    :ring.request/method :put
    :ring.request/headers headers})
+
+#_(with-fixtures
+  (repl/e "https://data.example.test/_site/users/alice"))
 
 (deftest contacts-test
   ;; Create resource
