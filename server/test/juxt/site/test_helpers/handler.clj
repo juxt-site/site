@@ -42,7 +42,8 @@
         (assoc :ring.request/body (io/input-stream bytes))
         (assoc-in [:ring.request/headers "content-length"] (str (count bytes))))))
 
-(defmacro with-request-body
+;; Deprecated
+(defmacro ^:deprecated with-request-body
   [content & body]
   `(let [dlg# *handler*
          content# ~content]

@@ -6,9 +6,9 @@
    [juxt.site.test-helpers.local-files-util :refer [install-bundles!]]
    [juxt.site.test-helpers.oauth :refer [RESOURCE_SERVER] :as oauth]
    [juxt.site.test-helpers.xt :refer [system-xt-fixture]]
-   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture with-request-body]]
+   [juxt.site.test-helpers.handler :refer [*handler* handler-fixture assoc-request-body with-request-body]]
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
-   [juxt.site.test-helpers.oauth :refer [with-bearer-token]]
+   [juxt.site.test-helpers.oauth :refer [with-bearer-token assoc-bearer-token]]
    [juxt.site.test-helpers.init :refer [init-fixture]]
    [juxt.site.test-helpers.client :refer [admin-token-fixture *admin-token*]]
    [juxt.site.repl :as repl]
@@ -34,16 +34,21 @@
   admin-token-fixture
   dynamic-remote-bundles-fixture)
 
+(defn PUT [uri headers]
+  {:juxt.site/uri uri
+   :ring.request/method :put
+   :ring.request/headers headers})
+
 (deftest contacts-test
+  ;; Create resource
+  (->
+   (PUT "https://data.example.test/contacts.meta"
+        {"content-type" "application/edn"})
+   (assoc-request-body (pr-str {}))
+   (assoc-bearer-token *admin-token*)
+   *handler*)
 
-  (with-bearer-token *admin-token*
-    ;; Create resource
-    (with-request-body (pr-str {})
-      (*handler*
-       {:juxt.site/uri "https://data.example.test/contacts.meta"
-        :ring.request/method :put
-        :ring.request/headers {"content-type" "application/edn"}}))
-
+  (with-bearer-token
     ;; Create operation
     ;; https://data.example.test/operations/add-contact
     (with-request-body
