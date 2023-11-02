@@ -10,7 +10,7 @@
    [juxt.site.test-helpers.fixture :refer [with-fixtures]]
    [juxt.site.test-helpers.oauth :refer [with-bearer-token assoc-bearer-token]]
    [juxt.site.test-helpers.init :refer [init-fixture]]
-   [juxt.site.test-helpers.client :refer [admin-token-fixture *admin-token*]]
+   [juxt.site.test-helpers.client :as client]
    [juxt.site.repl :as repl]
    [clojure.java.io :as io]
    [clojure.edn :as edn]
@@ -28,11 +28,27 @@
   (dynamic-remote-bundles)
   (f))
 
+(def ^:dynamic *alice-token* nil)
+
+(defn alice-fixture [f]
+  (client/with-admin-client-credentials
+    (client/register-user
+     {"username" "alice"
+      "password" "foobar"
+      "fullname" "Alice"})
+    (client/assign-user-role
+     {"username" "alice"
+      "role" "SiteAdmin"}))
+  (binding [*alice-token* (client/request-token {"username" "alice" "password" "foobar"})]
+    (f)))
+
+(def ^:dynamic *bob-token* nil)
+
 (use-fixtures :once
   system-xt-fixture
   handler-fixture
   init-fixture
-  admin-token-fixture
+  alice-fixture
   dynamic-remote-bundles-fixture)
 
 (defn PUT [uri headers]
@@ -49,7 +65,7 @@
    (PUT "https://data.example.test/contacts.meta"
         {"content-type" "application/edn"})
    (assoc-request-body (pr-str {}))
-   (assoc-bearer-token *admin-token*)
+   (assoc-bearer-token *alice-token*)
    *handler*)
 
   (with-bearer-token
@@ -111,7 +127,7 @@
 
   (repl/e "https://data.example.test/contacts/fred")
 
-  (with-bearer-token *admin-token*
+  (with-bearer-token *alice-token*
     ;; Create operation
     ;; https://data.example.test/operations/add-contact
     (with-request-body
@@ -176,7 +192,7 @@
         ;; TODO: Change application/edn to application/json
         :ring.request/headers {"content-type" "application/edn"}})))
 
-  (with-bearer-token *admin-token*
+  (with-bearer-token *alice-token*
     (json/read-value
      (:ring.response/body
       (*handler*
