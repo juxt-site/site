@@ -56,8 +56,15 @@
    :ring.request/method :put
    :ring.request/headers headers})
 
-#_(with-fixtures
-  (repl/e "https://data.example.test/_site/users/alice"))
+(defn POST [uri headers]
+  {:juxt.site/uri uri
+   :ring.request/method :post
+   :ring.request/headers headers})
+
+(defn PATCH [uri headers]
+  {:juxt.site/uri uri
+   :ring.request/method :patch
+   :ring.request/headers headers})
 
 (deftest contacts-test
   ;; Create resource
