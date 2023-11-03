@@ -73,15 +73,20 @@
 (defn PATCH [uri opts]
   (request uri :patch opts))
 
+(defn do-request [request]
+  (let [response (*handler* request)]
+    (is (<= 200 (:ring.response/status response) 299))
+    response))
+
 (deftest contacts-test
   ;; Create resource
-  (*handler*
+  (do-request
    (PUT "https://data.example.test/contacts.meta"
         {:headers {"content-type" "application/edn"}
          :body (pr-str {})
          :token *alice-token*}))
 
-  (*handler*
+  (do-request
    (POST "https://data.example.test/_site/operations"
          {:headers {"content-type" "application/edn"}
           :body (pr-str
@@ -94,27 +99,30 @@
                     [[:xtdb.api/put {:xt/id "https://data.example.test/contacts/fred"}]])}
                   :juxt.site/rules
                   '[[(allowed? subject operation resource permission)
-                     [permission :juxt.site/user "alice"]]]})
+                     ;;[subject :juxt.site/user user]
+                     ;;[user :juxt.site/username "alice"]
+                     [permission :juxt.site/username "alice"]]]})
           :token *alice-token*}))
 
-  (*handler*
+  (do-request
    (POST "https://data.example.test/_site/permissions"
          {:headers {"content-type" "application/edn"}
           :body (pr-str
-                 ;; TODO: We should be careful not to allow existing permissions
-                 ;; to be overwritten. Perhaps they must first be revoked with
-                 ;; requesting a DELETE method on a permission. But who can do
-                 ;; this? Perhaps the granter of a permission must be recorded
-                 ;; with the permission, to ensure that only the granter can
+                 ;; TODO: We should be careful not to allow existing
+                 ;; permissions to be overwritten. Perhaps they must
+                 ;; first be revoked with requesting a DELETE method
+                 ;; on a permission. But who can do this? Perhaps the
+                 ;; granter of a permission must be recorded with the
+                 ;; permission, to ensure that only the granter can
                  ;; revoke.
                  {:xt/id "https://data.example.test/permissions/add-contact"
                   :juxt.site/operation-uri "https://data.example.test/operations/add-contact"
-                  :juxt.site/user "alice"})
+                  :juxt.site/username "alice"})
           :token *alice-token*}))
 
   (testing "POST /contacts"
     ;; Attach POST method
-    (*handler*
+    (do-request
      (PATCH "https://data.example.test/contacts.meta"
             {:headers {"content-type" "application/edn"}
              :body (pr-str
@@ -122,7 +130,7 @@
                       {:method "POST"
                        :operation-uri "https://data.example.test/operations/add-contact"}]])
              :token *alice-token*}))
-    (*handler*
+    (do-request
      (POST "https://data.example.test/contacts"
            {:headers {"content-type" "application/edn"}
             :body (pr-str {})}))
@@ -131,7 +139,7 @@
 
   ;; Create operation
   ;; https://data.example.test/operations/add-contact
-  (*handler*
+  (do-request
    (POST "https://data.example.test/_site/operations"
          {:headers {"content-type" "application/edn"}
           :body (pr-str
@@ -148,7 +156,7 @@
           :token *alice-token*}))
 
   ;; Create permission to call operation
-  (*handler*
+  (do-request
    (POST "https://data.example.test/_site/permissions"
          {:headers {"content-type" "application/edn"}
           :body (pr-str
@@ -160,7 +168,7 @@
 
 
   ;; Attach GET method
-  (*handler*
+  (do-request
    (PATCH "https://data.example.test/contacts.meta"
           {:headers {"content-type" "application/edn"}
            :body (pr-str
@@ -169,7 +177,7 @@
                      :operation-uri "https://data.example.test/operations/get-contacts"}]])
            :token *alice-token*}))
 
-  (*handler*
+  (do-request
    (PATCH "https://data.example.test/contacts.meta"
           {:headers {"content-type" "application/edn"}
            :body (pr-str
@@ -177,7 +185,7 @@
                     {:content-type "application/json"}]])
            :token *alice-token*}))
 
-  (*handler*
+  (do-request
    (PATCH "https://data.example.test/contacts.meta"
           {:headers
            ;; TODO: Change application/edn to application/json
@@ -190,11 +198,11 @@
                               (jsonista.core/write-value-as-string ~'*state*)))}]])
            :token *alice-token*}))
 
-  (*handler*
+  (do-request
    (GET "https://data.example.test/contacts.meta" {:token *alice-token*}))
 
   (let [{:ring.response/keys [status headers body]}
-        (*handler* (GET "https://data.example.test/contacts"))]
+        (do-request (GET "https://data.example.test/contacts"))]
     (is (= 200 status))
     (is (= "application/json" (get headers "content-type")))
     (is (= [{"contact-name" "Bill"} {"contact-name" "Ben"}] (json/read-value body)))))
