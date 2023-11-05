@@ -99,9 +99,9 @@
                     [[:xtdb.api/put {:xt/id "https://data.example.test/contacts/fred"}]])}
                   :juxt.site/rules
                   '[[(allowed? subject operation resource permission)
-                     ;;[subject :juxt.site/user user]
-                     ;;[user :juxt.site/username "alice"]
-                     [permission :juxt.site/username "alice"]]]})
+                     #_[subject :juxt.site/user user]
+                     #_[user :juxt.site/username username]
+                     [permission :juxt.site/username username]]]})
           :token *alice-token*}))
 
   (do-request
@@ -133,7 +133,8 @@
     (do-request
      (POST "https://data.example.test/contacts"
            {:headers {"content-type" "application/edn"}
-            :body (pr-str {})}))
+            :body (pr-str {})
+            :token *alice-token*}))
 
     (is (repl/e "https://data.example.test/contacts/fred")))
 
@@ -163,9 +164,7 @@
                  {:xt/id "https://data.example.test/permissions/get-contacts"
                   :juxt.site/operation-uri "https://data.example.test/operations/get-contacts"
                   :juxt.site/user "alice"})
-          :token *alice-token*}
-         ))
-
+          :token *alice-token*}))
 
   ;; Attach GET method
   (do-request
