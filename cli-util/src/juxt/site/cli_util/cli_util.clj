@@ -137,9 +137,10 @@
 (defn default-config
   "Return a default config which is useful for getting started"
   ([]
-   (default-config (or (System/getenv "SITE_PORT") 4444)))
-  ([port]
-   {"admin-base-uri" "http://localhost:4911"
+   (default-config (or (System/getenv "SITE_PORT") 4444)
+                   (or (System/getenv "ADMIN_PORT") 4911)))
+  ([port admin-port]
+   {"admin-base-uri" (str "http://localhost:" admin-port)
     "base-uri" (str "http://localhost:" port)
     "installers-home" (str (System/getenv "SITE_HOME") "/installers")
     "client-credentials" {"ask-for-client-secret" true
@@ -149,9 +150,10 @@
 (defn static-config
   "Useful for static analysis of files"
   ([]
-   (default-config (or (System/getenv "SITE_PORT") 4444)))
-  ([port]
-   {"admin-base-uri" "http://localhost:4911"
+   (static-config (or (System/getenv "SITE_PORT") 4444)
+                  (or (System/getenv "ADMIN_PORT") 4444)))
+  ([port admin-port]
+   {"admin-base-uri" (str "http://localhost:" admin-port)
     "base-uri" (str "http://localhost:" port)
     "installers-home" (str (System/getenv "SITE_HOME") "/installers")
     "client-credentials" {"ask-for-client-secret" true
