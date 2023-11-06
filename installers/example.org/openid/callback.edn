@@ -1,0 +1,24 @@
+{:deps
+ [{:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/operations/install-openid-callback-endpoint"}
+
+  ;; TODO: This can't be 'reinstalled' as we don't have the
+  ;; client-secret parameter, but after we've changed the installer to
+  ;; fail on missing dependencies (rather than reinstall them) we
+  ;; should uncomment out this dependency.
+  #_"https://auth.example.org/openid/clients/{{iss|urlescape}}/{{client-id}}"
+  
+  {:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/session-scopes/openid-login-session"}
+  ;; Having established this callback, allow all callers to initiate the operation
+  ;; associated with the GET method.
+  {:juxt.site/base-uri "https://auth.example.org"
+   :juxt.site/installer-path "/permissions/openid/exchange-code-for-id-token"}]
+
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/install-openid-callback-endpoint"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/openid-client-configuration "https://auth.example.org/openid/clients/{{iss|urlescape}}/{{client-id}}"
+   :juxt.site/session-scope "https://auth.example.org/session-scopes/openid-login-session"}}}

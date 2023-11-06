@@ -1,0 +1,135 @@
+;; Install an operation to register an application
+;; See https://www.rfc-editor.org/rfc/rfc6749#section-2
+{:install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
+
+   :juxt.site.malli/input-schema
+   [:map
+    [:juxt.site/client-id
+     ;; Optional, but if unspecified one will be generated.  This
+     ;; strategy allows us to choose meaningful and memorable client
+     ;; ids, simplifies testing and makes testing more readable.
+     {:optional true}
+     [:re "[a-z-]{3,}"]]
+
+    [:juxt.site/client-type [:enum "confidential" "public"]]
+
+    [:juxt.site/client-secret
+     ;; Optional, but if unspecified one will be generated.  This
+     ;; strategy allows us to choose pre-configured client secrets,
+     ;; for simplifying testing and pushing through a secret from
+     ;; another source, such as AWS Secrets Manager.
+     {:optional true}
+     [:re "[a-zA-Z0-9-][a-zA-Z0-9-]+"]]
+
+    ;; "The authorization server SHOULD require all clients to register
+    ;; their redirection endpoint prior to utilizing the authorization endpoint."
+    ;;
+    ;; https://www.rfc-editor.org/rfc/rfc6749#section-3.1.2.2
+    [:juxt.site/redirect-uris
+     ;; We make this optional to support the site-cli client, which
+     ;; only uses the resource owner password credentials grant.
+
+     ;; TODO: Clients should register which grant-types they are
+     ;; allowed to use.
+     {:optional true}
+     [:sequential
+      [:re "https?://.+"]]]
+
+    ;; In the case that scope is not provided, or provided but nil,
+    ;; the scope MUST be requested dynamically in the authorization
+    ;; request. An empty scope is legal but effectively disables the
+    ;; client as it restricts it to zero operations.
+    [:juxt.site/scope
+     {:optional true}
+     [:maybe
+      [:set
+       [:re "(https://auth.example.org/scopes/.+?(,https://auth.example.org/scopes/.+?)*|https://data.example.org/_site/scopes/.+?(,https://data.example.org/_site/scopes/.+?)*)"]]]]]
+
+   ;; TODO: Check that scope actually exists
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content-type (-> *ctx*
+                           :juxt.site/received-representation
+                           :juxt.http/content-type)
+          body (-> *ctx*
+                   :juxt.site/received-representation
+                   :juxt.http/body)]
+      (case content-type
+        "application/edn"
+        (let [input
+              (some->
+               body
+               (String.)
+               clojure.edn/read-string
+               juxt.site.malli/validate-input)
+
+              client-id
+              (or
+               (:juxt.site/client-id input)
+               (juxt.site.util/make-nonce 10))
+
+              client-secret
+              (when (= (:juxt.site/client-type input) "confidential")
+                (or (:juxt.site/client-secret input)
+                    (juxt.site.util/make-nonce 20)))
+
+              redirect-uris (:juxt.site/redirect-uris input)]
+
+          (cond-> (into input
+                        {:xt/id (format "https://auth.example.org/applications/%s" client-id)
+                         :juxt.site/type "https://meta.juxt.site/types/application"
+                         :juxt.site/client-id client-id
+                         :juxt.site/authorization-server "https://auth.example.org"
+                         :juxt.site/resource-server "https://data.example.org"})
+            client-secret (assoc :juxt.site/client-secret client-secret)
+            ;; In case the client-secret has been provided in the input
+            (not client-secret) (dissoc :juxt.site/client-secret)
+
+            ))))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+
+    ;; TODO: We should consider whether/when it's appropriate to
+    ;; re-register a client. This might be a security risk, since
+    ;; currently we allow client-ids to be provided. Perhaps once
+    ;; answer is to allow remote and/or dynamic registration, but not
+    ;; one that can re-register. That leaves the system user as the
+    ;; only user that can register named clients.
+
+    #_(if-let [existing (xt/entity (:xt/id *prepare*))]
+        (throw (ex-info "Cannot overwrite an existing client" {:id (:xt/id *prepare*)}))
+        [[:xtdb.api/put *prepare*]]
+        )
+
+    [[:xtdb.api/put *prepare*]
+     [:ring.response/status 201]]}
+
+   :juxt.site/rules
+   [[(allowed? subject operation resource permission)
+     [permission :juxt.site/subject subject]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/user-identity id]
+     [id :juxt.site/user user]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/user user]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/application app]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/application app]]]}}}

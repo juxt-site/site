@@ -1,0 +1,60 @@
+{:install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
+
+   :juxt.site.malli/input-schema
+   [:map
+    [:xt/id [:re "https://auth.example.org/.*"]]
+    [:juxt.site/session-scope {:optional true} [:re "https://auth.example.org/.*"]]]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [input (:juxt.site/received-representation *ctx*)
+          content-type (:juxt.http/content-type input)]
+      (case content-type
+        "application/edn"
+        (some->
+         input
+         :juxt.http/body
+         (String.)
+         clojure.edn/read-string
+         juxt.site.malli/validate-input
+         (assoc
+          :juxt.site/methods
+          {:get {:juxt.site/operation-uri "https://auth.example.org/operations/oauth/view-owned-authorizations"}
+           :post {:juxt.site/operation-uri "https://auth.example.org/operations/oauth/authorize"}}))))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    [[:xtdb.api/put *prepare*]]}
+
+   :juxt.site/rules
+   [
+    ;; This is only required now for the tests to pass
+    ;;
+    ;; TODO: Change tests such that this operation is only ever called
+    ;; by an actual test user (not system subject)
+    [(allowed? subject operation resource permission)
+     [permission :juxt.site/subject subject]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/user-identity id]
+     [id :juxt.site/user user]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/user user]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/application app]
+     [permission :juxt.site/role role]
+     [role :juxt.site/type "https://meta.juxt.site/types/role"]
+     [role-assignment :juxt.site/type "https://meta.juxt.site/types/role-assignment"]
+     [role-assignment :juxt.site/role role]
+     [role-assignment :juxt.site/application app]]]}}}

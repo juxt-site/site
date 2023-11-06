@@ -27,9 +27,9 @@
   "Read EDN config, with the given aero options. See Aero docs at
   https://github.com/juxt/aero for details."
   (memoize
-   (fn []
+   (fn [filename]
      (log/infof "Configuration profile: %s" (name profile))
-     (let [config-file (io/file (System/getProperty "user.home") ".config/site/config.edn")]
+     (let [config-file (io/file (System/getProperty "user.home") ".config/site/" (str filename ".edn"))]
        (when-not (.exists config-file)
          (log/error (str "Configuration file does not exist: " (.getAbsolutePath config-file)))
          (throw (ex-info
@@ -40,16 +40,16 @@
 
 (defn system-config
   "Construct a new system, configured with the given profile"
-  []
-  (let [config (config)
+  [config-filename]
+  (let [config (config config-filename)
         system-config (:ig/system config)]
     (load-namespaces system-config)
     (ig/prep system-config)))
 
-(defn -main [& _]
+(defn -main [& file]
   (log/info "Starting system")
 
-  (let [system-config (system-config)
+  (let [system-config (system-config "config")
         system (ig/init system-config)]
     (log/infof "Configuration: %s" (pr-str system-config))
 

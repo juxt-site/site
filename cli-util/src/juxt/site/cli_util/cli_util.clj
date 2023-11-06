@@ -136,25 +136,27 @@
 
 (defn default-config
   "Return a default config which is useful for getting started"
-  []
-  {"admin-base-uri" "http://localhost:4911"
-   "uri-map" {"https://auth.example.org" "http://localhost:4440"
-              "https://data.example.org" "http://localhost:4444"}
-   "installers-home" (str (System/getenv "SITE_HOME") "/installers")
-   "client-credentials" {"ask-for-client-secret" true
-                         "cache-client-secret" true}
-   "curl" {"save-access-token-to-default-config-file" true}})
+  ([]
+   (default-config (or (System/getenv "SITE_PORT") 4444)))
+  ([port]
+   {"admin-base-uri" "http://localhost:4911"
+    "base-uri" (str "http://localhost:" port)
+    "installers-home" (str (System/getenv "SITE_HOME") "/installers")
+    "client-credentials" {"ask-for-client-secret" true
+                          "cache-client-secret" true}
+    "curl" {"save-access-token-to-default-config-file" true}}))
 
 (defn static-config
   "Useful for static analysis of files"
-  []
-  {"admin-base-uri" "http://localhost:4911"
-   "uri-map" {"https://auth.example.org" "https://auth.example.org"
-              "https://data.example.org" "https://data.example.org"}
-   "installers-home" (str (System/getenv "SITE_HOME") "/installers")
-   "client-credentials" {"ask-for-client-secret" true
-                         "cache-client-secret" true}
-   "curl" {"save-access-token-to-default-config-file" true}})
+  ([]
+   (default-config (or (System/getenv "SITE_PORT") 4444)))
+  ([port]
+   {"admin-base-uri" "http://localhost:4911"
+    "base-uri" (str "http://localhost:" port)
+    "installers-home" (str (System/getenv "SITE_HOME") "/installers")
+    "client-credentials" {"ask-for-client-secret" true
+                          "cache-client-secret" true}
+    "curl" {"save-access-token-to-default-config-file" true}}))
 
 (defn config [profile]
   (assert profile)
@@ -171,7 +173,7 @@
 (defn- request-token*
   [{:keys [profile grant-type client-id client-secret username password]}]
   (let [cfg (config profile)
-        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+        auth-base-uri (get cfg "base-uri")
         token-endpoint (str auth-base-uri "/oauth/token")
 
         {:keys [status headers body] :as response}
@@ -346,7 +348,7 @@
 (defn check-token [cfg token]
   (if-not token
     (stderr (println "Hint: Try requesting an access-token (site request-token)"))
-    (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
+    (let [auth-base-uri (get cfg "base-uri")
           introspection-uri (str auth-base-uri "/oauth/introspect")
           {introspection-status :status introspection-body :body}
           (http/post

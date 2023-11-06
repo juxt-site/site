@@ -200,7 +200,7 @@
     ((apply comp new-pipeline) identity)))
 
 (defmethod ig/init-key ::listener [_ {port :juxt.site/port, dynamic? :juxt.site/dynamic?, :as opts}]
-  (log/infof "Starting HTTP listener (admin) on port %d" port)
+  (log/infof "Starting HTTP admin listener on port %d" port)
   (let [mb-container (MBeanContainer. (ManagementFactory/getPlatformMBeanServer))
         opts (assoc opts ::admin-server true)]
     (doto

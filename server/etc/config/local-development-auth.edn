@@ -1,0 +1,31 @@
+;; Copy this to $HOME/.config/site/config-auth.edn
+
+{:ig/system
+ {:juxt.site.db/xt-node
+  {:xtdb/tx-log
+   {:kv-store {:xtdb/module xtdb.rocksdb/->kv-store
+               :db-dir #join [#env HOME "/.local/share/site/auth-db/txes"]}}
+
+   :xtdb/document-store
+   {:kv-store {:xtdb/module xtdb.rocksdb/->kv-store
+               :db-dir #join [#env HOME "/.local/share/site/auth-db/docs"]}}
+
+   :xtdb/index-store
+   {:kv-store {:xtdb/module xtdb.rocksdb/->kv-store
+               :db-dir #join [#env HOME "/.local/share/site/auth-db/idxs"]}}}
+
+  :juxt.site.listener/listener
+  {:juxt.site/xt-node #ig/ref :juxt.site.db/data-node
+   :juxt.site/port 4440
+   :juxt.site/dynamic? #profile {:dev true :prod false}}
+
+  ;; SiteAdmin listener is only locally bound
+  :juxt.site.admin-server/listener
+  {:juxt.site/xt-node #ig/ref :juxt.site.db/xt-node
+   :juxt.site/port 4912
+   :juxt.site/dynamic? #profile {:dev true :prod false}}
+
+  ;; Optional; nREPL server
+  :juxt.site.nrepl/server
+  {:juxt.site/port 7889}
+  }}

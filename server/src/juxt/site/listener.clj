@@ -9,11 +9,8 @@
   (:import (java.lang.management ManagementFactory)
            (org.eclipse.jetty.jmx MBeanContainer)))
 
-(defmethod ig/init-key ::listener [k {port :juxt.site/port, dynamic? :juxt.site/dynamic?, :as opts}]
-  (if-let [nk (and (coll? k) (second k))]
-    (log/infof "Starting HTTP listener (%s) on port %d" (name nk) port)
-    (log/infof "Starting HTTP listener on port %d" port))
-
+(defmethod ig/init-key ::listener [_ {port :juxt.site/port, dynamic? :juxt.site/dynamic?, :as opts}]
+  (log/infof "Starting HTTP listener on port %d" port)
   (let [mb-container (MBeanContainer. (ManagementFactory/getPlatformMBeanServer))]
     (doto
         (run-jetty

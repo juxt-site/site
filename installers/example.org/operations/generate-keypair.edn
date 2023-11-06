@@ -1,0 +1,63 @@
+{:install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
+
+   :juxt.site.malli/input-schema
+   [:map
+    [:xt/id [:re "https://auth.example.org/keypairs/(.+)"]]
+    [:juxt.site/algorithm [:enum "RSA"]]
+    [:juxt.site/kid :string]]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content-type (-> *ctx*
+                           :juxt.site/received-representation
+                           :juxt.http/content-type)
+          body (-> *ctx*
+                   :juxt.site/received-representation
+                   :juxt.http/body)]
+      (let [doc
+            (case content-type
+              "application/edn"
+              (some->
+               body
+               (String.)
+               clojure.edn/read-string
+               juxt.site.malli/validate-input
+               (assoc :juxt.site/type "https://meta.juxt.site/types/keypair")))
+            kp (juxt.site/generate-key-pair (:juxt.site/algorithm doc))
+            public-key (juxt.site/get-public-key kp)
+            private-key (juxt.site/get-private-key kp)
+            doc (assoc doc
+                       :juxt.site/issuer "https://auth.example.org"
+                       :juxt.site/public-key (juxt.site/get-encoded public-key)
+                       :juxt.site/public-key-format (juxt.site/get-key-format public-key)
+                       :juxt.site/public-key-modulus (juxt.site/get-modulus public-key)
+                       :juxt.site/public-key-public-exponent (juxt.site/get-public-exponent public-key)
+                       :juxt.site/private-key (juxt.site/get-encoded private-key)
+                       :juxt.site/private-key-format (juxt.site/get-key-format private-key))
+            active-doc (assoc doc :xt/id "https://auth.example.org/keypairs/current-signing-key")]
+
+        {:doc doc
+         :active-doc active-doc}))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    [[:xtdb.api/put (:doc *prepare*)]
+     [:xtdb.api/put (:active-doc *prepare*)]]}
+
+   :juxt.site/rules
+   [
+    [(allowed? subject operation resource permission)
+     [permission :juxt.site/subject subject]]
+
+    [(allowed? subject operation resource permission)
+     [subject :juxt.site/user-identity id]
+     [id :juxt.site/user user]
+     [permission :role role]
+     [user :role role]]]}}}

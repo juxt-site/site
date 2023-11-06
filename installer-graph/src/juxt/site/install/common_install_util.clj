@@ -213,32 +213,32 @@
        :installers))
 
 
-(defn uri-map-replace
-  "Replace URIs in string, taking substitutions from the given uri-map."
-  [s uri-map]
+(defn base-uri-replace
+  "Replace URIs in string, taking substitutions from the given base-uri."
+  [s base-uri]
   (str/replace
    s
    #"(https?://.*?example.org)([\p{Alnum}-]+)*"
-   (fn [[_ host path]] (str (get uri-map host host) path))))
+   (fn [[_ host path]] (str base-uri path))))
 
-(defn make-uri-map-replace-walk-fn [uri-map]
+(defn make-base-uri-replace-walk-fn [base-uri]
   (fn walk-fn [node]
     (cond
-      (string? node) (uri-map-replace node uri-map)
+      (string? node) (base-uri-replace node base-uri)
 
       (instance? juxt.site.install.common_install_util.Template node)
-      (->Template (uri-map-replace (unwrap node) uri-map))
+      (->Template (base-uri-replace (unwrap node) base-uri))
 
       (instance? juxt.site.install.common_install_util.Pretty node)
       (->Pretty (postwalk walk-fn (unwrap node)))
 
       :else node)))
 
-(defn bundle-map [bundle uri-map opts]
-  {:uri (str (get-in uri-map ["https://data.example.org"]) "/bundles/" (clojure.string/replace (clojure.string/lower-case (:title bundle)) " " "-"))
+(defn bundle-map [bundle base-uri opts]
+  {:uri (str base-uri "/bundles/" (clojure.string/replace (clojure.string/lower-case (:title bundle)) " " "-"))
    :title (:title bundle)
    :installers (:installers bundle)
-   :juxt.site/protection-space-uris #{(str (get-in uri-map ["https://auth.example.org"])
+   :juxt.site/protection-space-uris #{(str base-uri
                                        "/protection-spaces/bearer")}
    :juxt.site/access-control-allow-origins
    [[".*"
@@ -264,13 +264,13 @@
        "https://meta.juxt.site/types/role-assignment"]
       [role-assignment :juxt.site/role role]
       [role-assignment :juxt.site/application app]]]
-   :juxt.site/type (str (get-in uri-map ["https://data.example.org"]) "/types/bundle")
-   :juxt.site/events-base-uri (str (get uri-map "https://auth.example.org") "/_site/events/")
+   :juxt.site/type (str base-uri "/types/bundle")
+   :juxt.site/events-base-uri (str base-uri "/_site/events/")
    :juxt.site/methods
    {:get
-    {:juxt.site/operation-uri (str (get-in uri-map ["https://data.example.org"]) "/_site/operations/get-bundle-by-id")}
+    {:juxt.site/operation-uri (str base-uri "/_site/operations/get-bundle-by-id")}
     :delete
-    {:juxt.site/operation-uri (str (get-in uri-map ["https://data.example.org"]) "/_site/operations/delete-bundle-by-id")}}})
+    {:juxt.site/operation-uri (str base-uri "/_site/operations/delete-bundle-by-id")}}})
 
 (def ^:dynamic *working-dir* nil)
 
@@ -285,7 +285,7 @@
 (defn unified-installer-map
   "This converts the existing package structure into a unified map of
   installers."
-  [root uri-map]
+  [root base-uri]
   (->>
    (doall
     (for [dir (.listFiles root)
@@ -297,10 +297,10 @@
                 [_ auth path1 path2] (re-matches #"([^/]+)(.+?)(?:_index)?\.edn" relpath)]
           :when auth ; checks we match an edn file, there could be other notes in here
           :let [url (str "https://" auth path1 path2)
-                url (uri-map-replace url uri-map)
+                url (base-uri-replace url base-uri)
                 content (try
                           (->
-                           (postwalk (make-uri-map-replace-walk-fn uri-map)
+                           (postwalk (make-base-uri-replace-walk-fn base-uri)
                                      (binding [*working-dir* (.getParentFile installer-file)]
                                        (edn/read-string {:readers READERS} (slurp installer-file))))
                            (merge {:juxt.site.installer-graph/filepath (.toString filepath)

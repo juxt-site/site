@@ -1,0 +1,9 @@
+{:deps
+ [{:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/operations/openid/exchange-code-for-id-token"}
+]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/grant-permission"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/operation-uri "https://auth.example.org/operations/openid/exchange-code-for-id-token"}}}

@@ -31,7 +31,7 @@
 (defn ping-task []
   (let [opts (util/parse-opts)
         cfg (util/config (util/profile opts))
-        base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        base-uri (get cfg "base-uri")
         url (str base-uri "/_site/healthcheck")
 
         {:keys [status body]}

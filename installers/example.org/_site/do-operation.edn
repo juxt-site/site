@@ -1,0 +1,5 @@
+{:install
+ {:juxt.site/input
+  {:xt/id "{{$id}}"
+   :xt/fn (fn [xt-ctx ctx & args]
+            (juxt.site.operations/do-operation-in-tx-fn xt-ctx ctx))}}}

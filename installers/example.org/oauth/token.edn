@@ -1,0 +1,45 @@
+{:deps
+ [{:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/operations/oauth/install-token-endpoint"}
+ {:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/protection-spaces/client-credentials"}
+]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/oauth/install-token-endpoint"
+
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.http/content-type "text/html;charset=utf-8"
+   :juxt.http/content "<p>Welcome to the Site token endpoint server.</p>\n"
+   :juxt.site/keypair "https://auth.example.org/keypairs/current-signing-key"
+
+   ;; The token endpoint is inside a special protection space since
+   ;; client_credentials can use HTTP Basic Authentication
+   :juxt.site/protection-space-uris #{"https://auth.example.org/protection-spaces/client-credentials"}
+
+   :juxt.site/access-control-allow-origins
+   [["https://petstore.swagger.io"
+     {:juxt.site/access-control-allow-origin "https://petstore.swagger.io"
+      :juxt.site/access-control-allow-methods [:post]
+      :juxt.site/access-control-allow-headers ["authorization"
+                                               ;; Swagger requires this
+                                               "x-requested-with"]}]
+    ["https://swagger-ui.apps.com"
+     {:juxt.site/access-control-allow-origin "https://swagger-ui.apps.com"
+      :juxt.site/access-control-allow-methods [:post]
+      :juxt.site/access-control-allow-headers ["authorization"
+                                               ;; Swagger requires this
+                                               "x-requested-with"]}]
+
+    ["https://localhost:5173"
+     {:juxt.site/access-control-allow-origin "https://localhost:5173"
+      :juxt.site/access-control-allow-methods [:post]
+      :juxt.site/access-control-allow-headers ["authorization"
+                                               ;; Swagger requires this
+                                               "x-requested-with"]}]
+
+    ["https://juxt-site-petshop.vercel.app"
+     {:juxt.site/access-control-allow-origin "https://juxt-site-petshop.vercel.app"
+      :juxt.site/access-control-allow-methods [:post]
+      :juxt.site/access-control-allow-headers ["authorization"
+                                               ;; Swagger requires this
+                                               "x-requested-with"]}]]}}}

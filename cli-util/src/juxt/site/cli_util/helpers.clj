@@ -8,7 +8,7 @@
 (defn resource-server-post [{:keys [content-type body path]}]
   (let [opts (util/parse-opts)
         cfg (util/config (util/profile opts))
-        base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        base-uri (get cfg "base-uri")
         {:keys [status body]}
         (http/post
          (str base-uri path)

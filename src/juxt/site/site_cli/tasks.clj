@@ -18,7 +18,7 @@
 
 (defn configure
   "Create a static edn configuration file"
-  [{:keys [auth-base-uri data-base-uri]}]
+  [{:keys [base-uri]}]
   (let [dir (some identity
                   [(io/file (System/getenv "XDG_CONFIG_HOME"))
                    (io/file (System/getenv "HOME") ".config/site")])
@@ -28,10 +28,7 @@
     (spit
      config-file
      (with-out-str
-       (pprint
-        (cond-> (util/default-config)
-          auth-base-uri (assoc-in ["uri-map" "https://auth.example.org"] auth-base-uri)
-          data-base-uri (assoc-in ["uri-map" "https://data.example.org"] data-base-uri)))))))
+       (pprint (util/default-config))))))
 
 (defn configure-task []
   (let [opts (util/parse-opts)
@@ -106,7 +103,7 @@
   (let [opts (util/parse-opts)
         cfg (util/config (util/profile opts))
         args (select-keys opts [:reqid :match :logger-name :before :after])
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        data-base-uri (get cfg "base-uri")
         endpoint (str data-base-uri path)
         accept (cond
                  (get opts :edn) "application/edn"
@@ -138,7 +135,7 @@
   (let [path "/_site/whoami"]
     (if-not verbose
       (let [cfg (util/config (util/profile opts))
-            data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+            data-base-uri (get cfg "base-uri")
             endpoint (str data-base-uri path)
             authorization (util/authorization cfg)
 
@@ -179,7 +176,7 @@
         path "/_site/applications"]
     (if-not verbose
       (let [cfg (util/config (util/profile opts))
-            data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+            data-base-uri (get cfg "base-uri")
             endpoint (str data-base-uri path)
             authorization (util/authorization cfg)
             {:keys [status body]}
@@ -221,19 +218,19 @@
      (edn/read-string
       (slurp (io/file (System/getenv "SITE_HOME") "installers/bundles.edn"))))))
 
-(defn uri-map-replace
-  "Replace URIs in string, taking substitutions from the given uri-map."
-  [s uri-map]
+(defn base-uri-replace
+  "Replace URIs in string, taking substitutions from the given base-uri."
+  [s base-uri]
   (str/replace
    s
    #"(https?://.*?example.org)([\p{Alnum}-]+)*"
-   (fn [[_ host path]] (str (get uri-map host host) path))))
+   (fn [[_ host path]] (str base-uri path))))
 
-(defn apply-uri-map [uri-map installers]
+(defn apply-base-uri [base-uri installers]
   (postwalk
    (fn walk-fn [node]
      (cond
-       (string? node) (uri-map-replace node uri-map)
+       (string? node) (base-uri-replace node base-uri)
        :else node))
    installers))
 
@@ -242,18 +239,18 @@
    {parameters :juxt.site/parameters
     installers :juxt.site/installers}
    opts]
-  (let [uri-map (get cfg "uri-map")
+  (let [base-uri (get cfg "base-uri")
 
         parameters
-        (resolve-parameters (apply-uri-map uri-map parameters) (apply-uri-map uri-map opts))
+        (resolve-parameters (apply-base-uri base-uri parameters) (apply-base-uri base-uri opts))
 
         installers
-        (apply-uri-map uri-map installers)
+        (apply-base-uri base-uri installers)
 
         installer-map
         (ciu/unified-installer-map
          (io/file (get cfg "installers-home"))
-         uri-map)]
+         base-uri)]
 
     (ciu/installer-seq installer-map parameters installers)))
 
@@ -344,12 +341,12 @@
             (format "Installing: %s with %s" title param-str))))
         (install opts (ciu/bundle-map {:title title
                                        :description description
-                                       :installers installers-seq} (get cfg "uri-map") opts))))))
+                                       :installers installers-seq} (get cfg "base-uri") opts))))))
 
 (defn install-bundle-task []
   (let [{bundle-names :bundle _ :debug :as opts} (util/parse-opts)
         cfg (util/config (util/profile opts))
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        data-base-uri (get cfg "base-uri")
         resources-uri (str data-base-uri "/_site/bundles")
         bundles (bundles cfg)]
     (doseq [bundle-name bundle-names
@@ -375,12 +372,11 @@
    (let [admin-base-uri (get cfg "admin-base-uri")]
      (if-not admin-base-uri
        (stderr (println "Cannot init. The admin-server is not reachable."))
-       (let [auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-             data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+       (let [base-uri (get cfg "base-uri")
              insite-secret (util/request-client-secret admin-base-uri "insite")
              site-cli-secret (util/request-client-secret admin-base-uri "site-cli")
-             token-endpoint (str auth-base-uri "/oauth/token")
-             site-api-root (str data-base-uri "/_site")]
+             token-endpoint (str base-uri "/oauth/token")
+             site-api-root (str base-uri "/_site")]
          (stderr
           (when-not silent
             (if-not (and insite-secret site-cli-secret)
@@ -498,7 +494,7 @@
 (defn new-keypair []
   (let [opts (util/parse-opts)
         cfg (util/config (util/profile opts))
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
+        data-base-uri (get cfg "base-uri")]
     (install-bundles
      (assoc
       opts
@@ -516,7 +512,7 @@
 ;; jo -- -s username=alice fullname="Alice Carroll" password=foobar | curl --json @- http://localhost:4444/_site/users
 (defn register-user [opts]
   (let [cfg (util/config (util/profile opts))
-        base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        base-uri (get cfg "base-uri")
         authorization (util/authorization cfg)
         {:keys [status body]}
         (http/post
@@ -539,8 +535,8 @@
 ;; site assign-user-role --username alice --role SiteAdmin
 (defn assign-user-role [opts]
   (let [cfg (util/config (util/profile opts))
-        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        auth-base-uri (get cfg "base-uri")
+        data-base-uri (get cfg "base-uri")
         authorization (util/authorization cfg)
         {:keys [status body]}
         (http/post
@@ -560,8 +556,8 @@
 
 (defn register-application [{:keys [client-id client-type redirect-uris scope] :as opts}]
   (let [cfg (util/config (util/profile opts))
-        auth-base-uri (get-in cfg ["uri-map" "https://auth.example.org"])
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        auth-base-uri (get cfg "base-uri")
+        data-base-uri (get cfg "base-uri")
 
         client-id (or client-id (input/input {:header (format "Input client id")}))
         client-type (or client-type
@@ -628,7 +624,7 @@
 (defn installed-bundles []
   (let [opts (util/parse-opts)
         cfg (util/config opts)
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        data-base-uri (get cfg "base-uri")
         bundles-uri (str data-base-uri "/_site/bundles")
         {:keys [body]}
         (http/get bundles-uri
@@ -641,7 +637,7 @@
      (clojure.string/split body #"\n"))))
 
 (defn find-bundle-by-id [id cfg]
-  (let [data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+  (let [data-base-uri (get cfg "base-uri")
         bundle-uri (str data-base-uri "/bundles/" (last (clojure.string/split id #"\/")))
         {:keys [body]}
         (http/get bundle-uri
@@ -716,7 +712,7 @@
 
 (defn install-openapi [opts]
   (let [cfg (util/config (util/profile opts))
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        data-base-uri (get cfg "base-uri")
         access-token (util/retrieve-token cfg)
         openapi-file (io/file (:openapi opts))]
 
@@ -749,8 +745,8 @@
 
             ;; Update with mapped urls
             mapped-openapi
-            (postwalk (ciu/make-uri-map-replace-walk-fn
-                       (get cfg "uri-map"))
+            (postwalk (ciu/make-base-uri-replace-walk-fn
+                       (get cfg "base-uri"))
                       mapped-openapi)
 
             json-body (json/generate-string mapped-openapi)
@@ -785,7 +781,7 @@
 (defn new-resource []
   (let [{:keys [uri] :as opts} (util/parse-opts)
         cfg (util/config opts)
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        data-base-uri (get cfg "base-uri")
         placeholder (str data-base-uri "/")
         new-resource-uri
         (or uri
@@ -803,7 +799,7 @@
 (defn attach-method []
   (let [{:keys [uri method operation] :as opts} (util/parse-opts)
         cfg (util/config opts)
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])
+        data-base-uri (get cfg "base-uri")
         placeholder (str data-base-uri "/")
         uri
         (or uri
@@ -837,7 +833,7 @@
 (defn install-openapi-support []
   (let [opts (util/parse-opts)
         cfg (util/config (util/profile opts))
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
+        data-base-uri (get cfg "base-uri")]
     (install-bundles
      (assoc
       opts
@@ -868,7 +864,7 @@
 (defn install-petstore []
   (let [opts (util/parse-opts)
         cfg (util/config (util/profile opts))
-        data-base-uri (get-in cfg ["uri-map" "https://data.example.org"])]
+        data-base-uri (get cfg "base-uri")]
 
     (install-bundles
      (assoc opts

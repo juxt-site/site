@@ -1,0 +1,58 @@
+{:install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/_site/operations/create-operation"
+  :juxt.site/input
+  {:xt/id "{{$id}}"
+   :juxt.site/do-operation-tx-fn "https://auth.example.org/_site/do-operation"
+
+   :juxt.site.malli/input-schema
+   [:map
+    ["token" :string]]
+
+   :juxt.site/prepare
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [content-type (-> *ctx*
+                           :juxt.site/received-representation
+                           :juxt.http/content-type)
+          body (-> *ctx*
+                   :juxt.site/received-representation
+                   :juxt.http/body)]
+      (case content-type
+        "application/x-www-form-urlencoded"
+        (let [form (-> body (String.) ring.util.codec/form-decode juxt.site.malli/validate-input)
+              token (get form "token")]
+          {:token token})))}
+
+   :juxt.site/transact
+   {:juxt.site.sci/program
+    #juxt.pprint
+    (let [token (:token *prepare*)
+          {subject :juxt.site/subject
+           application :juxt.site/application
+           :as access-token-doc}
+          (juxt.site/lookup-access-token token)
+
+          jwt (try
+                (juxt.site/decode-access-token token)
+                (catch Exception _ nil))]
+
+      [[:ring.response/status 200]
+       [:ring.response/headers
+        {"content-type" "application/json"}]
+       [:ring.response/body
+        (jsonista.core/write-value-as-string
+         (if jwt
+           (merge
+            ;; See https://datatracker.ietf.org/doc/html/rfc7662#section-2.2
+            {"active" true
+             "token_type" "bearer"}
+            (:claims jwt))
+           {"active" false}))]])}
+
+   :juxt.site/rules
+   [
+    ;; This should only be permitted for certain well-known clients,
+    ;; such as site-cli
+    [(allowed? subject operation resource permission)
+     [subject :xt/id]]]}}}

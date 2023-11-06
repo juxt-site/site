@@ -1,0 +1,14 @@
+{:deps
+ [{:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/operations/oauth/register-application"}
+ {:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/permissions/system/register-application"}
+]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/oauth/register-application"
+  :juxt.site/input
+  {:juxt.site/client-id "test/confidential-global-scope-app"
+   :juxt.site/client-type "confidential"
+   :juxt.site/client-secret "secret"
+   :juxt.site/authorization-server "https://auth.example.org"
+   :juxt.site/resource-server "https://data.example.org"
+   :juxt.site/redirect-uris ["https://confidential-global-scope-app.test.com/redirect.html"]}}}

@@ -1,0 +1,27 @@
+{:deps
+ [{:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/operations/oauth/register-application"}
+ {:juxt.site/base-uri "https://auth.example.org", :juxt.site/installer-path "/permissions/system/register-application"}
+]
+ :install
+ {:juxt.site/subject-uri "https://auth.example.org/_site/subjects/system"
+  :juxt.site/operation-uri "https://auth.example.org/operations/oauth/register-application"
+  :juxt.site/input
+  {:juxt.site/client-id "swagger-ui"
+   :juxt.site/title "Swagger UI"
+   :juxt.site/description "A tool to show and test APIs documented with OpenAPI"
+   ;; This can be confidential because we can provide a client_secret
+   ;; as an input in its Authorize dialog, rather than embedding the
+   ;; client_secret in the swagger-ui application code or
+   ;; configuration.
+   :juxt.site/client-type "confidential"
+   :juxt.site/authorization-server "https://auth.example.org"
+   :juxt.site/resource-server "https://data.example.org"
+   :juxt.site/redirect-uris
+   ["https://petstore.swagger.io/oauth2-redirect.html"
+    "https://swagger-ui.apps.com/oauth2-redirect.html"
+    ;; For alx
+    "https://juxt-site-petshop.vercel.app/oauth-redirect.html"
+    "http://localhost:5173/oauth-redirect.html"]
+
+   :juxt.site/grant-types #{"authorization_code" "client_credentials"}
+   :juxt.cash/billing {}}}}
