@@ -16,6 +16,10 @@
        [:method [:enum "GET" "PUT" "POST" "DELETE"]]
        [:operation-uri [:re "https://data.example.org/.*"]]]]
      [:tuple
+      [:enum :add-protection-space]
+      [:map
+       [:protection-space-uri [:re "https://.*"]]]]
+     [:tuple
       [:enum :set-representation-metadata]
       [:map
        [:content-type :string]]]
@@ -68,6 +72,13 @@
                        :juxt.site/methods (fnil assoc {})
                        (keyword (clojure.string/lower-case method))
                        {:juxt.site/operation-uri operation-uri})])
+
+            :add-protection-space
+            (let [{:keys [protection-space-uri]} opts]
+              [:xtdb.api/put
+               (update doc
+                       :juxt.site/protection-space-uris (fnil conj #{})
+                       protection-space-uri)])
 
             :set-representation-metadata
             (let [{:keys [content-type]} opts]

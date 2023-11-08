@@ -56,6 +56,8 @@
   (assert (or (nil? resource-uri) (string? resource-uri)))
   (assert (or (nil? scope) (set? scope)))
 
+  (log/tracef "check-permissions: subject-uri is %s, which expands to %s" subject-uri (xt/entity db subject-uri))
+
   (let [rules (operation->rules db operation-uri)]
 
     (when-not (seq rules)
@@ -91,7 +93,7 @@
                      (xt/q db query subject-uri operation-uri resource-uri)))
               (catch Exception e
                 (throw (ex-info "Failed to query permissions" {:query query} e)))))]
-      
+
       {:juxt.site/permissions (or permissions [])
        :juxt.site/subject-uri subject-uri
        :juxt.site/operation-uri operation-uri
@@ -842,6 +844,8 @@
              (ex-info
               (format "Operation '%s' not found in db" operation-uri)
               {:operation-uri operation-uri})))
+
+        _ (log/tracef "subject-uri is %s, which expands to %s" subject-uri (xt/entity db subject-uri))
 
         permissions-result
         (check-permissions
