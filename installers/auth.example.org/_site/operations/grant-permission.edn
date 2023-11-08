@@ -41,7 +41,9 @@
    :juxt.site/transact
    {:juxt.site.sci/program
     #juxt.pprint
-    [[:xtdb.api/put *prepare*]]}
+    [[:xtdb.api/put *prepare*]
+     [:ring.response/status 201]
+     [:ring.response/headers {"location" (:xt/id *prepare*)}]]}
 
    :juxt.site/rules
    [

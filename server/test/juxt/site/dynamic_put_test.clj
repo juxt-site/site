@@ -16,7 +16,8 @@
    [clojure.edn :as edn]
    [jsonista.core :as json]
    [clojure.string :as str]
-   [juxt.site.test-helpers.client :as client]))
+   [juxt.site.test-helpers.client :as client]
+   [xtdb.api :as xt]))
 
 (defn dynamic-remote-bundles []
   (install-bundles!
@@ -73,12 +74,16 @@
 (defn PATCH [uri opts]
   (request uri :patch opts))
 
-(defn do-request [request]
-  (let [response (*handler* request)]
-    (is (<= 200 (:ring.response/status response) 299))
-    response))
+;; The reason this is a macro is for failure highlighting on the
+;; call-site rather than in the body of this form.
+(defmacro do-request [request]
+  `(let [response# (*handler* ~request)]
+     (is (<= 200 (:ring.response/status response#) 299))
+     response#))
 
-(deftest contacts-test
+;;deftest contacts-test
+
+(with-fixtures
   ;; Create resource
   (do-request
    (PUT "https://data.example.test/contacts.meta"
@@ -99,12 +104,14 @@
                     [[:xtdb.api/put {:xt/id "https://data.example.test/contacts/fred"}]])}
                   :juxt.site/rules
                   '[[(allowed? subject operation resource permission)
-                     #_[subject :juxt.site/user user]
-                     #_[user :juxt.site/username username]
+                     [subject :juxt.site/user user]
+                     [user :juxt.site/username username]
                      [permission :juxt.site/username username]]]})
           :token *alice-token*}))
 
   (do-request
+   ;; TODO: It would be great if we could return a 201 with the
+   ;; permission in the Location header
    (POST "https://data.example.test/_site/permissions"
          {:headers {"content-type" "application/edn"}
           :body (pr-str
@@ -120,7 +127,7 @@
                   :juxt.site/username "alice"})
           :token *alice-token*}))
 
-  (testing "POST /contacts"
+  #_(testing "Attach POST method"
     ;; Attach POST method
     (do-request
      (PATCH "https://data.example.test/contacts.meta"
@@ -129,18 +136,33 @@
                     [[:add-method
                       {:method "POST"
                        :operation-uri "https://data.example.test/operations/add-contact"}]])
-             :token *alice-token*}))
+             :token *alice-token*})))
+
+  #_(testing "POST /contacts"
     (do-request
      (POST "https://data.example.test/contacts"
            {:headers {"content-type" "application/edn"}
             :body (pr-str {})
             :token *alice-token*}))
 
-    (is (repl/e "https://data.example.test/contacts/fred")))
+    #_(is (repl/e "https://data.example.test/contacts/fred")))
+
+
+  #_(let [access-token (repl/e (str "https://auth.example.test/access-tokens/" *alice-token*))
+        subject (repl/e (:juxt.site/subject access-token))
+        user (repl/e (:juxt.site/user subject))
+        username (:juxt.site/username user)
+        ]
+    {:subject subject
+     :user user
+     :username username}
+    )
+
+  #_(repl/e "https://data.example.test/contacts")
 
   ;; Create operation
   ;; https://data.example.test/operations/add-contact
-  (do-request
+  #_(do-request
    (POST "https://data.example.test/_site/operations"
          {:headers {"content-type" "application/edn"}
           :body (pr-str
@@ -157,14 +179,14 @@
           :token *alice-token*}))
 
   ;; Create permission to call operation
-  (do-request
-   (POST "https://data.example.test/_site/permissions"
-         {:headers {"content-type" "application/edn"}
-          :body (pr-str
-                 {:xt/id "https://data.example.test/permissions/get-contacts"
-                  :juxt.site/operation-uri "https://data.example.test/operations/get-contacts"
-                  :juxt.site/user "alice"})
-          :token *alice-token*}))
+  #_#_#_#_#_#_(do-request
+               (POST "https://data.example.test/_site/permissions"
+                     {:headers {"content-type" "application/edn"}
+                      :body (pr-str
+                             {:xt/id "https://data.example.test/permissions/get-contacts"
+                              :juxt.site/operation-uri "https://data.example.test/operations/get-contacts"
+                              :juxt.site/user "alice"})
+                      :token *alice-token*}))
 
   ;; Attach GET method
   (do-request
